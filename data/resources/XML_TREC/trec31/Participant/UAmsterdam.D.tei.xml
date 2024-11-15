@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,153.53,114.89,304.92,15.15;1,201.28,136.80,209.43,15.15">Efficient Document Representations for Neural Text Ranking</title>
+				<funder>
+					<orgName type="full">Innovation Exchange Amsterdam (IXA POC</orgName>
+				</funder>
+				<funder ref="#_HwkBFHc">
+					<orgName type="full">Netherlands Organization for Scientific Research</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,222.29,170.76,55.27,10.48"><forename type="first">David</forename><surname>Rau</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Amsterdam</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,325.75,170.76,63.95,10.48"><forename type="first">Jaap</forename><surname>Kamps</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Amsterdam</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,153.53,114.89,304.92,15.15;1,201.28,136.80,209.43,15.15">Efficient Document Representations for Neural Text Ranking</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">646758A8E19DFB636D61539F010FAA34</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper documents the University of Amsterdam's participation in the TREC 2022 Deep Learning Track. We investigate novel document representation approaches capturing long documents within the input token length of neural rankers, and even in a fraction of the maximum input token length. Reducing input length of the document representation leads to dramatic gains in efficiency, as the self-attention over token length is the main culprit of the high gpu memory footprint, low query latency, and small batch sizes. Our experiments result in a number of findings. First, we observe dramatic gains in efficiency of the document representation approaches mindful of what tokens matter most for the neural rankers. Second, we observe the expected trade-off between effectiveness and efficiency, but also observe that document native approaches retrieve numerous documents missed by passage based approaches. This leads to a significant underestimation of their effectiveness, but also highlights their potential to retrieve documents not considered by traditional rankers or passage based neural rankers. There is great potential to study these in future editions of the track.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This paper documents the University of Amsterdam's participation in the TREC 2022 Deep Learning Track <ref type="bibr" coords="1,122.07,470.12,103.08,9.57" target="#b2">[Craswell et al., 2023]</ref>. The Deep Learning Track started at TREC 2019 and is in it's fourth year <ref type="bibr" coords="1,130.12,483.67,99.93,9.57" target="#b0">[Craswell et al., 2020</ref><ref type="bibr" coords="1,239.35,483.67,19.88,9.57" target="#b1">[Craswell et al., , 2021</ref><ref type="bibr" coords="1,268.53,483.67,23.23,9.57" target="#b1">[Craswell et al., , 2022]]</ref>. For the 2022 edition, we decided to focus on the document retrieval task and experimented with document representations approaches that aim to encode the content of full documents within the constraints of transformers for text ranking. We are interested in document native approaches rather than view document retrieval as an afterthought of effective passage retrieval approaches, and care as much about efficiency as about effectiveness. We experiment with approaches that allow for using transformers in one pass document re-ranking with cross-encoders, or alternatively full collection ranking with bi-encoders. We are particularly interested in very succinct, and hence very efficient, document representations still representing the entire document.</p><p>This paper is structured in the following way. Our simple experiment is described in Section 2 and the results of these experiments in Section 3. Finally, we end in Section 4 with a discussion of our main findings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Experimental Design</head><p>In this section we detail our document representation experiments.</p><p>Our main experimental parameter is to investigate more efficient document representations. We prioritize efficiency, and aim to achieve very significant efficiency gains by reducing the input length of neural document rankers. So our main aims are:</p><p>• Can we reduce document representations of full documents of any length to the sub-word input token length of neural rankers?</p><p>• Can we further reduce the input length of document representations aiming for a Paretooptimal trade-off between efficiency and effectiveness for a given maximal input length.</p><p>This approach is attractive as in case we can control the input length of the document representation in transformers for text ranking, this directly translates into significant efficiency gains due to the very costly self-attention mechanism. Recall, self-attention compares any input token against any other input token, on all transformer layers, leading to a quadratic complexity over input length. Document and query representation have been studied since the beginning of the field of information storage and retrieval, giving us many options to incorporate some of the deepest and most foundational results of the field into modern neural rankers. For example, one may consider the following approaches:</p><p>Truncate A poor man's approach to encoding long documents is simply to truncate the input at a particular k or at the maximum token length, e.g. at 512 sub-word tokens for BERT-based cross-encoders and bi-encoders (or 512 minus query and separator tokens).</p><p>tf.idf Given the relative effectiveness of bag-of-word neural rankers <ref type="bibr" coords="2,401.85,364.23,117.68,9.57">[Rau and Kamps, 2022b]</ref>, an alternative is to go back to representing documents by their word distributions, and select the first k words or sub-words based on their classic vector-space term weight, such as tf.idf <ref type="bibr" coords="2,99.27,404.87,73.27,9.57">[Robertson and</ref><ref type="bibr" coords="2,176.18,404.87,148.74,9.57">Spärck Jones, 1976, Salton and</ref><ref type="bibr" coords="2,328.55,404.87,67.62,9.57" target="#b12">Buckley, 1988]</ref>.</p><p>PLM Given that neural rankers are based on large pre-trained language models, we can also create top k term distributional document representations using language modeling framework approaches. For example, the clean and interpretable document representations of parsimonious language models <ref type="bibr" coords="2,179.97,468.04,98.63,9.57" target="#b6">[Hiemstra et al., 2004</ref><ref type="bibr" coords="2,278.60,468.04,101.59,9.57" target="#b8">, Kaptein et al., 2010]</ref>, or of "Luhnian" significant word language models <ref type="bibr" coords="2,181.45,481.59,120.59,9.57">[Dehghani et al., 2016a,b]</ref>.</p><p>In pre-submission experiments, the PLM approach seemed to retrieve the highest number of novel unjudged documents high in the rankings, and we decided to base our official submissions on PLM. After pre-computing a query independent parsimonious language model for each of the MS Marco documents, we submitted runs based on the top 514, 128, and 64 terms based on this model. Our official submissions are based on a cross-encoder (CE) reranking the track's provided top 100 BM25 run for the document retrieval re-ranking subtask. We consider this BM25 ranking as reference, and also report bi-encoder or full-rank results [based on Splade, <ref type="bibr" coords="2,442.55,585.40,91.30,9.57" target="#b5">Formal et al., 2022]</ref>.</p><p>In earlier years, we also analyzed recall aspects of various models and observed very high fractions of unjudged documents throughout the passage retrieval runs <ref type="bibr" coords="2,418.74,618.47,121.26,9.57;2,72.00,632.02,17.58,9.57" target="#b7">[Kamps et al., 2021, Rau and</ref><ref type="bibr" coords="2,93.45,632.02,68.88,9.57">Kamps, 2022a]</ref>. Although this warrants far more detailed analysis, this seems particularly to effect novel approaches that are no close variant of systems dominating the pools. Here, the fraction of unjudged is worryingly high, even for official submissions after the top 10 pooling cut-off. This may be partly due to the use of an active learning approach focusing on one particular stream of documents to be judged, rather than top-n pooling favoring original systems. Novel approaches not contributing to the pools also show large numbers of unjudged in the top 10's. One affected category is non-passage based document retrieval approaches, and we decided to submit such approaches in order to increase document retrieval pool diversity. As it turned out, none of our submissions contributed to the pool, due to the pragmatic decision to locate the limited available resources exclusively to the passage retrieval track. The negative impact of this is a significant underestimation of the performance of these submission. As a positive side effect, this turns our participation into a pooling and re-usability experiment for document retrieval, extending and adding to our previous analysis of the passage retrieval pooling and re-usability at TREC 2021 <ref type="bibr" coords="3,72.00,521.89,116.06,9.57">[Rau and Kamps, 2022a]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experimental Results</head><p>This section contains the main results of our experiments, focusing on the effectiveness and efficiency of shorter document representations, and an analysis of pool coverage of non-passage-based neural document retrieval approaches.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Effectiveness</head><p>Our main aim is not to improve effectiveness, but to improve efficiency (discussed in the next subsection). We have to accept that large gains in efficiency may come at some loss of effectiveness. So how much performance is retained?</p><p>Tables <ref type="table" coords="3,123.06,698.17,5.45,9.57" target="#tab_0">1</ref> and<ref type="table" coords="3,153.02,698.17,5.45,9.57" target="#tab_1">2</ref> show the effectiveness results for document retrieval task at TREC 2021 (based on the official, non-expanded, qrels) and TREC 2022. For 2021, where our systems didn't con-tribute to the document retrieval pools, we observe favorable performance in Table <ref type="table" coords="4,467.25,75.51,4.24,9.57" target="#tab_0">1</ref>. First, we are substantially outcompeting lexical systems. Second, our far more efficient approach is still close to expensive alternatives such as MaxP. Third, the most efficient approach can even out-compete MaxP for early rank cut-offs.</p><p>As our approach is radically different from the runs contributing to the document retrieval pools in 2021, we observed very high fractions of unjudged documents leading to an underestimation of performance. We particularly submitted these runs as official submissions in 2022, in order to get a better estimate of their performance. How did this turn out? For 2022, we see broadly the same qualitative pattern but also observe far lower performance throughout in Table <ref type="table" coords="4,450.15,183.90,4.24,9.57" target="#tab_1">2</ref>, for all document retrieval systems. The gap with passage-based MaxP seems larger, rather than smaller, where we hoped that our non-passage based document retrieval approaches could gain in performance as being official submissions for 2022.</p><p>Closer inspection reveals far higher fractions of unjudged documents in our official runs, far higher than observed in 2021 for post-submission experiments. This effect is even worse for the full-rank Splade run, evaluated over top-100 and top-1k in Table <ref type="table" coords="4,387.37,265.20,4.24,9.57" target="#tab_0">1</ref>. As it turns out no document retrieval submission was pooled, leading to a significant underestimation of performance for nonpassage based approaches like ours. We report a detailed analysis later in this section.</p><p>In this subsection, we reported the effectiveness of efficient document retrieval approaches. A positive outcome is that these approaches gain efficiency at only a minor loss of effectiveness, and still retain the improvement of neural rankers over classic lexical approaches. A less positive outcome is that document retrieval approaches haven't contributed to the pools, leading to an underestimation of their effectiveness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Efficiency</head><p>Our main aim was not to improve effectiveness, but to improve efficiency. Reducing the input to only a few expressive terms allows us to reduce the input length to a fraction of 512 tokens. As the self-attention in transformer-based models grows quadratically in memory with the input length, reducing the input leads to a dramatic decrease in GPU memory used. This can be exploited by fitting way larger batch sizes into GPU memory resulting in faster inference times.</p><p>To quantify efficiency we measure query latency. To this end, we measure the contextualization of 1 query-passage pair averaged over all batches and multiply it by the number of documents (100) to be re-ranked. We carry out all our efficiency experiments on a single NVIDIA V100 with 16GB memory with the maximum batch size in PyTorch inference mode. We determine the maximum batch size by increasing the batch size until we run out of GPU memory. We discard the first warm-up batch from the measurement. For the query latency, we measure the bare forward-pass and do not include pre-processing, or disk-access times. Additionally, we report the total run time indicating the actual run time including reading the input, tokenization, and forward-pass.</p><p>Table <ref type="table" coords="4,118.93,591.97,5.45,9.57" target="#tab_2">3</ref> shows the total time needed to contextualize all query-document pairs (50,000) within the TREC Deep Learning Track 2022 re-ranking task. Additionally, we report query latency, indicating the GPU time that is needed to answer a single query. Here we are utilizing the maximum batch size that can be fit onto the GPU in order to achieve the highest possible throughput. We compare PLM 64, 128, and 512 to MaxP. MaxP utilizes the same passage model applying a sliding window of 512 tokens (with an overlap of 256 tokens) over the entire document to capture the context of the entire document. We limit the total number of tokens processed per document to 8,192 tokens to make inference feasible. Therefore, our time measurements of MaxP are even an underestimate of the true cost when applied to the entire document. We observe drastic gains in efficiency for query latency thus in total run time. Compared to MaxP reducing documents to 512 tokens (PLM 512) we are able to reduce the Query Latency by an order of magnitude from 44.49 ms to 4.26 ms. For an even stronger reduction of the documents to 64 tokens we are able to bring Query Latency down to 0.35 ms. Note that PLM with 64 tokens performs best in terms of P@30 while being the most efficient variant. As expected MaxP outperforms all PLM variants. MaxP performs around 10% better than PLM 64, while taking about 2h 27m 39s in total to run versus 1m 38s for PLM 64 demonstrating that a reduction of documents to only meaningful terms can lead to a meaningful efficiency gain while maintaining strong performance.</p><p>In this subsection, we reported the efficiency of efficient document retrieval approaches reducing full documents to a fraction of their tokens. We observed very dramatic gains in efficiency resulting in a very favorable trade-off between effectiveness and efficiency. And all of that while only using more efficient document representations as input for the exact same cross-encoder model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Analysis</head><p>In this rest of this section, we provide a deeper analysis of the recall base and pool coverage of the document retrieval qrels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">Relevance Judgments</head><p>To provide context, we first give some details about the document retrieval judgments in 2019-2022. The distribution of judgments is shown in Table <ref type="table" coords="5,303.07,670.54,4.24,9.57" target="#tab_3">4</ref>. The bottom two lines reflect the initial inferred qrels (without duplicates) and the final inferred qrels with duplicates retained.</p><p>For the initial 2022 qrels, where duplicate passages were removed, we saw that 55% of the judgments is non-relevant, and hence 45% of the judged passages has some relevance, whereas 20% of the judgments is 'Highly Relevant' or 'Perfect'. These fractions are similar to the 2021 expanded queries, which may come as no surprise as the organizers decided to following a pooling approach based on the analysis and further judgments obtained after the TREC 2021 track was completed.</p><p>For the final 2022 qrels, inferred from passage level qrels which includes all duplicates in the corpus, we see a considerable shift in the distribution document judgments. There are almost no additional 'Perfect' duplicates added (1,339 vs. 1,396) but massive numbers of 'Highly Relevant' (2,790 vs. 44,255) and 'Relevant' (5,023 vs. 29,016) duplicates are added. The massive increase in number of judgments in the final qrels (from 20,452 to 369,638 judgments over the 76 topics) raises various concerns on the impact of duplicates on the resulting evaluation. These effects are not affecting all topics equally, which helps mitigate the issue for the overall scores although increase per-topic variation.</p><p>However, when we look beyond the effects of duplicates, the original deduplicated 2022 qrels exhibited a similar relevance label distribution as the 2021 expanded qrels. On the one hand, this is a positive outcome: the distribution of labels doesn't exhibit the high fraction of 'relevant' of the official judgments in 2021, indicating a more complete recall base. On the other hand, the document retrieval judgments are 'inferred' from the passage level pooled runs and passage level assessments, making it far from guaranteed that this positive outcome translates to the document retrieval task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Pooling Effects</head><p>In order to study the effect of pool inclusion, or lack thereof, let us first analyze the expected number of unjudged documents for pooled runs. Table <ref type="table" coords="6,296.92,571.62,5.45,9.57" target="#tab_4">5</ref> shows the pool coverage of the officially provided BM-25 run in 2021, used by all participants submitting re-rank submissions to the document retrieval track. In 2021, this run was indeed pooled, resulting in 0% unjudged at rank 10. This percentage increases to 33% at rank 50, and 46% of the official set to rerank in the track. With more assessment resources used in the "expanded" qrels, these fractions are lowered to 23% at rank 50, and 34% at rank 100. For the expanded qrels, there is also a decrease in the fraction of relevant over judged, going down from 75% to 62%-generally a positive signal of making progress in covering the entire recall base. Although not completely judged, this results in a fair fraction of the BM25 run being judged in 2021, and consequently a reasonably fair evaluation of all rerank submissions.</p><p>Table <ref type="table" coords="6,119.86,707.11,5.45,9.57" target="#tab_5">6</ref> shows a similar analysis of the 2022 inferred document qrels. For the official BM25 run used in rerank submissions, we immediately see the effect of not pooling document retrieval submissions. We observe a far higher fraction of unjudged documents, up to 71% over the top 100, but already 44% of the top 10 making official rank based measures such as NDCG@10 a significant under-estimation of performance. We observe even higher fractions of non-passage based neural document retrieval approaches, with PLM 512 retrieving about 50% unjudged in the top 10, and the bi-encoder full-rank even 60%.</p><p>Our analysis leads to three general conclusions. First, official document retrieval submissions are underestimated with the 2022 qrels, and the coverage of 2022 official submissions is significantly lower than non-pooled runs in 2021. Second, there are always unjudged documents and no test collection has a complete recall base, but the pool bias is a cause of worry (privileging passagebased approaches over native-document approaches), as are high fractions of unjudged in the top of ranking (affecting not only recall-based measures but also early precision measures). Third, the high fraction of unjudged can also be interpreted as a positive observation, as it demonstrates that non-passage retrieval approaches are able to retrieve many documents missed by passagebased approaches. The fraction of relevant over judged is quite high with 62%-75%, indicating the potential to increase pool diversity and to overcome limitations of the passage based neural rankers dominating the pools.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusions</head><p>This paper documented our participation in the TREC 2022 Deep Learning Track, focusing on efficient document representation approaches for the document retrieval task. We care as much about efficiency as about effectiveness, and submitted only native, non-passage based, neural document ranking runs. Our main conclusions are the following.</p><p>First, we are able to achieve very favorable efficiency compared to passage-based document retrieval approaches, by only including the most salient terms in the document representations. This opens up novel options to scale neural models to far longer documents, think of books or other aggregates, without a loss of efficiency.</p><p>Second, we observe the expected trade-off between efficiency and effectiveness, where significant gains in efficiency can result in a moderate loss of effectiveness. In fact, by controlling the input length of the document representations, we have a handle to control the efficiency of the exact same neural ranker.</p><p>Third, the evaluation of document retrieval submissions is completely dominated by passage retrieval approaches, and our native (non-passage based) document retrieval runs are able to retrieve significant fractions of documents missed by passage retrieval systems. This points to the potential value of alternative native document retrieval approaches, and the importance to reflect those in the assessment pools. While this is in itself a positive observation it comes with the downside that our submissions cannot be fairly evaluated given the TREC provided qrels, and their effectiveness is significantly underestimated. Our general conclusions are that native document retrieval approaches are an attractive area of research, with large potential efficiency gains, and that evaluating their effectiveness requires a larger recall base with unbiased pooling. There is great potential to study these in future editions of the track.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,72.00,84.00,468.00,120.07"><head>Table 1 :</head><label>1</label><figDesc>Effectiveness on the NIST judgments of the TREC 2021 Deep Learning Document Task</figDesc><table coords="3,72.00,102.43,468.00,101.63"><row><cell>Ranker</cell><cell>MRR</cell><cell>Prec</cell><cell></cell><cell></cell><cell>NCDG</cell><cell>BPref MAP</cell></row><row><cell></cell><cell>5</cell><cell>10</cell><cell>30</cell><cell>5</cell><cell>10</cell><cell>30</cell></row><row><cell>BM25</cell><cell cols="6">0.8367 0.7053 0.6684 0.5561 0.5231 0.5116 0.4874 0.2784 0.2126</cell></row><row><cell>CE PLM 512</cell><cell cols="6">0.8425 0.7228 0.7035 0.5573 0.5316 0.5385 0.4946 0.2773 0.2128</cell></row><row><cell>CE PLM 128</cell><cell cols="6">0.8956 0.7789 0.7281 0.6006 0.6167 0.5888 0.5487 0.2824 0.2300</cell></row><row><cell>CE PLM 64</cell><cell cols="6">0.9324 0.8386 0.7456 0.6117 0.6722 0.6245 0.5672 0.2842 0.2354</cell></row><row><cell>CE MaxP</cell><cell cols="6">0.9620 0.8281 0.7860 0.6392 0.6668 0.6446 0.5871 0.2935 0.2453</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,72.00,232.72,468.00,168.95"><head>Table 2 :</head><label>2</label><figDesc>Effectiveness on the NIST judgments of the TREC 2022 Deep Learning Document Task</figDesc><table coords="3,72.00,251.16,468.00,134.21"><row><cell>Ranker</cell><cell>MRR</cell><cell>Prec</cell><cell></cell><cell></cell><cell>NCDG</cell><cell>BPref MAP</cell></row><row><cell></cell><cell>5</cell><cell>10</cell><cell>30</cell><cell>5</cell><cell>10</cell><cell>30</cell></row><row><cell>BM25</cell><cell cols="6">0.6514 0.4711 0.3855 0.2838 0.3411 0.2993 0.2528 0.1458 0.0801</cell></row><row><cell>CE PLM 512 ⋆</cell><cell cols="6">0.6371 0.4158 0.3671 0.2961 0.2928 0.2721 0.2512 0.1503 0.0816</cell></row><row><cell>CE PLM 128 ⋆</cell><cell cols="6">0.7070 0.4684 0.4329 0.3320 0.3581 0.3387 0.2916 0.1513 0.0905</cell></row><row><cell>CE PLM 64 ⋆</cell><cell cols="6">0.6665 0.4474 0.4184 0.3325 0.3424 0.3227 0.2853 0.1505 0.0909</cell></row><row><cell>CE MaxP</cell><cell cols="6">0.8389 0.6842 0.6355 0.4939 0.5223 0.4860 0.4203 0.1530 0.1360</cell></row><row><cell>Splade tf.idf 64</cell><cell cols="6">0.5262 0.3263 0.2816 0.1969 0.2210 0.2039 0.1749 0.1051 0.0476</cell></row><row><cell cols="7">Splade tf.idf 64 (1k) 0.5266 0.3263 0.2816 0.1969 0.2210 0.2039 0.1749 0.2191 0.0644</cell></row></table><note coords="3,72.00,390.14,4.23,6.99;3,80.37,392.10,96.60,9.57"><p>⋆ Official submissions.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,72.00,84.00,468.00,104.01"><head>Table 3 :</head><label>3</label><figDesc>Efficiency on the NIST judgments of the TREC Deep Learning Document Task 2022</figDesc><table coords="5,72.00,102.43,468.00,85.58"><row><cell>Ranker</cell><cell>Max. Batch Size</cell><cell>Total time</cell><cell>Query Latency</cell><cell>P@30</cell></row><row><cell>CE MaxP ⋆</cell><cell>256</cell><cell>2h 27m 39s</cell><cell>44.49 ms</cell><cell>0.4939</cell></row><row><cell>CE PLM 512</cell><cell>256</cell><cell>8m 27s</cell><cell>4.26 ms</cell><cell>0.2961</cell></row><row><cell>CE PLM 128</cell><cell>2,560</cell><cell>2m 30s</cell><cell>0.50 ms</cell><cell>0.3320</cell></row><row><cell>CE PLM 64</cell><cell>4,608</cell><cell>1m 38s</cell><cell>0.35 ms</cell><cell>0.3325</cell></row><row><cell cols="2">⋆ Sliding window over the document.</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,72.00,213.91,468.00,133.62"><head>Table 4 :</head><label>4</label><figDesc>Distribution of document judgments(TREC Deep Learning Track 2020-2022)    </figDesc><table coords="5,72.00,232.35,468.00,115.18"><row><cell>Year</cell><cell></cell><cell cols="2">Fraction</cell><cell></cell><cell></cell><cell>CCDF</cell><cell></cell><cell></cell></row><row><cell></cell><cell>0</cell><cell>1</cell><cell>2</cell><cell>3</cell><cell>≥ 0</cell><cell>≥ 1</cell><cell>≥ 2</cell><cell>≥ 3</cell></row><row><cell>2019</cell><cell>59.42</cell><cell>28.34</cell><cell>7.07</cell><cell>5.17</cell><cell>100.00</cell><cell>40.58</cell><cell>12.24</cell><cell>5.17</cell></row><row><cell>2020</cell><cell>80.58</cell><cell>13.05</cell><cell>3.46</cell><cell>2.91</cell><cell>100.00</cell><cell>19.42</cell><cell>6.38</cell><cell>2.91</cell></row><row><cell>2021</cell><cell>37.18</cell><cell>32.00</cell><cell>21.21</cell><cell>9.62</cell><cell>100.00</cell><cell>62.82</cell><cell>30.82</cell><cell>9.62</cell></row><row><cell>2021 (exp)</cell><cell>51.56</cell><cell>26.05</cell><cell>15.29</cell><cell>7.10</cell><cell>100.00</cell><cell>48.44</cell><cell>22.40</cell><cell>7.10</cell></row><row><cell>2022 (inf1)</cell><cell>55.25</cell><cell>24.56</cell><cell>13.64</cell><cell>6.55</cell><cell>100.00</cell><cell>44.75</cell><cell>20.19</cell><cell>6.55</cell></row><row><cell>2022 (inf2)</cell><cell>74.39</cell><cell>13.26</cell><cell>11.97</cell><cell>0.38</cell><cell>100.00</cell><cell>25.61</cell><cell>12.35</cell><cell>0.38</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="6,72.00,84.00,468.00,166.19"><head>Table 5 :</head><label>5</label><figDesc>Judged documents across ranks(TREC Deep Learning Track 2021)    </figDesc><table coords="6,317.20,102.43,222.80,28.41"><row><cell></cell><cell></cell><cell>Rank</cell><cell></cell><cell></cell></row><row><cell>1</cell><cell>5</cell><cell>10</cell><cell>50</cell><cell>100</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="7,72.00,84.00,468.00,404.89"><head>Table 6 :</head><label>6</label><figDesc>Judged documents across ranks(TREC Deep Learning Track 2022)    </figDesc><table coords="7,308.41,102.43,231.59,28.41"><row><cell></cell><cell></cell><cell>Rank</cell><cell></cell><cell></cell></row><row><cell>1</cell><cell>5</cell><cell>10</cell><cell>50</cell><cell>100</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><p>Acknowledgments We thank the track organizers for their amazing service and effort in making realistic benchmarks for neural ranking available. This research is funded in part by the <rs type="funder">Netherlands Organization for Scientific Research</rs> (<rs type="grantNumber">NWO CI # CISC.CC.016</rs>), and the <rs type="funder">Innovation Exchange Amsterdam (IXA POC</rs> grant). Views expressed in this paper are not necessarily shared or endorsed by those funding the research.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_HwkBFHc">
+					<idno type="grant-number">NWO CI # CISC.CC.016</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,72.00,551.21,468.01,9.57;8,82.91,564.76,457.09,9.57;8,82.91,578.31,457.09,9.87;8,82.91,592.65,129.03,9.09" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,424.33,551.21,115.67,9.57;8,82.91,564.76,119.79,9.57">Overview of the TREC 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/Overview.DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,231.38,564.76,308.62,9.57;8,82.91,578.31,200.64,9.57">TREC 2019: Proceedings of the Twenty-Eighth Text REtrieval Conference. NIST Special Publication 1250</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,72.00,605.41,468.00,9.57;8,82.91,618.96,457.09,9.57;8,82.91,632.51,457.09,9.87;8,82.91,646.84,20.21,9.09;8,72.00,659.61,468.00,9.57;8,82.91,673.16,457.09,9.57;8,82.91,686.71,441.97,9.87" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,330.64,605.41,209.36,9.57;8,82.91,618.96,22.75,9.57;8,342.75,659.61,197.25,9.57;8,82.91,673.16,22.75,9.57">Overview of the TREC 2020 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec30/papers/Overview-DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,126.51,618.96,413.49,9.57;8,82.91,632.51,79.88,9.57;8,132.53,673.16,333.51,9.57">TREC 2020: Proceedings of the Twenty-Ninth Text REtrieval Conference. NIST Special Publication 1266</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2022</date>
+		</imprint>
+	</monogr>
+	<note>TREC 2021: Proceedings of the Thirtieth Text REtrieval Conference</note>
+</biblStruct>
+
+<biblStruct coords="9,72.00,75.51,468.00,9.57;9,82.91,89.06,457.09,9.57;9,82.91,102.61,261.63,9.57" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="9,495.42,75.51,44.57,9.57;9,82.91,89.06,187.36,9.57">Overview of the TREC 2022 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,297.14,89.06,242.86,9.57;9,82.91,102.61,99.76,9.57">TREC 2022: Proceedings of the Thirty-First Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,116.16,468.01,9.57;9,82.91,129.71,457.09,9.57;9,82.91,143.25,457.09,9.57;9,82.91,156.80,376.38,9.87" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="9,412.21,116.16,127.80,9.57;9,82.91,129.71,105.65,9.57">Luhn revisited: Significant words language models</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Azarbonyad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Marx</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2983323.2983814</idno>
+		<ptr target="https://doi.org/10.1145/2983323.2983814" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,209.47,129.71,330.53,9.57;9,82.91,143.25,200.68,9.57">Proceedings of the 25th ACM International Conference on Information and Knowledge Management, CIKM 2016</title>
+		<meeting>the 25th ACM International Conference on Information and Knowledge Management, CIKM 2016<address><addrLine>Indianapolis, IN, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2016">October 24-28, 2016. 2016</date>
+			<biblScope unit="page" from="1301" to="1310" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,170.35,468.00,9.57;9,82.91,183.90,457.09,9.57;9,82.91,197.45,457.09,9.57;9,82.91,211.00,395.83,9.87" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="9,346.96,170.35,193.04,9.57;9,82.91,183.90,140.12,9.57">On horizontal and vertical separation in hierarchical text classification</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Azarbonyad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Marx</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2970398.2970408</idno>
+		<ptr target="https://doi.org/10.1145/2970398.2970408" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,245.59,183.90,294.42,9.57;9,82.91,197.45,172.61,9.57">Proceedings of the 2016 ACM on International Conference on the Theory of Information Retrieval</title>
+		<meeting>the 2016 ACM on International Conference on the Theory of Information Retrieval<address><addrLine>Newark, DE, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2016-09-12">2016. September 12-6, 2016. 2016</date>
+			<biblScope unit="page" from="185" to="194" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,224.55,468.00,9.57;9,82.91,238.10,457.10,9.57;9,82.91,251.65,457.09,9.57;9,82.91,265.20,457.09,9.87;9,82.91,279.53,43.12,9.09" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,371.90,224.55,168.10,9.57;9,82.91,238.10,270.30,9.57">From distillation to hard negative sampling: Making sparse neural IR models more effective</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Formal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lassance</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Piwowarski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Clinchant</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3477495.3531857</idno>
+		<ptr target="https://doi.org/10.1145/3477495.3531857" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,374.74,238.10,165.26,9.57;9,82.91,251.65,378.24,9.57">SIGIR &apos;22: The 45th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting><address><addrLine>Madrid, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2022">July 11-15, 2022. 2022</date>
+			<biblScope unit="page" from="2353" to="2359" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,292.30,468.00,9.57;9,82.91,305.84,457.09,9.57;9,82.91,319.39,457.09,9.57;9,82.91,332.94,360.02,9.87" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,315.11,292.30,224.89,9.57;9,82.91,305.84,37.96,9.57">Parsimonious language models for information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1008992.1009025</idno>
+		<ptr target="https://doi.org/10.1145/1008992.1009025" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,142.70,305.84,397.29,9.57;9,82.91,319.39,264.04,9.57">SIGIR 2004: Proceedings of the 27th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting><address><addrLine>Sheffield, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2004">July 25-29, 2004. 2004</date>
+			<biblScope unit="page" from="178" to="185" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,346.49,468.00,9.57;9,82.91,360.04,457.09,9.57;9,82.91,373.59,457.09,9.57;9,82.91,387.14,361.87,9.87" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,263.74,346.49,276.27,9.57;9,82.91,360.04,106.55,9.57">Impact of tokenization, pretraining task, and transformer depth on text ranking</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Rau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Kondylidis</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec29/papers/UAmsterdam.DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,217.51,360.04,322.49,9.57;9,82.91,373.59,19.86,9.57">The Twenty-Ninth Text REtrieval Conference Proceedings (TREC 2020</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">1266</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute for Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,400.69,468.00,9.57;9,82.91,414.24,457.09,9.57;9,82.91,427.79,457.09,9.57;9,82.91,441.34,457.09,9.87" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,281.28,400.69,258.73,9.57">How different are language models and word clouds?</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kaptein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-642-12275-0_48</idno>
+		<ptr target="https://doi.org/10.1007/978-3-642-12275-0_" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,96.82,414.24,438.05,9.57;9,277.62,427.79,52.63,9.57">Advances in Information Retrieval, 32nd European Conference on IR Research, ECIR 2010</title>
+		<title level="s" coord="9,412.17,427.79,127.84,9.57;9,82.91,441.34,33.39,9.57">Lecture Notes in Computer Science</title>
+		<meeting><address><addrLine>Milton Keynes, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2010">March 28-31, 2010. 2010</date>
+			<biblScope unit="volume">5993</biblScope>
+			<biblScope unit="page" from="556" to="568" />
+		</imprint>
+	</monogr>
+	<note>Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="9,92.57,455.67,4.83,9.09;9,72.00,468.43,468.00,9.57;9,82.91,481.98,457.09,9.57;9,82.91,495.53,457.09,9.87;9,82.91,509.87,301.34,9.09" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,190.67,468.43,225.44,9.57">Recall aspects of transformers for text ranking</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Rau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-642-12275-0_48</idno>
+		<ptr target="https://trec.nist.gov/pubs/trec30/papers/UAmsterdam-DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,165.70,481.98,324.33,9.57">The Thirtieth Text REtrieval Conference Proceedings (TREC 2021)</title>
+		<editor>
+			<persName><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Ellis</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute for Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,522.63,468.00,9.57;9,82.91,536.18,457.10,9.57;9,82.91,549.73,457.09,9.87;9,82.91,564.06,117.57,9.09" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,193.64,522.63,286.05,9.57">The role of complex NLP in transformers for text ranking</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Rau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3539813.3545144</idno>
+		<ptr target="https://doi.org/10.1145/3539813.3545144" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,508.02,522.63,31.98,9.57;9,82.91,536.18,452.52,9.57">ICTIR &apos;22: The 2022 ACM SIGIR International Conference on the Theory of Information Retrieval</title>
+		<meeting><address><addrLine>Madrid, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2022">July 11 -12, 2022. 2022</date>
+			<biblScope unit="page" from="153" to="160" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,576.83,468.00,9.57;9,82.91,590.38,349.74,9.87" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,257.78,576.83,170.22,9.57">Relevance weighting of search terms</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">Spärck</forename><surname>Jones</surname></persName>
+		</author>
+		<idno type="DOI">10.1002/asi.4630270302</idno>
+		<ptr target="https://doi.org/10.1002/asi.4630270302" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,437.80,576.83,98.03,9.57">J. Am. Soc. Inf. Sci</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="129" to="146" />
+			<date type="published" when="1976">1976</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,72.00,603.93,468.00,9.57;9,82.91,617.48,427.20,9.87" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,206.54,603.93,262.52,9.57">Term-weighting approaches in automatic text retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Salton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/0306-4573(88)90021-0</idno>
+		<ptr target="https://doi.org/10.1016/0306-4573(88)90021-0" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,480.21,603.93,59.79,9.57;9,82.91,617.48,32.97,9.57">Inf. Process. Manag</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="513" to="523" />
+			<date type="published" when="1988">1988</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

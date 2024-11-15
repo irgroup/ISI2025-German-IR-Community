@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,201.49,164.85,208.28,15.12">TREMA-UNH at TREC 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,223.33,197.33,93.96,10.48"><forename type="first">Sumanta</forename><surname>Kashyapi</surname></persName>
+						</author>
+						<author role="corresp">
+							<persName coords="1,326.79,197.33,61.12,10.48"><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+							<email>dietz@cs.unh.edu</email>
+						</author>
+						<title level="a" type="main" coord="1,201.49,164.85,208.28,15.12">TREMA-UNH at TREC 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5A2B21E1811E0D65BE9DDBEE0523A50D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This notebook describes the submissions of team TREMA-UNH to the TREC Podcasts track. We participate in the summarization task of the track. We focus on combining extractive and generative summarization technique. The extractive model is used to detect salient parts of the input text and the generative model is used to generate summaries of only the selected segments.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This year, team TREMA-UNH from the University of New Hampshire, USA, participated in the summarization task of TREC Podcasts track. The task is to generate summaries of long-form audio transcripts from various podcast episodes, describing the central theme of the episode. Details of the task, motivation and dataset are described in the TREC Podcasts overview papers <ref type="bibr" coords="1,264.73,436.97,9.73,7.86" target="#b0">[1,</ref><ref type="bibr" coords="1,277.53,436.97,6.49,7.86" target="#b1">2]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>It has been shown that for short text snippets, Generative Adversarial Networks (GAN) are capable of producing summaries that are comparable to human performance. In our approach, each podcast transcript is first segmented into fixed size blocks. Then for each block, a recent implementation of GAN model <ref type="bibr" coords="1,288.73,531.67,9.73,7.86" target="#b2">[3]</ref> is used to generate a summary. It is observed that increasing the size of the input block degrades the readability and overall quality of the generated summaries. Hence, we kept the input block size relatively small, leading to high number of input blocks and their corresponding summaries per transcript. Our main contribution is to extract important segments from the podcast transcript that captures salient topics of the episode. We generate summaries of only those segments to construct the final summary.</p><p>Our overarching summarization approach consists of three steps as follows:</p><p>• Step 1. To extract the salient segments from a transcript, we train a model to generate a single topical embedding out of all input segments, that captures all salient topics across the segments. Precisely, the model takes the topical embeddings of all input segments and generates a single embedding vector capturing salient topic information. We envision the generated topic vector as the representation of the summary in the latent embedding space.</p><p>• Step 2. Then the input segments are ranked according to the similarity between it's own topical embedding vector and the generated salient topic vector.</p><p>• Step 3. From the ranking, we pick top k segments, generate summaries of each segment using the GAN model and concatenate all of them to obtain the final summary of the transcript.</p><p>This steps are depicted in Figure <ref type="figure" coords="2,308.76,486.47,3.58,7.86" target="#fig_0">1</ref>. Following section describes the first step of generating salient topic vector in detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Salient topic vector generation</head><p>We train a model that given a collection of text segments, emits a single topic vector, representing the summary of the input segments. We represent each text segment as a fixed-length vector using Sentence-BERT embedding <ref type="bibr" coords="2,204.29,584.51,9.22,7.86" target="#b3">[4]</ref>. Hence, the model learns to generate the topic vectors in the same embedding space. As the training dataset, we use the benchmarkY1 train split of TREC CAR year 1 dataset <ref type="bibr" coords="2,343.48,606.43,9.22,7.86" target="#b4">[5]</ref>. The ground truth in the dataset specifies relevant Wikipedia passages for different sections of Wikipedia articles. We leverage this hierarchical information into constructing our training samples. Figure <ref type="figure" coords="2,320.27,639.30,4.61,7.86" target="#fig_1">2</ref> depicts the process of training data generation. More specifically, given relevant passages for a section, we try to predict a summary vector that is close to the Sentence-BERT </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>For our experiments, we consider the first 10000 words of each episode to generate our summary. We split these episode texts of 10000 words into n segments of equal lengths ( 10000 n words each). Each of these segments are ranked using our summary vector generation model described earlier.</p><p>From this ranking, we pick the top k segments and generate summary text using a GAN model of maximum s words. These generated summary lines are concateneated to obtain our final summary. We experiment with four variations of our model based on different choice of n, k, s. These variations are described in Table <ref type="table" coords="3,293.24,652.32,3.58,7.86">1</ref>.</p><p>The summaries are evaluated qualitatively by the NIST assessors which </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>We present a supervised model that leverages the generative power of a recent implementation of GAN model to produce summaries of large podcast audio transcripts. Instead of using the large transcript text as the input to the GAN model, we generate summaries of only the salient parts of the transcript. We train a supervised extractive model to select salient text segments. Our results show that smaller segment size improves the summarization quality.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,133.77,318.82,343.71,8.74;2,133.77,330.77,31.88,8.74;2,150.96,124.80,309.34,182.49"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Overarching approach of podcast summary generation of a single episode</figDesc><graphic coords="2,150.96,124.80,309.34,182.49" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,133.77,321.66,343.71,8.74;3,133.77,333.62,56.51,8.74;3,150.96,124.80,309.34,185.34"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Generating training data from a hierarchical outline of TREC CAR ground truth</figDesc><graphic coords="3,150.96,124.80,309.34,185.34" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,158.68,126.37,293.90,183.63"><head>Table 2 :</head><label>2</label><figDesc>Average ROUGE-L, precision and F1 scores</figDesc><table coords="4,158.68,151.85,293.90,158.14"><row><cell>Method</cell><cell cols="3">Average ROUGE-L Precision F1</cell></row><row><cell cols="2">unhtrema1 0.061</cell><cell>0.156</cell><cell>0.076</cell></row><row><cell cols="2">unhtrema2 0.089</cell><cell>0.131</cell><cell>0.087</cell></row><row><cell cols="2">unhtrema3 0.134</cell><cell>0.089</cell><cell>0.091</cell></row><row><cell cols="2">unhtrema4 0.179</cell><cell>0.069</cell><cell>0.085</cell></row><row><cell cols="4">is the official evaluation for the task. According to the qualitative as-</cell></row><row><cell cols="4">sessment, unhtrema4 generates the best summaries. This suggest that,</cell></row><row><cell cols="4">smaller segment size leads to improved summarization quality. Also, it is</cell></row><row><cell cols="4">evaluated in terms of ROUGE-L metric based on the similarity between</cell></row><row><cell cols="4">the generated summaries and a episode description text. The average</cell></row><row><cell cols="4">ROUGE-L scores along with precision and F1 scores are reported in Ta-</cell></row><row><cell>ble 2.</cell><cell></cell><cell></cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,173.39,470.45,279.19,7.86;4,173.38,481.41,279.19,7.86;4,173.38,492.37,279.19,7.86;4,173.38,503.33,279.19,7.86;4,173.38,514.29,88.25,7.86" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Rezapour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Bonab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">J F</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jones</surname></persName>
+		</author>
+		<title level="m" coord="4,177.74,492.37,219.64,7.86;4,419.40,492.37,33.18,7.86;4,173.38,503.33,279.19,7.86;4,173.38,514.29,58.96,7.86">Proceedings of the 28th International Conference on Computational Linguistics (COLING)</title>
+		<meeting>the 28th International Conference on Computational Linguistics (COLING)</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note>100,000 Podcasts: A Spoken English Document Corpus</note>
+</biblStruct>
+
+<biblStruct coords="4,173.39,529.23,279.18,7.86;4,173.38,540.19,279.19,7.86;4,173.38,551.15,69.37,7.86" xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yu</surname></persName>
+		</author>
+		<idno>TREC 2020 Podcasts Track</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,173.39,566.09,279.19,7.86;4,173.38,577.05,279.19,7.86;4,173.38,588.01,132.38,7.86" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="4,300.76,566.09,151.82,7.86;4,173.38,577.05,242.39,7.86">Learning to encode text as humanreadable summaries using generative adversarial networks</title>
+		<author>
+			<persName coords=""><forename type="first">Y.-S</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H.-Y</forename><surname>Lee</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.02851</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,173.39,602.95,279.18,7.86;4,173.38,613.91,279.19,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="4,302.23,602.95,150.34,7.86;4,173.38,613.91,110.94,7.86">Sentence-bert: Sentence embeddings using siamese bert-networks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1908.10084</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,173.39,628.86,279.18,7.86;4,173.38,639.81,177.83,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="4,397.61,628.86,54.96,7.86;4,173.38,639.81,99.09,7.86">Trec complex answer retrieval overview</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Verma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Radlinski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,298.46,639.81,22.95,7.86">TREC</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

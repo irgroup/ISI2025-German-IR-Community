@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,111.22,84.23,390.07,15.44">ILPS at TREC 2019 Conversational Assistant Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,141.26,110.40,84.25,10.59"><forename type="first">Nikos</forename><surname>Voskarides</surname></persName>
+							<email>n.voskarides@uva.nl</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,413.18,110.40,32.86,10.59"><forename type="first">Dan</forename><surname>Li</surname></persName>
+							<email>d.li@uva.nl</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,143.89,167.99,77.58,10.59"><forename type="first">Andreas</forename><surname>Panteli</surname></persName>
+							<email>andreas.panteli@student.uva.nl</email>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,400.15,167.99,57.93,10.59"><forename type="first">Pengjie</forename><surname>Ren</surname></persName>
+							<email>p.ren@uva.nl</email>
+							<affiliation key="aff3">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,111.22,84.23,390.07,15.44">ILPS at TREC 2019 Conversational Assistant Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">94A3A8700B800CB6FE93D2DF51DCAFA1</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes the participation of the UvA.ILPS group at the TREC CAsT 2019 track. We propose a cascade architecture that consists of (i) a unsupervised initial retrieval step that uses on a query expansion model that extracts words from the previous turns that are relevant to the current turn, and (ii) a supervised neural ranker that is based on BERT. We use transfer learning to pretrain our neural ranker with a single-turn passage ranking dataset (MS MARCO) and a multi-turn passage ranking dataset that we induced from a dataset originally proposed for a different task (QuAC). Official results show that our best run outperforms the median run by 25.6% in terms of NDCG@5 and 26.4% in terms of NDCG@1000.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Conversational AI has recently received a lot of attention in both the IR and NLP communities <ref type="bibr" coords="1,147.51,399.14,9.40,7.94" target="#b6">[7]</ref>. The TREC Conversational Assistant track is one of the first steps towards building conversational search systems. This year's task is to perform passage ranking over a large collection in a conversational multi-turn setting, where the sequence of queries is predefined.</p><p>In our participation we focus on designing a ranking system particularly for this task, and on using transfer learning to transfer knowledge from different datasets to our task. Our ranking system follows a cascade architecture that consists of the initial retrieval step (Section 2.1) and the re-ranking step (Section 2.2). The former step relies on an unsupervised ranker and a query expansion model, while the latter relies on a neural supervised ranker. Since our training dataset is relatively small, we employ transfer learning to pretrain the supervised ranker (Section 2.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">METHODOLOGY</head><p>We follow a cascade architecture, which is standard in document and passage retrieval especially for large collections <ref type="bibr" coords="1,246.82,588.67,13.38,7.94" target="#b14">[15]</ref>. Given a question at the i-th turn, q i , together with the previous questions [q 1 , ...q i-1 ], in the initial retrieval step, we produce a ranked list of passages and keep the top-2000. Then, in the reranking step, we rerank the set of passages obtained by the first step and keep the top-1000.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Unsupervised initial retrieval</head><p>The goal of the initial retrieval step in our cascade architecture is to achieve high recall up to a reasonable depth before using a more sophisticated reranking module. This is especially challenging in How much longer does it take to become a doctor after being an NP? our setting, where queries are sequential and the "interpretation" of the current turn query depends on queries of the previous turns. This can be due to phenomena such as the usage of pronouns (see turn #2 in Table <ref type="table" coords="1,377.20,438.99,3.36,7.94" target="#tab_0">1</ref>) and the omission of contextual information (see turn #3 in Table <ref type="table" coords="1,378.78,449.94,2.98,7.94" target="#tab_0">1</ref>). Furthermore, low recall in the initial retrieval step is an important bottleneck for applying neural IR models in practice <ref type="bibr" coords="1,350.42,471.86,9.52,7.94" target="#b7">[8]</ref>. Therefore, before diving into neural IR models, we focus on building a strong unsupervised model for initial retrieval for this task. We use standard query likelihood with dirichlet smoothing and RM3 relevance feedback as the ranking model <ref type="bibr" coords="1,488.94,515.70,9.35,7.94" target="#b0">[1,</ref><ref type="bibr" coords="1,500.52,515.70,10.32,7.94" target="#b16">17,</ref><ref type="bibr" coords="1,513.08,515.70,10.14,7.94" target="#b17">18]</ref>. In order to build a more self-contained representation of the current turn query, we propose a query expansion model to extract words that capture relevant information from the previous turns and add them to the query of the current turn. Our query expansion model builds on the following two assumptions:</p><p>(1) Word centrality: words that are central in the queries up the current turn capture the main theme of the conversation. (2) Word recency: words that appear in the most recent turns of the conversation are more relevant to the current turn.</p><p>In order to model word centrality (assumption 1), we first construct an undirected weighted word graph, where the nodes are the unique words of the queries up to current turn. We add edges for each pair of words in the graph and weigh them using the cosine similarity of their respective word2vec vectors <ref type="bibr" coords="1,450.62,679.57,13.23,7.94" target="#b11">[12]</ref>. We drop edges that have a weight &lt; 0.1. The centrality score c(w) of a word w is the sum of the weights of the edges that connect to that word.</p><p>In order to model word recency (assumption 2), we calculate the recency score r i (w) of a word w at turn i as follows:</p><formula xml:id="formula_0" coords="2,126.37,113.05,167.68,21.73">r i (w) = j ∈T (w ) exp -λ(i-j) ,<label>(1)</label></formula><p>where T (w) are the turns that word w appears and λ is a decay factor. The final score s(w) of a word w at turn i is calculated as a linear combination of the above scores:</p><formula xml:id="formula_1" coords="2,115.20,189.90,178.85,9.78">s(w) = α • c(w) + (1 -α) • r i (w),<label>(2)</label></formula><p>where α is a parameter that controls the relative importance of word centrality and recency. We add the top-k scoring words calculated using Equation ( <ref type="formula" coords="2,114.49,228.67,3.17,7.94" target="#formula_1">2</ref>) to the original query q i .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Supervised neural reranking</head><p>In this step we build a supervised neural ranker to re-rank the set of passages obtained using the previous step.</p><p>In contrast to the initial ranker which only uses the original q i and the expanded words to form the query, our neural ranker uses BERT to encode the all queries up to the current turn [q 1 , ...q i-1 , q i ] alongside with the passage p. We add a dropout layer and a linear layer l a on top of the CLS node in the last layer of the BERT model to produce a matching score <ref type="bibr" coords="2,159.67,340.87,13.36,7.94" target="#b10">[11]</ref>.</p><p>We combine the BERT matching score and the score obtained by the initial retrieval step (for which we perform min-max normalization per query <ref type="bibr" coords="2,119.89,373.74,14.04,7.94" target="#b16">[17]</ref>) to produce the final matching score using an output linear layer l b with a tanh activation function.</p><p>We train the neural ranker using pairwise ranking loss <ref type="bibr" coords="2,278.57,395.66,13.49,7.94" target="#b15">[16]</ref>. During training we sample as many negatives as positives per query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Transfer learning</head><p>The biggest challenge in using the neural ranker described above is that the training dataset provided is very small. The TREC 2019 CAsT training dataset consists of only 30 topics (269 queries in total), and not all topics have relevant passages for all turns. To address this challenge, we use transfer learning <ref type="bibr" coords="2,221.44,496.90,13.40,7.94" target="#b9">[10,</ref><ref type="bibr" coords="2,236.62,496.90,10.05,7.94" target="#b13">14]</ref>. We pretrain our models in the following ways: 2.3.1 Language model pretraining. We initialize the BERT parameters using a pretrained model that is trained on a large open domain corpus with a language modeling objective <ref type="bibr" coords="2,213.18,546.83,9.39,7.94" target="#b2">[3]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Single-turn passage ranking pretraining.</head><p>We use a subset of the MS MARCO passage ranking dataset <ref type="bibr" coords="2,202.50,574.85,14.61,7.94" target="#b12">[13]</ref> to pretrain the BERT parameters and the l a layer on single-turn questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.3">Multi-turn passage ranking pretraining.</head><p>Since there is no available large-scale dataset for multi-turn passage ranking, we adjust an existing dataset for this task. We use the QuAC dataset that was originally proposed for interactive question answering, where the relevant answers exist in a single Wikipedia section. We detail how we adjust this dataset for multi-turn passage ranking in Section 3.1.3. Using this dataset, we pretrain the BERT parameters, and the l a and l b layers.</p><p>Finally, we fine-tune the whole model on a subset of the training topics of the TREC CAsT training dataset. Washington Post (WP) <ref type="bibr" coords="2,401.88,393.02,10.46,7.94" target="#b8">[9]</ref> (passages from news articles). Note that in order to fine-tune our models we kept 5 of the training topics aside for development and used the remaining 8 for training.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">MS MARCO.</head><p>For single-turn passage ranking (see Section 2.3.2), we used the MS MARCO passage ranking dataset, because it uses the MS MARCO passage collection, which is a subset of the passage collection of TREC CAsT. We sampled 100K triplets from the training set and 200 queries from the development set due to time restrictions.</p><p>3.1.3 QuAC. The QuAC dataset <ref type="bibr" coords="2,438.51,504.23,10.47,7.94" target="#b1">[2]</ref> was originally constructed by asking two crowd workers (a student and a teacher) to perform an interactive dialog about a specific topic (e.g. history of the Saosin music band). The student asks questions about the topic, whereas the teacher answers by providing spans from a Wikipedia text about that topic. A single QuAC conversation, contains up to 12 queries about a single Wikipedia paragraph with answer spans from the same paragraph associated with each query. Table <ref type="table" coords="2,517.59,580.94,4.17,7.94">2</ref> shows an example dialog from the QuAC dataset.</p><p>We induce an artificial multi-turn passage ranking dataset from QuAC as follows. Recall that TREC CAR is one of the passage collections in TREC CAsT. Since QuAC and TREC CAR both use Wikipedia as the underlying collection, for each query, we automatically map the passage that contains the answer span to a passage in TREC CAR and thereby generate a positive query-passage pair for each query. We obtain the mapping from QuAC passages to TREC CAR passages by first creating a query that consists of the answer span and 65 characters left and right of the span to avoid mismatching. Second, we query the TREC CAR collection, and if NDCG@1000 median ilps-lm-rm3-dt ilps-bert-feat1 ilps-bert-feat2 ilps-bert-featq</p><p>Figure <ref type="figure" coords="3,81.64,363.03,3.45,7.70">1</ref>: Ranking performance in terms of NDCG@5 (left) and NDCG@1000 (right) per turn averaged over topics for our runs and the median.</p><p>the top-ranked passage contains the constructed query, we keep that passage as the positive passage for the query. Note that, in a QuAC dialogue, the first turn query is often not self-contained because it may depend on the Wikipedia article's title and section title. To address this, we substitute pronouns (he, she, her, him, it, they, them) and determiners (his, hers, its, theirs) in the first turn query with the Wikipedia page title. Also, we exclude dialog queries with a CANNOTANSWER label. In sum, we created additional 30,510 queries out of a total of 83,568 from the QuAC dataset; 21,168 queries were used for training and 9,342 queries for validation.</p><p>It is important to note that pretraining with this dataset can be limiting since its relevant passages originate from the TREC CAR collection only. Another limitation that might cause discrepancy is that a question in the QuAC dialogue may depend on not only the previous questions as in CAsT but also on the previous answers in the dialog, which is not the case for TREC CAsT. we plan to address these limitations in future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Runs</head><p>We submitted the following automatic runs: * ilps-lm-rm3-dt: Uses the initial retrieval model only (Section 2.1). * ilps-bert-feat1: Uses the full cascade architecture (Sections 2.1 and 2.2). We apply language modeling pretraining (Section 2.3.1), followed by and single-turn passage ranking pretraining (Section 2.3.2). Fine-tuning is done using the TREC CAsT dataset. * ilps-bert-feat2: Same as ilps-bert-feat1 with different hyperparameters. * ilps-bert-featq: Same as ilps-bert-feat1 with the difference that multi-turn passage ranking pretraining (Section 2.3.3) is applied after single-turn passage ranking pretraining and before fine-tuning.</p><p>For pretraining on both single-turn and multi-turn passage ranking, and for fine-tuning on CAsT, we use early stopping on the corresponding validation set based on the MRR score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Implementation</head><p>We index the collections and perform initial retrieval using the Python Anserini implementation <ref type="bibr" coords="3,443.14,560.89,9.51,7.94" target="#b4">[5]</ref>. We build on the implementation of BERT for ranking (VanillaBERT) in PyTorch provided by MacAvaney et al. <ref type="bibr" coords="3,395.79,582.81,13.39,7.94" target="#b10">[11]</ref>. For text tokenization we use the BERT tokenizer from the python library pytorch-pretrained-bert 0.6.2 <ref type="bibr" coords="3,547.06,593.76,9.37,7.94" target="#b5">[6]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Parameter configuration</head><p>Initial ranker. For QL with Dirichlet smoothing we set µ = 2500. For RM3, we use 10 feedback documents and 10 terms, and set the original query weight to 0.8. For the query expansion model, we set k = 10, α = 0.2 and λ = 0.1 based on preliminary experiments. Supervised neural ranker. The BERT weights were initialized by importing the weights from the bert-base-uncased model released by Hugging Face <ref type="bibr" coords="3,382.80,701.49,9.48,7.94" target="#b5">[6]</ref>. We use a learning rate of 3e-6 and dropout probability of 0.2 on the l a and l b layers. We keep the BERT weights fixed for the first 3 epochs and use a batch size of 2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RESULTS</head><p>Overall performance. Table <ref type="table" coords="4,162.30,133.50,4.09,7.94" target="#tab_1">3</ref> lists the results of our four runs on the official evaluation set. First, we observe that the three runs that use the full cascade architecture (ilps-bert-feat*) outperform the median run by a large margin on all metrics. ilps-bert-feat1 performs best in terms of NDCG and Recall while ilps-bert-featq performs best in terms of MAP and MRR. ilps-bert-featq's performance indicates that pretraining using an artificially induced multi-turn passage retrieval dataset is beneficial. Its MRR score (0.6569) indicates that, on average, it ranks a relevant passage at the first or the second position of the ranking. Furthermore, we observe that ilps-lm-rm3-dt, which only uses our recall-oriented initial retrieval step, outperforms the median run at lower cutoffs. Also, all of the four runs achieve relatively high recall@1000 (about two thirds of the relevant passages are retrieved).</p><p>Performance per turn. Figure <ref type="figure" coords="4,173.39,292.28,4.25,7.94">1</ref> shows the performance of our runs and the median per turn averaged over topics in terms of NDCG@5 and NDCG@1000. For both metrics, We observe that the performance of our ilps-bert-feat* runs are relatively robust across different turns. As expected, we observe a gradual decrease in performance towards later turns (except in turns 2 and 7, for which further investigation is needed). For NDCG@5 (left), we observe that the three ilps-bert-feat* runs outperform ilps-lm-rm3-dt and the median run up to turn 8. Note that for turns after turn 8 we only average over a small subset of the topics, hence the average might be less representative. We do not observe large differences in performance among the ilps-bert-feat* runs. For NDCG@1000 (right), we observe similar patterns with NDCG@5. Also, the recall-oriented ilps-lm-rm3-dt run outperforms the median run by a large margin in all turns except the second.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,317.66,85.73,240.54,7.70;2,317.96,96.69,241.85,7.70;2,317.96,107.64,241.85,7.70;2,317.96,118.60,240.24,7.70;2,317.61,129.56,75.57,7.70;2,323.78,155.72,55.45,7.70;2,331.80,170.97,4.17,7.94;2,353.96,170.97,76.33,7.94;2,331.80,181.93,4.17,7.94;2,353.96,181.93,109.02,7.94;2,331.80,192.89,4.17,7.94;2,353.96,192.89,102.29,7.94;2,329.24,203.85,8.16,7.94;2,353.96,203.85,8.16,7.94;2,323.78,218.45,228.23,8.97;2,323.78,228.13,228.23,10.09;2,323.78,239.09,228.40,10.09;2,323.78,250.05,228.23,10.09;2,317.96,285.92,139.09,9.37;2,317.96,301.61,66.29,9.37;2,317.96,316.24,240.24,8.04;2,317.96,327.27,240.25,7.94;2,317.96,338.22,240.48,7.94;2,317.62,349.18,240.82,7.94;2,317.96,360.14,240.25,7.94;2,317.96,371.10,241.30,7.94;2,317.96,382.06,240.25,7.94"><head>Table 2 :</head><label>2</label><figDesc>Excerpt from an example dialog taken from the QuAC training data. The paragraph originates from the section "History" of the Wikipedia article on "Saosin". We denote the answer spans of each query turn in the paragraph with a superscript.Wikipedia paragraph:The [original lineup for Saosin, consisting of Burchell, Shekoski, Kennedy and Green] turn1 , was [formed in the summer of 2003] turn2 . On June 17, the band released their [first commercial production, the EP Translating the Name] turn3 .3 EXPERIMENTAL SETUP 3.1 Datasets3.1.1 TREC CAsT. The TREC 2019 CAsT dataset consists of 30 training and 50 evaluation topics. Each topic consists of a sequence of queries. Out of 30 training topics, only 13 had at least one query with a relevant document. Out of the 50 evaluation topics, only 20 were assessed by expert annotations to an average depth of eight turns. The passage collection includes three passage corpora: MS MARCO [13] (Bing), TREC CAR [4] (Wikipedia passages) and</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,317.66,223.73,242.15,137.02"><head>Table 1 :</head><label>1</label><figDesc>Sequence of queries for the topic: "Career choice for Nursing and Physician's Assistant", TREC 2019 CAsT training data.</figDesc><table coords="1,323.78,271.81,230.13,88.95"><row><cell cols="2">Turn Query</cell></row><row><cell>1</cell><cell>What is a physician's assistant?</cell></row><row><cell>2</cell><cell>What are the educational requirements required to be-</cell></row><row><cell></cell><cell>come one?</cell></row><row><cell>3</cell><cell>What does it cost?</cell></row><row><cell>. . .</cell><cell>. . .</cell></row><row><cell>11</cell><cell>What is the fastest way to become a NP?</cell></row><row><cell>12</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,63.73,85.73,478.53,263.05"><head>Table 3 :</head><label>3</label><figDesc>Experimental results on the official evaluation topics.</figDesc><table coords="3,63.73,111.66,478.53,237.11"><row><cell cols="2">Run</cell><cell></cell><cell>NDCG@5</cell><cell></cell><cell>NDCG@1000</cell><cell>MAP@5</cell><cell>MAP@1000</cell><cell cols="2">Recall@1000</cell><cell>MRR</cell></row><row><cell cols="2">Median</cell><cell></cell><cell>0.2960</cell><cell></cell><cell>0.3840</cell><cell>0.0420</cell><cell>0.1740</cell><cell>-</cell><cell></cell><cell>-</cell></row><row><cell cols="2">ilps-lm-rm3-dt</cell><cell></cell><cell>0.2671</cell><cell></cell><cell>0.4253</cell><cell>0.0406</cell><cell>0.2307</cell><cell>0.6503</cell><cell></cell><cell>0.5309</cell></row><row><cell cols="2">ilps-bert-feat1</cell><cell></cell><cell>0.3719</cell><cell></cell><cell>0.4857</cell><cell>0.0532</cell><cell>0.2614</cell><cell>0.6808</cell><cell></cell><cell>0.6176</cell></row><row><cell cols="2">ilps-bert-feat2</cell><cell></cell><cell>0.3534</cell><cell></cell><cell>0.4739</cell><cell>0.0537</cell><cell>0.2576</cell><cell>0.6741</cell><cell></cell><cell>0.6060</cell></row><row><cell cols="2">ilps-bert-featq</cell><cell></cell><cell>0.3685</cell><cell></cell><cell>0.4801</cell><cell>0.0587</cell><cell>0.2636</cell><cell>0.6735</cell><cell></cell><cell>0.6569</cell></row><row><cell>NDCG@5</cell><cell>0.4 0.5 0.6</cell><cell></cell><cell>median ilps-lm-rm3-dt ilps-bert-featq ilps-bert-feat2 ilps-bert-feat1</cell><cell></cell><cell></cell><cell>0.5 0.6 0.7</cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>0.3</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.4</cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>0.2</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.3</cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>2</cell><cell>4</cell><cell>6 Turn</cell><cell>8</cell><cell>10</cell><cell>2</cell><cell>4</cell><cell>6 Turn</cell><cell>8</cell><cell>10</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="5">CONCLUSION</head><p>We presented our participation in the TREC 2019 CAsT track. Official results show that our best runs achieve competitive performance and outperform the median run by a large margin.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,69.23,535.42,224.81,6.18;4,69.23,543.39,224.99,6.18;4,69.23,550.68,142.01,6.97" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="4,208.08,543.39,86.15,6.18;4,69.23,551.36,28.44,6.18">UMass at TREC 2004: Novelty and HARD</title>
+		<author>
+			<persName coords=""><forename type="first">Nasreen</forename><surname>Abdul-Jaleel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leah</forename><surname>Larkey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaoyan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Courtney</forename><surname>Wade</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,118.37,550.68,63.48,6.97">Proceedings of TREC-13</title>
+		<meeting>TREC-13</meeting>
+		<imprint>
+			<publisher>Citeseer</publisher>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,559.33,224.99,6.18;4,69.23,567.30,225.88,6.18;4,69.23,574.60,221.70,6.97" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="4,176.01,567.30,116.02,6.18">QuAC : Question Answering in Context</title>
+		<author>
+			<persName coords=""><forename type="first">Eunsol</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">He</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohit</forename><surname>Iyyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><surname>Yatskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wen-Tau</forename><surname>Yih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yejin</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Percy</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1808.07036</idno>
+		<ptr target="http://arxiv.org/abs/1808.07036" />
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,583.24,225.64,6.18;4,69.23,591.21,225.89,6.18;4,69.23,598.51,221.70,6.97" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="4,277.34,583.24,17.53,6.18;4,69.23,591.21,222.70,6.18">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<ptr target="http://arxiv.org/abs/1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,607.15,224.81,6.18;4,69.23,614.45,133.83,6.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,277.06,607.15,16.98,6.18;4,69.23,615.12,104.11,6.18">TREC Complex Answer Retrieval Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Manisha</forename><surname>Verma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,156.04,607.15,97.79,6.18">Filip Radlinski, and Nick Craswell</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note>In TREC</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,622.42,225.63,6.97;4,69.01,631.06,175.70,6.18" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Emily</forename><surname>Wang</surname></persName>
+		</author>
+		<ptr target="https://github.com/castorini/anserini/blob/master/docs/pyserini.md" />
+		<title level="m" coord="4,157.05,622.42,114.48,6.97">Pyserini: Anserini Integration with Python</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,638.36,225.26,6.97;4,69.23,647.00,73.73,6.18" xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Hugging</forename><surname>Face</surname></persName>
+		</author>
+		<ptr target="https://github.com/huggingface/pytorch-pretrained-BERT" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,131.58,638.36,60.33,6.97">PyTorch-Transformers</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,654.97,225.99,6.18;4,69.06,662.27,225.75,6.97;4,69.07,670.91,24.81,6.18" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="4,218.40,654.97,76.82,6.18;4,69.06,662.94,39.19,6.18">Neural approaches to conversational AI</title>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michel</forename><surname>Galley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lihong</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,113.60,662.27,139.81,6.97">Foundations and Trends® in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="127" to="298" />
+			<date type="published" when="2019-02">2019. 2-3 (2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,678.88,224.81,6.18;4,68.90,686.85,225.15,6.18;4,69.23,694.15,225.58,6.97;4,69.07,702.79,142.38,6.18" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="4,197.30,686.85,96.74,6.18;4,69.23,694.82,92.33,6.18">A Deep Look into Neural Ranking Models for Information Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Jiafeng</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yixing</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Liang</forename><surname>Pang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Liu</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Qingyao</forename><surname>Ai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hamed</forename><surname>Zamani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chen</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xueqi</forename><surname>Cheng</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.ipm.2019.102067</idno>
+		<ptr target="https://doi.org/10.1016/j.ipm.2019.102067" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,166.75,694.15,107.32,6.97">Information Processing &amp; Management</title>
+		<imprint>
+			<biblScope unit="page">102067</biblScope>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,88.42,225.51,6.97;4,333.39,96.39,124.67,6.97" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dalton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<ptr target="http://www.treccast.ai/" />
+		<title level="m" coord="4,470.13,88.42,88.77,6.97;4,333.39,96.39,51.69,6.97">The TREC Conversational Assistance Track (CAsT)</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,105.04,224.99,6.18;4,333.18,112.33,226.09,6.97;4,333.39,120.98,54.17,6.18" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="4,477.16,105.04,81.22,6.18;4,333.18,113.01,51.92,6.18">Story Ending Prediction by Transferable BERT</title>
+		<author>
+			<persName coords=""><forename type="first">Zhongyang</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiao</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ting</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1905.07504</idno>
+		<ptr target="http://arxiv.org/abs/1905.07504" />
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,128.95,225.64,6.18;4,333.39,136.24,224.81,6.97;4,333.39,144.21,224.81,6.97;4,333.39,152.18,225.88,6.97;4,333.23,160.83,62.16,6.18" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="4,540.39,128.95,18.64,6.18;4,333.39,136.92,146.21,6.18">CEDR: Contextualized Embeddings for Document Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arman</forename><surname>Cohan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nazli</forename><surname>Goharian</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331317</idno>
+		<ptr target="https://doi.org/10.1145/3331184.3331317" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,492.17,136.24,66.04,6.97;4,333.39,144.21,224.81,6.97;4,333.39,152.18,54.08,6.97">Proceedings of the 42Nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR&apos;19)</title>
+		<meeting>the 42Nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR&apos;19)<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1101" to="1104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,168.80,225.88,6.18;4,333.39,176.77,224.81,6.18;4,333.39,184.06,224.81,6.97;4,333.39,192.03,225.63,6.97;4,333.17,200.68,129.54,6.18" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="4,333.39,176.77,214.78,6.18">Distributed Representations of Words and Phrases and Their Compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Dean</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=2999792.2999959" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,333.39,184.06,224.81,6.97;4,333.39,192.03,22.44,6.97">Proceedings of the 26th International Conference on Neural Information Processing Systems</title>
+		<meeting>the 26th International Conference on Neural Information Processing Systems<address><addrLine>USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,208.65,224.81,6.18;4,333.39,216.62,224.81,6.18;4,333.39,223.91,224.81,6.97;4,333.39,232.56,87.84,6.18" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="4,427.18,216.62,131.02,6.18;4,333.39,224.59,91.65,6.18">MS MARCO: A Human Generated MAchine Reading COmprehension Dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.09268</idno>
+		<ptr target="http://arxiv.org/abs/1611.09268" />
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,240.53,224.81,6.18;4,333.39,247.82,224.81,6.97;4,333.39,256.47,204.67,6.18" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="4,504.76,240.53,53.44,6.18;4,333.39,248.50,204.17,6.18">Sentence Encoders on STILTs: Supplementary Training on Intermediate Labeled-data Tasks</title>
+		<author>
+			<persName coords=""><forename type="first">Jason</forename><surname>Phang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thibault</forename><surname>Févry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Samuel</forename><forename type="middle">R</forename><surname>Bowman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1811.01088</idno>
+		<ptr target="http://arxiv.org/abs/1811.01088" />
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,264.44,224.81,6.18;4,333.39,271.73,224.81,6.97;4,333.39,279.70,225.58,6.97;4,333.39,288.35,202.69,6.18" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="4,482.30,264.44,75.91,6.18;4,333.39,272.41,81.16,6.18">A Cascade Ranking Model for Efficient Ranked Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Lidan</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donald</forename><surname>Metzler</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2009916.2009934</idno>
+		<ptr target="https://doi.org/10.1145/2009916.2009934" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,426.38,271.73,131.83,6.97;4,333.39,279.70,205.79,6.97">Proceedings of the 34th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;11)</title>
+		<meeting>the 34th International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;11)<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="105" to="114" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,296.32,225.88,6.18;4,333.39,304.29,225.99,6.18;4,333.39,311.58,225.58,6.97;4,333.39,320.23,225.58,6.18;4,333.23,328.20,225.65,6.18;4,333.39,336.17,122.88,6.18" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="4,333.39,304.29,225.99,6.18;4,333.39,312.26,8.18,6.18">COFI RANK -Maximum Margin Matrix Factorization for Collaborative Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Markus</forename><surname>Weimer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexandros</forename><surname>Karatzoglou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alex</forename><forename type="middle">J</forename><surname>Smola</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/3359-cofi-rank-maximum-margin-matrix-factorization-for-collaborative-ranking.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,361.01,311.58,152.37,6.97">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">J</forename><forename type="middle">C</forename><surname>Platt</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Koller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Y</forename><surname>Singer</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><forename type="middle">T</forename><surname>Roweis</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="1593" to="1600" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,344.14,225.02,6.18;4,333.39,351.43,224.81,6.97;4,333.39,360.08,87.84,6.18" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="4,474.43,344.14,83.99,6.18;4,333.39,352.11,89.22,6.18">Simple Applications of BERT for Ad Hoc Document Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Haotian</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1903.10972</idno>
+		<ptr target="http://arxiv.org/abs/1903.10972" />
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,368.05,224.94,6.18;4,333.39,375.34,224.81,6.97;4,333.39,383.31,224.81,6.97;4,333.39,391.28,225.63,6.97;4,333.17,399.93,90.51,6.18" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="4,456.56,368.05,101.78,6.18;4,333.39,376.02,164.22,6.18">A Study of Smoothing Methods for Language Models Applied to Ad Hoc Information Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Lafferty</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/383952.384019</idno>
+		<ptr target="https://doi.org/10.1145/383952.384019" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,509.49,375.34,48.71,6.97;4,333.39,383.31,224.81,6.97;4,333.39,391.28,97.53,6.97">Proceedings of the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;01)</title>
+		<meeting>the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;01)<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="334" to="342" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

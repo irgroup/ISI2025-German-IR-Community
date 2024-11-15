@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,140.67,115.96,334.02,12.62;1,233.03,133.89,149.30,12.62">Construction and Improvements of Bird Songs&apos; Classification System</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,250.70,172.03,47.60,8.74"><forename type="first">Haiwei</forename><surname>Wu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Sun Yat-sen University</orgName>
+								<address>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,325.46,172.03,34.73,8.74"><forename type="first">Ming</forename><surname>Li</surname></persName>
+							<email>ming.li369@dukekunshan.edu.cn</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Duke Kunshan University</orgName>
+								<address>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,140.67,115.96,334.02,12.62;1,233.03,133.89,149.30,12.62">Construction and Improvements of Bird Songs&apos; Classification System</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">F3E49592DCA1AF21647FAA95D1F8C729</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:53+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>sound detection</term>
+					<term>bird song</term>
+					<term>convolutional neural network</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Detection of bird species with bird songs is a challenging and meaningful task. Two scenarios are presented in BirdCLEF challenge this year, which are monophone and soundscape. We trained convolutional neural network with both spectrograms extracted from recordings and additionally provided metadata. Focusing on the soundscape situation, we applied bird event detection to reduce false alarm. Besides, we rescored the retrievals using masks which are designed for all species being identified. In addition, context information was also taken into consideration in our system. Our system was evaluated in BirdCLEF 2018 and we achieved an official mean average precision (MAP) score of 0.6548 for monophone classification without background bird songs and 0.5882 for identification with background bird songs. For soundscape, we achieved 0.1196 in classification mean average precision (C-MAP).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>BirdCLEF challenge is hosted by the LifeCLEF lab <ref type="bibr" coords="1,357.22,464.36,10.52,8.74" target="#b0">[1,</ref><ref type="bibr" coords="1,370.38,464.36,7.75,8.74" target="#b1">2,</ref><ref type="bibr" coords="1,380.77,464.36,7.01,8.74" target="#b2">3]</ref>. The aim of the competition is to train models which can classify different bird species by bird songs. Data of bird songs in this challenge are collected and displayed on www.xenocanto.org. This year, a training set of 36,496 bird songs' audios covering 1500 species is provided. As for evaluation, two scenarios are focused on <ref type="bibr" coords="1,426.72,512.18,9.96,8.74" target="#b2">[3]</ref>. The first scenario is the identification of bird species with given monophone recordings. Each of these recordings includes mainly one bird's song. For this scenario, 12,347 unlabeled bird songs' audios are provided for evaluation. The second scenario is the detection of species of soundscape recordings. Participants are required to find out the most likely species for each segment of 5 seconds. In the contest this year, a well-labeled soundscape's evaluation set of 20 minutes including 240 segments of 5 seconds and a test set of 6 hours including 4382 segments of 5 seconds are provided. In this note, construction of our basic system for the first scenario and improvements focusing on soundscape scenario will be introduced.</p><p>The training features of our model mainly consist of two parts. The original part is the frequency information of each recording and the additional part is the metadata <ref type="bibr" coords="1,197.03,656.12,10.52,8.74" target="#b3">[4]</ref> including latitude, longitude, elevation and time information.</p><p>For the original part, audios are converted into features on the frequency domain. Every 5 seconds' segment of recordings is turned into a time-frequency image with the resolution of 512 × 256 pixels <ref type="bibr" coords="2,348.25,142.90,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,363.40,142.90,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="2,375.79,142.90,7.01,8.74" target="#b5">6]</ref>. The Problem of audio classification is transformed into the problem of image classification where convolutional neural network performs very well <ref type="bibr" coords="2,349.39,166.81,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,363.44,166.81,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="2,374.73,166.81,7.75,8.74" target="#b5">6,</ref><ref type="bibr" coords="2,386.03,166.81,3.51,8.74" target="#b6">7</ref>]. In our system, the original spectrograms are fed into a multi-layer convolutional neural network. Additional metadata are provided in the given XML files. Before the last fully connected layer, the additional features are concatenated to the flattened convolutional neural network layer. Together, the concatenated features are then used to compute the remaining layers. Besides a regular multi-layers' convolutional neural network, we also tried out ResNet <ref type="bibr" coords="2,316.92,238.55,9.96,8.74" target="#b7">[8]</ref>.</p><p>Above is the method of our model training. Based on our model, we made some improvements focusing on the problem of soundscape in the test period. Firstly, a simple bird event detection <ref type="bibr" coords="2,298.57,274.62,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,312.36,274.62,7.75,8.74" target="#b8">9,</ref><ref type="bibr" coords="2,323.37,274.62,12.73,8.74" target="#b9">10]</ref> was applied before spectrograms being classified by our trained neural network. Secondly, we designed a mask for each kind of birds. Every time after getting the list of bird species from neural networks, we sorted it and rescored the top 3 or 5 species by our model after applying our masks. Thirdly, we considered the previous and next 5 seconds' information for current evaluation using a simple mechanism.</p><p>Pytorch was used for our model training and evaluation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Feature preparation</head><p>We transform the problem of bird songs' classification to image classification. Each 5 seconds' segment of given audios is turned into a spectrogram with the resolution of 512 × 256 pixels <ref type="bibr" coords="2,267.05,428.34,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,280.77,428.34,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="2,291.72,428.34,7.01,8.74" target="#b5">6]</ref>. A sliding window is used to segment the audios with an overlap of 4 seconds. For the reason that some spectrograms contain mostly noises, a simple approach introduced by <ref type="bibr" coords="2,364.33,452.25,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,378.05,452.25,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="2,389.00,452.25,7.75,8.74" target="#b5">6]</ref> is used to separate the spectrograms into training samples and noise samples. The noise samples here are also used for data augmentation latter. Data imbalance is a severe problem in the data. For bird species whose spectrograms are less than a given number, over-sampling <ref type="bibr" coords="2,237.27,500.08,15.50,8.74" target="#b10">[11]</ref> using augmented data is applied. Data augmentation is necessary for building robust models and handling data imbalance. Adding noises is a commonly used data augmentation method. We try to add two kinds of noises to spectrograms. For each epoch of training, 10 percent of data are added Gaussian noises and 10 percent are added noise samples.</p><p>Gaussian noises: Gaussian noises <ref type="bibr" coords="2,314.51,572.22,10.52,8.74" target="#b3">[4]</ref> are commonly used for augmentation. Adding Gaussian noises is a regular method for building robust classifying networks. Models are able to ignore this kind of noises after training. We add these noises with randomly chosen weights to our spectrograms and re-normalize the results.</p><p>Noise samples: Besides Gaussian noises, noise samples are also considered and added to our spectrograms. Noises of audios recorded by similar equipment under similar environments often share some common patterns. Adding similar noises will help improve the performance. During data processing, we have obtained many spectrograms which are thought to be noise samples <ref type="bibr" coords="3,426.97,130.95,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="3,441.15,130.95,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="3,452.57,130.95,7.01,8.74" target="#b5">6]</ref>. We randomly choose some of them and add them to current features with random weights. Re-normalization is also used after addition.</p><p>Researchers <ref type="bibr" coords="3,205.19,167.57,10.52,8.74" target="#b3">[4]</ref> noted that considering metadata will do good to the performance of the model. As for our metadata, we consider latitude, longitude, elevation, and the time of a recording. We simplify the method of metadata processing in <ref type="bibr" coords="3,180.11,203.43,9.96,8.74" target="#b3">[4]</ref>. From these provided metadata, we are able to obtain a vector of 7 elements <ref type="bibr" coords="3,183.80,215.39,9.96,8.74" target="#b3">[4]</ref>. Values of elements <ref type="bibr" coords="3,284.09,215.39,10.52,8.74" target="#b3">[4]</ref>  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Model construction</head><p>We use a relatively shallow architecture of convolutional neural network as our basic model <ref type="bibr" coords="3,209.70,366.93,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="3,224.41,366.93,7.01,8.74" target="#b5">6]</ref>. Finding the best architecture of network is very timeconsuming and we tend to find out some new methods to improve the performance in the test period. Our basic network consists of 6 convolutional layers and 3 fully connected layers. Max Pooling layers are added after each convolutional layer. Each convolutional and fully connected layer is followed by a batch normalization <ref type="bibr" coords="3,197.73,426.71,15.50,8.74" target="#b11">[12]</ref> layer to avoid parameters getting too extreme and fasten the process of convergence as well. Dropout <ref type="bibr" coords="3,316.21,438.66,15.50,8.74" target="#b12">[13]</ref> is also used after each fully connected layer to reduce the problem of overfitting. As for activation function, we select exponential linear units (ELU) <ref type="bibr" coords="3,296.24,462.57,14.61,8.74" target="#b13">[14]</ref>, which is thought to be a proper choice <ref type="bibr" coords="3,134.77,474.53,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="3,148.60,474.53,7.01,8.74" target="#b5">6]</ref>.</p><p>As the problem can be viewed as a multi-class identification problem, cross entropy loss is used here to be minimized. We use Adam <ref type="bibr" coords="3,387.40,499.19,15.50,8.74" target="#b14">[15]</ref> as our optimizer. Adam optimizer can be regarded as RMSprops <ref type="bibr" coords="3,354.06,511.15,15.50,8.74" target="#b15">[16]</ref> with momentum, which makes the best use of the first moment and the second moment of the gradient. Parameters can be updated more stably using it.</p><p>Learning rate decay technique <ref type="bibr" coords="3,288.35,547.77,15.50,8.74" target="#b16">[17]</ref> is used in our training process. At the very beginning, learning rate is set to 0.0001. After nearly 15 epochs of training, it is lowered to 0.00001 in order to optimize the updating. We stop the process when the accuracy converges.</p><p>Above we mention that metadata is also used for training in our system. Spectrograms are flattened to a vector of 512 elements by our convolutional neural network. We construct an additional fully connected layer for metadata <ref type="bibr" coords="3,134.77,632.21,9.96,8.74" target="#b3">[4]</ref>. Vectors of 7 elements are transformed to vectors of 100 elements through this layer. For the limitation of time, the output dimension of this layer is not further explored here. Later, we concatenate the 512 and 100 elements and feed them into the next fully connected layers. Finally, a softmax layer <ref type="bibr" coords="4,429.80,118.99,15.50,8.74" target="#b17">[18]</ref> of 1500 elements outputs the predicted probability for each bird species.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Improvements</head><p>In the competition of last year showed that the performances on soundscape still had a large room for improvement. The performance of model has a great impact on the final result. While for the limitation of hardware resources and time, we did not lay stress on the model training. Instead, we tried to find out methods that make the best use of our current models. Several methods we applied will be introduced below.</p><p>Bird event detection: False alarm of target species will influence the metric of C-MAP. Introduction of bird event detection <ref type="bibr" coords="4,342.07,303.42,15.50,8.74" target="#b18">[19]</ref> is able to reduce false alarm and improve the final performance. At the very beginning, we planned to use the soundscape evaluation set to train a neural network. While for the limitation of labeled data, performance was not good enough for use. At last, we directly used the method mentioned above <ref type="bibr" coords="4,287.60,351.24,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="4,301.45,351.24,7.75,8.74" target="#b4">5,</ref><ref type="bibr" coords="4,312.52,351.24,7.75,8.74" target="#b5">6]</ref> to separate bird songs and noises. If a spectrogram is regarded as noise, classification will not be done on it.</p><p>Masking and rescoring: For birds belonging to a specific species, the frequency of their songs always falls in a certain range. Outside this range of frequency, any other information including environmental sound or songs of other kinds of birds can be considered as noises. Inspired by this idea, we designed a mask for each kind of birds. We accumulated spectrograms of a species on the frequency axis and normalized it. The range of values under 0.6 would be masked. Here, we consider 0.6 a relatively proper threshold. The masks for all birds being classified can be viewed as band-pass filters <ref type="bibr" coords="4,372.58,461.84,9.96,8.74" target="#b6">[7]</ref>. According to the output for each 5 seconds' segment of the neural network, bird species will be sorted by their probabilities. Top 3 or 5 species will be selected and spectrogram will be applied the band-pass filters of these chosen species separately. After being masked, these 3 or 5 new spectrograms will be rescored by the neural network. Using this method, we can reduce the interference and obtain a more accurate result with our current model. In our experiment, we rescored top 3 retrievals. Illustration Fig. <ref type="figure" coords="4,204.20,545.52,4.40,8.74" target="#fig_0">1</ref> describes the whole process in detail.</p><p>Considering context: We found that, at most of the time, a bird song often lasts for a period of time more than 5 seconds. For a 5 seconds' segment in soundscape, the final result is strongly relevant to the result of previous and next 5 seconds' segments. This context information is considered in monophone scenario by overlapping while seldom considered in soundscape. Here, we simply added the outputs of the previous and next 5 seconds' segments to current output with a given weight which can be 0.2 or 0.3 and so on. Here, we set this value to 0.3 which we found that it resulted in a relatively better result in validation set. By this method, we took the context into consideration of classification. We totally trained 4 models for our classification task. Methods of data augmentation and addition of metadata are introduced above. Besides the basic convolutional neural network, we also trained a Resnet for further improving the final fused results.</p><p>1. ConvNet with Data augmentation without metadata addition; 2. ConvNet with Metadata addition without data augmentation; 3. ConvNet with Data augmentation and metadata addition; 4. Resnet with Data augmentation without metadata addition. This year, a labeled soundscape's evaluation set is given. We are able to test our improvemnts with it. Model 3 is used to test the effect of our methods. From table 1, we can see that masking and rescoring method as well as context considering can improve C-MAP.  In submissions of soundscape scenario, result of run3 is worse than run2 out of expectation. The reason is possibly that the weights of fusion are not properly set. Further exploration should be done on a better fusion method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion and future work</head><p>In this competition, there are two scenarios, monophone and soundscape. We trained models using the convolutional neural network with bird songs' spectrograms. Besides the regular model training, we made data augmentation to improve the robustness. We also added metadata to further improve the performance.</p><p>Focusing on soundscape scenario, we made some improvements based on our current models in the test period. Firstly, bird event detection was introduced to reduce false alarm. Secondly, masks were designed for each kind of birds. Rescoring is done on the top 3 or 5 of sorted bird species list after being masked. Thirdly, context is considered by adding outputs of previous and next 5 seconds' segments to current output.</p><p>Above methods still have many spaces for improvement. Bird event detection <ref type="bibr" coords="7,134.77,179.23,15.50,8.74" target="#b18">[19]</ref> can be done using neural network models if enough labeled data provided. Bandpass filters of birds can be more delicate. In our work, context information is considered using a relatively simple method. During the evaluation, we found that this kind of information can obviously improve the performance. Further investigations need to be done in this direction.</p><p>In addition, due to the lack of hardware resources and time, performances of our basic models still have room for improvement. Further, more model structures and fusion methods will be explored.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,230.05,277.07,155.26,7.89;5,134.77,115.83,345.84,146.46"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Masking and rescoring method</figDesc><graphic coords="5,134.77,115.83,345.84,146.46" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,134.77,500.15,345.83,164.71"><head>Table 1 .</head><label>1</label><figDesc>Evaluation of systems using different methods</figDesc><table coords="5,134.77,520.94,345.83,143.91"><row><cell cols="4">Basic Masking and rescoring Considering Context Both methods</cell></row><row><cell>0.16942</cell><cell>0.17346</cell><cell>0.23918</cell><cell>0.24508</cell></row><row><cell>5.1 Submissions</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">To fuse different systems, we added the outputs of different models and normal-</cell></row><row><cell cols="4">ized the final result. Our submissions' details are described below:</cell></row><row><cell cols="2">Monophone scenario:</cell><cell></cell><cell></cell></row><row><cell cols="3">DKU SMIIP run2: The final output of model 1;</cell><cell></cell></row><row><cell cols="3">DKU SMIIP run3: Fusion of model 2 and 3;</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,134.77,162.65,345.83,217.49"><head>Table 2 .</head><label>2</label><figDesc>Official scores for monophoneFrom table 2, we can find that with increasing of the fused systems, the performance is getting better. As expected, system of run5 has the highest scores on MAP without background species among our submissions.</figDesc><table coords="6,134.77,183.45,322.02,196.69"><row><cell cols="3">runs MAP (without background species) MAP (with background species)</cell></row><row><cell>run2</cell><cell>0.5896</cell><cell>0.5278</cell></row><row><cell>run3</cell><cell>0.6476</cell><cell>0.5814</cell></row><row><cell>run4</cell><cell>0.6541</cell><cell>0.5883</cell></row><row><cell>run5</cell><cell>0.6548</cell><cell>0.5882</cell></row><row><cell>Soundscape scenario:</cell><cell></cell><cell></cell></row><row><cell cols="2">DKU SMIIP run1: The output of model 3;</cell><cell></cell></row><row><cell cols="2">DKU SMIIP run2: Fusion of model 2 and 3;</cell><cell></cell></row><row><cell cols="2">DKU SMIIP run3: Fusion of model 1, 2 and 3;</cell><cell></cell></row><row><cell cols="2">DKU SMIIP run4: Fusion of model 1, 2, 3, 4.</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="6,202.62,403.04,210.12,72.90"><head>Table 3 .</head><label>3</label><figDesc>Official scores for soundscape</figDesc><table coords="6,202.62,423.84,210.12,52.10"><row><cell cols="2">runs C-MAP (classification mean average precision)</cell></row><row><cell>run1</cell><cell>0.1071</cell></row><row><cell>run2</cell><cell>0.1161</cell></row><row><cell>run3</cell><cell>0.1147</cell></row><row><cell>run4</cell><cell>0.1196</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,142.96,323.44,337.63,7.86;7,151.52,334.40,329.07,7.86;7,151.52,345.36,329.07,7.86;7,151.52,356.32,308.14,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,151.52,345.36,329.07,7.86;7,151.52,356.32,176.33,7.86">Overview of LifeCLEF 2018: a large-scale evaluation of species identification and recommendation algorithms in the era of AI</title>
+		<author>
+			<persName coords=""><forename type="first">Alexis</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christophe</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Hervé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierre</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Willem-Pier And</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Henning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,349.26,356.32,86.35,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,367.73,337.64,7.86;7,151.52,378.69,329.07,7.86;7,151.52,389.65,329.07,7.86;7,151.52,400.61,329.07,7.86;7,151.52,411.57,48.77,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,440.66,389.65,39.93,7.86;7,151.52,400.61,249.89,7.86">LifeCLEF 2017 lab overview: multimedia species identification challenges</title>
+		<author>
+			<persName coords=""><forename type="first">Alexis</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Concetto</forename><surname>Spampinato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierre</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Willem-Pier And</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jean-Christophe And</forename><surname>Lombardo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><surname>Planque</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Simone</forename><surname>Palazzo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Henning</forename><surname>Muller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,422.17,400.61,58.43,7.86;7,151.52,411.57,24.70,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,422.99,337.64,7.86;7,151.52,433.95,329.07,7.86;7,151.52,444.91,264.69,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,311.64,433.95,168.95,7.86;7,151.52,444.91,133.46,7.86">Overview of BirdCLEF 2018: monophone vs. soundscape bird identification</title>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Willem</forename><forename type="middle">-</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Pier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexis</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,305.81,444.91,86.34,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,456.32,337.63,7.86;7,151.52,467.28,329.07,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,397.90,456.32,82.69,7.86;7,151.52,467.28,201.99,7.86">A multi-modal deep neural network approach to bird-song identification</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Fazekas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Schindler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lidy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,372.67,467.28,84.69,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,478.70,337.64,7.86;7,151.52,489.66,329.07,7.86;7,151.52,500.62,124.49,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,379.90,478.70,100.69,7.86;7,151.52,489.66,324.48,7.86">Audio bird classification with inception-v4 extended with time and time-frequency attention mechanisms</title>
+		<author>
+			<persName coords=""><forename type="first">Antoine</forename><surname>Sevilla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bessonne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,165.60,500.62,86.34,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,512.04,337.64,7.86;7,151.52,523.00,329.07,7.86;7,151.52,533.95,165.77,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,221.64,523.00,258.95,7.86;7,151.52,533.95,33.97,7.86">Large-scale bird sound classification using convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wilhelm-Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Hussein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kowerko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ritter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eibl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,206.89,533.95,86.35,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,545.37,337.64,7.86;7,151.52,556.33,239.14,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,349.59,545.37,131.01,7.86;7,151.52,556.33,107.71,7.86">Recognizing bird species in audio files using transfer learning</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Fritzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Koitka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">M</forename><surname>Friedrich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,280.25,556.33,86.34,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,567.75,337.64,7.86;7,151.52,578.71,176.60,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,345.43,567.75,135.17,7.86;7,151.52,578.71,43.20,7.86">Deep residual learning for image recognition</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,215.80,578.71,88.27,7.86">Proceedings of CVPR</title>
+		<meeting>CVPR</meeting>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,590.13,337.63,7.86;7,151.52,601.09,308.68,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,382.25,590.13,98.34,7.86;7,151.52,601.09,177.07,7.86">Audio based bird species identification using deep learning techniques</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Sprengel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">K</forename><surname>Martin Jaggi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Hofmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,349.80,601.09,86.34,7.86">Proceedings of CLEF</title>
+		<meeting>CLEF</meeting>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,612.50,337.98,7.86;7,151.52,623.46,329.07,7.86;7,151.52,634.42,299.24,7.86" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,235.27,612.50,245.32,7.86;7,151.52,623.46,119.79,7.86">Bird song classification in field recordings: winning solution for NIPS4B 2013 competition</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lasseck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,291.53,623.46,189.07,7.86;7,151.52,634.42,93.77,7.86">Proc. of int. symp. Neural Information Scaled for Bioacoustics, sabiod</title>
+		<meeting>of int. symp. Neural Information Scaled for Bioacoustics, sabiod</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="176" to="181" />
+		</imprint>
+	</monogr>
+	<note>. org/nips4b, joint to NIPS, Nevada</note>
+</biblStruct>
+
+<biblStruct coords="7,142.62,645.84,337.97,7.86;7,151.52,656.80,184.47,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,304.74,645.84,175.85,7.86;7,151.52,656.80,20.09,7.86">The class imbalance problem: A systematic study</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Japkowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Stephen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,178.71,656.80,95.12,7.86">Intelligent data analysis</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="429" to="449" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,119.67,337.98,7.86;8,151.52,130.63,314.32,7.86" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="8,283.21,119.67,197.38,7.86;8,151.52,130.63,174.93,7.86">Batch normalization: Accelerating deep network training by reducing internal covariate shift</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ioffe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Szegedy</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1502.03167</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,141.59,337.97,7.86;8,151.52,152.55,329.07,7.86;8,151.52,163.51,229.87,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,183.22,152.55,274.31,7.86">Dropout: A simple way to prevent neural networks from overfitting</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,464.71,152.55,15.88,7.86;8,151.52,163.51,153.42,7.86">The Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1929" to="1958" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,174.47,337.97,7.86;8,151.52,185.43,329.07,7.86;8,151.52,196.39,71.70,7.86" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Clevert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Unterthiner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1511.07289</idno>
+		<title level="m" coord="8,414.33,174.47,66.26,7.86;8,151.52,185.43,260.07,7.86">Fast and accurate deep network learning by exponential linear units (elus)</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,207.34,337.98,7.86;8,151.52,218.30,128.33,7.86" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="8,291.64,207.34,184.86,7.86">Adam: A method for stochastic optimization</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,229.26,337.97,7.86;8,151.52,240.22,329.07,7.86;8,151.52,251.18,107.80,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="8,299.88,229.26,180.71,7.86;8,151.52,240.22,165.68,7.86">Lecture 6.5-rmsprop: Divide the gradient by a running average of its recent magnitude</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Tieleman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,324.66,240.22,155.94,7.86;8,151.52,251.18,54.78,7.86">COURSERA: Neural networks for machine learning</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="26" to="31" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,262.14,337.97,7.86;8,151.52,273.10,102.72,7.86" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="8,246.66,262.14,201.35,7.86">ADADELTA: an adaptive learning rate method</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Zeiler</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1212.5701</idno>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,284.06,337.98,7.86;8,151.52,295.02,329.07,7.86;8,151.52,305.98,24.58,7.86" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="8,341.94,284.06,138.66,7.86;8,151.52,295.02,46.69,7.86">Replicated softmax: an undirected topic model</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,222.36,295.02,211.70,7.86">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="1607" to="1614" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,316.93,337.97,7.86;8,151.52,327.89,329.07,7.86;8,151.52,338.85,223.30,7.86" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="8,385.91,316.93,94.68,7.86;8,151.52,327.89,94.51,7.86">Bird detection in audio: a survey and a challenge</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Stowell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wood</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Stylianou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,265.58,327.89,189.22,7.86;8,151.52,338.85,141.77,7.86">Machine Learning for Signal Processing (MLSP)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016">2016. 2016</date>
+			<biblScope unit="page" from="1" to="6" />
+		</imprint>
+	</monogr>
+	<note>IEEE 26th International Workshop</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

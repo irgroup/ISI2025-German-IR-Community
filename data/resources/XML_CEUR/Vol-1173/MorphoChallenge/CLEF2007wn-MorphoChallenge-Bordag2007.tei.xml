@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,107.98,148.86,387.03,15.15;1,186.66,170.78,229.68,15.15">Unsupervised and Knowledge-free Morpheme Segmentation and Analysis</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,270.42,204.67,62.16,8.74"><forename type="first">Stefan</forename><surname>Bordag</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Leipzig</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,107.98,148.86,387.03,15.15;1,186.66,170.78,229.68,15.15">Unsupervised and Knowledge-free Morpheme Segmentation and Analysis</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">484C6CC6550E41E291C0DD8D3EE498A6</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:14+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>successor variety</term>
+					<term>morpheme boundary detection</term>
+					<term>morpheme analysis</term>
+					<term>distributed similarity</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper presents a revised version of an unsupervised and knowledge-free morpheme boundary detection algorithm based on letter successor variety (LSV) and a trie classifier <ref type="bibr" coords="1,139.30,309.40,9.96,8.74" target="#b4">[5]</ref>. Additionally a morphemic analysis based on contextual similarity provides knowledge about relatedness of the found morphs. For the boundary detection the challenge of increasing recall of found morphs while retaining a high precision is tackled by adding a compound splitter, iterating the LSV analysis and dividing the trie classifier into two distinctly applied clasifiers. The result is a significantly improved overall performance and a decreased reliance on corpus size. Further possible improvements and analyses are discussed.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The algorithm presented in this paper<ref type="foot" coords="1,257.80,480.61,3.97,6.12" target="#foot_0">1</ref> is a revised version of the letter successor variety (LSV) based algorithm <ref type="bibr" coords="1,163.24,494.14,15.50,8.74" target="#b12">[13,</ref><ref type="bibr" coords="1,182.11,494.14,12.73,8.74" target="#b11">12,</ref><ref type="bibr" coords="1,198.21,494.14,12.73,8.74" target="#b9">10]</ref> described and implemented previously <ref type="bibr" coords="1,384.58,494.14,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="1,398.46,494.14,7.01,8.74" target="#b4">5]</ref>. The additional component of morpheme analysis is based on a prototypical implementation described in <ref type="bibr" coords="1,452.61,506.09,9.97,8.74" target="#b6">[7]</ref>.</p><p>The morpheme segmentation algorithm attempts to find morpheme boundaries within word forms. For a given input word form it results in a segmentation into morphs (as opposed to morphemes). It is based on the assumption that any grammatical function is expressed with only a small amount of different affixes. For example, plural is expressed with only five different morphs in German -en, -s, -e, -er (and zero).</p><p>In essence, the algorithm measures the amount of various letters occuring after a given substring with respect to some context of other words (in this case semantically similar ones), weighting that value according to bi-and trigram probabilities and comparing the resulting score to a threshold. Hence it is designed to handle concatenative morphology and it is likely to fail in finding morpheme boundaries in languages with other types of morphology. The algorithm is not rooted in any particular (linguistic) theory of morphology, especially since such theories tend to omit the fact that morphemes, as their basic units of interest, are not as simply observable as words. The knowledge about where a morph begins and ends is usually assumed to be given a priori.</p><p>The present implementation of the morpheme boundary detection consists of three distinct major parts: a compound splitter, a letter successor variety algorithm using contextual similarity of word forms and a trie based machine learning step. Apart from the improved modularity, this version differs from earlier implementations in several aspects. Due to the low performance of the LSV based method in splitting longer words, in a pre-processing step a simple compund splitter algorithm is applied. The LSV part is iterated to increase recall with only a moderate loss of precision. The machine learning part (using a trie) is split into two parts, one with high precision and a subsequent one with high recall.</p><p>According to an evaluation using the German Celex <ref type="bibr" coords="2,346.20,159.84,9.97,8.74" target="#b0">[1]</ref>, each change improves the overall performance slightly. Several possibilities of further improvements and analyses are discussed. Any of the major three parts (compound splitter, LSV algorithm, trie classifier) of the described algorithm can be replaced by or merged with a different algorithm, which should facilitate the combination of this algorithm with others.</p><p>The morpheme analysis part is based on statistical co-occurrence of the found morphs and subsequent contextual similarity and a basic rule learning algorithm. The rules are then used to find related morphs where groups of related morphs represent a morpheme.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Letter Successor Variety</head><p>LSV is a measure of the amount of different letters encountered after (or before) a certain substring, given a set of other strings as context. It is possible to use the entire word list as context for each string and its substrings <ref type="bibr" coords="2,204.52,322.20,15.50,8.74" target="#b11">[12,</ref><ref type="bibr" coords="2,224.77,322.20,11.63,8.74" target="#b9">10]</ref>. Alternatively, only a specific set of words may be used as context <ref type="bibr" coords="2,126.11,334.16,9.96,8.74" target="#b4">[5]</ref>, if a method for the selection of relevant words is included. In order to use LSV to find true morpheme boundaries, this set ideally consists only of relevant words that share at least one grammatical feature with the input word. For example, if the input word is hurried, then relevant words are past tense forms. It is obvious that in such a case the amount of different letters encountered before the substring -ed is maximized.</p><p>As has been shown earlier <ref type="bibr" coords="2,226.41,393.93,9.96,8.74" target="#b6">[7]</ref>, using the entire word list for morpheme boundary detection (global LSV) is inferior to using a simulation of semantic similarity (contextual similarity based on comparing statistically significant co-occurrences) of words to find the relevant ones (local LSV). However, due to the power-law distribution of word frequencies, most words occur very rarely. This makes it impossible to compute a proper representation of their usage and accordingly compare such words for usage similarity. Hence, local LSV based morpheme boundary detection might have a high precision, but is guaranteed to have a low recall.</p><p>Additionally, it is possible to first globally find a set of contextually similar word pairs and then analyze their differences <ref type="bibr" coords="2,221.73,489.58,14.61,8.74" target="#b17">[18]</ref>. Whereas this method also appears to have high precision, its recall is even lower than that of the LSV method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Trie classifier</head><p>In order to increase the recall of the local LSV method, a machine learning method was proposed. It is based on training a patricia compact trie (PCT) <ref type="bibr" coords="2,322.68,559.76,15.50,8.74" target="#b16">[17]</ref> with morpheme segmentations detected by the local LSV methods. The trained trie can then be used to recursively split all words into morphs, irrespective of their frequency.</p><p>Training the trie, as also depicted in Figure <ref type="figure" coords="2,295.83,595.63,3.88,8.74" target="#fig_0">1</ref>, is performed as follows: Each known morpheme boundary is reformulated as a rule: The entire word is the input string, whereas the shorter half of the word (according to the morpheme boundary) is the class to be learned. The trie learns by adding nodes that represent letters of the word to be learned along with increasing the count of the class for each letter (see Figure <ref type="figure" coords="2,268.10,643.45,3.88,8.74" target="#fig_0">1</ref>). If more than one morpheme boundary is given in a word, then training is applied recursively, peeling off the outmost and shortest morphs first (from right to left). Hence, the word mis-under-stand-ing results in the three training instances misunderstanding -ing, misunderstand mis-and understand -stand.</p><p>Two distinct tries, a forward-trie and a backward-trie are used to separately learn suffixes and affixes. The decision which trie to use for any given training instance is based on the length of the morphs. The longer half of the word probably contains the stem, whereas the shorter half is used as the class. In the case of the backward-trie, the word itself is reversed. Hence, in the  example above, the first newly learned node for misunderstanding -ing is the node containing g with the class -ing and a frequency of 1 in the backward-trie.</p><p>The classification is applied recursively as well: For an input string both the backward and forward tries are used to obtain the most probable class. This results up to two identified morpheme boundaries and hence three parts of the original words. Each part is the subject to the same mechanism recursively until no further classifications can be found.</p><p>In the Morpho Challenge 2005 <ref type="bibr" coords="3,243.81,431.90,14.61,8.74" target="#b14">[15]</ref>, both the local LSV and a subsequent application of the trie learning were submitted separately. As expected, the LSV method had a high precision, but extremely low recall (only 1.9% for Finnish, for example). The application of the trie increased recall, but also lowered precision. The precision decreased due to overgeneralization, which occurs mostly because the algorithm receives only positive examples. Even for a well-represented input word, the contextually similar words do not share grammatical information with it. Therefore, a high-frequent input word, for example matter, where the LSV algorithm did not find any morpheme boundaries, cannot be taken as an example of a word where -er is not a suffix.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Refined Implementation</head><p>The above mentioned weaknesses of the LSV + trie combination hold uniformly over all tested languages. The following modifications attempt to address some of these weaknesses, while trying to avoid language-specific rules or thresholds. The new version contains several changes: a recursive compound identifier, an iteration of the LSV algorithm and splitting the trie classification into two steps.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Identifying compounds</head><p>The LSV algorithm is good at finding affixes, because the set of contextually similar words often contains words with the same affix. However, words contextually similar to a compound do not necessarily contain other compounds, or compounds sharing parts with the input word. Particularly for semantically opaque compounds (i.e. the meaning of the parts is not related to the meaning of the compound) this is guaranteed to be the case. Therefore it is mostly impossible for the LSV algorithm to find morpheme boundaries between the parts of a compound, unless the compound contains a very productive part, such as teacher (Mathelehrer, Physiklehrer, ...).</p><p>Since only a small sample set is sufficient for the trie to correctly classify most compounds later, it is not necessary to find all compounds at this point. The following simple mechanism tests whether a certain partition of the input word at the position i is a possible correct compound division: Assuming testDiv(word, i) also returned the sum of the frequencies of all parts, it is then possible to take the one partition of the input word that maximizes the frequency of the participating parts. In other words, this mechanism recursively divides a long word into shorter units. If both shorter units exist, their length is at least 4 and frequency no lower than 20, then that partition is a candidate and the one with the highest overall score is taken as a (probably) valid partition of the compound. As Table <ref type="table" coords="4,201.68,371.05,4.98,8.74" target="#tab_2">1</ref> shows, the algorithm (as expected) has a high precision, but very low recall. In fact, it may have even lower recall for other languages. It also shows that training the trie classifier with this data directly indeed increases recall, but also incurs a rather strong loss in precision. It can be assumed that if compounding exists in a language, then this algorithm in combination with the trie classifier helps to find the parts of a large part of compounds. However, a more elaborate implementation is desirable at this point, especially since this algorithm is unable to partition any compounds containing linking elements.</p><formula xml:id="formula_0" coords="4,90.00,170.52,41.84,8.30">testDiv(</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Iterated LSV algorithm</head><p>For the LSV algorithm, the ideal case is achieved when all contextually similar words to a given input word carry the same grammatical information. However, due to data sparseness, compounds, overly high co-occurrence frequency and other factors, this ideal state is achieved only for few words. In many cases only a few contextually similar words actually share grammatical information with the input word. Running the LSV algorithm may thus find some morpheme boundaries correctly and not find many others. It is important that in tis setup (using contextually similar words as context) it nearly never finds from morpheme boundaries. Table <ref type="table" coords="4,406.11,560.79,4.98,8.74" target="#tab_2">1</ref> shows that the first run of the LSV algorithm found very few (but very precisely) morpheme boundaries. The boundaries that were found are based on the ideal cases where most contextually similar words indeed share grammatical information with the input word.</p><p>In order to facilitate the boundary identification for some of the remaining words, it is possible to iterate the LSV algorithm by incorporating knowledge produced in earlier iterations. A straightforward way of doing this is adding an additional factor to the computation of the LSV score: Given a substring -ly of the input word clearly, if the same substring was identified as a morph in any (or all) of the contextually similar words, then increase the LSV score. However, some very frequent words such as was or do-es are contextually similar to a large amount of words, which in turn means that these frequent words might influence the analyses of many other words adversely, such as James to Jam-es. Therefore the increase of the LSV score has to be normalized against the number of words with the same substring and the number of contextually similar words.</p><p>To recall from <ref type="bibr" coords="4,169.70,728.16,9.97,8.74" target="#b6">[7]</ref>, the formula to compute the left LSV score for the word w at the position i (the formula for the right score is likewise) is: </p><formula xml:id="formula_1" coords="5,211.49,245.81,301.51,9.65">lsv l (w, i) = plsv l (w, i) • f w l (w, i) • ib(w, i)<label>(1)</label></formula><p>This takes anomalies such as phonemes represented my several letters into account in a straightforward way. It assumes that plsv l (w, i) is the plain number of different letters found to the right of the substring between the beginning of the word w and the position i. f w l (w, i) is the bi-or trigram based frequency weight of the substring, whereas ib(w, i) is the inverse bigram weight. The previously acquired knowledge about morpheme boundaries can be used to compute prev l (w, i) as the number of previously identified morphs pf l (w, i) divided by 2 and multiplied with the quotient of the number of words containing the same substring subf l (w, i) and the size of the pruned list of contextually similar words prune:</p><formula xml:id="formula_2" coords="5,198.45,371.34,314.56,9.65">prev l (w, i) = pf l (w, i) • 0.5 • (subf l (w, i)/prune)<label>(2)</label></formula><p>To prevent the previous analyses from overriding the analysis of the present word, the new LSV score is computed as a multiplication of the LSV score with the previous knowledge, which is at most as high as lsv l (w, i) -1:</p><formula xml:id="formula_3" coords="5,184.08,437.09,328.92,9.65">lsv2 l (w, i) = min(lsv l (w, i) -1, prev l (w, i)) • lsv l (w, i)<label>(3)</label></formula><p>The same is reversely applied to the right LSV score lsv r (w, i) and both lsv l (w, i) and lsv r (w, i) are again summed to produce the final lsv2(w, i) and compare it to a threshold (for example 6) to obtain a decision whether the position i in the word w is a morpheme boundary.</p><p>For example, the analyses of the most similar words of clear-ly might result in the following morpheme boundaries: closely, white, great-ly, legal-ly, clear, linear-ly, really, weakly, .... Hence, for the position 5 (which corresponds to -ly) in clearly, the amount of previously identified morphs pf r (w, i) is 3. The number of such substrings subf l (w, i) is 5 and the amount of contextually similar words was 150. Hence, prev r (clearly, 5) = 3 • 0.5 • (5/150) = 0.05 and thus the absolute increase of the LSV score is only 0.05 in this case.</p><p>As Table <ref type="table" coords="5,147.68,562.62,4.98,8.74" target="#tab_2">1</ref> shows, there are, however, many cases where the influence was sufficiently strong for the resulting LSV score to reach the threshold. The table also shows that iterating the LSV algorithm increases Recall. However, it also incurs a certain Precision loss associated with words such as James that happen to be contextually similar to many other words where -es is really a suffix (and also was identified as such).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Split trie classification</head><p>Irrespective of its source, the obtained knowledge (i.e. from a simple compounds identifier, the original LSV algorithm, or the improved LSV algorithm) is used to train the trie classifier and then apply the trained classifier to identify more morpheme boundaries. In the original version the trie produces a most probable class for an input string simply by searching for the deepest node in the trie. Since no further checking was introduced, decisions were made without considering further context in many cases. For example, the LSV algorithm found the morpheme boundary drama-tic. When analyzing plas-tic, the trie classifier would first find t as the deepest matching node. Since that node has only a single class stored with the frequency count of would decide in favor of -tic being a morph with a maximal value of 1. In other words, no further context from the word is considered and the decision is made on grounds of only a single training instance. However, simply forbidding all decisions that do not take a certain amount of the word into account, would result in extremely low recall, such as 31% for German in Table <ref type="table" coords="6,459.93,279.88,3.88,8.74" target="#tab_2">1</ref>. The trie classification is thus split into two parts, a modified trie classifier and subsequently an original unmodified trie classifier. The modified trie classifier returns a decision only if all of the following conditions are met:</p><p>• The deepest matching node must be at least two letters deeper than the class to be returned.</p><p>• The matching node must have a minimal distance of three from the root of the trie.</p><p>• The total sum of the frequency of all classes stored in the deepest matching node must be larger than 5.</p><p>Table <ref type="table" coords="6,132.58,405.11,4.98,8.74" target="#tab_2">1</ref> shows that applying the modified trie classifier saveTrie increases recall by 8% while reducing precision by less than 2%. Table <ref type="table" coords="6,279.99,417.06,4.98,8.74" target="#tab_3">2</ref> additionally shows that the subsequent application of the original trie classifier further increases recall to a total of 66% while lowering precision to roughly 69%. The table also shows that applying the original trie classifier directly on any of the LSV iterations or even the compound identification algorithm results in lower overall performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Assessing the improvements</head><p>In order to measure the influence of the various improvements proposed, a number of experiments were run on the 3 million sentences German corpus available for the Morpho Challenge 2007. The results of each improvement were measured and are depicted in Table <ref type="table" coords="6,392.46,522.73,3.88,8.74" target="#tab_2">1</ref>. Additionally, the original trie classifier was applied to the results of each modification as depicted in Table <ref type="table" coords="6,445.47,534.69,3.88,8.74" target="#tab_3">2</ref>.</p><p>These evaluations show that ultimately, the local LSV implementation could be significantly improved. As such, it reaches similar performance as reported in <ref type="bibr" coords="6,393.97,558.60,10.52,8.74" target="#b4">[5]</ref> despite being run on a significantly smaller corpus (3 million sentences vs. 11 million). On the other hand, the relatively small improvements achieved indicate that a significantly better morpheme boundary detection may only be achieved by combining this method with an entirely different approach, possibly one combining the various hitherto described approaches.</p><p>The results of the Morpho Challenge 2007 also show that currently the MDL based approaches to morpheme boundary detection <ref type="bibr" coords="6,242.18,630.33,10.52,8.74" target="#b7">[8,</ref><ref type="bibr" coords="6,256.84,630.33,7.74,8.74" target="#b1">2]</ref> mostly outperform the LSV based approach, especially in the more important Information Retrieval task evaluation. The most porbable reason is that the LSV algorithm is good at detecting boundaries within high-frequent words, whereas the MDL based algorithms are better at detecting boundaries in longer words. Longer words tend to be less frequent and thus more important for Information Retrieval as opposed to the more frequent words.</p><p>A manual analysis of the resulting word list revealed several possible improvements:</p><p>• An algorithm specifically designed to identify compounds by means of finding both parts of a word as single words in the same sentence (reformulations) might help to find the linking elements that currently remain undetected, such as in mitglieds-laend-er.</p><p>• In a post-processing step, an algorithm based on affix signatures such as proposed by <ref type="bibr" coords="7,494.74,112.02,14.61,8.74" target="#b10">[11]</ref>, might find errors or generalize known morpheme boundaries better than the trie classifiers and ultimately avoid mistakes such as in-fra-struktur.</p><p>• A global morpheme vocabulary control mechanism, such as the MDL <ref type="bibr" coords="7,416.65,155.86,10.52,8.74" target="#b8">[9,</ref><ref type="bibr" coords="7,430.10,155.86,12.73,8.74" target="#b13">14,</ref><ref type="bibr" coords="7,445.77,155.86,7.75,8.74" target="#b7">8,</ref><ref type="bibr" coords="7,456.46,155.86,7.75,8.74" target="#b1">2]</ref> might provide further evidence for or against certain morpheme boundaries and subsequently inhibit mistakes such as schwa-ech-er.</p><p>However, apart from the morpheme boundary detection, a clustering algorithm is needed that would cluster various found morphs according to their grammatical function. The contextual similarity on which the local LSV algorithm is based possibly already provides the corresponding information. Once the morpheme boundary detection achieves a sufficient quality, the contextually similar words of an input word could be taken as probably carrying a suffix with the same function, despite the suffix having a different form, such as the plural endings in German -en, -s, -e, -er. The alternation identification algorithm reported earlier <ref type="bibr" coords="7,319.02,273.41,10.52,8.74" target="#b6">[7]</ref> shows that such paradigmatic operations are principially possible on the morphological level (using only knowledge-free methods).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Morpheme analysis</head><p>Under the assumption that morpheme boundaries were correctly detected, it is possible to treat every single morph separately (similarly to a word) in a statistical co-occurrence analysis. This allows computing contextual similarity between morphs, instead of words. The following algorithm uses this procedure to find rules that relate various morphs to each other and then applies these rules to produce morphemic analyses of the words that originally occurred in the corpus: For each morph, the function LD Similar(s,m) filters from the contextually most similar morphs those that differ only minimally, based on Levenshtein Distance (LD) <ref type="bibr" coords="7,450.16,587.21,15.50,8.74" target="#b15">[16]</ref> and word lengths. This step could be replaced by a more elaborate clustering mechanism. Pairs with short morphs are only accepted if LD = 1, pairs with longer morphs may have a larger distance. The function makeRule(s,m) creates a hypothetical rule that explains the difference between two contextually similar morphs. For example, the morphs ion and ions have a Levenshtein Distance of 1 so the function creates a rule -s (or n -ns to take more context into account) which says that s can be added to derive the second morph from the first one. This rule is then stored and associated with the pair of morphs that produced it. This allows deciding between probably correct (if many morph pairs are associated with it) and incorrect rules later.</p><p>The second part of the morphemic analysis then applies the acquired knowledge to the original word list. The goal is an analysis of the morphemic structure of all words, where a morpheme is represented by all its allomorphs. In the first step, each word is thus split into its morphs, according to the LSV and trie based algorithm described above. In the next step, all related morphs as stored by the first part of the morphemic analysis are retrieved for each morph of the input word. The function createSignature(m) produces a representation of each morpheme. For example, the original word fracturing was found to have two morphs: fractur and ing. The first morph is related to two morphs fracture and fractures. The second morph is related to inag, ingu and iong. This results in the following analysis: fracturing &gt; fractur.fracture.fractures &gt; inag.ing.ingu.iong It is noteworthy that this algorithm cannot distinguish between various meanings of a single morph. In English, the suffix -s may be a plural marker if used with a noun or the third person singular marker if used with a verb. Given the extremely high frequency of some these ambiguous morphs, the number of (at least partially) wrong analyses produced by the algorithm is likely to be high. Further research may evolve around using an unsupervised POS tag inducer <ref type="bibr" coords="8,489.56,260.96,10.52,8.74" target="#b2">[3]</ref> to distinguish between different word classes or using a word sense induction algorithm <ref type="bibr" coords="8,467.12,272.91,10.51,8.74" target="#b5">[6]</ref> applied to morphs in order to induce the various meanings.</p><p>The results from the Morpho Challenge 2007 are surprising in that the morpheme analysis did not yield any significant changes to the evaluation results. This is despite the fact that on average nearly every single morpheme is represented by several morphs. After exploring the word lists for German, the most probable reasons for this appear to be any of the following:</p><p>• During construction of the rules no context is taken into account. This often results in morphs to be found as correlated despite them just incidentally looking similar and sharing some contextual similarity. Hence, benefit of the analysis and error might be cancelling each other out.</p><p>• Many of the morphs representing a morpheme are, in fact, only artifacts of the mistakes of the morpheme boundary detection algorithm. Thus, the morpheme analysis appears to be strongly influenced by the quality of the detected boundaries.</p><p>• When determing the validity of a rule, the amount of morph pairs is taken into account, but not their frequency. This results in many extremely rare morphs (without any impact on the evaluation) to be merged correctly into morphemes, but many very frequent ones (with actual impact on the evaluation) to be missed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusions</head><p>Whereas the changes introduced to the morpheme boundary detection improve the overall performance, they also add several more parameters to the entire process. The paramaters do not have to be set specifically for each language, but a large number of parameters often indicates the possibility of overfitting. Yet, despite the improvements and the possibility of overfitting, the performance of knowledge-free morpheme boundary detection is far below what knowledge-rich systems (i.e. rule-based) achieve. Nevertheless, the significant improvements achieved in the Information Retrieval evaluation task in the Morpho Challenge 2007 sufficiently demonstrate the usefulness of such algorithms even in the current state.</p><p>Compared to other knowledge-free morpheme boundary detection algorithms, the version of the LSV algorithm described in this paper produces good results. The modular design of this algorithm allows for a better interoperability with other algorithms. For example, the significant performance boost achieved by adding a compound splitter indicates that combining various underlying hypotheses is more likely to yield significant improvements than changes to any single method. Also, given that the most simple combination of algorithms in the form of a voting algorithm in the Morpho Challenge 2005 demonstrated an extraordinary increase in performance, it is reasonable to assume that more direct combinations should perform even better.</p><p>The noise produced during the morpheme boundary detection, the missing method for distinguishing ambiguous affixes and other factors resulted in the subsequent morphemic analysis to produce apparently insignificant results. It becomes obvious that adding further algorithmic solutions representing other hypotheses about morpheme boundaries, as well as a more elaborate morphemic analysis, should be a significant step towards a true morphemic analysis similarily to what can be done manually.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,96.31,328.34,410.39,8.74"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Illustration of training a PCT and then using it to classify previously unseen words.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="7,90.00,410.59,83.69,8.30;7,95.23,422.55,183.06,8.30;7,100.46,434.50,94.15,8.30;7,105.69,446.46,88.92,8.30;7,105.69,458.41,68.00,8.30;7,90.00,482.32,78.46,8.30;7,95.23,494.28,109.84,8.30;7,100.46,506.23,73.23,8.30;7,105.69,518.19,125.52,8.30;7,105.69,530.14,47.07,8.30;7,100.46,542.10,20.92,8.30;7,105.69,554.05,36.61,8.30"><head></head><label></label><figDesc>for each morph m for each cont. similar morph s of m if LD_Similar(s,m) r = makeRule(s,m) store(r-&gt;s,m) for each word w for each morph m of w if in_store(m) sig = createSignature(m) write sig else write m</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,90.00,110.43,423.00,100.34"><head>Table 1 :</head><label>1</label><figDesc>Iterating the LSV algorithm and applying the modified trie classifier increases recall while keeping precision at high levels.</figDesc><table coords="5,223.31,110.43,156.38,56.96"><row><cell></cell><cell>R</cell><cell>P</cell><cell>F</cell></row><row><cell cols="4">compounds 10.30 88.33 18.44</cell></row><row><cell>lsv iter 1</cell><cell cols="3">17.88 88.55 29.76</cell></row><row><cell>lsv iter 3</cell><cell cols="3">23.96 84.34 37.31</cell></row><row><cell>saveTrie</cell><cell cols="3">31.09 82.69 45.19</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,447.43,740.40,65.58,8.74"><head>Table 2 :</head><label>2</label><figDesc>Applying the unmodified classifier increases recall by a large amount, but also lowers precision considerably.</figDesc><table coords="5,447.43,740.40,65.58,8.74"><row><cell>1, the classifier</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,105.24,740.21,374.69,6.99"><p>A recent implementation of this algorithm is available at http://wortschatz.uni-leipzig.de/∼sbordag/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="9,110.48,202.65,402.51,8.74;9,110.48,214.61,402.53,8.74;9,110.48,226.56,22.70,8.74" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Harald</forename><surname>Baayen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Piepenbrock</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Léon</forename><surname>Gulikers</surname></persName>
+		</author>
+		<title level="m" coord="9,386.35,202.65,126.65,8.74;9,110.48,214.61,173.64,8.74">The CELEX lexical database (CD-ROM). Linguistic Data Consortium</title>
+		<meeting><address><addrLine>Philadelphia, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>University of Pennsylvania</publisher>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,246.49,402.51,8.74;9,110.48,258.44,402.52,8.74;9,110.48,270.40,289.99,8.74" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="9,199.20,246.49,313.79,8.74;9,110.48,258.44,144.42,8.74">Unsupervised morphological segmentation based on segment predictability and word segments alignment</title>
+		<author>
+			<persName coords=""><forename type="first">Delphine</forename><surname>Bernhard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,278.22,258.44,234.78,8.74;9,110.48,270.40,232.96,8.74">Proceedings of the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes</title>
+		<meeting>the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes</meeting>
+		<imprint>
+			<date type="published" when="2006-04">April 2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,290.32,402.53,8.74;9,110.48,302.28,402.52,8.74;9,110.48,314.23,22.70,8.74" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="9,182.18,290.32,313.65,8.74">Unsupervised part-of-speech tagging employing efficient graph clustering</title>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Biemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,110.48,302.28,292.66,8.74">Proceedings of the Student Research Workshop at the COLING/ACL</title>
+		<meeting>the Student Research Workshop at the COLING/ACL<address><addrLine>Sydney, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006-07">July 2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,334.16,402.52,8.74;9,110.48,346.11,402.52,8.74;9,110.48,358.07,158.99,8.74" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="9,177.14,334.16,256.99,8.74">Unsupervised knowledge-free morpheme boundary detection</title>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Bordag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,452.57,334.16,60.43,8.74;9,110.48,346.11,396.77,8.74">Proceedings of the International Conference on Recent Advances in Natural Language Processing (RANLP)</title>
+		<meeting>the International Conference on Recent Advances in Natural Language Processing (RANLP)<address><addrLine>Borovets, Bulgaria</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2005-09">September 2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,377.99,402.51,8.74;9,110.48,389.95,402.53,8.74;9,110.48,401.91,146.17,8.74" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="9,179.64,377.99,262.40,8.74">Two-step approach to unsupervised morpheme segmentation</title>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Bordag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,463.34,377.99,49.66,8.74;9,110.48,389.95,402.53,8.74;9,110.48,401.91,29.43,8.74">Proceedings of the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes</title>
+		<meeting>the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes<address><addrLine>Venice, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006-04">April 2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,421.83,402.53,8.74;9,110.48,433.79,402.52,8.74;9,110.48,445.74,201.16,8.74" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,179.54,421.83,315.79,8.74">Word sense induction: Triplet-based clustering and automatic evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Bordag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,110.48,433.79,402.52,8.74;9,110.48,445.74,83.29,8.74">Proceedings of 11th Conference of the European Chapter of the Association for Computational Linguistics (EACL)</title>
+		<meeting>11th Conference of the European Chapter of the Association for Computational Linguistics (EACL)<address><addrLine>Trento, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006-04">April 2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.48,465.67,402.52,8.74;9,110.48,477.62,402.35,8.74" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="9,178.78,465.67,276.27,8.74">Elements of Knowledge-free and Unsupervised lexical acquisition</title>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Bordag</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007">2007</date>
+			<pubPlace>Leipzig, Germany</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Department of Natural Language Processing, University of Leipzig</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct coords="9,110.48,497.55,402.51,8.74;9,110.48,509.50,402.52,8.74;9,110.48,521.46,380.70,8.74" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,268.71,497.55,244.29,8.74;9,110.48,509.50,201.55,8.74">Unsupervised morpheme segmentation and morphology induction from text corpora using morfessor 1.0</title>
+		<author>
+			<persName coords=""><forename type="first">Mathias</forename><surname>Creutz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Krista</forename><surname>Lagus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,330.26,509.50,182.74,8.74;9,110.48,521.46,30.75,8.74">Publications in Computer and Information Science</title>
+		<imprint>
+			<date type="published" when="2005-03">March 2005</date>
+			<pubPlace>Helsinki, Finland</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Helsinki University of Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note>Report A81</note>
+</biblStruct>
+
+<biblStruct coords="9,110.48,541.38,402.52,8.74;9,110.48,553.34,189.18,8.74" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,191.27,541.38,285.41,8.74">The unsupervised acquisition of a lexicon from continuous speech</title>
+		<author>
+			<persName coords=""><forename type="first">Carl</forename><surname>De</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marcken</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,486.16,541.38,26.84,8.74">Memo</title>
+		<imprint>
+			<biblScope unit="volume">1558</biblScope>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+		<respStmt>
+			<orgName>MIT Artificial Intelligence Lab</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.47,573.26,402.52,8.74;9,110.48,585.22,402.52,8.74;9,110.48,597.17,370.05,8.74" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,177.07,573.26,335.93,8.74;9,110.48,585.22,17.96,8.74">Morphemes as necessary concept for structures discovery from untagged corpora</title>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Déjean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,251.44,585.22,261.56,8.74;9,110.48,597.17,141.39,8.74">Workshop on Paradigms and Grounding in Natural Language Learning at NeMLaP3/CoNLL98</title>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">M W</forename><surname>Powers</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Adelaide, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1998-01">January 1998</date>
+			<biblScope unit="page" from="295" to="299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.47,617.10,402.52,8.74;9,110.48,629.05,170.44,8.74" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,187.56,617.10,273.77,8.74">Unsupervised learning of the morphology of a natural language</title>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Goldsmith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,470.23,617.10,42.77,8.74;9,110.48,629.05,73.87,8.74">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="153" to="198" />
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.47,648.98,402.52,8.74;9,110.48,660.93,231.70,8.74" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,300.93,648.98,208.22,8.74">Word segmentation by letter successor varieties</title>
+		<author>
+			<persName coords=""><forename type="first">Margaret</forename><forename type="middle">A</forename><surname>Hafer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><forename type="middle">F</forename><surname>Weiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,110.48,660.93,147.85,8.74">Information Storage and Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="371" to="385" />
+			<date type="published" when="1974">1974</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.47,680.86,349.59,8.74" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,183.36,680.86,131.25,8.74">From phonemes to morphemes</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zellig</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Harris</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,324.24,680.86,38.57,8.74">Language</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="190" to="222" />
+			<date type="published" when="1955">1955</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,110.47,700.78,402.53,8.74;9,110.48,712.74,360.25,8.74" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,191.68,700.78,321.32,8.74;9,110.48,712.74,141.66,8.74">Unsupervised learning of word segmentation rules with genetic algorithms and inductive logic programming</title>
+		<author>
+			<persName coords=""><forename type="first">Dimitar</forename><surname>Kazakov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,261.62,712.74,76.69,8.74">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page" from="121" to="162" />
+			<date type="published" when="2001-05">April-May 2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,110.47,112.02,402.52,8.74;10,110.48,123.98,402.52,8.74;10,110.48,135.93,402.52,8.74;10,110.48,147.89,248.95,8.74" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="10,496.43,112.02,16.57,8.74;10,110.48,123.98,402.52,8.74;10,110.48,135.93,76.79,8.74">Unsupervised segmentation of words into morphemes -Challenge 2005 An Introduction and Evaluation Report</title>
+		<author>
+			<persName coords=""><forename type="first">Mikko</forename><surname>Kurimo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mathias</forename><surname>Creutz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matti</forename><surname>Varjokallio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ebru</forename><surname>Arisoy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Murat</forename><surname>Saraclar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,196.02,135.93,316.97,8.74;10,110.48,147.89,157.60,8.74">Proceedings of the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes</title>
+		<meeting>the PASCAL Challenges Workshop on Unsupervised Segmentation of Words into Morphemes<address><addrLine>Venice, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,110.47,167.81,402.52,8.74;10,110.48,179.77,255.68,8.74" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="10,221.46,167.81,291.54,8.74;10,110.48,179.77,14.71,8.74">Binary codes capable of correcting deletions, insertions, and reversals</title>
+		<author>
+			<persName coords=""><forename type="first">Vladimir</forename><forename type="middle">I</forename><surname>Levenshtein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,133.27,179.77,130.11,8.74">Doklady Akademii Nauk SSSR</title>
+		<imprint>
+			<biblScope unit="volume">163</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="845" to="848" />
+			<date type="published" when="1965">1965</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,110.47,199.69,402.52,8.74;10,110.48,211.65,252.85,8.74" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="10,200.40,199.69,312.60,8.74;10,110.48,211.65,22.17,8.74">Patricia -practical algorithm to retrieve information coded in alphanumeric</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Morrison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,141.49,211.65,84.42,8.74">Journal of the ACM</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="514" to="534" />
+			<date type="published" when="1968-10">October 1968</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,110.47,231.57,402.52,8.74;10,110.48,243.53,402.53,8.74;10,110.48,255.48,266.05,8.74" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="10,275.39,231.57,233.00,8.74">Knowledge-free induction of inflectional morphologies</title>
+		<author>
+			<persName coords=""><forename type="first">Patrick</forename><surname>Schone</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Jurafsky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,122.83,243.53,390.18,8.74;10,110.48,255.48,113.08,8.74">Proceedings of the 2nd Annual Meeting of the North American Chapter of Association for Computational Linguistics</title>
+		<meeting>the 2nd Annual Meeting of the North American Chapter of Association for Computational Linguistics<address><addrLine>Pittsburgh, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001-06">June 2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

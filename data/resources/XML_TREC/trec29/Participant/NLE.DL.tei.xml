@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,150.52,115.96,314.31,12.62;1,291.54,133.89,32.28,12.62">Naver Labs Europe @ TREC Deep Learning 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,156.41,171.57,72.12,8.74"><forename type="first">Thibault</forename><surname>Formal</surname></persName>
+							<email>thibault.formal@naverlabs.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Sorbonne Université</orgName>
+								<address>
+									<postCode>LIP6, F-75005</postCode>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">Naver Labs Europe</orgName>
+								<address>
+									<settlement>Meylan</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,245.42,171.57,93.90,8.74"><forename type="first">Benjamin</forename><surname>Piwowarski</surname></persName>
+							<email>benjamin.piwowarski@lip6.fr</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Sorbonne Université</orgName>
+								<address>
+									<postCode>LIP6, F-75005</postCode>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,369.25,171.57,85.23,8.74"><forename type="first">Stéphane</forename><surname>Clinchant</surname></persName>
+							<email>stephane.clinchant@naverlabs.com</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Naver Labs Europe</orgName>
+								<address>
+									<settlement>Meylan</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,150.52,115.96,314.31,12.62;1,291.54,133.89,32.28,12.62">Naver Labs Europe @ TREC Deep Learning 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">FF6481FA93A8D13855D1BECF083B3B2E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our participation to the 2020 TREC Deep Learning challenge. While the track comprises 4 tasks in total (document and passage (re-)ranking), we only focused on the passage full ranking task, for which the goal is to retrieve and rank a set of 1000 passages directly from the collection of 8.8M entries. We submitted three runs, coming from a diverse set of experiments we conducted throughout the year regarding the use of BERT in ranking models. We explored simple dense embedding-based first stage retrieval, the impact of training transformer models from scratch with Masked Language Modeling (MLM) on the target collection, as well as diverse training settings and hyperparameter configurations.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Over the last two years, the release of large pre-trained language models such as BERT <ref type="bibr" coords="1,165.17,445.64,10.52,8.74" target="#b3">[4]</ref> has led to tremendous progress in Information Retrieval. BERT-based models -following work from <ref type="bibr" coords="1,265.62,457.60,16.38,8.74" target="#b9">[10]</ref>-are now state-of-the-art for ad-hoc IR, and rank first on the MSMARCO passage and document ranking leaderboards <ref type="foot" coords="1,458.77,467.98,3.97,6.12" target="#foot_0">3</ref> .</p><p>Starting in 2019, the TREC Deep Learning track -building on the publicly released MSMARCO dataset <ref type="bibr" coords="1,257.10,493.46,11.62,8.74" target="#b8">[9]</ref>-has provided a testbed for IR researchers that aim to study new models (deep or not) in a large scale training regime. Evaluation methodology is similar to last year <ref type="bibr" coords="1,310.99,517.37,9.96,8.74" target="#b1">[2]</ref>, thus we provide rankings for a test set of 200 queries, later annotated by NIST assessors.</p><p>Following the recent trend that transfers knowledge from pre-trained language models from the re-ranking setting to the full ranking one <ref type="bibr" coords="1,417.96,565.21,10.52,8.74" target="#b2">[3,</ref><ref type="bibr" coords="1,429.67,565.21,12.73,8.74" target="#b11">12,</ref><ref type="bibr" coords="1,443.59,565.21,11.62,8.74" target="#b16">17]</ref>, part of our submission consists in moving from term-based retrieval (e.g. BM25) to dense embedding-based semantic retrieval. In the meantime, while techniques such as distillation lead to more efficient models that keep performance at the same level <ref type="bibr" coords="1,184.05,613.03,9.96,8.74" target="#b4">[5]</ref>, we are interested in a slightly different -but related-question: can we train, from scratch, on the target collection, language models that are inherently smaller (in terms of number of parameters, training and inference time) ?</p><p>Focusing on these two points, our submission is rooted in a set of experiments that studies various training settings, ranging from standard hyperparameters, losses, regularization techniques such as mixup <ref type="bibr" coords="2,342.15,166.97,14.61,8.74" target="#b17">[18]</ref>, ensembling and so forth.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methodology</head><p>From lexical to semantic first stage retrieval In a classic two-stage ranking system, term-based models like BM25 remain a go-to for the initial retrieval, as they provide baselines that are both efficient (through the inverted index) and actually hard to beat <ref type="bibr" coords="2,211.70,260.23,14.61,8.74" target="#b15">[16]</ref>. For this challenge, following recent works <ref type="bibr" coords="2,416.22,260.23,10.52,8.74" target="#b0">[1,</ref><ref type="bibr" coords="2,428.02,260.23,7.75,8.74" target="#b5">6,</ref><ref type="bibr" coords="2,437.05,260.23,12.73,8.74" target="#b13">14,</ref><ref type="bibr" coords="2,451.08,260.23,12.73,8.74" target="#b14">15,</ref><ref type="bibr" coords="2,465.09,260.23,11.62,8.74" target="#b16">17]</ref>, we experimented with semantic first stage retrieval, based on a BERT Siamese architecture. Documents and queries are fed independently to BERT -allowing for offline document indexing-, and (fixed-length) document/query representations are obtained from a pooling of BERT embeddings: this is the so-called representation-based approach in IR. We found no clear difference between using [CLS] or taking the average of contextual embeddings (but we consider the latter as we got slightly better results). Relevance is obtained by computing similarity between representations (dot product in our case). For the similarity search, we used the FAISS library<ref type="foot" coords="2,236.76,366.25,3.97,6.12" target="#foot_1">4</ref>  <ref type="bibr" coords="2,245.25,367.83,9.96,8.74" target="#b7">[8]</ref>, with the (exact, brute-force) IndexFlatIP index. We give the performance for this retrieval stage (best model) in Table <ref type="table" coords="2,443.63,379.78,3.87,8.74" target="#tab_0">1</ref>.</p><p>MRR@10 (dev) R@1000 (dev) NDCG@10 (DL 2019) R@1000 Siamese-BERT 0.312 0.941 0.637 0.625 Learning Language Models from scratch We are also interested in the questions of models size as well as the role of pre-training in ranking models, particularly: (i) do models need to be that big (e.g. 12 layers, 110M parameters for BERT base) ?; (ii) is pre-training on such large collections (BooksCorpus + English Wikipedia) necessary to obtain reasonable performance ?; (iii) thus, can we get smaller and better models (for the task) by directly pre-training LMs on the target collection (more suited vocabulary, domain-specific pre-training) ? This issue has already been investigated in <ref type="bibr" coords="2,347.25,600.48,14.61,8.74" target="#b10">[11]</ref>, with Target Corpus Pretraining, but our goal differs a bit, as we also aim to learn smaller models, while having control on parameters such as the vocabulary, which could be critical, for instance on very specific corpora (e.g. medical or legal).</p><p>In order to do so, we investigate the performance of lighter transformer models, directly pre-trained with MLM on the MSMARCO passage collection. These checkpoints are then later used as a starting point for fine-tuning ranking models. We were able to train such models with the same level of performance, thus reducing inference time at no cost. We tested several configurations (in terms of architecture, training setting etc.), and we give some representative results in Table <ref type="table" coords="3,207.80,190.72,4.98,8.74" target="#tab_1">2</ref> (for a RoBERTa-type pre-training). While the study of the trade-off between model size and performance is interesting, we chose to use the RoBERTa-medium checkpoint for the challenge, as we are more interested in performance than efficiency. Training details We consider the MSMARCO passage ranking dataset, which contains approximately 8.8M passages. For training the LMs, we use fairseq <ref type="bibr" coords="3,134.77,440.92,15.50,8.74" target="#b12">[13]</ref> and adopt a fairly standard procedure borrowed from machine translation: we removed non-printing characters, normalized unicode punctuation, and used moses tokenizer. Then, a vocabulary of 20k subwords is learned with subwordnmt. For fine-tuning models -either from the standard checkpoint or our own pre-training-, we generally follow the same strategy. We experimented tuning the learning rate, the training loss (pointwise cross-entropy and various pairwise losses), some regularization strategies like mixup <ref type="bibr" coords="3,351.99,512.66,14.61,8.74" target="#b17">[18]</ref>, the number of iterations and so forth. For training first stage ranking models, we acknowledge the discrepancy between training with pairs provided by MSMARCO (hence built from BM25) and the objective of increasing recall w.r.t. to say BM25, following observations already made in <ref type="bibr" coords="3,253.08,560.48,15.99,8.74" target="#b14">[15,</ref><ref type="bibr" coords="3,269.07,560.48,11.99,8.74" target="#b16">17]</ref>. To reduce such gap, we use in-batch negative training pairs, where for a given query q, positive documents from other queries in the batch are used as negatives. Similarly, while training re-rankers, we want the distribution of items seen by the models during training and inference to be the same. Thus, when they are expected to re-rank documents from a dense first stage retrieval, we train the models with pairs built from this model (and not the ones provided by MSMARCO). We train and evaluate each model using 4 TESLA V100 GPUs (with 32G memory), and we generally set the batch size so that we fit memory.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Runs description and results</head><p>Our submission follows a logic where runs are (supposedly) incrementally richer.</p><p>1. NLE pr1: first stage Siamese-BERT (1) + ensemble of 8 BERT re-rankers (averaging scores) (2) 2. NLE pr2: first stage ensemble of 2 Siamese-BERT (averaging scores), first is (1), second comes from our own RoBERTa checkpoint trained from scratch with MLM on MSMARCO, and later fine-tuned (RoBERTa-medium in Table <ref type="table" coords="4,151.70,214.98,3.87,8.74" target="#tab_1">2</ref>). Re-ranking with an ensemble (averaging scores) of 8 BERT re-rankers (2) + 4 ELECTRA + 3 RoBERTa (from own RoBERTa-medium checkpoint) 3. NLE pr3: Last run is an ensemble of NLE pr2 and a pipeline of BM25 + 6</p><p>BERT re-rankers, using reciprocal rank following <ref type="bibr" coords="4,368.81,251.23,10.52,8.74" target="#b6">[7]</ref> In table <ref type="table" coords="4,187.07,274.70,3.87,8.74" target="#tab_2">3</ref>, we provide results from our runs on the 2019 and 2020 tracks. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Conclusion</head><p>We briefly introduced our methodology and the resulting evaluations of our submissions for the 2020 TREC Deep Learning passage ranking task. The challenge was a way for us to summarize and organize past experiments, and confront some novels ideas to the IR community. We plan to dig more into those, by exploring how to extend and/or improve the standard Siamese architecture for first stage retrieval, as well as complementing our study of LM pre-training for IR (by e.g. varying vocabulary size or architecture configurations).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,134.77,459.02,345.83,18.85"><head>Table 1 .</head><label>1</label><figDesc>Performance</figDesc><table /><note coords="2,227.62,459.04,252.98,7.86;2,134.77,470.00,192.18,7.86"><p>of first-stage semantic retrieval, on MSMARCO dev set (sparse labels) and TREC Deep Learning 2019 test set.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,134.77,264.39,345.83,113.96"><head>Table 2 .</head><label>2</label><figDesc>Performance</figDesc><table coords="3,161.72,264.39,291.92,67.91"><row><cell></cell><cell cols="2">MRR@10 (dev) architecture</cell><cell># params</cell></row><row><cell>BERT-base [10]</cell><cell>0.347</cell><cell>L = 12, H = 768</cell><cell>110M</cell></row><row><cell>BERT-base (our training)</cell><cell>0.365</cell><cell>L = 12, H = 768</cell><cell>110M</cell></row><row><cell>RoBERTa-medium</cell><cell>0.360</cell><cell>L = 6, H = 1024</cell><cell>98M</cell></row><row><cell>RoBERTa-small</cell><cell>0.358</cell><cell>L = 4, H = 1024</cell><cell>56M</cell></row><row><cell>RoBERTa-mini</cell><cell>0.269</cell><cell>L = 2, H = 512</cell><cell>17M</cell></row></table><note coords="3,227.11,348.56,253.49,7.86;3,134.77,359.52,345.83,7.86;3,134.77,370.48,194.60,7.86"><p>of RoBERTa re-rankers, pre-trained with MLM on MSMARCO collection and later fine-tuned on BM25-based pairs. On this example, the number of heads is kept fixed across experiments (A = 12).</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,134.77,313.03,345.82,92.04"><head>Table 3 .</head><label>3</label><figDesc>Performance of submitted runs on TREC Deep Learning 2019 and 2020 test sets.</figDesc><table coords="4,216.18,313.03,182.99,56.95"><row><cell cols="3">model NDCG@10 (2019) NDCG@10 (2020)</cell></row><row><cell>BEST</cell><cell>0.765</cell><cell>0.803</cell></row><row><cell>NLE pr1</cell><cell>0.739</cell><cell>0.733</cell></row><row><cell>NLE pr2</cell><cell>0.749</cell><cell>0.734</cell></row><row><cell>NLE pr3</cell><cell>0.753</cell><cell>0.746</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_0" coords="1,144.73,656.80,153.02,7.86"><p>https://microsoft.github.io/msmarco/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_1" coords="2,144.73,656.80,171.76,7.86"><p>https://github.com/facebookresearch/faiss</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,142.96,601.23,337.64,7.86;4,151.52,612.18,178.61,7.86" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="4,394.89,601.23,85.70,7.86;4,151.52,612.18,149.94,7.86">Pre-training tasks for embedding-based large-scale retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">C</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">X</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kumar</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,142.96,623.53,337.64,7.86;4,151.52,634.49,145.99,7.86" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="4,416.93,623.53,63.66,7.86;4,151.52,634.49,117.31,7.86">Overview of the trec 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,142.96,645.84,337.64,7.86;4,151.52,656.80,118.46,7.86" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="4,232.45,645.84,248.14,7.86;4,151.52,656.80,53.65,7.86">Context-aware sentence/passage term importance estimation for first stage</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,119.67,337.63,7.86;5,151.52,130.61,329.07,7.89;5,151.52,141.59,131.41,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="5,338.64,119.67,141.95,7.86;5,151.52,130.63,189.90,7.86">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>CoRR abs/1810.04805</idno>
+		<ptr target="http://arxiv.org/abs/1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,152.55,337.63,7.86;5,151.52,163.51,329.07,7.86;5,151.52,174.47,329.07,7.86;5,151.52,185.43,175.63,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,283.04,152.55,194.04,7.86">Understanding bert rankers under distillation</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3409256.3409838</idno>
+		<ptr target="http://dx.doi.org/10.1145/3409256.3409838" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,151.52,163.51,329.07,7.86;5,151.52,174.47,101.70,7.86">Proceedings of the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval</title>
+		<meeting>the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020-09">Sep 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,196.39,337.63,7.86;5,151.52,207.34,201.90,7.86" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="5,389.72,196.39,90.87,7.86;5,151.52,207.34,173.23,7.86">Complementing lexical retrieval with semantic residual embedding</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">V</forename><surname>Durme</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,218.30,337.63,7.86;5,151.52,229.26,59.15,7.86" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bendersky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+		<title level="m" coord="5,347.21,218.30,133.38,7.86;5,151.52,229.26,30.48,7.86">Learning-to-rank with bert in tfranking</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,240.22,337.63,7.86" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Douze</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jégou</surname></persName>
+		</author>
+		<title level="m" coord="5,292.88,240.22,159.26,7.86">Billion-scale similarity search with gpus</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,251.18,337.64,7.86;5,151.52,262.14,329.07,7.86;5,151.52,273.07,236.95,7.89" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="5,151.52,262.14,297.47,7.86">MS MARCO: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Deng</surname></persName>
+		</author>
+		<idno>CoRR abs/1611.09268</idno>
+		<ptr target="http://arxiv.org/abs/1611.09268" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,284.03,337.98,7.89;5,151.52,295.02,162.64,7.86" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="5,247.90,284.06,123.74,7.86">Passage re-ranking with BERT</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<idno>CoRR abs/1901.04085</idno>
+		<ptr target="http://arxiv.org/abs/1901.04085" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,305.98,337.98,7.86;5,151.52,316.93,25.60,7.86" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<title level="m" coord="5,319.09,305.98,161.51,7.86">Multi-stage document ranking with bert</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,327.89,337.97,7.86;5,151.52,338.85,159.05,7.86" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="5,315.08,327.89,161.60,7.86">Document expansion by query prediction</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.08375</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,142.62,349.81,337.97,7.86;5,151.52,360.77,329.07,7.86;5,151.52,371.73,173.80,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="5,169.13,360.77,228.48,7.86">fairseq: A fast, extensible toolkit for sequence modeling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Edunov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Baevski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Grangier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Auli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,421.05,360.77,59.54,7.86;5,151.52,371.73,54.52,7.86">Proceedings of NAACL-HLT</title>
+		<meeting>NAACL-HLT</meeting>
+		<imprint>
+			<publisher>Demonstrations</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,382.69,337.97,7.86;5,151.52,393.65,64.32,7.86" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="5,257.91,382.69,222.68,7.86;5,151.52,393.65,35.66,7.86">Sentence-bert: Sentence embeddings using siamese bertnetworks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,404.61,337.98,7.86;5,151.52,415.56,329.07,7.86;5,151.52,426.52,61.74,7.86" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="5,187.58,415.56,293.01,7.86;5,151.52,426.52,33.07,7.86">Approximate nearest neighbor negative contrastive learning for dense text retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">F</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ahmed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Overwijk</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,437.48,337.98,7.86;5,151.52,448.44,329.07,7.86;5,151.52,459.40,17.34,7.86;5,184.88,459.40,44.32,7.86;5,245.22,459.40,9.73,7.86;5,270.98,459.40,35.78,7.86;5,322.79,459.40,14.85,7.86;5,353.66,459.40,52.36,7.86;5,422.06,459.40,7.68,7.86;5,445.76,459.40,34.83,7.86;5,151.52,470.36,15.87,7.86;5,184.17,470.36,36.25,7.86;5,237.20,470.36,16.00,7.86;5,269.96,470.36,24.58,7.86;5,311.31,470.36,169.28,7.86;5,151.52,481.32,175.63,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,366.01,437.48,114.58,7.86;5,151.52,448.44,59.76,7.86">Critically examining the &quot;neural hype</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331340</idno>
+		<ptr target="http://dx.doi.org/10.1145/3331184.3331340" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,232.54,448.44,248.05,7.86;5,151.52,459.40,17.34,7.86;5,184.88,459.40,44.32,7.86;5,245.22,459.40,9.73,7.86;5,270.98,459.40,35.78,7.86;5,322.79,459.40,14.85,7.86;5,353.66,459.40,52.36,7.86;5,422.06,459.40,7.68,7.86;5,445.76,459.40,34.83,7.86;5,151.52,470.36,15.87,7.86;5,184.17,470.36,36.25,7.86">Proceedings of the 42nd International ACM SI-GIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SI-GIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2019-07">Jul 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,492.28,337.98,7.86;5,151.52,503.24,157.16,7.86" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ma</surname></persName>
+		</author>
+		<title level="m" coord="5,343.73,492.28,136.87,7.86;5,151.52,503.24,128.50,7.86">Repbert: Contextualized text embeddings for first-stage retrieval</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,514.19,337.98,7.86;5,151.52,525.13,323.22,7.89" xml:id="b17">
+	<monogr>
+		<title level="m" type="main" coord="5,363.43,514.19,117.16,7.86;5,151.52,525.15,51.04,7.86">mixup: Beyond empirical risk minimization</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Cissé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">N</forename><surname>Dauphin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lopez-Paz</surname></persName>
+		</author>
+		<idno>CoRR abs/1710.09412</idno>
+		<ptr target="http://arxiv.org/abs/1710.09412" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

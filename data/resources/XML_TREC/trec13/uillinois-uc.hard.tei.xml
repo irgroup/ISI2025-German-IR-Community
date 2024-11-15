@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,111.47,139.12,389.04,15.49">UIUC in HARD 2004 -Passage Retrieval Using HMMs</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,225.72,171.62,48.14,10.76"><forename type="first">Jing</forename><surname>Jiang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Illinois at Urbana-Champaign</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,300.92,171.62,85.32,10.76"><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Illinois at Urbana-Champaign</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,111.47,139.12,389.04,15.49">UIUC in HARD 2004 -Passage Retrieval Using HMMs</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E55BC220CFD95AFAB5096A8C2D40530C</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:01+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>UIUC participated in the HARD track in TREC 2004 and focused on the evaluation of a new method for identifying variable-length passages using HMMs. Most existing approaches to passage retrieval rely on pre-segmentation of documents, but the optimal boundaries of a relevant passage depends on both the query and the document. Our new method aims at determining or improving the boundaries of a relevant passage based on both the query and topical coherence in the document. In this paper, we describe the method and present analysis of our HARD 2004 evaluation results. The results show that the HMM method can improve the boundaries of pre-segmented passages in terms of overall passage retrieval accuracy and recall, but at the price of precision sometimes. However, due to the non-optimality of the relevance feedback procedure and the poor ranking performance based on passage scoring, the best of our passage runs is still worse than a whole document baseline run. Further experiments and analysis are needed to fully understand why the language modeling approach did not work well on passage scoring.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Most information retrieval systems return a ranked list of whole documents as answers to a query. However, when documents are long and have multiple topics, retrieval at passage-level, i.e., returning relevant passages, rather than whole documents, may be more useful to the user as the user does not need to read through a whole document to find the most relevant part. Passage retrieval also enables an IR system to re-score documents based on their relevant passages, and exploit feedback more accurately based on passages rather than whole documents. Indeed, previous work <ref type="bibr" coords="1,132.60,666.26,10.79,8.97" target="#b6">[9,</ref><ref type="bibr" coords="1,146.48,666.26,7.47,8.97" target="#b0">1,</ref><ref type="bibr" coords="1,157.03,666.26,12.45,8.97" target="#b9">12,</ref><ref type="bibr" coords="1,172.57,666.26,7.47,8.97" target="#b2">3,</ref><ref type="bibr" coords="1,183.13,666.26,7.47,8.97">6,</ref><ref type="bibr" coords="1,193.70,666.26,8.30,8.97" target="#b3">4]</ref> has shown that retrieval performance can be improved by using passage-level evidence.</p><p>Current passage retrieval methods usually pre-segment documents into passages of fixed length <ref type="bibr" coords="1,240.27,714.24,15.27,8.97" target="#b8">[11]</ref>. A disad-vantage of such kind of methods is that the passage length is not adaptive to specific query and specific document. However, as we would expect, the length of the most relevant passage in a document depends both on the specific query and the document itself. Therefore, ideally, a passage retrieval method should be able to retrieve variablelength arbitrary passages from documents.</p><p>The difficulty of variable-length passage retrieval lies on the large search space: for a document of n-word long, there are O(n 2 ) possible passages to consider. It is not practical to treat each of these passages as an individual document and rank them. A method based on Hidden Markov Models (HMMs) can tackle this problem by using dynamic programming techniques. In this method, a document is not modeled as a bag of words but as a sequence of words generated from a probabilistic model that involves transitions between a finite number of states. Baum-Welch algorithm is used to set appropriate parameters in the HMM, and Viterbi algorithm is used to detect the most relevant passage in a document. The advantages of the HMM-based passage retrieval methods are that the passage can start from and end at any arbitrary word in the document, and that the parameters that control the passage length can be trained.</p><p>Mittendorf and Schäuble first proposed to use HMMs for passage retrieval <ref type="bibr" coords="1,398.29,544.18,10.58,8.97">[7]</ref>. However, their work focused on using passage retrieval to improve document ranking rather than to accurately detect the passage boundary as we will explore. Moreover, they mapped words to a different domain to capture the similarity between each word and the query, and used numbers in this domain as output symbols of the HMM. The mapping inevitably introduces additional computation and heuristic parameters, which we avoid by using the words in a document directly as output symbols. Denoyer et al. also used HMMs to identify relevant passages in whole documents, but their passages were of fixed length, and they focused on using scores of passages for document classification and ranking <ref type="bibr" coords="1,508.54,687.64,10.58,8.97" target="#b1">[2]</ref>.</p><p>HARD track in TREC 2004 provided a good test bed for evaluation of our HMM-based passage retrieval method. Twenty-five out of the fifty evaluation topics had retrieval element set at the passage-level. We tested our HMM-based passage retrieval method on these 25 topics. A pre-segmentation-based passage retrieval method was also used as a baseline for our evaluation.</p><p>The paper is organized as follows. In Section 2, we introduce our HMM-based passage retrieval method in details. We then describe our HARD 2004 experiment setup in Section 4 and discuss the results in Section 5. Finally, we conclude with Section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">HMM-Based Passage Retrieval</head><p>In this section, we first briefly review Hidden Markov Models, then describe the proposed HMM-based passage retrieval method in details.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">HMM Basics</head><p>A first order Hidden Markov Model (HMM) defines a discrete stochastic process that generates a sequence of output symbols from a sequence of hidden states. State transition occurs according to some transition probabilities, and output generation occurs according to some output probabilities. Formally, a first order HMM consists of the following components:</p><p>1. A set of hidden states S = {s 1 , . . . , s n }.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">A set of observable output symbols</head><formula xml:id="formula_0" coords="2,91.93,454.20,209.09,23.32">O = {o 1 , . . . , o m }.</formula><p>3. An initial probability a 0,i for each state s i . a 0,i is the probability that a state sequence starts from state s i . n i=1 a 0,i = 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>4.</head><p>A transition probability a i,j for each pair of states (s i , s j ). a i,j is the probability that the next state is s j given that the current state is s i . n j=1 a i,j = 1 for i = 1, . . . , n. without knowing the underlying state sequence, the most likely state sequence that may have generated this output sequence can be efficiently computed using Viterbi algorithm, a dynamic programming algorithm. Given an HMM with some or all parameters (the probabilities) unspecified, these parameter values can be estimated based on some observed sequences of symbols with or without their corresponding underlying state sequences. Baum-Welch algorithm (essentially an Expectation-Maximization algorithm) provides an efficient way for unsupervised training of HMMs. A detailed tutorial on HMMs is given in <ref type="bibr" coords="2,518.45,243.71,10.58,8.97" target="#b5">[8]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">An output probability</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">An HMM Approach to Passage Retrieval</head><p>Our basic idea of applying HMMs to passage retrieval is as follows. The set of all words in a document collection forms the set of output symbols of the HMM. A document is seen as a sequence of words (output symbols). A set of hidden states generate these words. Each state has its own word distribution, or what we call a language model. Each state is either relevant or non-relevant to the query. By decoding the document, we get a most likely state sequence that has generated the sequence of words. Words generated from those hidden states that are relevant to the query form the relevant passage from the original document. As we can see, the boundary of the relevant passage is automatically detected by the HMM. With such a method for locating the relevant passage in a long, relevant document, we can perform passage retrieval in two ways: (1) first rank documents using any IR method, then extract a relevant passage from each top-ranked document, and (2) first extract possibly relevant passages from documents, then rank the documents based on the relevant passages they contain. In HARD 2004, we only explored the first strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Choices of HMMs</head><p>The simplest HMM for passage retrieval consists of 3 states connected linearly, as shown in Figure <ref type="figure" coords="2,494.21,606.65,3.74,8.97">1</ref>. The first and the third states are non-relevant states, or what we call background states. They generate words according to a background language model. The second state is relevant to the query, and it generates words according to some relevant language model. This model assumes that a document contains a single passage relevant to the query. A document is generated by starting with some non-relevant part, then switching to the relevant passage, and finally switching back to some non-relevant part.</p><p>We could use the collection language model as the background language model for states B1 and B2. The relevant language model for state R cannot be obtained easily. Certainly it is related to the query. But simply using query language model is not enough because a relevant passage contains many non-query words. Without relevance feedback, the best way is to smooth this language model with a background language model. An improvement of the 3-state HMM is a 4-state HMM as shown in Figure <ref type="figure" coords="3,155.16,333.98,3.74,8.97">2</ref>, where a last state that only generates a special end-of-document symbol is added to the system. Our previous experiments on a different data set showed that adding this special state can improve the performance. A disadvantage of the 3-state and the 4-state HMMs is that the smoothing factor needs to be fixed. Smoothing can also be done automatically within the HMM if we separate the query language model and the background language model at R. Figure <ref type="figure" coords="3,186.97,555.76,4.98,8.97">3</ref> shows the modified HMM. State B1 and state B3 are considered non-relevant, while state R and state B2 are considered relevant. Non-query words in the relevant passage are now generated from B2 rather than from R, as B2 uses the background language model. Thus, smoothing is achieved through the transitions between R and B2. An advantage of this model is that the smoothing factor, which is the transition probability between R and B2 in this case, can be estimated through training rather than being heuristically set.</p><p>To incorporate feedback in this system, we could use the feedback language model at state R. This modification gives us the final HMM we used in our HARD 2004 experiments. This HMM is shown in Figure <ref type="figure" coords="3,249.87,714.24,3.74,8.97">4</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Preliminary Experiments on HARD 2003</head><p>Prior to trying our HMM-based method on HARD 2004 data, we did some preliminary experiments on HARD 2003 data, mainly to test if HMM-based method can indeed detect variable-length passages better than fixedlength passage retrieval methods. We set up the experiments on HARD 2003 data as follows. We first extracted out the set of whole documents that were judged to contain relevant passages to some topic. This information was obtained according to the passage-level judgment file for HARD 2003. For each of these documents and its corresponding relevant topic, we used two baseline methods and our HMM method without pseudo-feedback (Figure <ref type="figure" coords="3,450.39,630.55,4.15,8.97">3</ref>) to extract the relevant passage. The first baseline method is quite simple: it extracts the passage that starts from the first occurrence of a query word, and ends at the last occurrence of a query word. This method is straightforward and computationally cheap. The second baseline method we used is stronger: it uses a fixed-length sliding window to scan the whole document, and picks the passage that has the most We compared passage extracted from these methods with the true passages indicated in the judgment file. We used three measures to evaluate the performance. Precision is the number of words in the overlapping part between the extracted passage and the true passage divided by the total number of words in the extracted passage. Recall is the number of words in the overlapping part between the extracted passage and the true passage divided by the total number of words in the true passage. F1 is a harmonic mean of the precision and recall. Table <ref type="table" coords="4,268.97,567.77,4.98,8.97" target="#tab_1">1</ref> shows the performance measures of the two baseline methods and the HMM method.</p><p>We then used these extracted passages for pseudofeedback in our HMM-based method, as illustrated in Figure <ref type="figure" coords="4,101.90,629.04,3.74,8.97">4</ref>. The feedback language model is constructed from the previously extracted passage using either one of the baseline method or the simple HMM method without feedback. Performance is shown in Table <ref type="table" coords="4,238.94,664.91,3.74,8.97" target="#tab_2">2</ref>.</p><p>Our conclusions from our experiments on HARD 2003 and from our other experiments on a different data set are that (1) HMM method using pseudo-feedback from a simple method that has comparative high precision (such as our simple method) gives better overall performance (measured by F1) than our baseline methods, and that (2) HMM method performs consistently well over a range of passage lengths, while fixed-length passage retrieval method cannot handle variable-length passages well.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">HARD 200Experiment Setup</head><p>In this section, we describe our passage retrieval experiments in HARD 2004. As the metadata "retrievalelement" was not available for baseline runs, only our final runs explored passage retrieval methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Baseline Run and Clarification Forms</head><p>For baseline run, we used Lemur toolkit to retrieve a ranked list of whole documents from the corpus for each topic. We used K-L divergence language model retrieval method <ref type="bibr" coords="4,344.41,458.23,10.79,8.97" target="#b4">[5,</ref><ref type="bibr" coords="4,358.75,458.23,13.28,8.97" target="#b10">13]</ref> and pseudo-feedback with 5 documents. This baseline run ("uiucHARDb0") turned out to be our best run.</p><p>For clarification forms, we presented to the user 6 documents for each topic. These were the gapped top-6 documents with gap set to 3. The gapped top-k is a simple heuristic method proposed in <ref type="bibr" coords="4,427.91,530.63,16.60,8.97" target="#b7">[10]</ref> to increase the diversity of the documents presented to the user. As 6 whole documents cannot fit in one screen, we used HMM method to retrieve a passage from each of these documents, and presented to the user the first 50 and the last 50 words of each passage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Final Runs -Passage Retrieval</head><p>First, we used the relevance feedback from the clarification forms to expand the query models of the 50 evaluation topics. For topics with retrieval-element set to document, we used the K-L divergence method with the expanded query models to retrieve top 1000 whole documents from the corpus. There results were returned in the finals runs "uiucHARDf0" and "uiucHARDf1", but only for the 25 topics that had "retrieval-element" set to "document".</p><p>For passage retrieval, we used two methods in our final runs. In the first method, each document was first pre-segmented into non-overlapping passages, each containing 120 words. We chose 120 as the passage length as this was the average passage length from HARD 2003 passage-level judgments. We then treated each fixedlength passage as an individual document, and retrieved top 1000 passages for each topic, using the K-L divergence method. There results were returned in our final run "uiucHARDf0".</p><p>We used the 5-state HMM with pseudo-feedback for passage retrieval in our second final run. The pseudofeedback was obtained as follows. We first pre-segmented all documents into non-overlapping passages of 60-word long. We then used the K-L divergence method to retrieve top 1000 passages from these 60-word long passages for each topic. For each retrieved passage, we applied the HMM-based method on the document where this passage was extracted from. We used the 60-word long passage to construct a feedback language model for the 5state HMM. The variable-length passage returned by the HMM was then used to replace the original 60-word long passage. There passages were returned in our final run "uiucHARDf1" for the 25 passage-level topics. Essentially, we were using a 60-word fixed length passage as a "seed" passage to train the feedback language model in the 5-state HMM and extract a new variable-length passage from the same document. Our hope was that HMM could refine the boundary of the original 60-word long passage, which is largely confirmed in our experiment results.</p><p>We chose 60 as the length of the pre-segmented passages because shorter passages usually have higher precision (but lower recall) than longer passages. From our previous experiments, we learned that having a high precision of the feedback language model in the 5-state HMM is more important than having a high recall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">HARD 2004 Experiment Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Document-Level Results</head><p>Forty-five out of the original fifty topics were judged at the document-level, as the other five topics did not have any relevant documents. Our baseline run "uiucHARDb0" returned whole documents for all topics. Our final runs "uiucHARDf0" and "uiucHARDf1" returned whole documents to the 25 topics that are at document-level, and passages to the other 25 topics that are at passage-level. Table <ref type="table" coords="5,335.93,319.58,4.98,8.97">3</ref> shows the overall average precision for each run on all topics. Table <ref type="table" coords="5,394.53,331.53,4.98,8.97">4</ref> shows the precision over only the document-level topics for each run. We see that baseline run b0 performed the best among these three runs, though the Soft-Hard R-precision for document-level topics is essentially the same for all the three runs. From Table <ref type="table" coords="5,412.23,391.36,3.74,8.97">4</ref>, we see that the baseline run uiucHARDb0, which is a pseudo feedback run on whole document index, somehow ranks documents more accurately than the relevance feedback runs on pre-segmented passage indices (i.e., uiucHARDf0 and uiucHARDf1), suggesting that either our relevance feedback procedure is not quite effective or the KL-divergence method does not work well with short passages.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run</head><p>We were expecting that the relevance feedback runs would outperform the baseline run because the final runs incorporated relevance feedback. But the evaluation of the results shows that the relevance feedback we exploited did not improve the performance much. Thus we looked into the relevance feedback procedure and discovered that some parameter setting is apparently non-optimal, causing very conservative feedback, which may at least partially explain the relatively poor performance of relevance feedback. Some follow-up experiments indicate that our relevance feedback (reflected in the trained query model based on relevance judgments) does perform better than without any feedback, but it somehow does not perform as well as pseudo feedback. In addition to the non-optimal parameter setting, another possible reason may be that the user did not judge any document, or judged only one document to be relevant for some topics, in which case we have very limited information for feedback, whereas the pseudo feedback always uses the top 5 documents.</p><p>Comparing Table <ref type="table" coords="5,396.92,714.24,4.98,8.97">3</ref> and Table <ref type="table" coords="5,452.06,714.24,3.74,8.97">4</ref>, we see that while the baseline whole document scoring run has roughly the same Hard R-precisions in both tables, the two feedback passage scoring runs have significantly worse Rprecisions on passage-level topics, which is worth further examination.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Passage-Level Results</head><p>We are more interested in the passage-level evaluation as our main focus was on passage-level retrieval. As our final run f0 used a fixed passage length of 120 words, but our HMM-based final run f1 was based on fixed-length passages of 60 words, in order to compare the HMM-based method and the pre-segmentation-based method and see the effect of using HMMs to improve the boundaries of a pre-segmented passage, we evaluated another two runs using the scripts provided by NIST; they correspond to using pre-segmented fixed-length passages, with a fixed-length of 60 and 120 words, respectively. Table <ref type="table" coords="6,107.00,342.68,4.98,8.97">5</ref> compares the fixed length passage results (for both 60 words and 120 words) with the corresponding HMM runs on several different performance measures. To avoid any complication caused by multiple, potentially overlapping passages, we filtered the results so that there is at most one passage from each document (i.e., each document contributes at most one passage). As a result, the absolute performance is lower than that with the complete results. But since our official HMM results (uiucHARDf1) are filtered, we also filtered other results to make the results completely comparable.</p><p>The results show that for both 60-word passages and 120-word passages, the HMM method outperforms the corresponding pre-fixed baseline by character-based measures. In particular, the HMM runs have better performance in both cases in terms of BPref@12K characters, which is the recommended major measure for passage retrieval. By passage-based measures, the HMM runs are better in recall and F values, but worse in precision. Based on these observations, we may conclude that HMMs can improve the boundaries of fixed-length passages mostly by increasing the recall and sometimes decreasing the precision, which is as we expected.</p><p>Table <ref type="table" coords="6,108.16,618.60,4.98,8.97">6</ref> shows the passage-level performance of our three official runs. We see that although the HMMs generally improve the recall and combined measures such as BPrec@12K over the fixed length passages, the official run uiucHARDf1 (Fixed60+HMM) is worse than uiucHARDf0 (Fixed120), suggesting that the improvement from using HMMs is not that much as guessing the right length of relevant passages. A somehow surprising observation is that the baseline uiucHARDb0 per-forms much better than both relevance feedback runs in BPref@12K and recall at 10 passages, though it performs worse in precision at 10 passages. To understand why, we looked into specific differences between uiucHARDb0 and uiucHARDf1 and evaluated the performance of each component. First, we looked at returning whole documents as passages. Ranking of the documents can be based on original queries without feedback, with pseudo feedback, or with relevance feedback. We then looked at returning whole documents as passages but ranking the documents based on the score of the best fixed-length passage from each document. Finally we compared those runs with uiucHARDf1, which retrieved passages and was based on fixed-length passage scoring. To ensure that all components are comparable, we truncate the results so that the evaluation is all performed only on the top 400 documents. The results are shown in Table <ref type="table" coords="6,483.74,303.48,3.74,8.97" target="#tab_5">7</ref>.</p><p>From this table, we can make several interesting observations:</p><p>1. Pseudo feedback (with top 5 documents) improves performance across all measures.</p><p>2. Relevance feedback (with gapped top-k) only improves performance by passage-based measures but decreases performance substantially for characterbased measures. This may be because the relevant documents we obtained from the user are mostly down on the list (due to the use of gapped top-k), and using them for feedback may not help improve the front-end precision which is what the characterbased measures emphasize.</p><p>3. Comparison between relevance feedback and pseudo feedback indicates that the character-based measures appear to favor high recall.</p><p>4. Passage-based scoring is generally much worse than whole-document scoring by all measures; 60-word passages are significantly worse than 120-word passages. This definitely needs further examination.</p><p>One possible reason may be the KL-divergence method is not robust for scoring short passages.</p><p>5. Applying HMMs on top of 60-word passages slightly improves the performance, but the performance improvement is insufficient to balance the loss of performance due to the passage scoring.</p><p>6. Three factors have contributed to the large difference in BPref@12K between uiucHARDb0 and uiucHARDf1: ( </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusions</head><p>In this paper, we reported UIUC's TREC 2004 Hard Track experiments and results. We focused on the study of a new HMM-based method for identifying variable-length relevant passages from documents. The basic idea of this method is to model a document as a sequence of words generated from an HMM, which has two kinds of statesrelevant states and background states. One critical problem with constructing such an HMM is to estimate the output probability from a relevant state (i.e., a unigram language model or word distribution). In our HARD 2004 experiments, we used a fixed-length passage obtained through pre-segmentation to estimate this relevance language model. The idea is essentially to use HMMs on top of a fixed-length passage to improve the boundaries of the fixed-length passage. We evaluated the HMMs for passages of two different sizes (60 words and 120 words). Overall, the results show that the HMMs can improve the passage retrieval performance over fixed-length passages, mostly by increasing recall and thus some combined measures. This is consistent with what we observed in our preliminary experiments. However, a few other factors, e.g., relevance feedback, scoring whole documents vs. scoring passages, appear to be more dominant in determining the performance. Thus even though the HMM can improve performance over fixed length passages, our best passage retrieval per-formance is still much worse than our baseline performance.</p><p>Further experiments are needed to clarify issues such as the effectiveness of using the KL-divergence method for scoring passages. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Measure</head></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,139.03,282.04,94.96,8.97"><head></head><label></label><figDesc>Figure 1: 3-State HMM</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,139.03,465.91,94.96,8.97"><head></head><label></label><figDesc>Figure 2: 4-State HMM</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,378.01,240.95,94.97,8.97"><head>Figure 4 : 5 -</head><label>45</label><figDesc>Figure 3: 5-State HMM</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,72.00,110.53,402.73,614.89"><head></head><label></label><figDesc>b i,k for each pair of a state and an output symbol (s i , o k ). b i,k is the probability that symbol o k is generated from state s i . s p 2 . . . s p T , where s p t is the state at time t, is T t=1 a pt-1,pt . Given that we know the state sequence is s p 1 s p 2 . . . s p T , the probability of generating an output sequence o v 1 o v 2 . . . o v T , where o v t is the output symbol at time t, is T t=1 b pt,vt . If we are only given the observed output sequence o v1 o v2 . . . o v T</figDesc><table coords="2,72.00,604.08,229.02,69.65"><row><cell>for i = 1, . . . , n.</cell><cell>m k=1 b i,k = 1</cell></row><row><cell cols="2">Given an HMM with all the parameters listed above</cell></row><row><cell cols="2">specified, the probability of getting a state sequence</cell></row><row><cell>s p 1</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,80.65,111.01,392.68,244.06"><head>Table 1 :</head><label>1</label><figDesc>Results from Simple Baseline, Strong Baseline, and HMM on HARD 2003</figDesc><table coords="4,80.65,111.01,379.48,244.06"><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="2">Strong Baseline (different window sizes)</cell></row><row><cell></cell><cell cols="3">Simple Baseline</cell><cell>200</cell><cell>400</cell><cell>600</cell><cell>HMM</cell></row><row><cell></cell><cell>Prec</cell><cell>0.631</cell><cell></cell><cell cols="2">0.525 0.491</cell><cell>0.476</cell><cell>0.525</cell></row><row><cell></cell><cell>Rec</cell><cell>0.705</cell><cell></cell><cell cols="2">0.692 0.888</cell><cell>0.941</cell><cell>0.976</cell></row><row><cell></cell><cell>F1</cell><cell>0.516</cell><cell></cell><cell cols="2">0.508 0.543</cell><cell>0.542</cell><cell>0.587</cell></row><row><cell></cell><cell></cell><cell>Prec</cell><cell>Rec</cell><cell>F1</cell></row><row><cell cols="5">Simple Baseline w/o FB 0.631 0.705 0.516</cell></row><row><cell></cell><cell>w/ FB</cell><cell cols="3">0.542 0.975 0.604</cell></row><row><cell cols="5">Strong Baseline w/o FB 0.525 0.692 0.508</cell></row><row><cell>(200)</cell><cell>w/ FB</cell><cell cols="3">0.497 0.987 0.568</cell></row><row><cell cols="5">Strong Baseline w/o FB 0.491 0.888 0.543</cell></row><row><cell>(400)</cell><cell>w/ FB</cell><cell cols="3">0.481 0.992 0.552</cell></row><row><cell cols="5">Strong Baseline w/o FB 0.476 0.941 0.542</cell></row><row><cell>(600)</cell><cell>w/ FB</cell><cell cols="3">0.473 0.993 0.542</cell></row><row><cell>HMM</cell><cell cols="4">w/o FB 0.610 0.749 0.532</cell></row><row><cell></cell><cell>w FB</cell><cell cols="3">0.525 0.976 0.587</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,72.00,367.85,229.02,87.83"><head>Table 2 :</head><label>2</label><figDesc>Comparison of Performance before and after Pseudo Feedback on HARD 2003 data occurrences of query words among all passages of the fixed length. Passages extracted by this method can start at arbitrary places in documents, but have fixed length.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="8,76.98,111.01,428.90,261.48"><head>Table 7 :</head><label>7</label><figDesc>Performance breakdown for top 400 documents [6] X. Liu and B. Croft. Passage retrieval based on language models. In Proceedings of the 11th International Conference on Information and Knowledge Management, pages 375-382, 2002. [7] E. Mittendorf and P. Schäuble. Document and passage retrieval based on hidden Markov models. In Proceedings of the 17th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval, pages 318-327, 1994.</figDesc><table coords="8,106.12,111.01,399.76,95.44"><row><cell></cell><cell cols="6">NoFB PseudoFB RelFB RelFBPsg120 RelFBPsg60 RelFBPsg60HMM</cell></row><row><cell cols="2">BPref@12K 0.2671</cell><cell>0.2705</cell><cell>0.2417</cell><cell>0.1980</cell><cell>0.1700</cell><cell>0.1868</cell></row><row><cell>Prec@12K</cell><cell>0.2974</cell><cell>0.2989</cell><cell>0.2653</cell><cell>0.2137</cell><cell>0.1943</cell><cell>0.2143</cell></row><row><cell>CharRPrec</cell><cell>0.1912</cell><cell>0.1964</cell><cell>0.1883</cell><cell>0.1492</cell><cell>0.1294</cell><cell>0.1424</cell></row><row><cell cols="2">Rec@10Psg 0.2005</cell><cell>0.2517</cell><cell>0.2493</cell><cell>0.1843</cell><cell>0.1572</cell><cell>0.1494</cell></row><row><cell cols="2">Prec@10Psg 0.1387</cell><cell>0.157</cell><cell>0.1746</cell><cell>0.1648</cell><cell>0.1213</cell><cell>0.1411</cell></row><row><cell>F@10Psg</cell><cell>0.0892</cell><cell>0.1012</cell><cell>0.0999</cell><cell>0.0761</cell><cell>0.0684</cell><cell>0.0706</cell></row><row><cell>PsgRPrec</cell><cell>0.1074</cell><cell>0.1108</cell><cell>0.1204</cell><cell>0.0987</cell><cell>0.0926</cell><cell>0.1037</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,332.56,426.84,207.44,8.97;7,332.56,438.80,207.44,8.97;7,332.56,450.75,207.44,8.97;7,332.56,462.71,207.44,8.97;7,332.56,474.66,22.42,8.97" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,383.01,426.84,156.98,8.97;7,332.56,438.80,24.02,8.97">Passage-level evidence in document retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,376.55,438.80,163.46,8.97;7,332.56,450.75,207.44,8.97;7,332.56,462.71,138.60,8.97">Proceedings of the 17th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 17th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="302" to="310" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,332.56,495.71,207.44,8.97;7,332.56,507.66,207.44,8.97;7,332.56,519.61,207.44,8.97;7,332.56,531.57,144.60,8.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,511.77,495.71,28.22,8.97;7,332.56,507.66,207.44,8.97;7,332.56,519.61,46.49,8.97">HMMbased passage models for document classification and ranking</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Denoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Gallinari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,400.90,519.61,139.10,8.97;7,332.56,531.57,115.36,8.97">23rd European Colloquium on Information Retrieval Research</title>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,332.56,552.60,207.45,8.97;7,332.56,564.57,207.44,8.97;7,332.56,576.52,207.44,8.97;7,332.56,588.47,207.44,8.97;7,332.56,600.43,22.42,8.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,446.39,552.60,93.62,8.97;7,332.56,564.57,13.95,8.97">Passage retrieval revisited</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kaszkiel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,371.10,564.57,168.90,8.97;7,332.56,576.52,207.44,8.97;7,332.56,588.47,138.60,8.97">Proceedings of the 20th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 20th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+			<biblScope unit="page" from="178" to="185" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,332.56,621.47,207.44,8.97;7,332.56,633.42,207.44,8.97;7,332.56,645.38,186.23,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,448.35,621.47,91.65,8.97;7,332.56,633.42,70.18,8.97">Effective ranking with arbitrary passages</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kaszkiel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,411.09,633.42,128.91,8.97;7,332.56,645.38,93.01,8.97">Journal of the American Society for Information Science</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="344" to="364" />
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,332.56,666.41,207.44,8.97;7,332.56,678.38,207.44,8.97;7,332.56,690.33,207.44,8.97;7,332.56,702.28,207.44,8.97;7,332.56,714.24,167.54,8.97" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,426.98,666.41,113.02,8.97;7,332.56,678.38,207.44,8.97;7,332.56,690.33,31.67,8.97">Document language models, query models, and risk minimization for information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,388.10,690.33,151.90,8.97;7,332.56,702.28,207.44,8.97;7,332.56,714.24,138.74,8.97">Proceedings of 24th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>24th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,382.11,207.44,8.97;8,93.58,394.08,207.45,8.97;8,93.58,406.03,163.64,8.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,158.35,382.11,142.67,8.97;8,93.58,394.08,203.46,8.97">A tutorial on hidden Markov models and selected applications in speech recognition</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">R</forename><surname>Rabiner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,93.58,406.03,81.35,8.97">Proceedings of IEEE</title>
+		<meeting>IEEE</meeting>
+		<imprint>
+			<date type="published" when="1989">1989</date>
+			<biblScope unit="volume">77</biblScope>
+			<biblScope unit="page" from="257" to="286" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,424.64,207.44,8.97;8,93.58,436.59,207.44,8.97;8,93.58,448.54,207.46,8.97;8,93.58,460.50,207.44,8.97;8,93.58,472.45,168.93,8.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,242.82,424.64,58.20,8.97;8,93.58,436.59,191.44,8.97">Approaches to passage retrieval in full text information systems</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Salton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,93.58,448.54,207.46,8.97;8,93.58,460.50,207.44,8.97;8,93.58,472.45,85.07,8.97">Proceedings of the 16th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 16th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1993">1993</date>
+			<biblScope unit="page" from="49" to="58" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,491.05,207.44,8.97;8,93.58,503.01,207.44,8.97;8,93.58,514.97,152.21,8.97" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,181.23,491.05,119.79,8.97;8,93.58,503.01,103.49,8.97">Active feedback -UIUC trec-2003 HARD experiments</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,223.19,503.01,77.82,8.97;8,93.58,514.97,122.95,8.97">Proceedings of the 12th Text REtrieval Conference</title>
+		<meeting>the 12th Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,533.57,207.45,8.97;8,93.58,545.53,207.44,8.97;8,93.58,557.48,207.44,8.97;8,93.58,569.44,207.45,8.97;8,93.58,581.39,207.45,8.97;8,93.58,593.34,118.83,8.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,281.30,533.57,19.73,8.97;8,93.58,545.53,207.44,8.97;8,93.58,557.48,128.01,8.97">Marton. Quantitative evaluation of passage retrieval algorithms for question answering</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Tellex</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Katz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Fernandes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,241.21,557.48,59.81,8.97;8,93.58,569.44,207.45,8.97;8,93.58,581.39,207.45,8.97;8,93.58,593.34,34.98,8.97">Proceedings of the 26th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 26th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="41" to="47" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,611.95,207.44,8.97;8,93.58,623.90,207.44,8.97;8,93.58,635.86,207.45,8.97;8,93.58,647.82,207.44,8.97;8,93.58,659.77,22.42,8.97" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,154.58,611.95,146.44,8.97;8,93.58,623.90,26.81,8.97">Effective retrieval of structured documents</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Wilkinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,139.65,623.90,161.37,8.97;8,93.58,635.86,207.45,8.97;8,93.58,647.82,138.61,8.97">Proceedings of the 17th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 17th Annual International ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="311" to="317" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,678.38,207.44,8.97;8,93.58,690.33,207.43,8.97;8,93.58,702.28,207.45,8.97;8,93.58,714.24,126.44,8.97" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,197.97,678.38,103.05,8.97;8,93.58,690.33,124.99,8.97">Model-based feedback in K-L divergence retrieval model</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,240.67,690.33,60.34,8.97;8,93.58,702.28,207.45,8.97;8,93.58,714.24,96.59,8.97">Proceedings of the 10th Internationl Conference on Information and Knowledge Management</title>
+		<meeting>the 10th Internationl Conference on Information and Knowledge Management</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

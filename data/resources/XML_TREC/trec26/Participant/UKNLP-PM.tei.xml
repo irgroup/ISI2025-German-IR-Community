@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,112.37,56.52,395.33,14.68;1,78.96,76.44,462.15,14.68">Team UKNLP at TREC 2017 Precision Medicine Track: A Knowledge-Based IR System with Tuned Query-Time Boosting</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,217.93,132.14,40.98,9.50"><forename type="first">Jiho</forename><surname>Noh</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,287.13,132.14,94.93,9.50"><forename type="first">Ramakanth</forename><surname>Kavuluru</surname></persName>
+						</author>
+						<title level="a" type="main" coord="1,112.37,56.52,395.33,14.68;1,78.96,76.44,462.15,14.68">Team UKNLP at TREC 2017 Precision Medicine Track: A Knowledge-Based IR System with Tuned Query-Time Boosting</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">74F6B4805D33B0C21350E414E02CF3B9</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes the system architecture of the University of Kentucky Natural Language Processing (UKNLP) team's entry for the TREC 2017 Precision Medicine Track. The goal of the challenge is to retrieve useful precision medicinerelated information (abstracts, clinical trials) for the given synthetic cancer patient cases, each of which consists of a neoplastic condition, genetic variants, demographic details, and any additional information (e.g., comorbidities). We explored query expansion techniques using well-known broad knowledge sources such as the Unified Medical Language System (UMLS) and the Medical Subject Headings (MeSH) for each abstract, and additional specialized sources such as the Catalogue Of Somatic Mutations In Cancer (COSMIC) database, which allowed us to construct boosted queries. We conducted several experiments with model averaging techniques and our final system architecture placed 6th (in terms of infNDCG and R-prec) among 29 teams that submitted runs to the scientific abstract retrieval task.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>I. INTRODUCTION</head><p>The 2017 TREC Precision Medicine (PM) Track is a successor of the Clinical Decision Support (CDS) Track from the previous three years. Previously the CDS track focused on finding biomedical articles relevant for answering clinical questions involving medical records. In 2017, the participating teams are asked to provide useful precision medicine-related information to the clinicians who treat cancer patients based on specific patient case information. Each case is described by the disease name (a specific type of cancer this year), the relevant genetic variants (gene and mutation names) for the patient, and other pertinent factors. Table <ref type="table" coords="1,193.88,466.68,3.32,8.64" target="#tab_2">I</ref> shows two examples of such cases, termed "topics" for this track. Teams need to construct an automated IR system that can (1) retrieve the most pertinent scientific articles to the topic and (2) recommend clinical studies that are suitable to the patient's case. Two corresponding document collections are provided: 1) Scientific abstracts: We were given the January 2017 snapshot of Medline abstracts for the scientific abstracts scenario. This collection consists of roughly 26 million articles that are stored in a structured XML format. Along with the textual content of the abstracts, detailed metadata of the each article is provided as well including journal information, author list, and citation records. Additionally, the TREC task organizers provided abstracts obtained from the most recent AACR (American Association for Cancer Research) and ASCO (American Society of Clinical Oncology) proceedings. Documents in rvkavu2@uky.edu this collection do not contain any metadata, which necessitates additional care in data pre-processing and querying procedures.</p><p>2) Clinical trials: For the clinical trial retrieval scenario, the April 2017 snapshot of ClinicalTrials.gov database was provided in a structured XML format.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>II. METHODS</head><p>Our system follows a traditional information retrieval (IR) architecture with the following components. 1) Indexing: Document contents and attributes are the main elements compared between documents and topics for the retrieval task; Often such elements are quantified through term frequencies, the positions of terms in a document, and document lengths. 2) Topic analysis/expansion: The same term may be used with a different meaning in a different domain.</p><p>Due to the ambiguity issues in natural language, additional work, such as query transformation and expansion, is often unavoidable. 3) Retrieval models: A variety of scoring techniques are typically explored in the document retrieval phase. 4) Query-time boosting: Based on empirically determined or expert defined weights, query-time boosting of terms/phrases can enhance the performance of an IR system.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Indexing</head><p>We used Apache Lucene (version 6.5.1)<ref type="foot" coords="1,494.74,491.13,3.49,6.05" target="#foot_0">1</ref> to index our document collections with the indexing process slightly differing based on the collection type.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1) Fields of Interest:</head><p>For each article, based on available metadata, we have chosen a set of fields that we think is highly useful in the precision medicine perspective. For indexing the PubMed abstracts, we used the following fields.</p><p>• Document ID: PMID, the unique document identifier that is assigned by the National Library of Medicine (NLM)</p><p>• Journal title: the surface name of the journal title, which assumably defines the domain of the article.</p><p>• Article title: the title of the article</p><p>• Abstract text: the abstract of the article in free text  We also indexed AACR/ASCO articles with the following matching fields.</p><p>• Document ID: the provided filename of the abstract is used as the identifier</p><p>• Journal title: the name of the meeting/conference</p><p>• Article title: the subject line of the article</p><p>• Abstract text: the abstract of the article in free text</p><p>• MeSH headings and corresponding UMLS identifiers</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Chemical names and corresponding UMLS identifiers</head><p>For clinical trials we extracted and used the following fields.</p><p>• Document ID: NCT ID, the unique clinical study identifier as it appears on ClinicalTrials.gov</p><p>• Brief title: a short title of the clinical study</p><p>• Official title: the full title of the clinical study</p><p>• Brief summary: a short description of the clinical study</p><p>• Detailed descriptions: extended description of the protocol</p><p>• Overall status: the recruitment status</p><p>• Phase: N/A, Early Phase 1, or Phases 1-4</p><p>• Study type: the nature of the investigation</p><p>• Condition: the names of disease or conditions being studied (corresponding MeSH terms or SNOMED CT terms)</p><p>• Intervention: the intervention(s) associated within the study</p><p>• Eligibility criteria: a limited list of criteria for selection of participants (inclusion/exclusion criteria)</p><p>• Eligibility gender: All, Female, or Male</p><p>• Eligibility age: minimum/maximum age of potential participants eligible for the study</p><p>• Keywords: keywords that best describe the protocol 2) Normalizing Age Groups: The age and gender information is given in a demographic field (e.g., "45-year-old female"). For a particular disease, this information is cruicial in filtering relevant scientific articles and clinical trials. For the scientific articles, age-related temporal phrases are transformed into corresponding MeSH terms as shown in Table <ref type="table" coords="2,271.65,716.01,6.08,8.64" target="#tab_3">II</ref>. The same patterns in the topics are transformed accordingly.</p><p>In trials data, the format used for the age information in the eligibility section is not inconsistent. The unit used in this field ranges from 'minute' to 'year'. We normalized this temporal information into a numeric value in 'days'. Given Lucene query parser allows us to use "range queries", the results can be restricted to the range of the numeric age values.</p><p>3) Data Pre-processing for the AACR/ASCO Collections: AACR/ASCO abstracts do not contain metadata such as MeSH terms or chemical components. In order to construct a consistent document index, we parsed them by using NLM's Medical Text Indexer (MTI) to obtain MeSH terms and corresponding UMLS concepts. After adding these MeSH terms of the AACR/ASCO documents, we have noticed 10-15% more occurrences of these documents in our top-ranked results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Query/Topic Expansion</head><p>In several cases, topic representations are ambiguous leading to irrelevant results. To counter this, query expansion strategies are generally incorporated -Song et al. <ref type="bibr" coords="2,536.47,389.51,11.62,8.64" target="#b3">[4]</ref> used Google search results to expand the initial query and You et al. <ref type="bibr" coords="2,333.72,411.43,11.62,8.64" target="#b4">[5]</ref> obtained the MeSH terms from the citations of the retrieved documents. We have focused more on disease and gene variations by utilizing UMLS concepts and MeSH terms. The same query expansion techniques are used for searching both the scientific articles and the clinical trials.</p><p>1) UMLS Atoms for the Disease: We queried with the disease name mentioned in the topic to find the best matching UMLS concepts through NLM's UTS service. The "preferred" name of the identified UMLS concept often does not align with MeSH descriptions or the name mentioned in the topic. However, it provides a set of highly related key terms to the topic. We obtained up to five closest UMLS concepts and subsequently restricted the results to those arising from the National Cancer Institute (NCI) Thesaurus terminology. From the concept set, we further retrieved atomic phrases (from UMLS) of each concept. All such unique phrases are appended to the disease group when formulating the query. Listing 1 shows how a disease name can be expanded through an example.</p><p>2) MeSH Headings for the Disease: MeSH is a frequently used biomedical terminology specifically designed to index biomedical articles to aid in subsequent retrieval by users through the PubMed search engine. Each article is typically assigned 10-15 MeSH headings. MeSH is hierarchical in nature which aids in better understanding a subject at several levels of specificity. We note from Section II-A that we already index MeSH terms for scientific literature abstracts. To be able to do exact matching in the MeSH heading field, we need to  { "disease name": "Pancreatic ductal adenocarcinoma", "UMLS": [{ "code": "C1335302", "concept name": "Pancreatic Ductal Adenocarcinoma", "atoms": [ "ductal adenocarcinoma of the pancreas", "pancreatic infiltrating duct carcinoma", "pancreatic tubular adenocarcinoma" ] }] } identify the MeSH term from the disease name in the input topic. For this, we ran NLM's concept mapping tool MetaMap on the disease name to identify UMLS concepts restricted to the MeSH source vocabulary to obtain the corresponding code. Furthermore, we used the synonymous UMLS atoms for the corresponding UMLS concept as part of the query expansion for the disease (in addition to atoms from NCI Thesaurus concepts from Section II-B1).</p><note type="other">Age Groups MeSH Terms Normalized in</note><p>3) The Genetic Variations: The gene names are often abbreviated (JAK2 for 'Janus Kinase 2') and the variant names are more involved due to mutational information including the amino acid symbols and the loci. For the gene and mutation names, we have separately used the same expansion methods that leverage MetaMap in order to obtain UMLS concepts and associated MeSH terms. For the gene part, the retrieved set of the atoms are strongly relevant to the gene name from the topic and hence there are no concerns in using these phrases as synonyms. However, the UMLS atoms of the mutation part do not always present the mutation at a level that can lend itself to retrieval tasks. For example, V617F corresponds to the following set of atoms: "JAK2 Val617Phe", "Janus Kinase 2 V617F", "NP 004963.1:p.V617F" . Although the last atom gives us additional information (NCBI mutation accession number), searching Medline articles with the accession number does not improve the retrieval quality. Alternatively, adding 'Val617Phe' to the query string does widen the range of relevant results. We used the contiguous numeric part of the mutation (which is mostly the reference sequence position number) to identify potentially useful tokens, such as 'Val617Phe' from 617. Consequently, our method also covers the one/three-letter amino acid codes as well.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. Query Term Weight Optimization</head><p>In the scoring procedure for IR systems, each component (term or phrase) in a query can be emphasized to the desired relevance level based on the corresponding perceived level of importance. Popularly called "query-time boosting", this approach can aid in assigning different weights (or boosts) to different sections of each query. In our query template, we introduce multiple boost factors on the constituent groups for each patient case. The Lucene disjunctive query used in our system is</p><formula xml:id="formula_0" coords="3,343.15,563.07,203.81,40.41">+ [(D 1 D 2 . . . ) w1 (mt : D 1 D 2 . . . ) w2 ] + [(G 1 G 2 . . . ) w3 (M 1 M 2 . . . ) w4 )] (mt : G 1 . . . ) w5 (mt : M 1 . . . ) w6 (mt : F 1 . . . ) w7 ,</formula><p>which consists of seven components: (1) the disease names (D i ), (2) the disease MeSH codes (D i ), (3) the gene names (G i ), (4) the mutation names (M i ), (5) the gene codes in MeSH (G i ), (6) the mutation codes in MeSH (M i ), and (7) the demographic codes in MeSH (F i ). Each query component has a specific boost factor (w 1 , . . . , w 7 ) that needs to be tuned. We notice from the '+' components of the query that we at least require a disease and a gene/mutation variant to be part of the document with all other combinations being disjunctions.</p><p>Given the PM track is a new task introduced in 2017, we do not have a dataset with relevance judgments for tuning Average performance for Task A infNDCG R-prec P@5 P@10 P@30 UKY BASE 0.3800 0. Fig. <ref type="figure" coords="4,196.71,404.54,3.88,8.64">1</ref>: infNDCG score distribution across all topics for our runs the systems. To handle this, we used the genetic database of the Catalogue of Somatic Mutations in Cancer (COSMIC) 2 as a proxy for relevance judgements for this task. COSMIC provides a wide range of resources for somatic mutations in human cancer. Via its search engine, we were able to collate research articles with regards to cancer types and associated genes/mutations from our input topics. This allowed us to evaluate our system with ranking measures (infNDCG, infAP, p10, and bpref) and helped us tune the boost factors for our queries based on validation experiments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>D. Retrieval Models</head><p>As mentioned above, the relevance judgment data was not available for this year. In order to compare the relevance models with respect to the topics and collections of interest, we examined the results over the previous years' datasets from TREC Clinical Decision Support tracks. For this experiment, we ran tests using the open source Terrier 3 system for the following methods:</p><p>• Vanilla TF-IDF without smoothing functions</p><p>• The DFR version of BM25 (DFR BM25) <ref type="bibr" coords="4,257.92,695.56,11.62,8.64" target="#b0">[1]</ref> 2 http://cancer.sanger.ac.uk/cosmic 3 http://terrier.org/</p><p>• Poisson estimation for randomness (PL2) <ref type="bibr" coords="4,525.17,445.64,11.62,8.64" target="#b0">[1]</ref> • Log-logistic DFR model (LGD) <ref type="bibr" coords="4,486.82,464.38,11.62,8.64" target="#b1">[2]</ref> [3]</p><p>• Inverse expected document frequency model for randomness (In expB2 and In expC2) <ref type="bibr" coords="4,500.89,494.08,11.62,8.64" target="#b0">[1]</ref> The In expC2 was the best among the models in this experiment. Even though BM25 was not the best model in this experiment, the difference was negligible compared to the results of the Lucene platform; thus we used Lucene's default BM25 model without changing any of its settings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>III. EXPERIMENTS</head><p>Five models were prepared for the submission in different aspects.</p><p>• RUN1 (UKY BASE): This is our baseline run where each query component (disease, gene, mutation, demographic info) is combined in a disjunctive query.</p><p>• RUN2 (UKY CJT): To our baseline, we add an additional conjunctive component in which the terms from the initial disjunctive query are ANDed. The idea is to have those documents that match all criteria rise to the top of the ranked results. With some topics, we noticed that the MoD results had slightly more general concepts which may have a slight positive effect on the retrieval performance.</p><p>• RUN5 (UKY MAN): Each query is manually modified based on manual observations of the topic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>IV. RESULTS</head><p>The scope of our experiments is focused on Task A (retrieval of scientific abstracts) alone although we submitted some baseline runs for the clinical trial dataset. Table <ref type="table" coords="5,291.11,276.15,9.95,8.64" target="#tab_4">III</ref> shows the average performances for infNDCG, R-prec, and P@5/10/30. The best infNDCG was achieved by UKY CJT, which added a conjunctive query of the baseline query terms to the original disjunctive query. UKY AGG returned the highest scores in all other measures except infNDCG. The worst score in the same category is from UKY COM, in which the MoD terms are appended to the queries. This indicates that the topic expansion technique if not handled properly may result in weaker outcomes. Overall, the combination of query-time boosting and knowledge-based query expansion resulted in our best results.</p><p>V. CONCLUSION This paper describes our IR system and its results based on runs submitted to the the TREC 2017 Precision Medicine track. We imbued both input topics and document collections with external knowledge (from UMLS and MeSH) to improve the recall and ranks of relevant documents. Overall, the topic expansion techniques using the UMLS concepts and MeSH terms improved the results (specifically for the AACR/ASCO collection). Our systems ranked 6th (in terms of infNDCG and R-prec) among 29 teams that submitted runs to the abstract retrieval task. In the future, we would like to experiment with well-known learning-to-rank and recent neural approaches to rerank the top few results to improve our performances.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" coords="4,68.31,192.18,483.45,204.05"><head></head><label></label><figDesc></figDesc><graphic coords="4,68.31,192.18,483.45,204.05" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="2,177.48,133.94,265.10,8.64"><head>TABLE I :</head><label>I</label><figDesc>An example of topics that describes the patient's case</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="3,126.66,205.17,366.74,47.74"><head>TABLE II :</head><label>II</label><figDesc>Normalized age groups for search strategies Listing 1: The expansion details of the disease name "Pancreatic ductal adenocarcinoma"</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="4,168.77,86.78,282.52,85.09"><head>TABLE III :</head><label>III</label><figDesc>Performances of our runs for TREC PM Track (Task A)</figDesc><table coords="4,179.86,86.78,260.33,65.62"><row><cell></cell><cell>2303 0.5267 0.4667 0.3756</cell></row><row><cell>UKY CJT</cell><cell>0.3897 0.2333 0.5267 0.4800 0.3711</cell></row><row><cell>UKY AGG</cell><cell>0.3852 0.2518 0.5533 0.4933 0.3944</cell></row><row><cell>UKY COM</cell><cell>0.2572 0.1906 0.3933 0.3833 0.2933</cell></row><row><cell>UKY MAN</cell><cell>0.3666 0.2354 0.5267 0.4867 0.3500</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="5,63.36,58.08,237.71,102.77"><head></head><label></label><figDesc>In this run, the query-time boost factors are optimized based on the COSMIC reference, and additional MeSH terms are added using the MeSH on Demand (MOD) service (https: //meshb.nlm.nih.gov/MeSHonDemand) in addition to the MetaMap results.</figDesc><table coords="5,63.36,58.08,237.71,47.91"><row><cell>• RUN3 (UKY AGG): The results of RUN2 and RUN4</cell></row><row><cell>(see next) are aggregated via Borda count to impose</cell></row><row><cell>a new ranking</cell></row><row><cell>• RUN4 (UKY COM):</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,330.45,728.26,97.69,6.91"><p>https://lucene.apache.org/core/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,336.26,235.86,234.84,6.91;5,336.26,244.83,230.39,6.91" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,505.10,235.86,66.00,6.91;5,336.26,244.83,205.15,6.91">Probabilistic models for information retrieval based on divergence from randomness</title>
+		<author>
+			<persName coords=""><forename type="first">Gianni</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cornelis</forename><surname>Joost</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Van Rijsbergen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,336.26,256.28,234.84,6.91;5,336.26,265.25,234.84,6.91;5,336.26,274.07,234.84,7.05;5,336.26,283.18,49.84,6.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,475.52,256.28,95.58,6.91;5,336.26,265.25,232.70,6.91">Bridging language modeling and divergence from randomness models: A log-logistic model for ir</title>
+		<author>
+			<persName coords=""><forename type="first">Stéphane</forename><surname>Clinchant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Gaussier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,346.90,274.07,173.02,6.87">Conference on the Theory of Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="54" to="65" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,336.26,294.64,234.84,6.91;5,336.26,303.46,234.84,7.05;5,336.26,312.43,234.84,7.05;5,336.26,321.54,40.55,6.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,464.55,294.64,106.55,6.91;5,336.26,303.61,18.44,6.91">Information-based models for ad hoc ir</title>
+		<author>
+			<persName coords=""><forename type="first">Stéphane</forename><surname>Clinchant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Gaussier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,369.57,303.46,201.52,6.87;5,336.26,312.43,177.75,6.87">Proceedings of the 33rd international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 33rd international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="234" to="241" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,336.26,333.00,234.84,6.91;5,336.26,341.82,234.84,7.05;5,336.26,350.79,92.32,7.05" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,443.56,333.00,127.54,6.91;5,336.26,341.96,134.94,6.91">Ecnu at 2015 cds track: Two re-ranking methods in medical information retrieval</title>
+		<author>
+			<persName coords=""><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>He</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,489.59,341.82,81.51,6.87;5,336.26,350.79,44.72,6.87">Proceedings of the 2015 Text Retrieval</title>
+		<meeting>the 2015 Text Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2015-01">jan 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,336.26,362.39,234.84,6.91;5,336.26,371.21,165.88,7.05" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,466.68,362.39,104.42,6.91;5,336.26,371.35,104.10,6.91">FDUMedSearch at TREC 2015 Clinical Decision Support Track</title>
+		<author>
+			<persName coords=""><surname>You</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Peng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Zhou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,447.41,371.21,17.18,6.87">TREC</title>
+		<imprint>
+			<date type="published" when="2015-01">jan 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

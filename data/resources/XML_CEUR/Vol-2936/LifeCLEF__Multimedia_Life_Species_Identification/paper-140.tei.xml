@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,381.10,15.42;1,88.40,106.66,412.31,15.42">Contrastive Representation Learning for Natural World Imagery: Habitat prediction for 30,000 species</title>
+				<funder ref="#_g4wGAp2">
+					<orgName type="full">National Health and Medical Research</orgName>
+				</funder>
+				<funder ref="#_3H7Cemz">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,134.97,96.82,11.96"><forename type="first">Sachith</forename><surname>Seneviratne</surname></persName>
+							<email>sachith.seneviratne@unimelb.edu.au</email>
+							<affiliation key="aff0">
+								<orgName type="department">Melbourne School of Design</orgName>
+								<orgName type="laboratory" key="lab1">Transport</orgName>
+								<orgName type="laboratory" key="lab2">Health and Urban Design Research Lab</orgName>
+								<orgName type="institution">The University of Melbourne</orgName>
+								<address>
+									<postCode>3010</postCode>
+									<settlement>Parkville</settlement>
+									<region>VIC</region>
+									<country key="AU">Australia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,381.10,15.42;1,88.40,106.66,412.31,15.42">Contrastive Representation Learning for Natural World Imagery: Habitat prediction for 30,000 species</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">BA546AA05D5AD07A74F219F6B001A15F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:14+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Fine Grained Visual Categorization</term>
+					<term>Representation Learning</term>
+					<term>Self Supervision</term>
+					<term>Transfer Learning</term>
+					<term>Domain adaptation</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Recent work in contrastive representation learning has pushed the boundaries of classification tasks in computer vision, achieving state of the art results on many established benchmarks. However, their performance on natural imagery tasks which fall into the category of fine-grained image classification can be further improved. In this paper, I present a methodology that explores this issue and achieves state of the art results on species distribution modelling from remote sensing imagery as part of the GeoLifeCLEF2021 challenge. My method is able to beat the current state of the art on this challenge (trained on 4 types of imagery) using only base RGB imagery. Initial experiments indicate that modifying the architecture to include additional image modalities leads to further improvements in performance on the task of location-based species recommendation. Additionally, I introduce a consistency function, which relies on the strategy of withholding data from the model and is useful in checking for model generality without relying on a validation split.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Species Distribution Modelling (SDM) is the study of computational techniques to predict species distribution across both geographical locations and time using different forms of environmental data. Computer vision techniques have garnered attention in this area due to the ability to effectively incorporate contextual and geographic information to improve the modelling of species distribution <ref type="bibr" coords="1,176.02,488.57,12.88,10.91" target="#b0">[1]</ref>. Advances in this area have many implications in ecological analysis including the ability to more effectively engage with citizens regarding wildlife preservation and education <ref type="bibr" coords="1,130.68,515.67,13.80,10.91" target="#b1">[2]</ref>. Methods based in computer vision that allow large datasets of habitat imagery to be processed in order to generate a prediction of the most likely species inhabiting that area allow for significant theoretical and applied improvements in this area. However, the key challenges on this problem from a classification-based computer vision perspective are two fold: unbalanced data and having classes with only minute differences to distinguish one from another.</p><p>Imagery in the environment can be broadly divided into two categories: built and natural world. Remote sensing datasets will generally contain imagery pertaining to both these types. Many challenging tasks in computer vision arise in the natural world imagery domain <ref type="bibr" coords="2,462.40,100.52,14.37,10.91" target="#b2">[3]</ref>. Such tasks usually fall under the domain of "fine-grained visual categorization" -an active area of research in computer vision.</p><p>Imagery based classification problems with a fine distinction between classes can be difficult for computer vision techniques to perform robustly on, especially when combined with a large number of classes featuring unbalanced data and certain classes being heavily under-represented. This is termed the "long-tailed class distribution" problem. These difficulties are present in the classification problem explored in this paper, where using a satellite image of a habitat location, the species that inhabits that location must be predicted from a list of over 30,000 candidate species. In contrast to standard classification problems, the target candidate for classification is absent within the image in this particular task.</p><p>Contrastive representation learning techniques have been extensively explored for classification problems. However, their performance on representation learning across different data domains is less well understood <ref type="bibr" coords="2,226.00,276.66,13.98,10.91" target="#b3">[4]</ref>. This work contributes to the body of existing literature exploring self-supervised representation learning methods on remote sensing imagery and related data sources. These include methods exploring the performance of existing self-supervised methods on remote sensing data <ref type="bibr" coords="2,227.84,317.30,12.60,10.91" target="#b4">[5]</ref>, self-supervision techniques which exploit location and time invariance of remote sensing data to perform representation learning <ref type="bibr" coords="2,400.74,330.85,13.77,10.91" target="#b5">[6]</ref> and methods which exploit the spatiotemporal structure of remote sensing data to perform self-supervision <ref type="bibr" coords="2,475.42,344.40,12.93,10.91" target="#b6">[7]</ref>.</p><p>In this paper, I detail my workflow for the winning submission to GeoLifeCLEF2021 and summarize my performance representing the University of Melbourne at this challenge. This competition<ref type="foot" coords="2,143.55,383.29,3.71,7.97" target="#foot_0">1</ref> was organized as GeoLifeCLEF 2021 <ref type="bibr" coords="2,310.59,385.05,13.46,10.91" target="#b7">[8]</ref>, as part of LifeCLEF 2021 <ref type="bibr" coords="2,439.69,385.05,14.35,10.91" target="#b8">[9]</ref> and in conjunction with FGVC8<ref type="foot" coords="2,185.74,396.84,3.71,7.97" target="#foot_1">2</ref> workshop at CVPR<ref type="foot" coords="2,279.10,396.84,3.71,7.97" target="#foot_2">3</ref> 2021. Comparisons of results are made primarily with existing benchmarks which include the state of the art for this problem. A comparison with other competitors is not included. Additionally, I explore the details around the transformations pipeline used for improving the feature representation learned by the model and also introduce a consistency-based model selection function. This function was useful for the purpose of model selection for evaluation on the public leaderboard. This work is derivative of a larger computer vision framework connecting aspects of the environment (built and natural). This framework draws high-level inspiration from <ref type="bibr" coords="2,245.32,493.44,18.07,10.91" target="#b9">[10]</ref> and the insights gained from both projects allowed a winning solution to be crafted for this problem. Further discussion of such insights is beyond the scope of this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Data and Evaluation Metrics</head><p>In this section, I explore the datasets and evaluation metrics that are used for the purposes of training and evaluating my models. An overall description of all datasets used in this work is also presented, as my workflow only uses either one or two of the available datasets for training and evaluation. Top-30 error is used for comparing different methods. Detailed discussion of the metrics used in the competition can be found in <ref type="bibr" coords="3,304.14,86.97,17.88,10.91" target="#b10">[11]</ref> with a detailed discussion of the datasets present in <ref type="bibr" coords="3,136.61,100.52,16.25,10.91" target="#b11">[12]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Dataset</head><p>This work builds upon the following types of imagery:</p><p>• RGB remote sensing imagery • Altitude imagery These imagery types have a pixel-wise correspondence in terms of geographical overlap at each location and are 256x256 in size and have a spatial resolution of 1 meter per pixel. Therefore each image covers an area of 256x256 square meters. Altitude imagery was derived using elevation data from the NASA Shuttle Radar Topography Mission <ref type="foot" coords="3,406.18,255.05,3.71,7.97" target="#foot_3">4</ref> . RGB remote sensing imagery was from 2 sources: in the US -from the 2009-2011 cycle of the National Agriculture Imagery Program <ref type="foot" coords="3,170.15,282.15,3.71,7.97" target="#foot_4">5</ref> and in France -imagery from BD ORTHOR 2.0 and ORTHO HRR 1.0 databases from the French National Institute of Geographic and Forest Information<ref type="foot" coords="3,458.89,295.70,3.71,7.97" target="#foot_5">6</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Class Distribution</head><p>One of the main difficulties in this problem arises due to the unbalanced class distribution. Interestingly, over 60% of all classes have fewer than 10 training images and nearly 8,000 classes have a single image to train on (about 25% of all classes). The data distribution shown by Figure <ref type="figure" coords="3,120.94,387.83,3.81,10.91" target="#fig_0">1</ref>, which shows the number of training records on the x-axis as a closed interval on a discretized logarithimic scale and the number of classes that belong to that range on the y-axis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Consistency-based Model Selection Metric</head><p>In this section, I introduce a metric which was used in lieu of a validation split on this problem. I use the proxy task of "country prediction" in order to derive an additional validation metric building on the "city prediction" task introduced in <ref type="bibr" coords="3,332.21,478.20,16.42,10.91" target="#b12">[13]</ref>. Given that many of the species were endemic to each country (US or France but not both), it is reasonable that a model with higher accuracy in terms of species prediction would be also be able to perform better on the pseudo-task of predicting which country. This is derived from the model's understanding of which species can belong to a particular country. An error rate is calculated for each model corresponding to how many times the model makes an impossible prediction by assigning a species to a country that does not host that species (based on the training data). Note that this consistency only makes sense with the "variable-withholding" strategy described in Section 3, since if the model has access to any geographical information(GPS co-ordinates or country label), it would simply learn this information and not make such mistakes. By intentionally withholding such information from the model I gain two advantages: • I am able to use this consistency error as a pseudo-validation metric.</p><p>• It is possible to incorporate withheld-data at a later stage of model training (for example during ensembling of individual models trained on all co-variates) in order to further improve model performance.</p><p>The calculation of this function is straightforward:</p><p>1. For each species categorize them as "fr", "us" or "both" depending on country of occurrence 2. At validation time, for each predicted label in the top-30 predictions for a particular image do the following:</p><p>• Count the number of "US" species : 𝑁 𝑈 𝑆 • Count the number of "FR" species : 𝑁 𝐹 𝑅 • Count the number of "US and FR" : 𝑁 𝐵𝑂𝑇 𝐻 3. Count the number of instances where both 𝑁 𝑈 𝑆 &gt; 0 and 𝑁 𝐹 𝑅 &gt; 0</p><p>This count acts as the "confounder" count (or misclassification count) for that model variant where models with fewer confounders are better. This metric was used for model checkpoint selection for submission to the leaderboard, but its effectiveness requires further exploration with respect to performance against an actual validation split of the data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methodology</head><p>The main problem explored in this paper is the overlapping value of the different data sources provided as part of the competition. Since the prediction problem was quite difficult, I focused on approaches that allowed the model to exploit all possible information present in each individual image type, starting with RGB imagery. I explore the following questions in this regard:</p><p>• Given that the data consists of base imagery (RGB) augmented by 3 co-variates (NIR, land-use and altitude) at the same location, is it possible to derive most of the information present in all 4 data types using only the base RGB imagery? • Given the above is achievable, what further information regarding the prediction variable can be extracted from the co-variates? • What is the best way to combine this information to improve prediction performance?</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Transformations</head><p>Image transformations have often been touted as a means of providing more variety to the training process. As the input data used for training neural networks is often fixed, it can lead to the model seeing the same data epoch upon epoch leading to overfitting. This is especially true in fine-grained visual categorization problems with poorly represented classes (&lt;10 images per class) making up the majority. In such cases approaches such as adverserial training and image transformations/augmentations have been shown to provide significant improvements on baseline methods. In this section I explore the image augmentation strategy that was used to combat overfitting. A discussion of modifications for multimodal analysis can be found under Section 3.3.</p><p>The transformation pipeline is as follows:</p><p>• Subtracting the per-channel ImageNet <ref type="bibr" coords="5,287.63,540.35,20.68,10.91" target="#b13">[14]</ref> mean and dividing by the per-channel Ima-geNet standard deviation. • Random horizontal flip • Random vertical flip • RandAugment <ref type="bibr" coords="5,177.32,598.61,22.09,10.91" target="#b15">[15]</ref> was used to augment images N, M with hyperparameters N set to 2, and M set to 9. N represents the number of augmentation transformations to be applied, while M controls the magnitude for all the transformations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Unimodal Analysis</head><p>In order to explore the possibility of extracting more information from the base RGB imagery, the initial experiment focused on creating a workflow that uses only RGB imagery and ignores all other information available to the model for training and evaluation purposes. This includes co-variate images, geographic (GPS) location, country tag and environmental feature vectors. Additionally, past work <ref type="bibr" coords="6,196.48,161.73,17.94,10.91" target="#b16">[16]</ref> indicates the benefits of using pretrained feature representations for fine-grained visual categorization tasks. MoCo <ref type="bibr" coords="6,304.24,175.28,22.24,10.91" target="#b17">[17]</ref> was used as a contrastive representation learning framework to initialize a feature representation for the model to build off of with pretraining carried out for 20 epochs using a single 4 GPU node on Spartan <ref type="bibr" coords="6,440.20,202.38,19.31,10.91" target="#b18">[18]</ref> using the hyperparameters in Table <ref type="table" coords="6,203.81,215.93,3.66,10.91" target="#tab_0">1</ref>. The standard protocol for pretraining was followed, but combining all data across the US and France to form a combined representation, which is required for the combined (both countries at the same time) modeling approach followed in this paper.</p><p>Further training was conducted for 7 epochs in a supervised manner to finetune the feature representation further. This training was performed with end-to-end finetuning of the ResNet50 using the parameters available in Table <ref type="table" coords="6,271.87,283.68,3.81,10.91">2</ref>. Checkpoints were generated each epoch and the model with the lowest consistency error (as defined in section 2.3) was used to determine the best performing model. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Multimodal Analysis</head><p>In this section I explore how multimodal imagery was incorporated into the training workflow. Only the addition of altitude imagery is covered in this section with the other co-variates being left as future work for exploration. This section uses same workflow as in Section 3.2 with a few key differences. Pretraining using MoCo was carried out on altitude imagery as well, using an architecture identical to the bottom branch in Figure <ref type="figure" coords="7,279.42,375.98,3.81,10.91">3</ref>.3. The architecture was modified to include an identical architectural sister network as in the unimodal analysis, which was combined using concatenation at the final bottleneck layer of the ResNet50. The new layer containing 4096 nodes had a 31180 node linear layer with softmax applied in order to infer labels for the task at hand. In this regard, the architecture, which is shown in Figure <ref type="figure" coords="7,361.98,430.18,3.66,10.91">3</ref>.3, was identical to the unimodal case with the key difference being the number of inputs to the linear layer (multimodal -4096 vs unimodal -2048). The single altitude channel was replicated across 3 channels to be compatible with a standard ResNet-50. An advantage of this architecture is its extensibility to different image modalities with the added ability to create seperate filters for the individual image modalities and thereby combine higher level features rather than lower level features (which was the main reason for stacking near the end of the ResNet50 architecture as opposed to near the beginning). My intuition in doing so is that the architecture is able to process more refined knowledge about the different image domains instead of trying to learn an embedding that attempts to unify its representation of all domains combined. This has the marked disadvantage of increasing the GPU memory footprint of the architecture which significantly impacts training time and is perhaps the key weakness of this approach. The batch size was lowered to 64 to accommodate the larger architecture, leading to a roughly 3-fold slowdown on training the model. End-to-end finetuning of the ResNet50 was only conducted for 4 epochs because of these additional computational requirements. A Siamese network based representation learning approach based on the approach from <ref type="bibr" coords="7,263.14,633.41,18.05,10.91" target="#b20">[20]</ref> (where weights are shared between the branches, thereby reducing the model footprint on the GPU) was considered but quickly discarded on the basis that the image domains in this problem are too different to each other to benefit from shared knowledge from each other at the filter levels.</p><p>One other key difference was the modification of the transformations pipeline to remove most augmentations during training. This is primarily an artefact of the implementation, which used two seperate PyTorch Dataloaders instead of a single dataloader. Therefore, horizontal and vertical flipping and other transformations would occur independently of each other, impacting the overall correspondence of the image patches due to not having the same orientation. Therefore, all transformations other than normalization (using ImageNet statistics) were removed from the dataloaders.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head><p>Several methods (including a random-forest based approach) were compared using prior work in this area. More details around low-level implementation details of these benchmarks can be found in <ref type="bibr" coords="8,142.72,267.54,16.25,10.91" target="#b21">[21]</ref>. The multimodal approach is able to beat existing supervised techniques by a considerable margin, while the unimodal implementation shows equivalent performance to the existing state of the art. In the results featured in table 3, public leaderboard and private leaderboard performance is indicated, with a 10% vs 90% data split respectively. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Future Work</head><p>While initial analysis on this problem is promising, there are many research directions still open to exploration. The impact of transformations was not fully explored in this work. For multi-modal analysis, a better implementation may be to ensure all transformations are consistently applied across all data sources, so that the image patches propagated through the neural network correspond to the exact same geographic region (which is not the case when the transformations are applied independently across data sources). While the consistency metric introduced in this work was useful for model selection, further comparison with standard validation splits would be useful in further evaluating its utility on this problem. Due to the absence of key ablations, it is unclear where some of the performance gains are being derived, and future work could shed further light on this issue. Additionally, for the consistency function introduced in this work, it is possible that certain species may inhabit nearly identical habitats across both geographies, which may affect the broader usability of this function in different situations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>In this paper, I have presented a workflow for achieving state of the art results on computer vision based SDM. I have introduced a consistency-based model selection function that relies on the strategy of withholding information from the models during the training process in order to improve performance. Additionally, this work pushes the boundaries of using contrastive visual representation learning on remote sensing imagery: an area which is currently underrepresented in research literature. This paper makes a significant contribution to the area of finely grained visual categorization. My methods are able to surpass the current state of the art using only a quarter of the data used by the current state of the art supervised work in this area, using only a single data modality whereas the current state of the art uses 4. I have also presented initial work on future research directions and provide a methodology and initial results for including further image modalities to drive increased model performance.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,89.29,463.59,402.92,8.93;4,89.29,84.19,416.70,354.88"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Training dataset distribution. Most classes are heavily under-represented in the dataset.</figDesc><graphic coords="4,89.29,84.19,416.70,354.88" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="7,89.29,312.87,418.36,8.93;7,89.29,324.88,350.60,8.87;7,89.29,84.19,416.71,210.14"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Generic Architecture applicable to this problem. Resnet50 is used as the Deep Feature Extractor and the unimodal workflow only uses the top branch for training and analysis</figDesc><graphic coords="7,89.29,84.19,416.71,210.14" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,88.99,339.78,357.24,221.78"><head>Table 1</head><label>1</label><figDesc></figDesc><table coords="6,88.99,351.79,357.24,209.77"><row><cell>Representation Learning Parameters</cell><cell></cell><cell></cell></row><row><cell>Parameter</cell><cell cols="2">Value</cell><cell>Comments</cell></row><row><cell>Architecture</cell><cell cols="3">ResNet50 Smaller backbone for faster training</cell></row><row><cell>Batch size</cell><cell></cell><cell>128</cell></row><row><cell>Learning rate</cell><cell cols="2">1.5e-2</cell></row><row><cell>Softmax temperature</cell><cell></cell><cell>0.2</cell></row><row><cell>Table 2</cell><cell></cell><cell></cell></row><row><cell>Training Parameters</cell><cell></cell><cell></cell></row><row><cell cols="2">Parameter</cell><cell></cell><cell>Value</cell><cell>Comments</cell></row><row><cell cols="2">Framework</cell><cell cols="2">PyTorch[19]</cell></row><row><cell cols="2">Architecture</cell><cell cols="2">ResNet50</cell><cell>Same as above</cell></row><row><cell cols="2">Batch size</cell><cell></cell><cell>128</cell></row><row><cell cols="2">Learning rate</cell><cell></cell><cell>1e-3</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="8,88.99,337.19,360.39,93.79"><head>Table 3</head><label>3</label><figDesc>Results of Top-30 error rate across compared models</figDesc><table coords="8,145.89,368.81,303.49,62.17"><row><cell>Method</cell><cell cols="2">Public leaderboard Private leaderboard</cell></row><row><cell>Random Forest</cell><cell>0.78325</cell><cell>0.79711</cell></row><row><cell>Supervised CNN(multimodal)</cell><cell>0.75283</cell><cell>0.76680</cell></row><row><cell>Mine (unimodal)</cell><cell>0.75726</cell><cell>0.75188</cell></row><row><cell>Mine (multimodal)</cell><cell>0.73679</cell><cell>0.74838</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,649.10,156.76,8.97"><p>https://www.kaggle.com/c/geolifeclef-2021</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,108.93,660.06,129.53,8.97"><p>https://sites.google.com/view/fgvc8</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,108.93,671.02,357.13,8.97"><p>IEEE/CVF Conference on Computer Vision and Pattern Recognition -http://cvpr2021.thecvf.com/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,108.93,649.09,169.17,8.97"><p>https://lpdaac.usgs.gov/products/srtmgl1v003/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="3,108.93,660.05,379.28,8.97"><p>https://www.fsa.usda.gov/programs-and-services/aerial-photography/imagery-programs/naip-imagery/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="3,108.93,671.01,90.66,8.97"><p>https://geoservices.ign.fr</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>This project is supported by <rs type="funder">National Health and Medical Research</rs> Grant <rs type="grantNumber">GA80134</rs>. This research was undertaken using the <rs type="institution">LIEF HPC-GPGPU Facility</rs> hosted at the <rs type="institution">University of Melbourne</rs>. This Facility was established with the assistance of <rs type="grantName">LIEF</rs> Grant <rs type="grantNumber">LE170100200</rs>. This research was undertaken using <rs type="institution">University of Melbourne Research Computing</rs> facilities established by the <rs type="institution">Petascale Campus Initiative</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_g4wGAp2">
+					<idno type="grant-number">GA80134</idno>
+					<orgName type="grant-name">LIEF</orgName>
+				</org>
+				<org type="funding" xml:id="_3H7Cemz">
+					<idno type="grant-number">LE170100200</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="9,112.66,418.22,393.33,10.91;9,112.66,431.77,393.33,10.91;9,112.66,445.32,277.18,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="9,409.01,418.22,96.97,10.91;9,112.66,431.77,393.33,10.91;9,112.66,445.32,54.82,10.91">Convolutional neural networks improve species distribution modelling by capturing the spatial structure of the environment</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Munoz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,176.39,445.32,125.54,10.91">PLoS computational biology</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page">1008856</biblScope>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,458.87,394.52,10.91;9,112.48,472.42,393.50,10.91;9,112.66,485.97,393.58,10.91;9,112.33,499.52,62.16,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="9,257.65,472.42,248.34,10.91;9,112.66,485.97,225.48,10.91">How citizen scientists contribute to monitor protected areas thanks to automatic plant identification tools</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-M</forename><surname>Faton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kimiti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Affouard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-C</forename><surname>Lombardo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Mary</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,346.10,485.97,152.32,10.91">Ecological Solutions and Evidence</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">12023</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,513.06,395.17,10.91;9,112.66,526.61,353.07,10.91" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Horn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Beery</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Wilber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Belongie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><forename type="middle">M</forename><surname>Aodha</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2103.16483</idno>
+		<title level="m" coord="9,399.88,513.06,107.95,10.91;9,112.66,526.61,223.41,10.91">Benchmarking representation learning for natural world image collections</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,540.16,393.33,10.91;9,112.66,553.71,262.50,10.91" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Wilber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><forename type="middle">M</forename><surname>Aodha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Belongie</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2105.05837</idno>
+		<title level="m" coord="9,369.05,540.16,136.93,10.91;9,112.66,553.71,132.03,10.91">When does contrastive visual representation learning work?</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,567.26,393.33,10.91;9,112.66,580.81,285.00,10.91" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="9,216.41,567.26,289.58,10.91;9,112.66,580.81,154.86,10.91">Self-supervised learning of remote sensing scene representations using contrastive multiview coding</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stojnić</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Risojević</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2104.07070</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,594.36,395.17,10.91;9,112.39,607.91,371.69,10.91" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Mañas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lacoste</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><forename type="middle">G</forename><surname>Nieto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Vazquez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2103.16607</idno>
+		<title level="m" coord="9,384.03,594.36,123.80,10.91;9,112.39,607.91,241.93,10.91">Seasonal contrast: Unsupervised pre-training from uncurated remote sensing data</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,621.46,393.33,10.91;9,112.66,635.01,234.73,10.91" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Ayush</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Uzkent</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Tanmay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lobell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ermon</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2011.09980</idno>
+		<title level="m" coord="9,427.37,621.46,78.62,10.91;9,112.66,635.01,104.85,10.91">Geography-aware self-supervised learning</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,648.56,393.33,10.91;10,112.66,86.97,393.58,10.91;10,112.66,100.52,261.72,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,332.80,648.56,100.78,10.91;9,461.16,648.56,44.83,10.91;10,112.66,86.97,260.68,10.91">Predicting species distribution from 2 million remote sensing images</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,397.91,86.97,108.34,10.91;10,112.66,100.52,231.02,10.91">Working Notes of CLEF 2021 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+	<note>Overview of geolifeclef</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,114.06,393.33,10.91;10,112.66,127.61,394.53,10.91;10,112.66,141.16,393.32,10.91;10,112.66,154.71,393.32,10.91;10,112.66,168.26,360.25,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="10,247.73,141.16,258.25,10.91;10,112.66,154.71,303.29,10.91">Overview of lifeclef 2021: a system-oriented evaluation of automated species identification and species distribution prediction</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Picek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Ruiz De Castañeda</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Bolon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Durso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Eggel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,439.18,154.71,66.80,10.91;10,112.66,168.26,330.51,10.91">Proceedings of the Twelfth International Conference of the CLEF Association (CLEF 2021)</title>
+		<meeting>the Twelfth International Conference of the CLEF Association (CLEF 2021)</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,181.81,393.33,10.91;10,112.66,195.36,241.55,10.91" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="10,193.83,181.81,312.16,10.91;10,112.66,195.36,64.54,10.91">Automatic Code Generation for Statistical Models with Augmentation and Collapsing</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">H</forename><surname>Seneviratne</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+		<respStmt>
+			<orgName>Monash University</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Ph.D. thesis</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,208.91,393.33,10.91;10,112.66,222.46,375.90,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="10,449.49,208.91,56.49,10.91;10,112.66,222.46,224.13,10.91">Overview of lifeclef location-based species prediction task 2020</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,413.55,222.46,45.05,10.91">CLEF 2020</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note>geolifeclef</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,236.01,394.53,10.91;10,112.33,249.56,303.25,10.91" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Morris</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Jojic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2004.04192</idno>
+		<title level="m" coord="10,112.33,249.56,121.29,10.91">The geolifeclef 2020 dataset</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,263.11,394.53,10.91;10,112.66,276.66,394.62,10.91;10,112.66,290.20,362.18,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="10,304.96,276.66,202.32,10.91;10,112.66,290.20,208.69,10.91">Land use, transport, and population health: estimating the health benefits of compact cities</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">H</forename><surname>De Sá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Ewing</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mohan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mcclure</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Tiwari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Giles-Corti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,328.93,290.20,46.76,10.91">The lancet</title>
+		<imprint>
+			<biblScope unit="volume">388</biblScope>
+			<biblScope unit="page" from="2925" to="2935" />
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,303.75,395.17,10.91;10,112.39,317.30,132.84,10.91;10,263.25,317.30,244.41,10.91;10,112.14,330.85,395.05,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="10,324.61,303.75,183.22,10.91;10,112.39,317.30,127.84,10.91">Imagenet classification with deep convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="s" coord="10,202.31,330.85,244.11,10.91">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Pereira</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><forename type="middle">J C</forename><surname>Burges</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">K</forename><forename type="middle">Q</forename><surname>Weinberger</surname></persName>
+		</editor>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,344.40,394.04,10.91;10,112.66,357.95,212.12,10.91" xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>Curran Associates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Inc</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf" />
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,371.50,395.17,10.91;10,112.66,385.05,281.53,10.91" xml:id="b15">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">D</forename><surname>Cubuk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Zoph</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Shlens</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.13719</idno>
+		<title level="m" coord="10,291.21,371.50,216.62,10.91;10,112.66,385.05,151.58,10.91">Randaugment: Practical automated data augmentation with a reduced search space</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,398.60,380.49,10.91" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">G</forename><surname>Krishnan</surname></persName>
+		</author>
+		<title level="m" coord="10,186.76,398.60,274.46,10.91">Impact of pretrained networks for snake species classification</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,412.15,393.33,10.91;10,112.66,425.70,164.93,10.91" xml:id="b17">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Girshick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2003.04297</idno>
+		<title level="m" coord="10,283.18,412.15,222.80,10.91;10,112.66,425.70,35.05,10.91">Improved baselines with momentum contrastive learning</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,439.25,393.33,10.91;10,112.66,452.79,222.09,10.91" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="10,286.77,439.25,219.22,10.91;10,112.66,452.79,33.63,10.91">Spartan performance and flexibility: An hpc-cloud chimera</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Lafayette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sauter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Vu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Meade</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,155.02,452.79,82.71,10.91">OpenStack Summit</title>
+		<meeting><address><addrLine>Barcelona</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="volume">27</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,466.34,394.53,10.91;10,112.66,479.89,393.33,10.91;10,112.66,493.44,249.34,10.91" xml:id="b19">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Massa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lerer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Chanan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Killeen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Gimelshein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Antiga</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1912.01703</idno>
+		<title level="m" coord="10,261.26,479.89,244.72,10.91;10,112.66,493.44,67.64,10.91">Pytorch: An imperative style, high-performance deep learning library</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,506.99,393.33,10.91;10,112.66,520.54,373.55,10.91" xml:id="b20">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Seneviratne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Kasthuriaarachchi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Rasnayaka</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2106.05596</idno>
+		<title level="m" coord="10,339.66,506.99,166.33,10.91;10,112.66,520.54,243.67,10.91">Multi-dataset benchmarks for masked identification using contrastive representation learning</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,534.09,393.32,10.91;10,112.66,547.64,145.95,10.91" xml:id="b21">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Munoz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<title level="m" coord="10,353.09,534.09,152.90,10.91;10,112.66,547.64,114.03,10.91">Participation of lirmm/inria to the geolifeclef 2020 challenge</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

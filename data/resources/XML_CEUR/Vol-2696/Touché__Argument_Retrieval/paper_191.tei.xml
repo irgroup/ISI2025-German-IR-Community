@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,166.81,115.90,281.73,12.90;1,212.04,133.83,191.28,12.90;1,162.32,153.68,290.71,10.75">SentArg: A Hybrid Doc2Vec/DPH Model with Sentiment Analysis Refinement Notebook for Touché: Argument Retrieval at CLEF 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,233.48,190.08,68.91,8.64"><forename type="first">Christian</forename><surname>Staudte</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Leipzig University</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,326.23,190.08,51.18,8.64"><forename type="first">Lucas</forename><surname>Lange</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Leipzig University</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,166.81,115.90,281.73,12.90;1,212.04,133.83,191.28,12.90;1,162.32,153.68,290.71,10.75">SentArg: A Hybrid Doc2Vec/DPH Model with Sentiment Analysis Refinement Notebook for Touché: Argument Retrieval at CLEF 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E16A1FEA2990EF9D6F903B25F8351755</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this work we explore the yet untested inclusion of sentiment analysis in the argument ranking process. By utilizing a word embedding model we create document embeddings for all queries and arguments. These are compared with each other to calculate top-N argument context scores for each query. We also calculate top-N DPH scores with the Terrier Framework. This way, each query receives two lists of top-N arguments. Afterwards we form an intersection of both argument lists and sort the result by the DPH scores. To further increase the ranking quality, we sort the final arguments of each query by sentiment values. Our findings ultimately imply that rewarding neutral sentiments can decrease the quality of the retrieval outcome.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In this notebook we propose our SentArg model for the first task of Touché 2020: 1st Shared Task on Argument Retrieval<ref type="foot" coords="1,280.27,451.07,3.49,6.05" target="#foot_0">3</ref>  <ref type="bibr" coords="1,287.87,452.74,10.58,8.64" target="#b5">[6]</ref>. The task is performed on the args.me corpus <ref type="bibr" coords="1,150.61,464.69,10.58,8.64" target="#b0">[1]</ref>. The source code is available on our public GitHub repository <ref type="foot" coords="1,405.73,463.02,3.49,6.05" target="#foot_1">4</ref> . SentArg is based on the Dual Embedding Space Model by Mitra et al. <ref type="bibr" coords="1,349.26,476.65,15.27,8.64" target="#b10">[11]</ref>, although we replace BM25 with DPH [2] and adjust their scoring function. For further refinement we use sentiment analysis to classify the emotional level (positive, neutral, negative) of every argument utilizing the Google Cloud Natural Language API <ref type="foot" coords="1,342.00,510.84,3.49,6.05" target="#foot_2">5</ref> . Analysing the author's attitude, we thus re-rank arguments. Our main objective is to find out whether sentiments can increase the quality of an argument ranking.</p><p>The remainder of our notebook is organized as follows. Section 2 outlines all related works we used as theoretical and practical foundation. In Section 3 we describe our SentArg model configuration. Our evaluation as well as experiments are then presented in Section 4. Section 5 concludes our notebook.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Words used in a mathematical model must be mapped onto mathematical objects. Onehot encodings are particularly well-known mappings for this: Each word is represented by an element = 1 in vector -→ v ∈ {0, 1} |V ocab| , whereas all other elements are 0.</p><p>However, these representations scale with vocabulary size and are therefore extremely sparse. Further, semantic relations between words are not modeled <ref type="bibr" coords="2,410.45,191.04,10.58,8.64" target="#b6">[7]</ref>. To overcome these limitations, Mikolov et al. <ref type="bibr" coords="2,262.79,203.00,16.60,8.64" target="#b9">[10]</ref> introduce two neural network models: Continuous Bag-of-Words (CBOW) and Skip-Gram (SG) <ref type="foot" coords="2,316.27,213.28,3.49,6.05" target="#foot_3">6</ref> . Both architectures typically apply one input-, one hidden-, and one output-layer. For any given word w, its left-and right-sided context serves as input for a CBOW model, which tries to predict w. After training, weight matrix W IN ∈ R M ×N , with N being the embedding's vector size, contains all available word embeddings. Words that are semantically similar also occur in similar contexts, hence cosine similarities of their embeddings are close to 1.</p><p>Regarding argument detection, similar contexts between queries and arguments may not be enough. To further restrict argument result sets, Mitra et al. <ref type="bibr" coords="2,402.21,298.64,16.60,8.64" target="#b10">[11]</ref> suggest a Dual Embedding Space Model. They calculate BM25 scores and word embedding similarities for any query Q regarding all arguments. Afterwards they form a weighted sum of both scores, which acts as argument relevance score. One special feature is the usage of CBOW's W OU T matrix. By calculating the cosine similarity of two word embeddings, each from a different weight matrix, co-occuring words reach scores close to 1. In their final results, IN-OUT-similarities provide the best results.</p><p>Regarding typical information retrieval models, Potthast et al. <ref type="bibr" coords="2,397.02,382.33,16.60,8.64" target="#b12">[13]</ref> compare BM25, TFIDF, DirichletLM and DPH on more than 300.000 arguments (documents), containing 40 topics. Assessors evaluated different query results and analyzed various aspects of found arguments, such as relevance, as well as rhetorical, logical and dialectical quality. Their evaluation shows that DitrichletLM and DPH are superior to BM25 and TFIDF. With these results in mind, we decide to replace BM25 in the Dual Embedding Space Model with DPH.</p><p>The goal of sentiment analysis is to identify the emotional character of a given text. This consideration is especially interesting in the case of arguments because research shows that arguments are fundamentally emotional <ref type="bibr" coords="2,346.60,489.92,11.38,8.64" target="#b7">[8,</ref><ref type="bibr" coords="2,357.98,489.92,11.38,8.64" target="#b14">15]</ref>. The idea to include emotions in our ranking is based on the hypothesis that an emotional attachment to a topic can indicate involvement and thus stronger argumentation, which is backed by several studies <ref type="bibr" coords="2,165.48,525.79,11.62,8.64" target="#b3">[4,</ref><ref type="bibr" coords="2,177.10,525.79,7.75,8.64" target="#b7">8,</ref><ref type="bibr" coords="2,184.85,525.79,11.62,8.64" target="#b14">15,</ref><ref type="bibr" coords="2,196.47,525.79,11.62,8.64" target="#b15">16]</ref>. We therefore expect a ranking in favor of emotional arguments to perform better than one favoring neutrality or one without sentiment analysis.</p><p>A survey conducted by Lawrence and Reed <ref type="bibr" coords="2,323.38,549.70,11.62,8.64" target="#b8">[9]</ref> shows that works on sentiment analysis in argument retrieval mainly focus on opinion mining, i.e. guessing the stance of an argument. Therefore they do not use an already annotated corpus, rather they instead aim to create one. Transitioning sentiment analysis from retrieving to ranking arguments is a new approach provided through our model.</p><p>Our model features three steps: 1. Pre-processing; 2. Training of word embeddings and DPH to calculate argument and query similarities; 3. Sentiment analysis to re-sort arguments.</p><p>Concerning Google's sentiment analysis API, we first remove noise and formatting errors in as many arguments as possible. We manually define the following rule set:</p><p>-Remove URLs and square brackets with their content -Remove some punctuation {∼, #, §, &amp;, @, =, *} -Reformat punctuation with correct spacing -Replace identical letters in a row (&gt;2) with one representative: helloooooo → hello Short arguments often express approval or disapproval with previous arguments, hence we delete arguments containing less than 26 words. For our dual embedding's CBOW model we replace/add the following rules:</p><p>-Numbers and URLs are replaced by tags &lt;NUM&gt; and &lt;URL&gt; -Remove all punctuation -Remove stop words</p><p>We keep upper-and lower-cases to reduce word ambiguities <ref type="foot" coords="3,386.31,346.27,3.49,6.05" target="#foot_4">7</ref> and train the CBOW model on all given arguments<ref type="foot" coords="3,255.83,358.23,3.49,6.05" target="#foot_5">8</ref> . However, this gives rise to problems concerning rare query terms: "E-Cigarettes" occures so rarely that no word embedding is trained. In this case we try different combinations of upper-and lower-case to find appropriate (and possibly multiple) word embeddings, which are all taken into account.</p><p>After preprocessing and training a CBOW model, we compute document vectors for each argument as proposed by <ref type="bibr" coords="3,271.81,419.67,15.49,8.64" target="#b10">[11]</ref>:</p><formula xml:id="formula_0" coords="3,264.01,438.72,216.58,26.80">A = 1 |A| • aj ∈A a j ||a j ||<label>(1)</label></formula><p>Each a j represents the word embedding for word j. Afterwards we calculate similarities between a query and all arguments:</p><formula xml:id="formula_1" coords="3,223.64,504.47,256.95,28.38">DESM (Q, A) = 1 |Q| • qi∈Q q T i A ||q T i || • ||A||<label>(2)</label></formula><p>DPH is the second relevant component we model with the help of the Terrier framework <ref type="bibr" coords="3,158.42,555.87,15.27,8.64" target="#b11">[12]</ref>. Contrary to the original dual embedding architecture, we do not calculate a weighted sum of scores. Mitra et al. <ref type="bibr" coords="3,290.08,567.82,16.60,8.64" target="#b10">[11]</ref> state that word embeddings are helpful for finding appropriate contexts, whereas BM25 is better at finding concrete details given any query. We therefore run DESM and DPH in parallel, both select the top 1.000 arguments. <ref type="foot" coords="3,161.06,602.02,3.49,6.05" target="#foot_6">9</ref> Then, we form an intersection of both sets and sort every argument by its DPH score. Only context relevant scores thus have influence on the result set.</p><p>Sentiment analysis of the Google Cloud Natural Language API was created for a wide range of applications and is therefore most suitable for discussions in the data set. For every argument we send a request to the API, which in return provides us with a sentiment value. This value represents the direction of emotion on a scale from -1 to 1, with -1 and 1 being the strongest. Values between -0.1 and 0.1 represent neutral (N) sentiments, while values lower than -0.1 and greater than 0.1 express negative (-) and positive (+) sentiments, respectively.</p><p>Obtained sentiments are combined with DPH scores to compute the final ranking. To confirm our expectations we introduce two variants: (i) We encourage emotional arguments (values closer to -1 and 1); (ii) We encourage neutral arguments (values closer to 0):</p><formula xml:id="formula_2" coords="4,221.51,248.78,259.08,22.31">DP H * Q,A = DP H Q,A ± DP H Q,A • |S A | 2<label>(3)</label></formula><p>S A refers to the sentiment value for argument A. Adding the weighted DPH refers to variant (i) and subtracting it to variant (ii).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiments and Evaluation</head><p>Since opinion mining states that sentiment analysis is capable of determining the stances of arguments [3,9], we tested if information is gained from sentiment analysis by comparing each argument's stance with its sentiment value. In the dataset, each stance is stored as Boolean (pro and con), neutral stances are therefore not given. We enriched these stances by defining a sentiment value range that includes neutral (N), positive (+) and negative (-) arguments. Table <ref type="table" coords="4,272.27,403.98,4.98,8.64" target="#tab_0">1</ref> displays the distribution of sentiment values compared to annotated stances. As can be seen, most arguments (57%) are neutral, while 11% are positive and 32% are negative. However, positive and negative arguments do not match the dataset's stance distribution of 53% pro and 47% con <ref type="foot" coords="4,411.07,438.17,6.97,6.05" target="#foot_7">10</ref> . Further, every sentiment class contains at least 42% candidates that are either pro or con. In spite of the opinion mining hypothesis, arguments for every sentiment class are nearly evenly distributed and no real correlation can be seen. In conclusion, by utilizing sentiment values we can gain new perspectives on the arguments. Part of the task was the submission and evaluation of our model on the TIRA platform <ref type="bibr" coords="4,156.42,511.57,15.27,8.64" target="#b13">[14]</ref>. <ref type="foot" coords="4,175.51,509.91,6.97,6.05" target="#foot_8">11</ref> In the following, we refer to a new set of qrels (query relevances). To identify the influence of our sentiment strategy and model architecture on the retrieval, we evaluate six different runs representing the different variants (see Section 3): R 0 No sentiment analysis, R E Emotional is better [cp.  <ref type="table" coords="4,421.84,559.40,3.74,8.64" target="#tab_1">2</ref>. R N delivers the lowest scores for both embedding types and all nDCG-measures. That means subtracting the absolute sentiment value from the DPH score penalizes arguments, which are relevant. The assumption would be that adding sentiment values can reward more relevant arguments. As can be seen in Table <ref type="table" coords="4,321.00,607.22,3.74,8.64" target="#tab_1">2</ref>, this is partly true: For IN-OUT, R E reaches slightly better results than R 0 . But R 0 moderately outmatches most scores of R E when it comes to IN-IN. Emotional arguments seem to be preferred by the DPH model at default, thus scores from runs R 0 and R E are close to each other. In sum however, the overall top nDCG@X scores are reached by the configuration [R E , IN-OUT]. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>By (1) combining IN-OUT argument embeddings and DPH to retrieve relevant arguments and (2) sorting arguments in regards to their sentiment value we could learn two things: Not only can IN-OUT embeddings improve the context space for a queries argument list, but also can rewarding neutral arguments in a final ranking reduce the quality of a retrieval. Our empirical findings match the expectations set forth in our analysis of existing literature, that more emotional arguments are more relevant than neutral ones. That means prioritizing arguments with high sentiment values can have a positive influence on the relevance ranking. Future work may benefit from replacing the CBOW model with a FastText <ref type="bibr" coords="5,443.72,620.57,11.62,8.64" target="#b4">[5]</ref> architecture, which generates good results especially for noisy data. Further, static parameters and the influence equation for sentiments can be optimized. This way different sentiment values could have a more diverse influence on the final score.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,313.20,547.12,167.39,9.65;4,134.77,559.40,284.56,8.64"><head></head><label></label><figDesc>(i)], R N Neutral is better [cp.(ii)] and the two embedding types (IN-IN, IN-OUT). The results are shown in Table</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,217.76,185.67,179.83,123.84"><head>Table 1 .</head><label>1</label><figDesc>Comparison of the sentiment (Sent.) values (N, +, -) of arguments and their stances (Pro, Con).</figDesc><table coords="5,222.10,232.39,171.16,77.11"><row><cell></cell><cell cols="3">Argument's share Stance in % per share</cell></row><row><cell>Sent.</cell><cell>in number (%)</cell><cell>Pro</cell><cell>Con</cell></row><row><cell>N</cell><cell>169,152 (57%)</cell><cell>53%</cell><cell>47%</cell></row><row><cell>+</cell><cell>33,406 (11%)</cell><cell>58%</cell><cell>42%</cell></row><row><cell>-</cell><cell>94,460 (32%)</cell><cell>50%</cell><cell>50%</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,136.86,356.61,341.64,99.51"><head>Table 2 .</head><label>2</label><figDesc>Evaluation for different configurations: Embedding types and sentiments' influence.</figDesc><table coords="5,136.86,381.00,341.64,75.12"><row><cell></cell><cell>IN-OUT</cell><cell></cell><cell></cell><cell>IN-IN</cell><cell></cell></row><row><cell cols="6">nDCG nDCG@5 nDCG@10 QrelCov@10 nDCG nDCG@5 nDCG@10 QrelCov@10</cell></row><row><cell>R0 0.365 0.649</cell><cell>0.553</cell><cell>6.24</cell><cell>0.390 0.635</cell><cell>0.538</cell><cell>6.06</cell></row><row><cell>RE 0.369 0.699</cell><cell>0.559</cell><cell>6.24</cell><cell>0.385 0.625</cell><cell>0.528</cell><cell>5.96</cell></row><row><cell>RN 0.337 0.517</cell><cell>0.456</cell><cell>5.18</cell><cell>0.359 0.500</cell><cell>0.437</cell><cell>4.94</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_0" coords="1,144.73,635.58,123.74,6.31"><p>https://touche.webis.de</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_1" coords="1,144.73,646.75,194.18,6.31"><p>https://github.com/luckyos-code/ArgU</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_2" coords="1,144.73,657.93,226.46,6.31"><p>https://cloud.google.com/natural-language/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_3" coords="2,144.73,617.18,335.86,7.77;2,144.73,628.14,102.85,7.77"><p>We primarily focus on CBOW in this notebook, so please refer to the referenced paper<ref type="bibr" coords="2,465.65,617.18,14.94,7.77" target="#b9">[10]</ref> for more information on SG.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_4" coords="3,144.73,634.45,94.05,8.06"><p>For example "US" = "us"</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_5" coords="3,144.73,645.91,255.06,7.77"><p>Configuration: vector size = 300; window size = 3; min word count = 5</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_6" coords="3,144.73,657.08,160.36,7.77"><p>A manually selected and adjusted parameter.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="10" xml:id="foot_7" coords="4,144.73,626.87,335.86,7.77;4,144.73,637.83,77.04,7.77"><p>These numbers are not mentioned in Table1, even though the distribution for neutral sentiments looks this way.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="11" xml:id="foot_8" coords="4,136.01,647.14,225.17,9.64"><p><ref type="bibr" coords="4,136.01,647.14,5.98,5.18" target="#b10">11</ref> https://www.tira.io ; Group: ir-lab-ul-t1-detroitnitz</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.61,142.87,332.87,7.77;6,150.95,153.83,318.73,7.77;6,150.95,164.79,315.26,7.77;6,150.95,175.75,180.16,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,414.46,142.87,61.02,7.77;6,150.95,153.83,149.08,7.77">Data Acquisition for Argument Search: The args.me corpus</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-30179-8</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-30179-8" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,171.13,164.79,199.08,7.77">German Conference on Artificial Intelligence (KI 2019)</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Benzmüller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Stuckenschmidt</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">Sep 2019</date>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="48" to="59" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,186.71,337.98,7.77;6,150.95,197.67,120.40,7.77" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,191.24,186.71,208.61,7.77">Frequentist and bayesian approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Amati</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/11735106</idno>
+		<ptr target="https://doi.org/10.1007/11735106" />
+		<imprint>
+			<date type="published" when="1970-01">01 1970</date>
+			<biblScope unit="page" from="13" to="24" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,208.63,319.57,7.77;6,150.95,219.59,310.69,7.77;6,150.95,230.55,147.81,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,307.26,208.63,139.26,7.77">Opinion mining and sentiment analysis</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">K</forename><surname>Bakshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Kaur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kaur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kaur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,150.95,219.59,310.69,7.77;6,150.95,230.55,46.08,7.77">2016 3rd International Conference on Computing for Sustainable Global Development (INDIACom)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="452" to="455" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,241.50,311.90,7.77;6,150.95,252.11,250.00,8.12" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,249.32,241.50,205.19,7.77;6,150.95,252.46,71.53,7.77">When emotions improve reasoning: The possible roles of relevance and utility</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Blanchette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Caparos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,227.62,252.46,82.20,7.77">Thinking &amp; Reasoning</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">3-4</biblScope>
+			<biblScope unit="page" from="399" to="413" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,263.42,325.55,7.77;6,150.95,274.03,312.74,8.12;6,150.95,285.34,23.90,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,333.00,263.42,135.16,7.77;6,150.95,274.38,40.87,7.77">Enriching word vectors with subword information</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,197.78,274.38,223.34,7.77">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="135" to="146" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,296.30,337.98,7.77;6,150.95,307.26,294.82,7.77;6,150.95,318.22,314.34,7.77;6,150.95,329.18,20.92,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,349.99,307.26,95.78,7.77;6,150.95,318.22,69.64,7.77">Overview of Touché 2020: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,238.50,318.22,208.12,7.77">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<imprint>
+			<date type="published" when="2020-09">Sep 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,340.14,309.84,7.77;6,150.95,351.09,314.77,7.77;6,150.95,362.05,323.53,7.77;6,150.95,373.01,215.74,7.77;6,150.95,384.81,221.07,6.31" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,226.42,340.14,226.03,7.77;6,150.95,351.09,45.79,7.77">Comparing word representations for implicit discourse relation classification</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Braud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Denis</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D15-1262</idno>
+		<ptr target="https://www.aclweb.org/anthology/D15-1262" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,214.46,351.09,251.27,7.77;6,150.95,362.05,74.95,7.77">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2015-09">Sep 2015</date>
+			<biblScope unit="page" from="2201" to="2211" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,394.93,222.60,7.77" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">A</forename><surname>Gilbert</surname></persName>
+		</author>
+		<title level="m" coord="6,204.50,394.93,91.62,7.77">Coalescent argumentation</title>
+		<imprint>
+			<publisher>Routledge</publisher>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,405.54,318.26,8.12;6,150.95,416.85,57.53,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,236.72,405.89,98.98,7.77">Argument mining: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lawrence</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Reed</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,341.56,405.89,95.40,7.77">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="765" to="818" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,427.81,338.35,7.77;6,150.95,438.77,70.57,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="6,314.42,427.81,166.17,7.77;6,150.95,438.77,44.43,7.77">Efficient estimation of word representations in vector space</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,449.72,319.50,7.77;6,150.95,460.68,91.14,7.77" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="6,335.99,449.72,125.75,7.77;6,150.95,460.68,65.00,7.77">A dual embedding space model for document ranking</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Caruana</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,471.64,297.05,7.77;6,150.95,482.60,323.29,7.77;6,150.95,493.56,325.96,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,415.03,471.64,24.26,7.77;6,150.95,482.60,105.69,7.77">Terrier information retrieval platform</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Plachouras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,429.90,482.60,44.35,7.77;6,150.95,493.56,76.27,7.77">Advances in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">E</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><forename type="middle">M</forename><surname>Fernández-Luna</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg, Berlin, Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="517" to="519" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,504.52,39.85,7.77;6,199.03,504.52,268.07,7.77;6,150.95,515.48,322.71,7.77;6,150.95,526.44,291.63,7.77;6,150.95,537.40,316.00,7.77;6,150.95,548.35,257.49,7.77;6,150.95,560.16,209.81,6.31" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,229.41,515.48,172.66,7.77">Argument search: Assessing argument relevance</title>
+		<author>
+			<persName coords=""><forename type="first">Gienapp</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Euchner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Heilenkötter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Weidmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331327</idno>
+		<ptr target="https://doi.org/10.1145/3331184.3331327" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,420.13,515.48,53.54,7.77;6,150.95,526.44,291.63,7.77;6,150.95,537.40,76.27,7.77;6,286.73,537.40,33.43,7.77">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1117" to="1120" />
+		</imprint>
+	</monogr>
+	<note>SIGIR&apos;19</note>
+</biblStruct>
+
+<biblStruct coords="6,142.24,570.27,335.40,7.77;6,150.95,581.23,322.35,7.77;6,150.95,592.19,181.09,7.77;6,150.95,603.15,162.47,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,333.86,570.27,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-15</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-22948-15" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,259.53,581.23,213.78,7.77;6,150.95,592.19,100.44,7.77">Information Retrieval Evaluation in a Changing World. The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,614.11,323.51,7.77;6,150.95,625.07,320.00,7.77;6,150.95,635.68,117.06,8.12" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,150.95,625.07,268.98,7.77">Emotions and personality traits in argumentation: an empirical evaluation 1</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Villata</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cabrio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Jraidi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Benlamine</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chaouachi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Frasson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Gandon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,425.54,625.07,45.41,7.77;6,150.95,636.03,46.83,7.77">Argument &amp; Computation</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="61" to="87" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,646.98,263.84,7.77" xml:id="b15">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Walton</surname></persName>
+		</author>
+		<title level="m" coord="6,194.56,646.98,119.86,7.77">The place of emotion in argument</title>
+		<imprint>
+			<publisher>Penn State Press</publisher>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

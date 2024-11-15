@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,178.31,84.23,255.37,15.44">TKB48 at TREC 2021 News Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,108.87,107.66,66.95,10.59"><forename type="first">Zhang</forename><surname>Lirong</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Graduate School of Comprehensive Human Sciences</orgName>
+								<orgName type="institution">University of Tsukuba Tsukuba</orgName>
+								<address>
+									<settlement>Ibaraki</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,279.10,107.66,54.79,10.59"><forename type="first">Hideo</forename><surname>Joho</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Faculty of Library, Information and Media Science</orgName>
+								<orgName type="institution">University of Tsukuba Tsukuba</orgName>
+								<address>
+									<settlement>Ibaraki</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,439.79,107.66,61.72,10.59"><forename type="first">Sumio</forename><surname>Fujita</surname></persName>
+							<email>sufujita@yahoo-corp.jp</email>
+							<affiliation key="aff2">
+								<orgName type="institution">Yahoo Japan Corporation Tokyo</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,178.31,84.23,255.37,15.44">TKB48 at TREC 2021 News Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">64168E816E9A22DE81C851CE5CB806F4</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Document Expansion</term>
+					<term>Temporal Recency</term>
+					<term>Information Retrieval</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>TKB48 incorporated document expansion methods such as docT5query and keyword extraction into indexing to solve the background linking problem. Using a transformer-based model, we calculated the text similarity of queries and documents at a semantic level and combined the semantic similarity and BM25 score for re-ranking background articles. We examined different combinations of reranking factors such as semantic similarities between expanded documents and attributes of topics. We found that increasing index fields produced by the docT5query model and keyword extraction model was beneficial. At the same time, the re-ranking performance was influenced by the amount of semantic similarity factors and their weight in the total relevance score. To discover the effectiveness of document expansion and our method using temporal recency, we further generated several unofficial runs incorporating a temporal topic classifier and learning to rank method. However, the lack of temporal topics limits the performance of the model. Our purposed algorithm outperformed the learning to rank method. Our future work will focus on fine-tuning of the docT5query model.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>According to Pew Research, in 2018, 93% of American adults consume at least some of the news online, while the number was 38% in 2016, which shows that the percentage of people consuming news on the web is rapidly increasing <ref type="bibr" coords="1,172.41,500.62,13.32,7.94" target="#b13">[15]</ref>. Usually for people reading a news story, they need to get reference information or background knowledge from other articles. Therefore, developing a method to efficiently locate the background knowledge needed to understand an article is very relevant to the current retrieval needs of people. Common applications include providing reference links alongside news articles to help users access the background knowledge they may need more efficiently Or recommending the next article the user should read. Motivated by the above, the News Track of TREC sets two sub-tasks: Background Linking and Wikification this year. Background Linking and Wikification. Background Linking emphasizes providing a recommended articles list containing background knowledge or contextual information that helps users understand the complete news story. Wikification is the automatic hyperlinking of entities, concepts, or references to another resource that provides more information on the linked thing <ref type="foot" coords="1,191.12,662.86,3.38,6.44" target="#foot_0">1</ref> . This year, we participated in the Background Linking task.</p><p>The new feature of this year's Background Linking is a new element called subtopics which represent reasons for seeking background. Participants need to ensure that the retrieved articles meet these reasons and also ensure the diversity of the results. In this paper, we investigated the capability of docT5query model and transformer-based re-ranking methods in the background linking task. We also adopted a method using temporal features of topics and documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">RELATED WORK</head><p>Most common methods in background linking are keyword extraction or named entity recognition combining with query expansion and ad-hoc search <ref type="bibr" coords="1,384.39,339.85,9.23,7.94" target="#b1">[2,</ref><ref type="bibr" coords="1,395.54,339.85,10.27,7.94" target="#b9">10,</ref><ref type="bibr" coords="1,407.73,339.85,10.05,7.94" target="#b10">12]</ref>. <ref type="bibr" coords="1,423.05,339.85,60.31,7.94">Lu and Fang [11]</ref> proposed a new way that extracted aspects from the constructed graph relations based on the entities, then generated the final ranking scores based on the likelihood of aspect and article language model. Ornella and Gianmaria <ref type="bibr" coords="1,357.48,383.68,10.43,7.94" target="#b6">[7]</ref> also proposed entity graph methods. Differently, they considered document feature vectors as a combination of textual and graph-based features and applied them in a learning to rank model.</p><p>Methods based on transformer models are also commonly used. SU-NLP 2020 <ref type="bibr" coords="1,369.28,438.48,10.69,7.94" target="#b0">[1]</ref> proposed to use BERT summarization model to extract useful paragraphs from long articles. They indexed documents with vectors mapped by a sentence encoder and performed retrieval on the cosine similarity between query and doc. Another work <ref type="bibr" coords="1,340.26,482.31,10.68,7.94" target="#b4">[5]</ref> performed ranking according to the semantic similarity which calculated by sentence-BERT between documents and queries. Based on the assumption that similar articles have similar embedding vectors, ClaC Lab 2020 <ref type="bibr" coords="1,449.01,515.19,10.68,7.94" target="#b8">[9]</ref> leveraged a variety of embedding models, including BERT and retrieved background articles on their similarity scores.</p><p>BM25-based searching is a common baseline in News Track. However, OSC 2020 <ref type="bibr" coords="1,389.79,559.03,10.42,7.94" target="#b3">[4]</ref> used more like this function of Elasticsearch as their baseline searching method. MLT(more like this) can extract import terms from a query doc and conduct BM25-based searching using queries composed of these terms. In this work, we continue to use BM25 as our base retrieval method.</p><p>There was also a potential problem with background article retrieval tasks, where they typically used the article itself to retrieve articles. This results in the content of the retrieved articles overlapping with articles that the user had already read and did not serve to provide background knowledge. Therefore we proposed a query prediction model and used the output to extend the original article. This allows the origin contents include queries will be issued for a given document. This adds diversity to the background article search. DocT5query model is derived from doc2query. Doc2query was first introduced as a document expansion method <ref type="bibr" coords="2,231.06,98.75,14.59,7.94" target="#b12">[14]</ref> and achieved the best run on TREC CAR <ref type="bibr" coords="2,150.49,109.71,9.27,7.94" target="#b5">[6]</ref>. The doc2query model can be trained as a sequence-to-sequence model with the dataset of query and relevant document pairs. Recently, a research <ref type="bibr" coords="2,222.32,131.63,14.75,7.94" target="#b11">[13]</ref> shows training doc2query model as a transformer T5 model is more efficient and can get higher accuracy than a sequence-to-sequence transformer model <ref type="bibr" coords="2,73.13,164.51,15.46,7.94" target="#b14">[16]</ref>. Thus we will adopt docT5query as our prediction model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">METHOD 3.1 Dataset and Preprocess</head><p>This year's dataset is the fourth version of TREC Washington Post Collection, which contains 728,626 news articles and blog posts from January 2012 through December 2020. We re-formatted it with the attributes of id, title, date of publication, content, and source and de-duplicated the corpus with id, title, and publication date.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Document Expansion</head><p>For a given article, we inferred the queries that may lead to that article. We believe that using the queries inferred from the article can help retrieve relevant articles that match such queries. We made query predictions for each article in the corpus and add them as a new field to be indexed. If the contents of two articles are related to each other, then their predicted queries can be related to a near event or topic. We assume that a search conducted within the target document's predicted queries has a great probability, leading to articles carrying contextual information. We perform our query prediction using docT5query<ref type="foot" coords="2,159.59,395.09,3.38,6.44" target="#foot_1">2</ref> model. DocT5query model adopts the T5Tokenizer pre-trained from MS Marco dataset. We cleaned the text by removing the image hyperlinks and URLs before input into docT5query model. We set the model to output the top 10 most possible queries for this article.</p><p>We hypothesized that the keyword extraction method was able to pull out words that represent the central content of the article. These words are also very likely to contain the names of events contained in the article. Adding the extracted keyword to the index allows the article to gain higher relevance scores when retrieved with related queries. Keyword extractions are performed by the external tool called PKE <ref type="foot" coords="2,141.50,515.64,3.38,6.44" target="#foot_2">3</ref> .</p><p>We adopted an unsupervised graph-based model called Multi-partiteRank <ref type="bibr" coords="2,98.35,539.70,10.46,7.94" target="#b2">[3]</ref> as our keyword extraction method. The model will build the multipartite graph based on the longest sequences after removing punctuation and stop words. We used the default candidate weight setting and set the model to output ten best keywords.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Semantic Similarity</head><p>Predicted queries may be distribute across varied aspects. For instance, an article talking about an author's death may refer to queries like what awards he/she got, what books he/she wrote, and what one of his/her books is talking about. Using the semantic similarity between two articles can help us determine whether the retrieved result-articles content fits with the content of the query article or not. We assumed that articles with higher semantic similarity are more likely to provide more valuable contextual content. For example, two articles discuss the same event from different perspectives, or two articles talk about the impact of the same event in various fields. We use the sentence-transformer to embed sentence vectors and adopt dot products as the semantic similarity score. We leverage articles' semantic relevance from three aspects: between the article content and the topic description, between the keywords of the article and the topic description, and between the article keywords and the topic description's keywords.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Temporal Recency</head><p>Many of the teams <ref type="bibr" coords="2,387.41,349.45,9.24,7.94" target="#b0">[1,</ref><ref type="bibr" coords="2,398.90,349.45,11.47,7.94">11]</ref> in previous years added a temporal filter to the search process, assuming that the article which would provide context for the query article must have been posted before it. Based on such assumption, they filtered out any articles whose time came after the query article. However, we believe that articles posted after the query article may also provide background information. For example, articles that follow an event and talk about its effects and consequences are often published after the target article. To be more specific, for example, articles talking about the COVID-19 vaccination are probably posted after articles talking about the COVID-19 outbreak, moreover they provide contextual information to each other. Therefore, we did not set a filter this time but used the time freshness between such two articles to increase the ranking of articles in a near time period.</p><formula xml:id="formula_0" coords="2,398.67,516.39,159.53,18.27">𝑊 𝑅 = 𝑦 𝑡 𝑑 + 𝑦 𝑡 𝑑 ∈ 𝑅<label>(1)</label></formula><p>Temporal recency is calculated as equation 1 where y is in the constant of 365, t 𝑑 is the day distance between two articles.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Submitted Runs</head><p>This year we submitted four runs for each Background Linking and Background Linking (subtopics) task.</p><p>3.5.1 Background Linking Runs. The table <ref type="table" coords="2,473.46,624.78,4.10,7.94" target="#tab_0">1</ref> shows the search conditions between different runs, each with a new part added to the previous run. "Same as above" means the condition did not change referring to the previous run. 𝑆 𝐷𝐶 , 𝑆 𝐷𝐾 , and 𝑆 𝐾𝐾 represent the semantic similarity from three different aspects: the topic desc with article content, the topic description with the keywords of the article, and the topic description's keywords with the article keywords. 𝑟𝑒𝑠 𝑖 = SolrSearchTop100(sq) 7: end for 8: res ← Sort&amp;Deduplicate(𝑟𝑒𝑠 𝑖 )</p><p>We conducted the indexing process and BM25 retrieval process by Apache Solr<ref type="foot" coords="3,108.37,335.76,3.38,6.44" target="#foot_3">4</ref> . For Baseline 1 to 4, we retrieved the top 200 documents. In Baselines 3 and 4, we calculated the semantic similarity score and re-ranked them with the final score generated by BM25 score and semantic similarity score. In TKB48_Run 1 to 3, for each topic, we combined one of the sets of prediction queries and the description as a single question. As shown in Algorithm 1 the top 100 articles were searched cyclically until all prediction problems have been used, and then we removed duplicates and re-ranked by the final score generated by the BM25 score and semantic similarity scores. TKB48_Run 4 just added the title in search queries based on the above process.</p><p>3.5.2 Background Linking (Subtopics). We submitted four runs for subtopic tasks. The retrieval conditions are shown as table <ref type="table" coords="3,266.25,476.52,3.02,7.94" target="#tab_1">2</ref>. S 𝑆𝑇 𝐶 refers to the semantic similarity score between subtopic and document content.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RESULT</head><p>We compared our results with the mean and max value with all submitted runs as shown in Figure <ref type="figure" coords="3,190.04,545.90,3.13,7.94" target="#fig_0">1</ref>. None of our official runs show significance improvement over the mean value of all teams. Combining with Table <ref type="table" coords="3,142.31,567.82,3.13,7.94" target="#tab_0">1</ref>, in general, temporal recency features applying to all topics did not improve the ranking performance. This indicated us a forehead judgement of temporal topics should be done. For temporal insensitive topics (atemporal topics), temporal recency could harm the performance of useful components like BM25.</p><p>The factor of semantic similarity between topic keywords and contents' keywords also contributes to the rank results. This verify that extracted keywords represent the central contents of documents. Comparing the semantic similarities of keywords is a effective way to judge of background articles value.  Adding the topic title to the queries is helpful to the performance. Titles in search queries may enhance proportion of useful tokens and optimize the BM25 results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">UNOFFICIAL RUNS</head><p>We conducted several experiments as illustrated in table <ref type="table" coords="3,533.91,449.44,4.25,7.94" target="#tab_2">3</ref> after the submission and evaluated using official scripts. To demonstrate the effectiveness of document expansion, we added baseline1 and baseline2. To demonstrate each of the re-ranking factors, we added baseline3 and baseline4. S 𝐾 𝐾 , S 𝑇 𝐾 , S 𝑇 𝑄 refer to semantic similarity score between keywords of query and doc; keywords and titles; titles and predicted queries. In the ltr run, we trained a temporal topic classifier and a learning to rank model to take better advantage of document freshness and semantic re-ranking factors. During the official runs, we found a forehead classifier should be applied to decide whether a topic is temporal sensitive or not. Topics asking about definitions and comparisons between several objects will not be benefit by temporal freshness. Thus we fine-tuned a temporal topic classifier based on BERT sentence classification task using topics from last year's news track as well as a test collection which is NTCIR Temporalia task <ref type="bibr" coords="3,410.42,613.82,10.22,7.94" target="#b7">[8]</ref>. We first compared experiments with and without temporal recency on 2020's topics and assumed that those performances got improved are temporal, and others got decreased are atemporal. Since half of the topics in 2020 do not have a publish date and can not be judged, we used extra data set (Temporalia) to expand training data. Temporalia has annotated temporal and atemporal topics, which is suitable for the training task. The output of the classifier was then used as the feature in a learning to rank model.</p><p>The learning to rank model we adopted is one of the listwise models named LambdaMart <ref type="bibr" coords="4,151.87,98.75,17.03,7.94" target="#b15">[17]</ref>. We trained it by last year's qrels and using nDCG@5 as a training metric. The imported features are the temporal label of topics which is the output of temporal topic classifier, whether the topic has publish date, semantic similarity scores of keywords, titles and predicted queries, document length, and BM25 score.  We evaluated extra runs through official scripts. We compared them together with the official runs to demonstrate the effectiveness of document expansion. As shown in Figure <ref type="figure" coords="4,228.98,559.03,3.01,7.94" target="#fig_1">2</ref>, from the results, we can observe that indexing the predicted queries and extracted keywords helps retrieve background news articles. No obvious benefit can be observed when we re-ranked results with the semantic similarity between documents' content and topic description or between documents' keyword and topic description. An obvious fall occurs after we added the semantic similarity re-ranking factors to two, which might lower the effect of BM25.</p><p>Furthermore, the learning to rank method did not perform better than our designed algorithm. We exported model parameters, the scores of BM25 and semantic similarities of titles occupied around 94.6% in all, and semantic similarity scores of title and keywords as well as title and predicted queries take 5.1%. Thus, temporal features are nearly effective in improving ranking performance.</p><p>We analyzed the scores for each topic compared to the mean of all submitted runs. The effectiveness of temporal recency weight is case by case, which indicates us a temporal topic classifier should be added before considering ranking by document freshness. Topics talking about definitions or comparisons between two items are not suitable for this method, while others greatly improved topics concerning upcoming events. However, the experiment of ltr shows temporal features are nearly effective in the ranking process, which may be caused by the lack of training dataset and the sparsity of temporal topics in the task. We compared topics' scores with the max of all submitted runs. Several runs of us have reached or are very close to the max score.</p><p>The re-ranking run gives the best results at present. The performance of each topic is relatively better than other runs. The results prove that title, keywords, and predicted queries are more effective than contents or desc in semantic calculations. With a one-tailed paired t-test of the re-ranking run against the Baseline4 and the offcial TKB48_Run4, the difference is significant at p &lt; 0.05. As for the subtopic task, the results further verify that temporal freshness and putting predicted queries into retrieval texts decrease the ranking performance. The performance of each run is shown in Figure <ref type="figure" coords="4,352.70,511.79,3.04,7.94" target="#fig_3">3</ref>. No positive significance show between the mean of all teams and submitted runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">CONCLUSION AND FUTURE WORK</head><p>This work also adopted a temporal topic classifier and document freshness calculation methods, including documents published before query articles. By analyzing the weight parameters in the learning to rank model, We found temporal features' effectiveness is generally limited. However, document freshness works on several topics that concern upcoming events.</p><p>Our future work will focus on fine tuning the docT5query model with last year's dataset. To discover the further ability of the model in the Background linking task.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,319.46,243.48,237.24,7.70;3,292.28,83.69,291.60,145.80"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Official runs' performance evaluated in nDCG@5</figDesc><graphic coords="3,292.28,83.69,291.60,145.80" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,53.47,174.70,92.81,7.94;4,59.67,188.68,120.85,8.43;4,59.67,200.13,17.90,7.94;4,77.42,204.43,4.37,3.24;4,84.86,199.64,166.18,8.43;4,59.67,211.08,13.72,7.94;4,73.24,215.39,10.93,3.24;4,87.63,210.60,188.99,8.43;4,59.67,222.04,13.72,7.94;4,72.81,226.35,10.57,3.24;4,86.84,221.56,186.58,8.43;4,59.67,233.00,13.72,7.94;4,72.81,237.31,10.81,3.24;4,86.97,232.52,189.14,8.43;4,59.67,243.48,145.26,7.96;4,59.67,254.92,97.85,7.94;4,59.67,265.88,72.29,7.94;4,131.81,270.18,4.37,3.24;4,137.01,265.88,9.28,7.94;4,146.15,270.18,10.93,3.24;4,158.29,265.88,9.28,7.94;4,166.99,270.18,10.57,3.24;4,178.78,265.88,33.16,7.94;4,211.35,270.18,10.81,3.24;4,223.27,265.88,35.83,7.94;4,259.03,265.88,22.87,8.89;4,59.67,277.06,24.88,7.70;4,56.43,287.80,71.35,7.94;4,127.63,292.10,10.93,3.24;4,139.78,287.80,9.28,7.94;4,148.48,292.10,10.57,3.24;4,160.26,287.80,33.16,7.94;4,192.84,292.10,10.81,3.24;4,204.76,287.80,35.83,7.94;4,240.51,287.80,22.86,8.89;4,56.43,298.98,36.19,7.70;4,56.43,309.23,115.06,8.43;4,63.76,337.53,230.28,7.94;4,53.80,348.49,138.89,7.94"><head>Algorithm 2</head><label>2</label><figDesc>Re-ranking 1: qtopic ← required query topic 2: W 𝑅 ← temporal recency calculated by equation 1 3: S 𝐾 𝐾 ← semantic score between keywords of query&amp;doc 4: S 𝑇 𝐾 ← semantic score between title &amp; keywords of doc 5: S 𝑇 𝑄 ← semantic score between title &amp; predicted queries 6: 𝐼𝑠𝑇 𝑒𝑚𝑝𝑜 ← 𝑇 𝑒𝑚𝑝𝑜𝑇𝑜𝑝𝑖𝑐𝐶𝑙 𝑓 (𝑞𝑡𝑜𝑝𝑖𝑐) 7: if IsTempo==True then 8: rankscore = W 𝑅 +S 𝐾 𝐾 +S 𝑇 𝐾 +Norm(S 𝑇 𝑄 )+Norm(S 𝐵 𝑀 25 ) 9: else 10: rankscore = S 𝐾 𝐾 +S 𝑇 𝐾 +Norm(S 𝑇 𝑄 )+Norm(S 𝐵 𝑀 25 ) 11: end if 12: newrank ← Sort(rankscore)In the re-ranking run, we replaced learning to rank model with the methods explained in Algorithm2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,53.80,503.38,240.25,7.70;4,53.52,514.34,44.11,7.70;4,46.86,367.32,254.13,122.07"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: All runs compared with mean score of 51 topics (nDCG@5)</figDesc><graphic coords="4,46.86,367.32,254.13,122.07" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="4,317.96,454.43,240.25,7.70;4,292.28,294.64,291.60,145.80"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Subtopic runs performance evaluated in nDCG@10</figDesc><graphic coords="4,292.28,294.64,291.60,145.80" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="5,58.59,83.68,494.82,189.79"><head></head><label></label><figDesc></figDesc><graphic coords="5,58.59,83.68,494.82,189.79" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,323.81,85.73,231.92,92.53"><head>Table 1 :</head><label>1</label><figDesc>Runs Explanation</figDesc><table coords="2,323.81,108.58,231.92,69.68"><row><cell>runs</cell><cell></cell><cell>retrieve condition</cell><cell></cell></row><row><cell></cell><cell cols="2">query components re-ranking factors</cell><cell>index fields</cell></row><row><cell>TKB48_Run1</cell><cell>Topics' desc</cell><cell>𝑆 𝐷𝐾</cell><cell>Title, Content</cell></row><row><cell></cell><cell>Predicted Queries</cell><cell>𝑆 𝐷𝐶</cell><cell>Predicted queries</cell></row><row><cell></cell><cell></cell><cell></cell><cell>Key words</cell></row><row><cell>TKB48_Run2</cell><cell>Same as above</cell><cell>+ 𝑊 𝑅</cell><cell>Same as above</cell></row><row><cell>TKB48_Run3</cell><cell>Same as above</cell><cell>+ 𝑆 𝐾𝐾</cell><cell>Same as above</cell></row><row><cell>TKB48_Run4</cell><cell>+ Topics' title</cell><cell>Same as above</cell><cell>Same as above</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,53.47,85.73,233.81,192.67"><head>Table 2 :</head><label>2</label><figDesc>Subtopic Runs Explanation</figDesc><table coords="3,53.47,108.50,233.81,101.10"><row><cell>runs</cell><cell></cell><cell>retrieve condition</cell><cell></cell></row><row><cell></cell><cell cols="2">query components re-ranking factors</cell><cell>index fields</cell></row><row><cell>TKB48_SRun1</cell><cell>Topics' desc</cell><cell>S 𝐷𝐶</cell><cell>Title, Content</cell></row><row><cell></cell><cell>Subtopics</cell><cell>S 𝐷 𝐾</cell><cell>Predicted queries</cell></row><row><cell></cell><cell></cell><cell>S 𝐾 𝐾</cell><cell>Key words</cell></row><row><cell>TKB48_SRun2</cell><cell>Same as above</cell><cell>+ W 𝑅</cell><cell>Same as above</cell></row><row><cell cols="2">TKB48_SRun3 + Predicted Queries</cell><cell>Same as above</cell><cell>Same as above</cell></row><row><cell>TKB48_SRun4</cell><cell>Same as above</cell><cell>+S 𝑆𝑇 𝐶</cell><cell>Same as above</cell></row><row><cell cols="3">Algorithm 1 RetrieveByPredictedQuery</cell><cell></cell></row></table><note coords="3,59.67,215.64,150.55,8.43;3,59.67,226.60,126.37,8.43;3,59.67,237.56,121.87,8.43;3,59.67,249.00,80.28,7.94;3,59.67,259.96,132.72,7.94;3,59.67,272.22,4.89,6.18"><p>1: querydoc ← required query document 2: sq ← search query put into Solr 3: 𝑄𝐿 ← 𝐷𝑜𝑐𝑇 5𝑚𝑜𝑑𝑒𝑙 (𝑞𝑢𝑒𝑟𝑦𝑑𝑜𝑐) 4: for query in QL do 5: sq = topic's title + desc + query 6:</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,323.88,267.46,233.00,103.06"><head>Table 3 :</head><label>3</label><figDesc>Unofficial Runs Explanation</figDesc><table coords="3,323.88,290.33,233.00,61.56"><row><cell>unofficial</cell><cell></cell><cell>retrieve condition</cell><cell></cell></row><row><cell>runs</cell><cell cols="2">query components re-ranking factors</cell><cell>index fields</cell></row><row><cell>Baseline1</cell><cell>Topics' desc</cell><cell>None</cell><cell>Title, Content</cell></row><row><cell>Baseline2</cell><cell>Same as above</cell><cell>None</cell><cell>+ Predicted queries</cell></row><row><cell></cell><cell></cell><cell></cell><cell>+ Key words</cell></row><row><cell>Baseline3</cell><cell>Same as above</cell><cell>S 𝐷𝐶</cell><cell>Same as above</cell></row><row><cell>Baseline4</cell><cell>Same as above</cell><cell>S</cell><cell></cell></row></table><note coords="3,449.49,345.37,25.70,6.51;3,506.26,345.37,43.52,6.51;3,336.26,354.69,7.00,6.51;3,363.83,354.69,59.19,6.51;3,438.12,354.69,45.03,6.51;3,506.26,354.69,43.52,6.51;3,329.86,364.00,19.81,6.51;3,371.66,364.00,43.52,6.51;3,438.12,364.00,45.03,6.51;3,506.26,364.00,43.52,6.51"><p>𝐷𝐶 , S 𝐷 𝐾 Same as above ltr + Predicted Queries S 𝐾 𝐾 , S 𝑇 𝐾 , S 𝑇 𝑄 Same as above rerank Same as above S 𝐾 𝐾 , S 𝑇 𝐾 , S 𝑇 𝑄 Same as above</p></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,56.72,702.79,115.63,6.18"><p>http://trec-news.org/guidelines-2021.pdf</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,56.84,694.38,130.40,6.18"><p>https://github.com/castorini/docTTTTTquery</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,56.84,702.79,95.14,6.18"><p>https://github.com/BluceHan/pke</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,56.72,702.79,65.60,6.18"><p>https://solr.apache.org/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,334.39,678.88,224.99,6.18;4,334.39,686.80,223.81,6.25;4,334.39,694.77,223.82,6.25;4,334.39,702.74,223.81,6.25;5,190.98,287.47,230.05,7.70;5,70.23,316.74,224.64,6.18;5,70.01,324.71,135.71,6.18" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="4,548.89,678.88,10.48,6.18;4,334.39,686.85,75.08,6.18">SU-NLP at TREC NEWS 2020</title>
+		<author>
+			<persName coords=""><forename type="first">Çaghan</forename><surname>Ali Eren Ak</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenan</forename><surname>Köksal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Reyyan</forename><surname>Fayoumi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Yeniterzi</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec29/papers/SUNLP.N.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,422.92,686.80,135.28,6.25;4,334.39,694.77,103.68,6.25;4,471.12,702.79,87.08,6.18;5,190.98,287.47,230.05,7.70;5,70.23,316.74,12.42,6.18">Ellen M. Voorhees and Angela Figure 4: Runs with the mean score of all submitted runs Ellis</title>
+		<meeting><address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-11-16">2020. November 16-20, 2020</date>
+			<biblScope unit="volume">1266</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>Proceedings of the Twenty-Ninth Text REtrieval Conference</note>
+</biblStruct>
+
+<biblStruct coords="5,70.23,332.68,223.81,6.18;5,70.23,340.65,224.89,6.18;5,70.23,348.56,223.82,6.25;5,70.23,356.53,223.81,6.25;5,70.23,364.51,223.81,6.25;5,70.23,372.53,224.64,6.18;5,70.01,380.50,139.73,6.18" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,87.19,348.62,99.66,6.18">htw saar @ TREC 2018 News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Agra</forename><surname>Bimantara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michelle</forename><surname>Blau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Engelhardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Johannes</forename><surname>Gerwert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tobias</forename><surname>Gottschalk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Philipp</forename><surname>Lukosz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shenna</forename><surname>Piri</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec27/papers/htwsaar-N.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,184.06,340.65,108.20,6.18;5,199.13,348.56,94.92,6.25;5,70.23,356.53,70.39,6.25">Proceedings of the Twenty-Seventh Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Seventh Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-11-14">2018. 2018. November 14-16, 2018</date>
+			<biblScope unit="volume">500</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,70.23,388.47,223.81,6.18;5,70.23,396.44,93.56,6.18" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,136.48,388.47,157.56,6.18;5,70.23,396.44,19.01,6.18">Unsupervised Keyphrase Extraction with Multipartite Graphs</title>
+		<author>
+			<persName coords=""><forename type="first">Florian</forename><surname>Boudin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.08721[cs.IR]</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,70.23,404.41,223.81,6.18;5,70.23,412.33,223.81,6.25;5,70.23,420.30,223.82,6.25;5,70.23,428.27,223.81,6.25;5,70.23,436.29,224.64,6.18;5,70.01,444.26,128.34,6.18" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,203.47,404.41,90.57,6.18;5,70.23,412.38,74.41,6.18">OSC at TREC 2020 -News track&apos;s Background Linking Task</title>
+		<author>
+			<persName coords=""><forename type="first">Nathan</forename><surname>Day</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Worley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Allison</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec29/papers/OSC.N.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,158.33,412.33,135.71,6.25;5,70.23,420.30,103.68,6.25">Proceedings of the Twenty-Ninth Text REtrieval Conference, TREC 2020, Virtual Event</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Ninth Text REtrieval Conference, TREC 2020, Virtual Event<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-11-16">2020. November 16-20, 2020</date>
+			<biblScope unit="volume">1266</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,70.23,452.23,223.95,6.18;5,70.23,460.15,223.81,6.25;5,70.02,468.17,163.33,6.18" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="5,207.26,452.23,86.92,6.18;5,70.23,460.20,160.82,6.18">IR-BERT: Leveraging BERT for Semantic Search in Background Linking for News Articles</title>
+		<author>
+			<persName coords=""><forename type="first">Anup</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Deshmukh</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Udhav</forename><surname>Sethi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.12603</idno>
+		<ptr target="https://arxiv.org/abs/2007.12603" />
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,70.23,476.14,223.81,6.18;5,70.23,484.06,223.81,6.25;5,70.23,492.03,224.51,6.25;5,70.23,500.00,223.81,6.25;5,70.23,508.02,224.64,6.18;5,70.01,515.99,153.27,6.18" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,277.06,476.14,16.98,6.18;5,70.23,484.11,106.11,6.18">TREC Complex Answer Retrieval Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Manisha</forename><surname>Verma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Filip</forename><surname>Radlinski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec26/papers/Overview-CAR.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,189.09,484.06,104.96,6.25;5,70.23,492.03,57.50,6.25">Proceedings of The Twenty-Sixth Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>The Twenty-Sixth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017-11-15">2017. 2017. November 15-17, 2017</date>
+			<biblScope unit="volume">500</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,70.23,523.96,224.00,6.18;5,70.23,531.88,223.81,6.25;5,70.23,539.85,223.81,6.25;5,70.23,547.82,223.81,6.25;5,70.23,555.84,223.81,6.18;5,70.23,563.81,224.27,6.18;5,70.23,571.78,30.32,6.18" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,194.28,523.96,99.95,6.18;5,70.23,531.93,105.75,6.18">Background Linking: Joining Entity Linking with Learning to Rank Models</title>
+		<author>
+			<persName coords=""><forename type="first">Ornella</forename><surname>Irrera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gianmaria</forename><surname>Silvello</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2816/paper6.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,187.92,531.88,106.13,6.25;5,70.23,539.85,87.39,6.25;5,144.57,563.81,38.81,6.18">Proceedings of the 17th Italian Research Conference on Digital Libraries</title>
+		<title level="s" coord="5,164.07,547.82,75.93,6.25">CEUR Workshop Proceedings</title>
+		<editor>
+			<persName><forename type="first">Stefano</forename><surname>Ferilli</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Paolo</forename><surname>Manghi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Antonella</forename><surname>Poggi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Giuseppe</forename><surname>Serra</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Gianmaria</forename><surname>Silvello</surname></persName>
+		</editor>
+		<meeting>the 17th Italian Research Conference on Digital Libraries<address><addrLine>Padua, Italy; Dennis Dosso</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021-02-18">2021. February 18-19, 2021</date>
+			<biblScope unit="volume">2816</biblScope>
+			<biblScope unit="page" from="64" to="77" />
+		</imprint>
+	</monogr>
+	<note>CEUR-WS.org</note>
+</biblStruct>
+
+<biblStruct coords="5,70.23,579.75,224.89,6.18;5,70.23,587.72,223.81,6.18;5,70.23,595.64,20.31,6.25" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="5,70.23,587.72,212.78,6.18">Overview of NTCIR-11 Temporal Information Access (Temporalia) Task</title>
+		<author>
+			<persName coords=""><forename type="first">Hideo</forename><surname>Joho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Jatowt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Roi</forename><surname>Blanco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hajime</forename><surname>Naka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shuhei</forename><surname>Yamamoto</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note>In NTCIR</note>
+</biblStruct>
+
+<biblStruct coords="5,70.23,603.66,223.81,6.18;5,70.23,611.58,223.82,6.25;5,70.23,619.55,223.81,6.25;5,70.23,627.52,223.82,6.25;5,70.23,635.54,224.27,6.18;5,70.23,643.51,54.34,6.18" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,191.59,603.66,102.46,6.18;5,70.23,611.63,32.20,6.18">The CLaC System at the TREC 2020 News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Pavel</forename><surname>Khloponin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leila</forename><surname>Kosseim</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec29/papers/CLaC.N.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,114.67,611.58,179.38,6.25;5,70.23,619.55,52.87,6.25">Proceedings of the Twenty-Ninth Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Ninth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-11-16">2020. November 16-20, 2020</date>
+			<biblScope unit="volume">1266</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC 2020, Virtual Event</note>
+</biblStruct>
+
+<biblStruct coords="5,70.23,651.49,223.81,6.18;5,70.23,659.40,224.51,6.25;5,70.23,667.37,224.57,6.25;5,70.23,675.34,223.81,6.25;5,70.23,683.37,224.64,6.18;5,70.01,691.34,145.08,6.18;5,317.96,316.74,240.24,6.18;5,334.39,324.65,223.81,6.25;5,334.39,332.62,223.81,6.25;5,334.39,340.59,223.81,6.25;5,334.39,348.62,224.27,6.18;5,334.39,356.59,66.66,6.18" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,170.08,651.49,123.96,6.18;5,70.23,659.46,86.15,6.18;5,425.12,316.74,133.08,6.18;5,334.39,324.71,77.07,6.18">Leveraging Entities in Background Document Retrieval for News Articles</title>
+		<author>
+			<persName coords=""><forename type="first">Kuang</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><surname>Kuang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lu</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/udel_fang.N.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,169.63,659.40,125.12,6.25;5,70.23,667.37,84.23,6.25;5,423.58,324.65,134.62,6.25;5,334.39,332.62,28.35,6.25">Proceedings of the Twenty-Seventh Text REtrieval Conference</title>
+		<title level="s" coord="5,88.89,675.34,68.23,6.25">NIST Special Publication</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Seventh Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA; Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-11-14">2018. November 14-16, 2018. 2019. 2019. November 13-15, 2019</date>
+			<biblScope unit="volume">500</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST ; National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,334.39,364.56,224.99,6.18;5,334.39,372.48,223.82,6.25;5,334.39,380.45,223.81,6.25;5,334.39,388.42,223.81,6.25;5,334.39,396.44,224.64,6.18;5,334.16,404.41,146.60,6.18" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,371.72,372.53,81.75,6.18">DMINR at TREC News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Sondess</forename><surname>Missaoui</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Macfarlane</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephann</forename><surname>Makri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marisela</forename><surname>Gutierrez-Lopez</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/cityuni.News.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,465.82,372.48,92.38,6.25;5,334.39,380.45,70.39,6.25">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Eighth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019-11-13">2019. 2019. November 13-15, 2019</date>
+			<biblScope unit="volume">1250</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,334.39,412.38,176.64,6.18" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="5,405.46,412.38,102.01,6.18">From doc2query to docTTTTTquery</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.39,420.35,223.81,6.18;5,334.39,428.32,162.24,6.18" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.08375[cs.IR]</idno>
+		<title level="m" coord="5,528.84,420.35,29.36,6.18;5,334.39,428.32,88.06,6.18">Document Expansion by Query Prediction</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.39,436.29,223.81,6.18;5,334.18,444.21,73.55,6.25" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="5,508.59,436.29,49.61,6.18;5,334.18,444.26,43.84,6.18">TREC 2020 News Track Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shudong</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><forename type="middle">K</forename><surname>Harman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note>In TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,334.39,452.23,224.58,6.18;5,334.14,460.20,224.06,6.18;5,334.19,468.17,102.08,6.18" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.03762[cs.CL]</idno>
+		<title level="m" coord="5,512.15,460.20,46.06,6.18;5,334.19,468.17,25.49,6.18">Attention Is All You Need</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.39,476.14,223.81,6.18;5,334.39,484.06,224.89,6.25;5,334.39,492.08,119.65,6.18" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,532.14,476.14,26.06,6.18;5,334.39,484.11,126.95,6.18">Adapting boosting for information retrieval measures</title>
+		<author>
+			<persName coords=""><forename type="first">Qiang</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Krysta</forename><surname>Svore</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s10791-009-9112-1</idno>
+		<ptr target="https://doi.org/10.1007/s10791-009-9112-1" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,468.64,484.06,24.32,6.25">Inf. Retr</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="254" to="270" />
+			<date type="published" when="2010-06">2010. 06 2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

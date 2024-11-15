@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,355.69,15.42">DortmundAI at LeQua 2022: Regularized SLD</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,113.06,57.09,11.96"><forename type="first">Martin</forename><surname>Senz</surname></persName>
+							<email>martin.senz@tu-dortmund.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Artificial Intelligence Group</orgName>
+								<orgName type="institution">TU Dortmund University</orgName>
+								<address>
+									<postCode>D-44227</postCode>
+									<settlement>Dortmund</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,157.52,113.06,62.72,11.96"><forename type="first">Mirko</forename><surname>Bunse</surname></persName>
+							<email>mirko.bunse@cs.tu-dortmund.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Artificial Intelligence Group</orgName>
+								<orgName type="institution">TU Dortmund University</orgName>
+								<address>
+									<postCode>D-44227</postCode>
+									<settlement>Dortmund</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,355.69,15.42">DortmundAI at LeQua 2022: Regularized SLD</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">55BFFA3365C0E89EA46E725E5204F2F5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:24+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Quantification, Supervised prevalence estimation</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The LeQua 2022 competition was conducted with the purpose of evaluating different quantification methods on text data. In the following, we present the solution of our team "DortmundAI", which ranked first in the multi-class quantification task T1B. This solution is based on a modification of the well-known Saerens-Latinne-Decaestecker (SLD) method. Here, the SLD method, which is based on expectation maximization, is extended by a regularization technique. Additional experiments with the test data, which we took out after the competition closed, reveal that our excellent ranking stems primarily from an extensive hyperparameter tuning of the classifier.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Quantification is a supervised learning task which consists of training a predictor for class prevalences in a sample of unlabelled data items <ref type="bibr" coords="1,303.81,359.82,11.32,10.91" target="#b0">[1]</ref>. This task has received increased attention in recent years because, in many applications, the class distribution of a batch of data is relevant, rather than the prediction of individual instances of the data.</p><p>The LeQua 2022 competition <ref type="bibr" coords="1,225.40,400.47,12.69,10.91" target="#b1">[2]</ref> was initiated with the intention of evaluating the performance of methods that address quantification. Here, the focus is the quantification of text data, where the data consisted of collected customer reviews from Amazon. Two key learning tasks were formulated:</p><p>• (A) Binary quantification of reviews by positive (more than 3 stars) or negative rating (less than 3 stars) • (B) Multiclass quantification of reviews according to 28 product categories These tasks were further divided according to the data representation. Namely, the organizers provided vectorized data (1), as well as the raw text data (2), for a total of four tasks: T1A, T1B, T2A, and T2B. For more information about the competition and the evaluation protocol, see <ref type="bibr" coords="1,492.63,535.89,11.27,10.91" target="#b1">[2]</ref>.</p><p>Our contributed solution focuses on the performance of the quantifier, rather than the representation of the data. Therefore, we relied on the vectorized representation and addressed only the tasks T1A and T1B. Our solution ranked first in T1B and fifth in T1A.</p><p>In Sec. 2, we describe the quantification method that we used. We complement our presentation in Sec. <ref type="bibr" coords="1,166.51,603.64,5.17,10.91" target="#b2">3</ref> with additional experiments that we conducted with the test set after the competition was closed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Method</head><p>Our solution is based on the well-known quantification method SLD <ref type="bibr" coords="2,394.63,111.28,11.38,10.91" target="#b2">[3]</ref>, which is extended by a regularization technique. Here, the idea of regularization is taken from another quantification method <ref type="bibr" coords="2,127.10,138.38,13.00,10.91" target="#b3">[4]</ref> that is domain-specific for experimental physics. Originally, our extension was proposed for ordinal quantification in particular <ref type="bibr" coords="2,305.93,151.93,11.43,10.91" target="#b4">[5]</ref>.</p><p>We use the following notation. By x ∈ 𝜎 we denote a data item from an unlabelled data set 𝜎 = {x 𝑖 ∈ 𝒳 : 1 ≤ 𝑖 ≤ 𝑚}. By 𝑦 ∈ 𝒴 we denote a class from a set of classes 𝒴 = {𝑦 1 , ..., 𝑦 𝑛 }. Furthermore, ℎ : 𝒳 → 𝒴 represents a soft classifier that returns posterior probabilities [ℎ(x)] 𝑖 ≡ P(𝑦 𝑖 | x). By 𝑝 ^𝜎(𝑦) we denote the prevalence of class 𝑦, as estimated by a quantification method that receives 𝜎 as an input. The goal of quantification is to return a 𝑝 ^𝜎(𝑦) that is close to the true prevalence P(𝑦 | 𝜎).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Saerens-Latinne-Decaestecker (SLD)</head><p>The SLD method <ref type="bibr" coords="2,166.21,282.46,12.75,10.91" target="#b2">[3]</ref> follows an expectation maximization approach, which (i) leverages Bayes' theorem in the E-step, and (ii) updates the prevalence estimates in the M-step. Both steps can be combined in a single update rule</p><formula xml:id="formula_0" coords="2,192.48,332.40,314.16,45.69">𝑝 ^(𝑘) 𝜎 (𝑦 𝑖 ) = 1 |𝜎| ∑︁ x∈𝜎 𝑝 ^(𝑘-1) 𝜎 (𝑦 𝑖 ) 𝑝 ^(0) 𝜎 (𝑦 𝑖 ) • [ℎ(x)] 𝑖 ∑︀ 𝑛 𝑗=1 = 𝑝 ^(𝑘-1) 𝜎 (𝑦 𝑖 ) 𝑝 ^(0) 𝜎 (𝑦 𝑖 ) • [ℎ(x)] 𝑗 .<label>(1)</label></formula><p>This update rule is applied until the estimates converge. The initial estimates 𝑝 ^(0) 𝜎 (𝑦 𝑖 ) are given by the class prevalence values of the training set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Regularization in SLD</head><p>We employ the regularization technique of the Iterative Bayesian Unfolding <ref type="bibr" coords="2,429.91,452.79,11.46,10.91" target="#b3">[4]</ref>. This physicsspecific quantification method revolves around an expectation maximization with Bayes' theorem, and thus has a common foundation with SLD.</p><p>In IBU, each intermediate estimate 𝑝 ^(𝑘) is regularized in the following way. First, a low-order polynomial is fitted to 𝑝 ^(𝑘) . Second, a linear interpolation between 𝑝 ^(𝑘) and this polynomial is used as the prior of the next iteration. Due to the smoothness of low-order polynomials, this replacement of 𝑝 ^(𝑘) reduces the differences between neighbouring prevalence estimates. Hence, the estimates are regularized towards smooth solutions. The interpolation factor between 𝑝 ^(𝑘) and the polynomial and the order of the polynomial are hyperparameters of IBU through which the strength of the regularization is controlled.</p><p>The IBU regularization is particularly suitable for ordinal quantification tasks <ref type="bibr" coords="2,443.89,588.29,11.35,10.91" target="#b4">[5]</ref>, where the classes follow a total order 𝑦 𝑖 &lt; 𝑦 𝑖+1 . Without an order, the idea of "neighbouring classes" is not well-defined. However, we hypothesized that the IBU regularization might also benefit non-ordinal multi-class quantification tasks, like T1B in LeQua2022. This hypothesis is based on the idea that smoothing can suppress over-and under-estimations of class prevalences, even if the classes are not totally ordered. One of our motivations to participate in LeQua2022 was to test this hypothesis.</p><p>We call our quantification method o-SLD, as it was originally proposed for ordinal quantification <ref type="bibr" coords="3,133.73,100.52,11.58,10.91" target="#b4">[5]</ref>. Our method has two hyperparameters, the order of the polynomial and the interpolation factor. The pseudo code is displayed in Alg. 1. <ref type="bibr" coords="3,182.59,138.01,11.43,10.91" target="#b4">[5]</ref>, our regularized version of SLD. 𝑘 ← 𝑘 + 1 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Algorithm 1 o-SLD</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Evaluation</head><p>The primary objective of this evaluation is to measure the performance of the o-SLD method. For this purpose, a detailed process of model selection based on the relevant hyperparameters was performed. This process involved the optimization of a variety of model configurations on the training data and the estimation of their performance from the given validation data. To this end, we ran an exhaustive full grid search, where the respective hyperparameter search spaces were iteratively adjusted. Overall, the following hyperparameters were identified as being relevant:</p><p>• Degree 𝑜 ∈ N of the polynomial which replaces 𝑝 ^(𝑘)</p><p>• Impact 𝜆 ∈ [0, 1] of the linear interpolation between the polynomial and 𝑝 ^(𝑘)</p><p>• Inverse of regularization strength 𝐶 (Logistic Regression)</p><p>Initially, Logistic Regression and Support Vector Machines (SVM) were found to be suitable classifier candidates. Since no improvement of the results was observable with SVM, the focus was then put on Logistic Regression classifiers.</p><p>Based on the validation results, it became obvious that the choice of 𝐶 has a high impact on the obtained results. Accordingly, careful tuning of 𝐶 was essential to get satisfactory results. Considering the hyperparameters 𝑜 and 𝜆, a configuration with 𝐶 = 0.006 was found for subtask T1A, as well as 𝐶 = 0.01 for task T1B. As can be seen from Fig. <ref type="figure" coords="3,401.56,642.48,3.66,10.91" target="#fig_0">1</ref>, there is yet a different 𝐶 = 0.01 for task T1A, which has a smaller test error than the one selected by the validation data. The 𝐶 parameter has a major impact on the performance of o-SLD.  In the progress of the model selection for task T1B, it also appeared that model configurations with a small influence value 𝜆 are preferred, see Tab. 1 for example. Since o-SLD approaches the standard SLD method when 𝜆 decreases, this indicates that the additional smooth regularization is not an improvement in T1B.</p><p>This indication also shows when comparing the final o-SLD results with the standard SLD in Tab. 2. During the competition, we omitted an evaluation of the standard SLD because the hyperparameter grid of o-SLD included also small regularization impacts, with which the two methods are nearly equivalent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Synopsis</head><p>In the LeQua 2022 competition, the presented o-SLD achieved the first place for task T1B. As our experiments from Tab. 2 show, this excellent ranking was not achieved due to the regularization provided by o-SLD, but due to an extensive model selection that focused on optimizing the regularization parameter 𝐶. Although o-SLD could not achieve a lower error in this specific competition, the method has the capability to be useful in other quantification tasks, like ordinal quantification.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,156.71,210.92,10.91;3,300.21,155.49,5.14,6.99;3,305.84,156.71,96.00,10.91;3,391.02,156.71,116.16,11.36;3,89.29,170.26,416.69,11.36;3,89.29,183.81,75.13,10.91;3,89.29,197.36,171.96,10.91;3,96.10,213.82,40.19,9.69;3,96.10,227.58,42.83,9.76;3,96.10,241.65,6.29,8.97"><head>1 :</head><label>1</label><figDesc>input: a soft multi-class classifier ℎ : 𝒳 → R 𝑛 , the prevalences 𝑝 ^(0) 𝜎 (𝑦 𝑖 ) of the training set, a data sample 𝜎 = {x 𝑖 ∈ 𝒳 : 1 ≤ 𝑖 ≤ 𝑚}, a polynomial order 𝑜 ∈ N, and an interpolation factor 0 ≤ 𝜆 ≤ 1 output: a class prevalence estimate 𝑝 ^𝜎 𝑘 ← 0 2: repeat 3:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,256.23,418.22,9.15;4,89.02,268.46,265.84,8.87"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Influence of the hyperparameter 𝐶 on the results by o-SLD on the validation and test data. The vertical line symbolizes the minimum validation error found.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,88.99,301.56,402.29,72.83"><head>Table 1</head><label>1</label><figDesc>Impact of the o-SLD regularization hyperparameters, in terms of RAE, for Task T1B and 𝐶 = 0.01.</figDesc><table coords="4,110.50,328.98,374.28,45.41"><row><cell></cell><cell>𝑜 = 0</cell><cell>𝑜 = 1</cell><cell>𝑜 = 2</cell><cell>𝑜 = 3</cell><cell>𝑜 = 4</cell><cell>𝑜 = 5</cell><cell>𝑜 = 6</cell></row><row><cell>𝜆 = 0.1</cell><cell>1.27155</cell><cell>1.25751</cell><cell>1.23959</cell><cell>1.22277</cell><cell>1.21605</cell><cell>1.21044</cell><cell>1.19767</cell></row><row><cell>𝜆 = 0.01</cell><cell cols="7">0.94607 0.944458 0.944458 0.94142 0.938579 0.938455 0.937126</cell></row><row><cell cols="8">𝜆 = 0.001 0.913082 0.913042 0.912714 0.912534 0.912491 0.912623 0.912485</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,88.99,393.89,417.00,99.53"><head>Table 2</head><label>2</label><figDesc>The final configurations and results of o-SLD and SLD, based on the model selection performed. The testing scores and the SLD results were generated after the completion of the challenge.</figDesc><table coords="4,125.13,433.53,344.63,59.89"><row><cell>Task Model</cell><cell cols="3">Validation RAE Test RAE Test AE</cell></row><row><cell>T1A o-SLD (𝐶 = 0.006, 𝑜 = 1, 𝜆 = 0.1)</cell><cell>0.122869</cell><cell>0.1140</cell><cell>0.0271</cell></row><row><cell>SLD(𝐶 = 0.006)</cell><cell>0.122869</cell><cell>0.1140</cell><cell>0.0271</cell></row><row><cell>T1B o-SLD (𝐶 = 0.01, 𝑜 = 6, 𝜆 = 0.001)</cell><cell>0.912485</cell><cell>0.8799</cell><cell>0.0117</cell></row><row><cell>SLD (𝐶 = 0.01)</cell><cell>0.910511</cell><cell>0.8780</cell><cell>0.0118</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,107.59,172.69,398.40,10.91;5,107.59,186.24,234.65,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,161.50,172.69,278.30,10.91">Counting positives accurately despite inaccurate classification</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Forman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,462.57,172.69,43.41,10.91;5,107.59,186.24,146.65,10.91">European Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="564" to="575" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,107.59,199.79,398.40,10.91;5,107.59,213.34,400.08,10.91;5,107.26,226.89,46.11,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,307.83,199.79,130.58,10.91;5,466.78,199.79,39.20,10.91;5,107.59,213.34,46.59,10.91">A detailed overview of LeQua</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Esuli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moreo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sperduti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,177.07,213.34,299.93,10.91">Working Notes of the Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+	</monogr>
+	<note>Learning to quantify. To appear</note>
+</biblStruct>
+
+<biblStruct coords="5,107.59,240.44,398.40,10.91;5,107.59,253.99,317.67,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,283.71,240.44,222.27,10.91;5,107.59,253.99,145.80,10.91">Adjusting the outputs of a classifier to new a priori probabilities: A simple procedure</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Saerens</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Latinne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Decaestecker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,262.04,253.99,89.43,10.91">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="21" to="41" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,107.59,267.54,398.60,10.91;5,107.59,281.08,399.60,10.91;5,107.59,294.63,253.35,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,175.45,267.54,286.33,10.91">A multidimensional unfolding method based on Bayes&apos; theorem</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">D</forename><surname>Agostini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,470.74,267.54,35.45,10.91;5,107.59,281.08,399.60,10.91;5,107.59,294.63,164.35,10.91">Nuclear Instruments and Methods in Physics Research Section A: Accelerators, Spectrometers, Detectors and Associated Equipment</title>
+		<imprint>
+			<biblScope unit="volume">362</biblScope>
+			<biblScope unit="page" from="487" to="498" />
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,107.59,308.18,399.69,10.91;5,107.41,321.73,399.77,10.91;5,107.59,335.28,71.53,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,294.07,308.18,194.86,10.91">Ordinal quantification through regularization</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bunse</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moreo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Senz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,107.41,321.73,395.05,10.91">Joint European Conference on Machine Learning and Knowledge Discovery in Databases</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note>To appear</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

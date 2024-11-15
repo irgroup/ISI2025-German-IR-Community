@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,84.24,71.79,429.07,12.90">Faster BERT-based re-ranking through Candidate Passage Extraction</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,174.55,105.83,52.26,10.75"><forename type="first">Kyle</forename><surname>Reed</surname></persName>
+							<email>kgreed1@sheffield.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Sheffield</orgName>
+								<address>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,330.94,105.83,134.84,10.75"><forename type="first">Harish</forename><forename type="middle">Tayyar</forename><surname>Madabushi</surname></persName>
+							<email>harish@harishtayyarmadabushi.com</email>
+							<affiliation key="aff1">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Birmingham</orgName>
+								<address>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,84.24,71.79,429.07,12.90">Faster BERT-based re-ranking through Candidate Passage Extraction</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">83A25EAD1E96BDBD02A2820239C58A61</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Most modern information retrieval systems employ a multi-step approach to retrieving documents relevant to a query, first retrieving a set of candidate documents before re-ranking the candidates. The most effective methods of re-ranking use a transformer-based classifier to score documents. Since many documents exceed the input length of transformers, they are split into passages and each passage is classified independently, aggregating the scores for an overall document score. As transformers are slow due to their quadratic attention mechanism, we investigate whether extracting only the most promising passages from documents as input for the classifier can alleviate slow performance on longer documents at inference time while maintaining comparable performance. We explore three methods of passage extraction and find these approaches prove effective, performing comparably to the state-of-the-art while significantly reducing the run-time, with the best results coming from a graph-based passage-ranking algorithm.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Information retrieval is the task of identifying documents that contain information relevant to some user requirement, often a query. Since document collections are often large, retrieval usually consists of two stages: a cheap initial retrieval of k documents, followed by a more involved re-ranking. The Deep Learning Track at TREC 2020 provides an opportunity to investigate different approaches to information retrieval with a large scale dataset. There are two tasks -passage ranking and document ranking based on their relevance to a query, each with two sub-tasks; end-to-end ranking and re-ranking, mimicking the traditional IR pipeline. We work on the document re-ranking sub-task, where we are tasked with re-ranking a set of 100 documents that have already been retrieved so that the documents most relevant to a given query are placed highest.</p><p>This work builds on the work by <ref type="bibr" coords="1,226.40,538.91,72.29,9.46" target="#b14">Yan et al. (2019)</ref> and <ref type="bibr" coords="1,319.55,538.91,78.25,9.46" target="#b2">Chen et al. (2019)</ref> who approach the re-ranking task using BERT <ref type="bibr" coords="1,149.84,552.45,89.21,9.46" target="#b4">(Devlin et al., 2019)</ref> to classify the relevance of a document's constituent passages to a query, aggregating these scores to get an overall document score. Document scores are taken to be the maximum score of any passages contained in that document, working under the assumption that only one part of the document needs be relevant to a query for that document to be relevant <ref type="bibr" coords="1,450.48,593.10,75.06,9.46" target="#b14">(Yan et al., 2019;</ref><ref type="bibr" coords="1,72.00,606.65,74.25,9.46" target="#b2">Chen et al., 2019)</ref>. This approach is effective, but the slow performance of transformers at inference-time, combined with the large number of passages in some document could result in the passage classification being a bottle-neck in a real retrieval system. We aim to solve this problem by limiting the number of passages to be classified by identifying a subset of potentially relevant passages ahead of scoring them, introducing a "passage extraction" stage into the ranking pipeline.</p><p>Our overall approach to re-ranking is as follows: from each of the top-k documents, extract five candidate passages we expect to be relevant to the query (resulting in a positive document classification). Then, we use a classifier based on the sentence embeddings generated by BERT, fine-tuned to classify the relevance of a passage to a given query to score each of our passages. Finally, we re-rank the documents under the assumption that a documents relevance is determined by its most relevant passage, using the maximum passage score as the document score <ref type="bibr" coords="1,278.54,742.32,74.08,9.46" target="#b14">(Yan et al., 2019;</ref><ref type="bibr" coords="1,355.15,742.32,75.02,9.46" target="#b2">Chen et al., 2019)</ref>. We experiment with three different methods for passage extraction. These methods are: a) taking document spans around occurrences of query keywords, b) ranking passages based on their semantic similarity to the query, and c) adapting the TextRank <ref type="bibr" coords="2,205.84,80.22,122.84,9.46" target="#b6">(Mihalcea and Tarau, 2004)</ref> algorithm to find the passages that are most representative of the document. Our methods perform (NDCG @ 10: 0.5781/0.5830/0.5949) comparably to using the unfiltered set of passages (NDCG @ 10: 0.5937), while significantly reducing the cost of inference, a key consideration in time-sensitive real-world systems. We hypothesise that passage extraction will have a favourable effect on the run-time of a re-ranking approach, while maintaining performance.</p><p>To ensure reproducible and so as to enable other researchers to build upon this work, we make the program code associated with this work available publicly<ref type="foot" coords="2,328.33,173.01,3.99,6.91" target="#foot_0">1</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>The most effective approaches of the 2019 track leveraged neural-network language-models <ref type="bibr" coords="2,472.80,219.63,52.75,9.46;2,72.00,233.18,39.65,9.46" target="#b3">(Craswell et al., 2019)</ref>, fine-tuning a BERT passage classifier and splitting a document up into overlapping passages, taking the max passage score as the document score <ref type="bibr" coords="2,303.88,246.73,75.87,9.46" target="#b14">(Yan et al., 2019;</ref><ref type="bibr" coords="2,382.90,246.73,76.82,9.46" target="#b2">Chen et al., 2019)</ref>. While BERT proves to perform well on this task, there are shortcomings associated with its application in real-world systems. The most prohibitive of these in this task are its demands at inference time <ref type="bibr" coords="2,439.31,273.83,81.54,9.46" target="#b13">(Wang et al., 2020)</ref>. This cost has the potential to hamper the adoption of BERT models in real-world, time-sensitive systems <ref type="bibr" coords="2,72.00,300.93,79.69,9.46" target="#b11">(Sanh et al., 2019;</ref><ref type="bibr" coords="2,154.42,300.93,86.96,9.46" target="#b5">Ganesh et al., 2020;</ref><ref type="bibr" coords="2,244.10,300.93,78.05,9.46" target="#b13">Wang et al., 2020)</ref>.</p><p>There have been several attempts to overcome this limitation of BERT, by altering the attention mechanism or by compressing the model. <ref type="bibr" coords="2,231.94,328.03,80.01,9.46" target="#b13">Wang et al. (2020)</ref> and <ref type="bibr" coords="2,332.55,328.03,88.77,9.46" target="#b1">Beltagy et al. (2020)</ref> use linear self-attention mechanisms to improve inference-time efficiency for longer sequences. <ref type="bibr" coords="2,393.79,341.58,79.70,9.46" target="#b11">Sanh et al. (2019)</ref> use knowledge distillation to train a general purpose pre-trained BERT called DistilBERT, that is 40% smaller and 60% faster at inference time, maintaining 97% of performance. However, the success of these efforts is most noticeable on significantly longer sequence lengths, or comes with a drop in performance, which is not appropriate for every task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methodology</head><p>Here we outline our methods for finding candidate relevant passages. We establish a baseline of two passages using the title and the first 384 tokens of the body as the only passages. For each other method we extract five passages in total. We find that the title is an extremely strong predictor for document relevance, so use it as one of these passages, and also append it to the start of every other passage. To maintain coherence, our passages are a list of sentences as they appear in the document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Keyword windows</head><p>Our first method for passage selection is based on an understanding of BERT in passage-ranking contexts and our observations of the queries. <ref type="bibr" coords="2,233.63,547.90,78.01,9.46" target="#b10">Qiao et al. (2019)</ref> note that: "exact match terms play an important role in BERT; we found many of the influential terms in BERT are those that appear in the question or close paraphrases", and also "there are a few terms in each document that determine the majority of BERT's ranking scores". We leverage this by extracting the keywords from the query and looking for exact matches in the document body, hypothesising that such passages would be most likely to contain information relevant to the query. For example, from the query "who is Serena Williams tennis", we would extract the terms "tennis" and "Serena Williams", and use passages centring around document occurrences of these terms as our input.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Query-passage similarity</head><p>Our next method for passage selection makes use of static word embeddings as a less accurate but faster method of finding candidate relevant passages identify the passages that are most relevant to the query, similar to prior work at the document level <ref type="bibr" coords="2,262.07,709.66,98.69,9.46" target="#b8">(Nalisnick et al., 2016)</ref>. We first create passages by splitting the document body into overlapping passages, where we use the best passage length found from our keyword windows experimentation in Section 3.1. We remove stop-words and out-of-vocabulary words from the passages. Given q i and p j as the embedding vectors for the i th and j th terms of the query and passage respectively, we then obtain a score for each passage as</p><formula xml:id="formula_0" coords="3,230.11,101.06,295.43,32.31">f (Q, P ) = 1 |Q| q i ∈Q q T i P ||q i || || P || (1)</formula><p>where, P = 1 |P | p j ∈D p j ||p j || . We experiment with three types of embedding, GloVe <ref type="bibr" coords="3,444.93,142.90,80.62,9.46;3,72.00,157.57,25.45,9.46" target="#b9">(Pennington et al., 2014)</ref> word2Vec embeddings <ref type="bibr" coords="3,204.15,157.57,95.62,9.46" target="#b7">(Mikolov et al., 2013)</ref>, and SIF embeddings <ref type="bibr" coords="3,402.00,157.57,85.72,9.46" target="#b0">(Arora et al., 2019)</ref> We find that GloVe performs the best, though not by a significant margin, with no improvement from using longer embeddings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">PassageRank</head><p>The final method we use for passage extraction is a variant on TextRank <ref type="bibr" coords="3,399.34,224.38,121.51,9.46" target="#b6">(Mihalcea and Tarau, 2004)</ref>. TextRank represents passages of text as vertices of a graph, with similarity between these passages being the edges. With a directed graph G = (V, E) that has vertices V and edges E, where In(V i ) is the set of vertices pointing to vertex V i and Out(V i ) is the set of vertices that vertex V i points to, the score of V i is given by</p><formula xml:id="formula_1" coords="3,160.95,297.95,364.59,30.09">W S(V i ) = (1 -d) + d * V j ∈In(V i ) w ji V k ∈Out(V j ) w jk W S(V j ) (2)</formula><p>where d is a dampening factor usually set to 0.85 (Brin and Page, 1998) and w ji is the weight between edges i and j. Starting from arbitrary values, scores are iteratively re-calculated until convergence.</p><p>We weight the edges between vertices using two metrics: the original TextRank metric, and the cosine similarity of our GloVe passage embeddings in eq. ( <ref type="formula" coords="3,300.99,377.19,3.86,9.46">1</ref>). The TextRank metric for the similarity between two passages containing words w i is given by</p><formula xml:id="formula_2" coords="3,188.74,413.11,336.80,25.50">Similarity(P i , P j ) = |{w k |w k ∈ P i &amp;w k ∈ P j }| log(|P i |) + log(|P j |)<label>(3)</label></formula><p>We find the best results for passages containing 12 sentences (tuned as a hyper-parameter), ranked using cosine similarity of GloVe passage embeddings as the edge weightings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">BERT passage classifier</head><p>We fine-tune BERT with a passage classification objective using the passage-level dataset provided, with a max sequence length of 384. We find best results using standard hyper-parameters. We use this model to give each passage (selected using one of the methods described above) a score determining its relevance to the given query and use the highest of these as the document score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiment and Results</head><p>Each of our methods make a substantial improvement over the initial ranking. We set up two baselines: title body (consisting of the title and start of the body), and all passages (the title and the full body split into overlapping passages of length 12 sentences and stride 6 sentences). Our passage-extraction methods all perform comparably to these baselines, with best results coming from PassageRank. This suggests that a document's most representative passages are the best for determining a documents relevance to a query. Our title body baseline also proves to be very strong. We run statistical significance tests to determine: a) whether the proposed methods, based on re-ranking, are genuine improvements over the initial retrieval; and b) whether any method noticeably outperforms another. <ref type="bibr" coords="4,111.81,112.47,90.03,9.46" target="#b12">Urbano et al. (2013)</ref> note that traditional IR metrics do not lend themselves to traditional significance tests due to their violation of many necessary assumptions but perform empirical analysis to conclude that, in practice, they are still appropriate. Furthermore, the t-test is the safest test and the Wilcoxon test gives the most exact results. We use the t-test and Wilcoxon, noting that our small sample size favours Wilcoxon. The null hypothesis is that our rankings come from the same distribution.</p><p>We include these results in   Each of our methods noticeably reduces the overall run-time from classifying all passages. The effect is more noticeable on the 2019 set than the 2020 set, which can be explained by variations in the passage distribution. The title-body baseline is around 6 times faster and keyword windows and query-passage similarity methods for passage extraction make the re-ranking process 2 -2.5 times faster.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>The aim of this work was to determine whether a document re-ranking pipeline could achieve similar results to the state-of-the-art by incorporating a passage-selection stage prior to using a transformerbased classifier, alleviating the impact of the slow inference of transformers. We train a BERT passage classifier model that determines the relevance of a passage to a query. We then introduced three methods for extracting input passages that achieve similar performance to state-of-the-art on the document reranking task, while significantly reducing run-time.</p><p>We conclude that performance is not degraded by identifying a subset of potentially relevant passages prior to the transformer classification stage, but run-time is positively affected. We further note that using just the document title and the start of the body as passages forms a very strong baseline while being an order of magnitude faster.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,101.34,674.69,394.87,84.58"><head>Table 1 :</head><label>1</label><figDesc>Ranking performance of baseline and submitted runs in document re-ranking task 4.1 Statistical significance</figDesc><table coords="3,121.55,674.69,354.44,68.35"><row><cell>Run ID</cell><cell cols="2">Group Run Description</cell><cell cols="2">Subtask NDCG@10</cell><cell>MAP</cell><cell>MRR</cell></row><row><cell cols="3">initial ranking TREC no re-ranking</cell><cell>re-rank</cell><cell>0.4980</cell><cell cols="2">0.3541 0.7981</cell></row><row><cell>all passages</cell><cell>UoB</cell><cell>full text (baseline)</cell><cell>re-rank</cell><cell>0.5937</cell><cell cols="2">0.4094 0.8630</cell></row><row><cell>title body</cell><cell>UoB</cell><cell>title &amp; body (baseline)</cell><cell>re-rank</cell><cell>0.5779</cell><cell cols="2">0.3755 0.9130</cell></row><row><cell>uob runid1</cell><cell>UoB</cell><cell>keyword windows</cell><cell>re-rank</cell><cell>0.5781</cell><cell cols="2">0.3786 0.8852</cell></row><row><cell>uob runid2</cell><cell>UoB</cell><cell cols="2">query-passage similarity re-rank</cell><cell>0.5830</cell><cell cols="2">0.3976 0.9100</cell></row><row><cell>uob runid3</cell><cell>UoB</cell><cell>PassageRank</cell><cell>re-rank</cell><cell>0.5949</cell><cell cols="2">0.3948 0.9259</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,72.00,180.22,453.55,160.62"><head>Table 2 .</head><label>2</label><figDesc>All of our methods of re-ranking significantly outperform the initial ranking (p &lt; 0.01) on the Wilcoxon test, but do not pass the t-test (p &gt; 0.05). None of the other methods for re-ranking significantly outperform each other, including our title body baseline.</figDesc><table coords="4,143.64,231.50,310.27,109.33"><row><cell></cell><cell cols="5">title body all passages uob runid1 uob runid2 uob runid3</cell></row><row><cell>initial ranking</cell><cell>0.0065 0.0980</cell><cell>0.0010 0.0607</cell><cell>0.0071 0.1119</cell><cell>0.0057 0.0929</cell><cell>0.0011 0.0510</cell></row><row><cell>title body</cell><cell>-</cell><cell>0.1311 0.7354</cell><cell>0.7572 0.9966</cell><cell>0.8307 0.9127</cell><cell>0.2089 0.7078</cell></row><row><cell>all passages</cell><cell>-</cell><cell>-</cell><cell>0.5360 0.7495</cell><cell>0.2369 0.8270</cell><cell>0.9777 0.9807</cell></row><row><cell>uob runid1</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.9226 0.9197</cell><cell>0.4645 0.7238</cell></row><row><cell>uob runid2</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.2247 0.8030</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,72.00,347.29,453.55,157.92"><head>Table 2 :</head><label>2</label><figDesc>p-values for Wilcoxon and t-test4.2 RuntimeWe include a comparison of the run-times of the different methods in Table3, including the fraction of time the approach takes compared to all passages, the baseline consisting of the whole document body split into overlapping passages.</figDesc><table coords="4,89.12,446.82,419.31,58.38"><row><cell>Method</cell><cell>Run Description</cell><cell cols="2">Preparation (s) Inference (s)</cell><cell>Total (s)</cell><cell>Fraction of all passages</cell></row><row><cell cols="2">all passages full text (baseline)</cell><cell>1503 (0309)</cell><cell cols="2">6706 (1508) 8209 (1817)</cell><cell>-</cell></row><row><cell>title body</cell><cell>title &amp; body (baseline)</cell><cell>0165 (0098)</cell><cell cols="2">1178 (0232) 1343 (0330)</cell><cell>0.1636 (0.1816)</cell></row><row><cell>uob runid1</cell><cell>keyword windows</cell><cell>0679 (0112)</cell><cell cols="2">2927 (0604) 3606 (0716)</cell><cell>0.4393 (0.3941)</cell></row><row><cell>uob runid2</cell><cell>query-passage similarity</cell><cell>1264 (0237)</cell><cell cols="2">2928 (0603) 4192 (0840)</cell><cell>0.5107 (0.4623)</cell></row><row><cell>uob runid3</cell><cell>PassageRank</cell><cell>4015 (0673)</cell><cell cols="2">2924 (0601) 6939 (1274)</cell><cell>0.8453 (0.7011)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="4,178.14,511.98,241.28,9.46"><head>Table 3 :</head><label>3</label><figDesc>Run-time comparison of methods 2020Run-time comparison of methods   (2019)   )    </figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,88.14,757.13,129.25,7.77"><p>github.com/kylereed96/trec-dl-2020   </p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,72.00,84.97,453.55,8.64;5,82.91,95.76,358.90,8.81" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,295.76,84.97,229.79,8.64;5,82.91,95.92,20.07,8.64">A simple but tough-to-beat baseline for sentence embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">Sanjeev</forename><surname>Arora</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yingyu</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tengyu</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,121.37,95.76,232.00,8.58">5th International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2017-01">2019. 2017. January</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,115.85,411.95,8.64;5,72.00,135.61,453.54,8.81;5,82.91,146.56,170.56,8.81" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,300.74,115.85,183.21,8.64;5,72.00,135.77,410.28,8.64">Longformer: The long-document transformer. Sergey Brin and Lawrence Page. 1998. The anatomy of a large-scale hypertextual web search engine</title>
+		<author>
+			<persName coords=""><forename type="first">Iz</forename><surname>Beltagy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><forename type="middle">E</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arman</forename><surname>Cohan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,491.50,135.61,34.04,8.58;5,82.91,146.56,66.88,8.58">Comput. Netw. ISDN Syst</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">1-7</biblScope>
+			<biblScope unit="page" from="107" to="117" />
+			<date type="published" when="2020-04">2020. April</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,166.66,453.55,8.64;5,82.91,177.45,436.91,8.81" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,332.90,166.66,172.35,8.64">UCAS at TREC-2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">Xuanang</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Canjia</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yingfei</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,82.91,177.45,239.91,8.58">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,197.54,453.55,8.64;5,82.91,208.33,425.51,8.81" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,459.97,197.54,65.57,8.64;5,82.91,208.50,125.48,8.64">Overview of the TREC 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Emine</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,215.71,208.33,182.47,8.58">The Twenty-Eighth Text REtrieval Conference</title>
+		<meeting><address><addrLine>TREC</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note>Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,228.43,453.55,8.64;5,82.91,239.22,442.63,8.81;5,82.91,250.18,442.64,8.58;5,82.91,261.14,356.92,8.81" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,381.72,228.43,143.83,8.64;5,82.91,239.39,185.85,8.64">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,287.89,239.22,237.65,8.58;5,82.91,250.18,32.66,8.58">Proceedings of the 2019 Conference of the North American Chapter</title>
+		<title level="s" coord="5,489.42,250.18,36.13,8.58;5,82.91,261.14,48.93,8.58">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019-06">2019. June</date>
+			<biblScope unit="volume">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,281.23,453.55,8.64;5,82.91,292.19,442.64,8.64;5,82.91,302.98,134.67,8.58" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Prakhar</forename><surname>Ganesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yao</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xin</forename><surname>Lou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohammad</forename><surname>Ali Khan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Deming</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marianne</forename><surname>Winslett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hassan</forename><surname>Sajjad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Preslav</forename><surname>Nakov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2002.11985</idno>
+		<title level="m" coord="5,220.77,292.19,299.30,8.64">Compressing large-scale transformer-based models: A case study on BERT</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,322.90,453.55,8.81;5,82.91,333.86,442.63,8.81;5,82.91,344.99,46.77,8.64" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,225.59,323.07,137.89,8.64">TextRank: Bringing order into text</title>
+		<author>
+			<persName coords=""><forename type="first">Rada</forename><surname>Mihalcea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Tarau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,381.23,322.90,144.32,8.58;5,82.91,333.86,219.24,8.58">Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2004 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2004-07">2004. July</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,364.92,453.55,8.64;5,82.91,375.71,350.25,8.81" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,341.17,364.92,184.38,8.64;5,82.91,375.87,47.75,8.64">Efficient estimation of word representations in vector space</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,149.14,375.71,230.89,8.58">1st International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2013">2013. 2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,395.80,453.55,8.64;5,82.91,406.59,442.64,8.81;5,82.91,417.72,289.36,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,367.64,395.80,157.91,8.64;5,82.91,406.76,69.13,8.64">Improving document ranking with dual word embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Caruana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,171.98,406.59,327.16,8.58">Proceedings of the 25th International Conference Companion on World Wide Web</title>
+		<meeting>the 25th International Conference Companion on World Wide Web</meeting>
+		<imprint>
+			<publisher>International World Wide Web Conferences Steering Committee</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="83" to="84" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,437.64,453.55,8.64;5,82.91,448.43,442.63,8.81;5,82.91,459.56,208.66,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,351.96,437.64,173.59,8.64;5,82.91,448.60,14.39,8.64">GloVe: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,115.12,448.43,366.33,8.58">Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2014 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2014-10">2014. October</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,479.49,453.55,8.64;5,82.91,490.28,171.19,8.81" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Yifan</forename><surname>Qiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenghao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.07531</idno>
+		<title level="m" coord="5,359.17,479.49,166.38,8.64;5,82.91,490.44,28.81,8.64">Understanding the behaviors of BERT in ranking</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,510.37,453.55,8.64;5,82.91,521.16,307.20,8.81" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lysandre</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Wolf</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.01108</idno>
+		<title level="m" coord="5,387.59,510.37,137.96,8.64;5,82.91,521.33,165.45,8.64">DistilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,541.25,453.54,8.64;5,82.91,552.04,442.63,8.81;5,82.91,563.00,442.64,8.81;5,82.91,574.13,155.97,8.64" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="5,314.47,541.25,211.07,8.64;5,82.91,552.21,185.94,8.64">A comparison of the optimality of statistical significance tests for information retrieval evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">Julián</forename><surname>Urbano</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mónica</forename><surname>Marrero</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Martín</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,289.03,552.04,236.51,8.58;5,82.91,563.00,288.07,8.81">Proceedings of the 36th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;13</title>
+		<meeting>the 36th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;13<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="925" to="928" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,594.06,453.55,8.64;5,82.91,604.85,184.79,8.81" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="5,377.60,594.06,147.94,8.64;5,82.91,605.02,42.30,8.64">Linformer: Self-attention with linear complexity</title>
+		<author>
+			<persName coords=""><forename type="first">Sinong</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Belinda</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Madian</forename><surname>Khabsa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Han</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hao</forename><surname>Ma</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2006.04768</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,624.94,453.55,8.64;5,82.91,635.90,442.64,8.64;5,82.91,646.69,442.64,8.81;5,82.91,657.82,48.74,8.64" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="5,441.38,624.94,84.16,8.64;5,82.91,635.90,442.64,8.64;5,82.91,646.86,35.67,8.64">IDST at TREC 2019 deep learning track: Deep cascade ranking with generation-based document expansion and pre-trained language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Ming</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenliang</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chen</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bin</forename><surname>Bi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiangnan</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luo</forename><surname>Si</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,138.09,646.69,240.88,8.58">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

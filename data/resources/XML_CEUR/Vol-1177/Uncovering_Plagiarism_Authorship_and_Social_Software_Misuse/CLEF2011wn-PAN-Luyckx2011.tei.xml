@@ -1,0 +1,522 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,138.47,115.90,338.43,12.90;1,223.43,135.75,168.50,10.75">Authorship Attribution of E-mail as a Multi-Class Task Notebook for PAN at CLEF 2011</title>
+				<funder ref="#_YVGMsPc #_m5NTpTj">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,282.36,172.15,50.64,8.64"><forename type="first">Kim</forename><surname>Luyckx</surname></persName>
+							<email>kim.luyckx@ua.ac.be</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">CLiPS Computational Linguistics Group</orgName>
+								<orgName type="institution">University of Antwerp</orgName>
+								<address>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,138.47,115.90,338.43,12.90;1,223.43,135.75,168.50,10.75">Authorship Attribution of E-mail as a Multi-Class Task Notebook for PAN at CLEF 2011</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">D09A20B4EBB6E7FEF63B2A48A1DA669D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:27+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>authorship attribution</term>
+					<term>text categorization</term>
+					<term>SVM multi-class</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we describe a multi-class text categorization approach to authorship attribution and test it on sets of e-mail collections. The PAN 2011 competition data consists of e-mails of variable length, written by various candidate authors, with some represented by significantly longer or more e-mails than others. Rather than construct a classifier for each separate author to discriminate it from the others (i.e. binary classification), we adopt a multi-class scheme where all authorship classes are learned simultaneously. We explore the effect of the selection of feature types and of the C parameter in the SVM multiclass learning algorithm. Variable-length lexical features showed promising results, nevertheless our authorship attribution approach only scored a mid position amongst the other competitors, for the SMALL as well as the LARGE test sets.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Authorship attribution aims at identifying the author of an unseen document given a set of documents of known authorship (i.e. positive and negative instances). The list of candidate authors is typically closed and restricted to the most likely ones (given external circumstances such as time, age, school, forum, etc.). The PAN 2011 (5th International Workshop on Uncovering Plagiarism, Authorship, and Social Software Misuse) competition data set -based on the publicly available Enron E-Mail Corpus, a corpus of in-company e-mails -is no exception.</p><p>The art of authorship attribution is to find the balance between high-scoring features and discriminative techniques on the one hand and scalability on the other <ref type="bibr" coords="1,461.50,536.89,15.27,8.64" target="#b12">[13]</ref>. Applying authorship attribution on a large scale (e.g. in e-mail collections) requires an approach that is robust to large author set sizes, varying data sizes, long and short texts, and a variety of topics and genres <ref type="bibr" coords="1,268.00,572.75,15.77,8.64" target="#b10">[11,</ref><ref type="bibr" coords="1,283.77,572.75,11.83,8.64" target="#b13">14]</ref>. The PAN 2011 competition data set is packed with these challenges.</p><p>As far as the learning phase is concerned, it is common practice in authorship attribution to combine several binary classifiers -often one-versus-all or one-versus-one learners -to solve a problem that is in fact multi-class. Actual multi-class learning is often avoided, partly as a result of the dominance of (binary) Support Vector Machines (SVMs) in the field. This paper applies SVM multiclass in order to train a single model that distinguishes between all authorship classes simultaneously.</p><p>In this paper, the main focus is on authorship attribution in test scenarios with intraining authors only. After the development and evaluation of our authorship attribution system, we submitted test runs for the LARGE and SMALL test scenarios. We will briefly describe our attempts to detect out-of-training authors (for the LARGE+ and SMALL+ scenarios), but preliminary results did not support a test run submission. We will first elaborate on the data set characteristics and preprocessing steps taken and then describe the specifics of our approach. After that, we go into detail on the results obtained during development and on the parameters and performance of the system selected for test run submission.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Data set characteristics and preprocessing</head><p>The training and development data made available for the PAN 2011 competition are challenging in a number of respects. First of all, working with short texts poses a specific challenge in that it requires reliable and robust representation as well as robust learning with limited data. Some studies have shown promising results with short texts of about 500 characters <ref type="bibr" coords="2,233.53,316.14,16.60,8.64" target="#b14">[15]</ref> or 500 words <ref type="bibr" coords="2,310.64,316.14,15.27,8.64" target="#b11">[12]</ref>, while others suggest 2,500 words as a minimum requirement <ref type="bibr" coords="2,234.53,328.10,10.58,8.64" target="#b3">[4]</ref>. The PAN 2011 data set, with an average e-mail length of about sixty words does not come close to those indications. Another aspect is the number of candidate authors -26 in the SMALL set and 72 in the LARGE set. Author set size has received only limited attention so far, but nevertheless has a significant impact on classification performance as well as on the features in the attribution model <ref type="bibr" coords="2,449.05,375.92,15.77,8.64" target="#b10">[11,</ref><ref type="bibr" coords="2,464.82,375.92,11.83,8.64" target="#b13">14]</ref>. A last aspect are skewed class distributions, with some classes being represented by 10,000 words or 200 e-mails and others by only 500 words or 10 e-mails, potentially leading to an advantage in learning for the former classes.</p><p>Only limited preprocessing of the data was performed. After tokenization, we removed all information between &lt;omni&gt; and &lt;/omni&gt; tags because it contains softwarespecific tags, calendar entries, e-mail addresses, and phone numbers. Although we assume this information to be irrelevant for authorial style, removing the information did cause us to lose training data for two of the authors: x10114697001411515 and 339173 (present in the SMALL and LARGE data sets).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Authorship Features and Classification</head><p>We adopt a standard text categorization approach <ref type="bibr" coords="2,338.21,536.89,15.27,8.64" target="#b15">[16]</ref>, previously successful in topic detection, authorship attribution <ref type="bibr" coords="2,262.83,548.84,11.70,8.64" target="#b5">[6,</ref><ref type="bibr" coords="2,274.54,548.84,11.70,8.64" target="#b13">14,</ref><ref type="bibr" coords="2,286.24,548.84,11.70,8.64" target="#b16">17]</ref>, and gender prediction <ref type="bibr" coords="2,391.31,548.84,15.27,8.64" target="#b9">[10]</ref>. We experimented with four types of features during development: -CHR or character n-grams -successions of n characters including spaces and punctuation marks -have proven useful for language identification <ref type="bibr" coords="2,403.14,584.71,10.58,8.64" target="#b1">[2]</ref>, topic detection <ref type="bibr" coords="2,144.73,596.66,11.62,8.64" target="#b2">[3]</ref> and style-based text categorization (e.g. authorship attribution) <ref type="bibr" coords="2,411.08,596.66,10.79,8.64" target="#b4">[5,</ref><ref type="bibr" coords="2,421.87,596.66,7.19,8.64" target="#b8">9]</ref>. Taking into consideration the limited text length and high number of candidate authors in the competitiondata, character n-grams are particularly interesting since they have shown robustness to these effects <ref type="bibr" coords="2,252.13,632.53,15.27,8.64" target="#b12">[13]</ref>. One of the downsides of using character n-grams is their lack of interpretability. We tested several values for n: 2, 3, 4, and 5 and a combination of all (cf. variable-length n-grams).</p><p>-LEX or n-grams of words are tested in our experiments without limitation. In crosstopic authorship attribution, we would normally avoid topic-specific words as they affect performance when transferred to other topics. However, the Enron E-mail Corpus is a very homogeneous data set topic-wise, so we retained the full list. -DISC represents a set of 124 preselected discourse features, such as while, whereas, however, nevertheless and on the contrary. Argamon <ref type="bibr" coords="3,366.89,179.30,11.62,8.64" target="#b0">[1]</ref> used a set of functional lexical features to represent the semantic function of each clause in a sentence and text (e.g. conjunction, elaboration, extension). The MOD feature type represents a set of 33 preselected modal verbs, such as can, could, must, might, should, may, shall, would and their negated counterparts.</p><p>The relative frequency of each feature (normalized for text length) in every e-mail is calculated and represented numerically. We restricted the number of features in CHR and LEX to a thousand by applying chi-square as a feature selection metric and select the top-n. This metric has been used in several studies in text categorization in general <ref type="bibr" coords="3,134.77,287.10,15.27,8.64" target="#b18">[19]</ref>, and in authorship attribution specifically <ref type="bibr" coords="3,319.69,287.10,11.38,8.64" target="#b4">[5,</ref><ref type="bibr" coords="3,331.07,287.10,11.38,8.64" target="#b12">13]</ref>.</p><p>We experimented with SVM multiclass , a multi-class SVM algorithm developed by Joachims <ref type="bibr" coords="3,173.98,311.22,12.03,8.64" target="#b6">[7,</ref><ref type="bibr" coords="3,186.01,311.22,12.03,8.64" target="#b17">18]</ref> for learning and classification. SVMs are the method of choice in many studies in text categorization, and in authorship attribution in particular <ref type="bibr" coords="3,424.54,323.18,11.38,8.64" target="#b0">[1,</ref><ref type="bibr" coords="3,435.92,323.18,11.38,8.64" target="#b9">10]</ref>. Examining the various SVM parameters was not the scope of our work, but we did explore the effect of the soft margin parameter C, a parameter that needs to be re-established for every data set. The other parameters are kept at their default value. According to Joachims <ref type="bibr" coords="3,174.25,371.00,10.58,8.64" target="#b7">[8]</ref>, the C parameter "is a parameter that allows one to trade off training error vs. model complexity. A small value for C will increase the number of training errors, while a large C will lead to a behavior similar to that of a hard-margin SVM." [p. 40].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experimental results and evaluation</head><p>During the development phase, we trained an authorship attribution system on all available training material and tested it on the validation set. Table <ref type="table" coords="3,385.51,464.74,4.98,8.64" target="#tab_0">1</ref> presents the results of a series of experiments, exploring the effect of the type of feature on the overall performance of the system on the training sets of the competition. We used the evaluation metrics as used for test run evaluation: micro-and macro-averaged precision, recall, and F 1 The result tables below are restricted to F 1 scores.</p><p>Results on the SMALL set (cf. Table <ref type="table" coords="3,293.67,524.72,4.15,8.64" target="#tab_0">1</ref>) show that the overall performance of character n-grams is higher than that of lexical features. Only when a combination of lexical features of various lengths is used (in LEX), lexical features outperform character ngrams. Modality and discourse markers fail to score well, and combining character with lexical features does not increase performance either. Highest performance is obtained by character trigrams, a feature type we will use for the test run. In the LARGE set, character n-grams are slightly outperformed by word unigrams, and even more so by a combination of variable-length lexical features (in LEX). For both SMALL and LARGE, we use the top and second-best scoring feature type for the competition test run.</p><p>In these results, the C parameter was set relatively high, at 5,000. We explored the effect of using lower C values, but in most cases, the difference with the original results was not significant, so we decided to stick to C=5,000 for the test run. For the SMALL+ and LARGE+ cases in the competition data, out-of-training authors were included in the test set. Detecting out-of-training authors either requires negative instances labelled 'NoneOfTheAbove' in training or a learning algorithm that is able to make a 'NoneOfTheAbove' decision. Since we apply SVM multiclass for hard classification, we tested two naive strategies to create artificial negative instances on the basis of the positive instances we had already created for the SMALL and LARGE cases. A first strategy ('class average') was to add for each in-training class an instance representing the average values for all positive instances of that class (and for each feature). A second strategy ('negative class average') was to add for each in-training class an instance representing the average values for all negative instances of that class. Results shown in Table <ref type="table" coords="4,200.75,471.09,4.98,8.64" target="#tab_1">2</ref> indicate that the negative class average strategy does indeed influence some decisions, but we decided against submitting a test run for the cases with out-of-training authors. For the test run, we first merged the original training data with the validation set released for development into a larger set of e-mails to be used for training, thus significantly increasing the training set size. Table <ref type="table" coords="4,308.90,656.44,4.98,8.64" target="#tab_2">3</ref> shows results of both test runs for SMALL and LARGE. In both cases, performance on the competition test data was very much in line with results on the validation set, which is a good indication of the classifier's robustness and reliability. However, while we expected character trigrams to score best for the SMALL set, they were outperformed by variable-length lexical features. These last also perform best in the LARGE set. We ranked 6th and 9th (out of 17 competitors) for SMALL and 7th and 9th (out of 18) for LARGE. The winning submission for SMALL, by Kourtis et al., scored 47.5% Macro F 1 and 71.7% Micro F 1 . The winning submission for LARGE, by Tanguy et al. scored 52.0% Macro F 1 and 65.8% Micro F 1 .</p><p>Looking at these variable-length lexical features, we see -apart from dates and locations -expressions of politeness (thanks, regards, you soon), e-mail specifics (attached is), pronouns, argumentation elements (for he), company names (Reliant, Dominion, Enpower), and domain-specific words (pipeline). Although they are better interpretable than character n-grams, the usefulness of these lexical features is not intuitively clear. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusions</head><p>In this paper, we described our approach to the authorship attribution task as designed for the PAN 2011 competition. The data set was particularly challenging as it consists of short e-mails written by 26 (for the SMALL set) and 72 authors (for the LARGE set).</p><p>We took a commonly used text categorization approach and experimented with various types of features. Rather than redefine a multi-class task to several binary tasks, as is often done in the field, we applied a multi-class SVM to ensure all authorship classes are learned simultaneously.</p><p>During the development phase, we explored the effect of the feature types and the C parameter in SVM multiclass . For the test run, we selected lexical and character n-gram features. We also experimented with the data sets where out-of-training classes needed to be identified as such, but decided against submission of a test run for those cases. The actual test run showed that lexical features scored as expected, but this did not lead to a very high ranking.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,134.77,115.83,345.83,205.23"><head>Table 1 .</head><label>1</label><figDesc>Experimental results on training corpus for PAN-AA-2011 with C=5,000. Exploration of the effect of feature type selection.</figDesc><table coords="4,179.54,147.71,253.54,173.35"><row><cell></cell><cell>SMALL</cell><cell></cell><cell></cell><cell>LARGE</cell><cell></cell></row><row><cell cols="3">Feature type Macro F1 Micro F1</cell><cell cols="3">Feature type Macro F1 Micro F1</cell></row><row><cell>CHR2</cell><cell>28.54</cell><cell>50.12</cell><cell>CHR2</cell><cell>22.70</cell><cell>35.38</cell></row><row><cell>CHR3</cell><cell>37.10</cell><cell>59.43</cell><cell>CHR3</cell><cell>27.34</cell><cell>40.59</cell></row><row><cell>CHR4</cell><cell>34.07</cell><cell>57.20</cell><cell>CHR4</cell><cell>23.70</cell><cell>36.94</cell></row><row><cell>LEX1</cell><cell>33.13</cell><cell>54.88</cell><cell>LEX1</cell><cell>28.81</cell><cell>42.24</cell></row><row><cell>LEX2</cell><cell>28.95</cell><cell>50.06</cell><cell>LEX2</cell><cell>23.45</cell><cell>37.38</cell></row><row><cell>LEX3</cell><cell>22.37</cell><cell>40.34</cell><cell>LEX3</cell><cell>14.28</cell><cell>26.40</cell></row><row><cell>LEX4</cell><cell>16.16</cell><cell>28.70</cell><cell>LEX4</cell><cell>10.07</cell><cell>21.98</cell></row><row><cell>LEX5</cell><cell>16.07</cell><cell>31.32</cell><cell>LEX5</cell><cell>10.54</cell><cell>21.73</cell></row><row><cell>DISC</cell><cell>4.51</cell><cell>8.58</cell><cell>DISC</cell><cell>1.66</cell><cell>3.42</cell></row><row><cell>MOD</cell><cell>2.04</cell><cell>6.54</cell><cell>MOD</cell><cell>1.74</cell><cell>4.44</cell></row><row><cell>CHR</cell><cell>26.93</cell><cell>49.74</cell><cell>CHR</cell><cell>22.04</cell><cell>35.56</cell></row><row><cell>LEX</cell><cell>34.00</cell><cell>57.25</cell><cell>LEX</cell><cell>31.17</cell><cell>46.14</cell></row><row><cell>CHR+LEX</cell><cell>31.38</cell><cell>54.12</cell><cell>CHR+LEX</cell><cell>24.45</cell><cell>38.21</cell></row><row><cell>MOD+DISC</cell><cell>7.20</cell><cell>13.71</cell><cell>MOD+DISC</cell><cell>2.20</cell><cell>4.03</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,134.77,528.89,345.83,73.33"><head>Table 2 .</head><label>2</label><figDesc>Experimental results of exploratory strategies to create training instances for out-oftraining authors, on the SMALL set with CHR3 and C=5,000</figDesc><table coords="4,228.18,560.88,156.26,41.34"><row><cell>Strategy</cell><cell cols="2">Macro F1 Micro F1</cell></row><row><cell>None</cell><cell>20.03</cell><cell>45.11</cell></row><row><cell>Class average</cell><cell>20.01</cell><cell>45.07</cell></row><row><cell cols="2">Negative class average 20.43</cell><cell>45.56</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,134.77,292.48,345.83,95.64"><head>Table 3 .</head><label>3</label><figDesc>Test run evaluation with C=5,000. The asterisk indicates the submission that was submitted last and therefore counts for ranking.</figDesc><table coords="5,181.74,324.76,249.85,63.37"><row><cell cols="2">Test Feature</cell><cell></cell><cell>Macro</cell><cell>Micro</cell><cell>Position</cell></row><row><cell>set</cell><cell cols="4">type Precision Recall F1 Precision Recall F1</cell></row><row><cell cols="2">SMALL LEX</cell><cell>43.5</cell><cell>37.8 37.1 64.2</cell><cell>64.2 64.2 6/17</cell></row><row><cell></cell><cell>CHR3</cell><cell>44.4</cell><cell>35.6 34.3 62.0</cell><cell>62.0 62.0 9/17*</cell></row><row><cell cols="2">LARGE LEX</cell><cell>39.1</cell><cell>34.4 34.2 52.2</cell><cell>52.2 52.2 7/18*</cell></row><row><cell></cell><cell>LEX1</cell><cell>34.8</cell><cell>34.5 34.0 50.0</cell><cell>50.0 50.0 9/18</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgements</head><p>The research presented in this paper is funded through the <rs type="projectName">IWT</rs> project <rs type="projectName">AMiCA: Automatic Monitoring for Cyberspace Applications</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funded-project" xml:id="_YVGMsPc">
+					<orgName type="project" subtype="full">IWT</orgName>
+				</org>
+				<org type="funded-project" xml:id="_m5NTpTj">
+					<orgName type="project" subtype="full">AMiCA: Automatic Monitoring for Cyberspace Applications</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.61,140.66,332.66,7.77;6,150.95,151.61,309.52,7.77;6,150.95,162.57,216.27,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,445.87,140.66,29.40,7.77;6,150.95,151.61,178.12,7.77">Stylistic text classification using functional lexical features</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Whitelaw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Chase</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Dawhle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hota</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Garg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Levitan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,334.72,151.61,125.75,7.77;6,150.95,162.57,132.59,7.77">Journal of the American Society of Information Science and Technology</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="802" to="822" />
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,173.09,312.42,7.77;6,150.95,184.05,317.59,7.77;6,150.95,195.01,65.80,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,237.67,173.09,118.46,7.77">N-gram-based text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Cavnar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Trenkle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,374.10,173.09,80.93,7.77;6,150.95,184.05,249.62,7.77">Proceedings of the 3rd Annual Symposium on Document Analysis and Information Retrieval</title>
+		<meeting>the 3rd Annual Symposium on Document Analysis and Information Retrieval<address><addrLine>Las Negas, NV</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="161" to="175" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,205.52,317.89,7.77;6,150.95,216.48,251.29,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,237.38,205.52,223.13,7.77;6,150.95,216.48,36.45,7.77">Ngram and Bayesian classification of documents for topic and authorship</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Clement</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Sharp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,193.29,216.48,125.28,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="423" to="447" />
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,227.00,307.65,7.77;6,150.95,237.95,310.53,7.77;6,150.95,248.91,270.85,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,186.96,227.00,247.09,7.77">Does size matter? Authorship attribution, small samples, big problem</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,226.64,237.95,142.66,7.77">Proceedings of Digital Humanities 2010</title>
+		<editor>
+			<persName><forename type="first">E</forename><forename type="middle">E</forename><surname>Pierrazo</surname></persName>
+		</editor>
+		<meeting>Digital Humanities 2010<address><addrLine>London, London, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>Centre for Computing in the Humanities, King&apos;s College</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="132" to="135" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,259.43,324.51,7.77;6,150.95,270.39,162.64,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,189.94,259.43,227.18,7.77">Quantitative authorship attribution: An evaluation of techniques</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Grieve</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,423.05,259.43,44.07,7.77;6,150.95,270.39,78.97,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="251" to="270" />
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,280.90,323.88,7.77;6,150.95,291.86,324.42,7.77;6,150.95,302.82,228.14,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,260.55,280.90,190.43,7.77">N-gram feature selection for authorship identification</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Houvardas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,150.95,291.86,319.78,7.77">Proceedings of Artificial Intelligence: Methodology, Systems, and Applications (AIMSA)</title>
+		<meeting>Artificial Intelligence: Methodology, Systems, and Applications (AIMSA)<address><addrLine>Heidelberg; Varna, Bulgaria</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer Verlag</publisher>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="77" to="86" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,313.34,324.04,7.77;6,150.95,324.29,329.64,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,200.60,313.34,154.15,7.77">Making large-scale SVM learning practical</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Joachims</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,211.41,324.29,199.66,7.77">Advances in Kernel Methods -Support Vector Learning</title>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Burges</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Smola</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,334.81,337.98,7.77;6,150.95,345.77,146.93,7.77" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="6,200.51,334.81,280.08,7.77;6,150.95,345.77,54.36,7.77">Learning to Classify Text Using Support Vector Machines -Methods, Theory, and Algorithms</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Joachims</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+			<publisher>Kluwer/Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,356.28,333.22,7.77;6,150.95,367.24,284.57,7.77;6,150.95,378.20,233.52,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,317.46,356.28,158.37,7.77;6,150.95,367.24,36.14,7.77">N-gram-based author profiles for authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Keselj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Peng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Cercone</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Thomas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,204.82,367.24,230.70,7.77;6,150.95,378.20,94.14,7.77">Proceedings of the 6th Conference of the Pacific Association for Computational Linguistics</title>
+		<meeting>the 6th Conference of the Pacific Association for Computational Linguistics<address><addrLine>Halifax, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="255" to="264" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,388.72,332.94,7.77;6,150.95,399.68,237.34,7.77" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,294.39,388.72,180.78,7.77;6,150.95,399.68,22.41,7.77">Automatically categorizing written texts by author gender</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Shimoni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,179.34,399.68,125.28,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="401" to="412" />
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,410.19,338.35,7.77;6,150.95,421.15,323.28,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,282.42,410.19,198.17,7.77;6,150.95,421.15,52.34,7.77">Authorship attribution in the wild. Language Resources and Evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,209.25,421.15,190.28,7.77">Special Issue on Plagiarism and Authorship Analysis</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="83" to="94" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,431.66,311.25,7.77;6,150.95,442.62,303.92,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,310.76,431.66,142.73,7.77;6,150.95,442.62,80.96,7.77">Measuring differentiability: Unmasking pseudonymous authors</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Bonchek-Dokow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,237.74,442.62,139.44,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="1261" to="1276" />
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,453.14,338.35,7.77;6,150.95,464.10,57.52,7.77" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Luyckx</surname></persName>
+		</author>
+		<title level="m" coord="6,196.27,453.14,149.67,7.77">Scalability issues in authorship attribution</title>
+		<meeting><address><addrLine>Brussels, Belgium; Antwerp</addrLine></address></meeting>
+		<imprint>
+			<publisher>University Press</publisher>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,474.61,310.21,7.77;6,150.95,485.57,241.65,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,254.96,474.61,197.49,7.77;6,150.95,485.57,36.14,7.77">The effect of author set size and data size in authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Luyckx</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,192.62,485.57,125.28,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="35" to="55" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,496.09,331.73,7.77;6,150.95,507.05,326.94,7.77;6,150.95,518.00,307.84,7.77;6,150.95,528.96,23.90,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,250.46,496.09,223.51,7.77;6,150.95,507.05,167.38,7.77">Short text authorship attribution via sequence kernels, Markov chains and author unmasking: An investigation</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Sanderson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Guenter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,336.21,507.05,141.69,7.77;6,150.95,518.00,184.53,7.77">Proceedings of the 2006 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2006 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Syndney, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="482" to="491" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,539.48,301.09,7.77;6,150.95,550.44,225.13,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,203.54,539.48,178.98,7.77">Machine learning in automated text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,388.29,539.48,55.03,7.77;6,150.95,550.44,154.90,7.77">Association for Computing Machinery Computing Surveys</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="47" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,560.95,323.45,7.77;6,150.95,571.91,243.32,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,318.28,560.95,147.41,7.77;6,150.95,571.91,58.48,7.77">Automatic text categorization in terms of genre and author</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Fakotakis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kokkinakis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,215.20,571.91,95.40,7.77">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="461" to="485" />
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,582.43,305.74,7.77;6,150.95,593.39,319.01,7.77;6,150.95,604.34,66.49,7.77" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,354.42,582.43,93.56,7.77;6,150.95,593.39,164.92,7.77">Large margin methods for structured and interdependent output variables</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Tsochantaridis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Joachims</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Hofmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Altun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,321.56,593.39,139.44,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="1453" to="1484" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,614.86,330.00,7.77;6,150.95,625.82,300.56,7.77;6,150.95,636.78,320.80,7.77;6,150.95,647.74,85.28,7.77" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,233.31,614.86,223.20,7.77">A comparative study on feature selection in text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pedersen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,207.37,625.82,244.15,7.77;6,150.95,636.78,60.86,7.77">Proceedings of the Fourteenth International Conference on Machine Learning (ICML)</title>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Fisher</surname></persName>
+		</editor>
+		<meeting>the Fourteenth International Conference on Machine Learning (ICML)<address><addrLine>San Francisco, CA, USA; Nashville, Tennessee, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Morgan Kaufmann</publisher>
+			<date type="published" when="1997">1997</date>
+			<biblScope unit="page" from="412" to="420" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

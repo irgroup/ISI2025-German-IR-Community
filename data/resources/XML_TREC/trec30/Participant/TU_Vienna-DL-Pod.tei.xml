@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,152.60,84.23,308.47,15.44;1,147.35,104.15,317.30,15.44;1,274.04,134.25,64.92,10.59">TU Wien at TREC DL and Podcast 2021: Simple Compression for Dense Retrieval</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,93.05,134.25,98.82,10.59"><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+							<email>s.hofstaetter@tuwien.ac.at</email>
+						</author>
+						<author>
+							<persName coords="1,287.64,147.50,37.42,8.83"><forename type="first">T</forename><forename type="middle">U</forename><surname>Wien</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,433.97,134.25,73.25,10.59"><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+							<email>hanbury@ifs.tuwien.ac.at</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">TU</orgName>
+								<address>
+									<settlement>Wien</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="institution">TU</orgName>
+								<address>
+									<settlement>Wien</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,152.60,84.23,308.47,15.44;1,147.35,104.15,317.30,15.44;1,274.04,134.25,64.92,10.59">TU Wien at TREC DL and Podcast 2021: Simple Compression for Dense Retrieval</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">2587809B11F5E41F5D5D8914ED213BB5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The IR group of TU Wien participated in two tracks at TREC 2021: Deep Learning and Podcast segment retrieval. We continued our focus from our previous TREC participations on efficient approaches for retrieval and re-ranking. We propose a simple training process for compressing a dense retrieval model's output. First, we train it with full capacity, and then add a compression, or dimensionality reduction, layer on top and conduct a second full training pass. At TREC 2021 we test this model in a blind evaluation and zero-shot collection transfer for both Deep Learning and Podcast tracks.</p><p>For our participation at the Podcast segment retrieval track, we also employ hybrid sparse-dense retrieval. Furthermore, we utilize auxiliary information to re-rank the retrieved segments by entertainment and subjectivity signals.</p><p>Our results show that our simple compression procedure with approximate nearest neighbor search achieves comparable in-domain results (minus 2 points nDCG@10 difference) to a full TAS-Balanced retriever and reasonable effectiveness in a zero-shot domain transfer (Podcast track), where we outperform BM25 by 6 points nDCG@10.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The IR group of TU Wien participated in two tracks at TREC 2021: Deep Learning (DL) and Podcast segment retrieval. We continued our focus from our previous TREC participations <ref type="bibr" coords="1,232.59,448.72,9.25,7.94" target="#b5">[6,</ref><ref type="bibr" coords="1,244.09,448.72,7.31,7.94" target="#b7">8]</ref> on efficient approaches for retrieval and re-ranking. At the DL track, we tested our TAS-Balanced <ref type="bibr" coords="1,120.70,470.64,10.42,7.94" target="#b6">[7]</ref> training approach against a standalone dense retrieval baseline, and a compressed version of TAS-Balanced dense retriever, trained with a simple dimensionality reduction technique, which we present in this paper.</p><p>We propose a simple training process for compressing a dense retrieval model's output, usable with any training approach as it does not alter the input interface or loss function. Our compression pipeline is summarized as follows:</p><p>(1) Train the BERT DOT model with full capacity (for DistilBERT <ref type="bibr" coords="1,78.21,574.30,14.72,7.94" target="#b20">[21]</ref> this is 768 dimensions) with a training method of your choice -we use our TAS-Balanced approach; (2) Add a randomly initialized compression, or dimensionality reduction, layer after the CLS pooling to the fully trained model (we settled on 192 dimensions, a 4x reduction); (3) Conduct a second full training pass, of the training method of your choice, without freezing any weights or training length constraints.</p><p>With this approach, we reduced the storage cost by 4x and only loose 1% of effectiveness on MSMARCO-V1 compared to our best TAS-Balanced model. While one could use a post-hoc compression approach, we chose to incorporate the compression directly into the model, as it allows us 1) to publish the model with compressed output as one unit on the HuggingFace model hub and 2) anyone using this checkpoint automatically receives smaller but equal qualitative vectors without adding more complexity to their system.</p><p>At TREC 2021, we test this model in a blind evaluation and zero-shot collection transfer for Deep Learning and Podcast tracks. The DL track focuses on the feasibility of using DR models on a much larger scale, with a slight test collection shift and strong size increase compared to the training data we used (we trained on MSMARCO v1). The Podcast track represents a zero-shot transfer scenario, without any domain-specific training data -the queries are much shorter, and the passages are much longer than in the MSMARCO collection.</p><p>Additionally, for the ad-hoc retrieval task of the podcast track, we apply: 1) Our full TAS-B trained BERT DOT model and re-rank the outcome with our knowledge distilled BERT CAT <ref type="bibr" coords="1,509.14,344.42,9.44,7.94" target="#b4">[5]</ref>; 2) Sparsedense retrieval <ref type="bibr" coords="1,373.45,355.38,14.65,7.94" target="#b11">[12]</ref> using our full TAS-B trained model and a standard BM25 approach <ref type="bibr" coords="1,399.11,366.34,13.60,7.94" target="#b17">[18]</ref>; and 3) Our full TAS-B trained model, merge the outcome with BM25 rankings (omitting duplicates), and re-rank the top-1000 with our knowledge distilled BERT CAT .</p><p>For the Re-Rank Entertaining sub-task of the podcast segment retrieval task, we use the output of a BERT-based emotions classifier, fine-tuned on GoEmotions dataset <ref type="bibr" coords="1,470.15,421.13,9.51,7.94" target="#b2">[3]</ref>, as an additional signal to re-rank the outcome of our retrieval approaches. For the Re-Rank Subjective sub-task of the podcast segment retrieval task, we combine the scores of RoBERTArg -a pre-trained RoBERTA base model fine-tuned on an argument mining dataset <ref type="bibr" coords="1,520.31,464.97,14.80,7.94" target="#b21">[22]</ref> -and a simple dictionary-based subjectivity classifier. We use the final score as an additional signal to re-rank the outcome of our retrieval approaches.</p><p>We used our PyTorch <ref type="bibr" coords="1,408.53,508.81,14.72,7.94" target="#b15">[16]</ref> implementations available at: github.com/sebastian-hofstaetter/matchmaker furthermore we will make the trained &amp; compressed dense retrieval model available on the HuggingFace model hub at: huggingface.co/sebastian-hofstaetter</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">BACKGROUND</head><p>In the following we give a quick overview of the methodology; we refer to the respective papers for more details. In our runs, we use the BERT DOT model as the dense retrieval system. It uses two independent BERT computations (each time pooling the CLS vector output) to obtain the query 𝑞 1:𝑚 and passage 𝑝 1:𝑛 representations. It then computes the retrieval score based on the dot product similarity of the two representations:</p><formula xml:id="formula_0" coords="1,385.61,669.44,172.59,39.04">ì 𝑞 = BERT([CLS; 𝑞 1:𝑚 ]) ì 𝑝 = BERT([CLS; 𝑝 1:𝑛 ]) BERT DOT (𝑞 1:𝑚 , 𝑝 1:𝑛 ) = ì 𝑞 • ì 𝑝 (1)</formula><p>Table <ref type="table" coords="2,205.12,85.73,3.45,7.70">1</ref>: Summary of our submitted TREC-DL'21 passage runs</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run Description</head><p>TUW_DR_Base This is a baseline dense retrieval model (based on DistilBERT) trained on the MSMARCO-V1 training triples (using BM25 negative samples) and a simple RankNet loss with a batch size of 32 using the binary relevance labels, without any knowledge distillation. For inference we use ONNX runtime and BERT optimizations with fp16 (resulting vectors are also fp16).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TUW_TAS-B_768</head><p>We use our publicly available checkpoint of our TAS-Balanced trained DistilBERT dense retrieval model in a brute-force search configuration. For inference we use ONNX runtime and BERT optimizations with fp16 (resulting vectors are also fp16). TUW_TAS-B_ANN This TAS-Balanced trained model (based on DistilBERT) uses a compression layer at the end to produce 192 dimensional embeddings in fp16 (an 8x reduction to a default 768 dim output in fp32), we then indexed the vectors with HNSW (using 96 neighbors per vector). For inference we use ONNX runtime and BERT optimizations with fp16 (resulting vectors are also fp16).</p><p>This architecture decouples the costly encoding from the search. For direct vector-based retrieval, we can store every passage in an (approximate) nearest neighbor index 𝐼 . The retrieval of the top 𝑘 hits for a given query 𝑞 is then formalized as:</p><formula xml:id="formula_1" coords="2,140.14,308.81,153.91,9.26">top 𝑘 ì 𝑞 • ì 𝑝 ì 𝑝 ∈ 𝐼<label>(2)</label></formula><p>In this study, we use the Standalone and TAS-Balanced trained instances of BERT DOT , developed by Hofstätter et al. <ref type="bibr" coords="2,245.85,339.29,9.37,7.94" target="#b6">[7]</ref>. The Standalone version is trained with binary relevance labels from MS MARCO <ref type="bibr" coords="2,87.51,361.21,9.47,7.94" target="#b0">[1]</ref>. The TAS-Balanced retriever is trained with pairwise and in-batch negative knowledge distillation using topic-aware sampling to compose batches.</p><p>We trained all our models on MSMARCO-v1 data and for the DL track evaluated it with the new MSMARCO-v2 collection. While stemming from the same query distribution, the v2 collection does have different passage selections and a drift in the crawl-time of the data. For the Podcast track we used the TREC-Podcast collection. In both cases we concatenated the page or episode title with the respective passage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">SIMPLE COMPRESSION</head><p>We propose a simple training process for compressing a dense retrieval model's output as part of the model, usable with any training approach as it does not alter the input interface or loss function. We run the following steps:</p><p>(1) Train the BERT DOT model with full capacity (for DistilBERT <ref type="bibr" coords="2,78.21,555.02,14.72,7.94" target="#b20">[21]</ref> this is 768 dimensions) with a training method of your choice -we use our TAS-Balanced approach; (2) Add a randomly initialized compression, or dimensionality reduction, layer after the CLS pooling to the fully trained model (we settled on 192 dimensions, a 4x reduction); (3) Conduct a second full training pass of the training method of your choice without freezing any weights or training length constraints.</p><p>Step (2) is formalized as follows: we adapt BERT DOT (Eq. 1) with a single shared layer𝑊 with dimensions R 𝑏×𝑐 , where 𝑏 is the output dimension of BERT and 𝑐 is our target compression dimension: Concurrent related works have also tackled the output compression of dense retrieval models: Zhan et al. <ref type="bibr" coords="2,475.49,366.26,14.72,7.94" target="#b25">[26]</ref> created a training procedure to optimize the product quantization of dense retrieval output vectors. More closely to our procedure, Ma et al. <ref type="bibr" coords="2,518.67,388.18,14.72,7.94" target="#b14">[15]</ref> used a similar dimensionality reduction layer for a DPR training procedure <ref type="bibr" coords="2,317.96,410.10,13.22,7.94" target="#b9">[10]</ref>. However, interestingly they came to different conclusions than we did: that adding a single linear layer on top of a dense retriever does not work well and is easily outperformed by post-hoc PCA. We, on the other hand, find it to work quite well (even though we do not present thorough ablation studies in this technical report). We believe this might be attributed to the following differences in the workflows: 1) We use a more robust training procedure including knowledge distillation (TAS-Balanced vs. binary DPR), 2) We train our dense retriever first with full capacity first 3) While they also had a 2-step version Ma et al. <ref type="bibr" coords="2,431.26,508.73,14.72,7.94" target="#b14">[15]</ref> froze the BERT layers for the second training round.</p><formula xml:id="formula_2" coords="2,122.88,685.59,171.16,24.08">ì 𝑞 = BERT([CLS; 𝑞 1:𝑚 ]) * 𝑊 ì 𝑝 = BERT([CLS; 𝑝 1:𝑛 ]) * 𝑊 (3)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">DEEP LEARNING TRACK</head><p>We summarize our submitted DL track runs in Table <ref type="table" coords="2,516.51,557.94,3.13,7.94">1</ref>. They are all pure dense retrieval results without costly re-ranking. We are mainly interested in answering two specific research questions. The first carefully tests our TAS-Balanced training method: RQ-DL-1 Does TAS-Balanced improve over a standalone trained dense retriever?</p><p>To answer this RQ, we compare rows 1 and 2 in Table <ref type="table" coords="2,515.67,634.05,3.01,7.94" target="#tab_0">2</ref>. Both runs were created by the same: architecture, parameter count, inference, and indexing setups. The only difference is the training method: Standalone (row 1) vs. TAS-Balanced (row 2). The results clearly show a substantial difference in all metrics, with a 6 point margin in nDCG@10. This confirms our observations and ablation studies conducted as part of our TAS-Balanced paper.</p><p>Table <ref type="table" coords="3,212.01,85.73,3.45,7.70">3</ref>: Summary of our submitted TREC-Podcast'21 runs</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run Description</head><p>TUW_tasb192_ann This TAS-Balanced trained model (based on DistilBERT) uses a compression layer at the end to produce 192-dimensional embeddings in fp16 (an 8x reduction to a default 768-dim output in fp32); we then indexed the vectors with HNSW (using 128 neighbors per vector).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TUW_tasb_cat</head><p>We use our publicly available checkpoint of our TAS-Balanced trained DistilBERT dense retrieval model 1 in a brute-force search configuration. We apply a knowledge distilled BERT CAT re-ranking model 2 to generate the final ranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TUW_hybrid_cat</head><p>We use our TAS-Balanced trained DistilBERT model 1 (trained on MS MARCO passage collection v1) to encode the segments and generate a faiss index. We generate a BM25 sparse index (Pyserini <ref type="bibr" coords="3,236.56,206.31,12.91,7.94" target="#b10">[11]</ref>). Using both indices, we follow a hybrid sparse-dense retrieval approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TUW_hybrid_ws</head><p>We combine a BM25 (Pyserini <ref type="bibr" coords="3,291.39,217.33,13.92,7.94" target="#b10">[11]</ref>) run and our full TAS-B 1 run (both top-1000) and then apply a knowledge distilled BERT CAT re-ranking model 2 to generate the final ranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Re-Ranking Task Approach Entertaining</head><p>We utilize a pre-trained BERT-based emotions classifier 3 trained on the GoEmotions dataset <ref type="bibr" coords="3,207.42,270.20,9.39,7.94" target="#b2">[3]</ref>. We use the 1 -𝑛𝑒𝑢𝑡𝑟𝑎𝑙_𝑠𝑐𝑜𝑟𝑒 as a signal for entertainment. We generate a final score, and thus a ranking, using a weighted sum over entertainment and relevance scores. We tune the weights by setting a guardrail of minus 5 points of the respective model's nDCG@30 considering the test set of TREC-Podcast'20.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Subjective</head><p>We utilize RoBERTArg 4 , which is trained on an argument/non-argument labeled dataset <ref type="bibr" coords="3,504.12,314.09,13.35,7.94" target="#b21">[22]</ref>. We take the arithmetic mean of the argument score and a simple dictionary-based subjectivity score 5 . Our final re-ranking score is a weighted sum over the final subjectivity score and relevance score. We tune the weights by setting a guardrail of minus 5 points of the respective model's nDCG@30 considering the test set of TREC-Podcast'20.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussion</head><p>Not participated. 1 https://huggingface.co/sebastian-hofstaetter/distilbert-dot-tas_b-b256-msmarco 2 https://huggingface.co/sebastian-hofstaetter/distilbert-cat-margin_mse-T2-msmarco 3 https://huggingface.co/monologg/bert-base-cased-goemotions-original 4 https://huggingface.co/chkla/roberta-argument 5 https://textblob.readthedocs.io For our next RQ, we utilize our TAS-B training process and apply our output compression technique as well as an approximate nearest neighbor indexing technique and answer: RQ-DL-2 Does our simple compression with approximate nearest neighbor search keep up with a full TAS-B retriever? To answer this RQ, we compare rows 2 and 3 in Table <ref type="table" coords="3,256.11,513.14,3.01,7.94" target="#tab_0">2</ref>. Unfortunately, we do not have a spotless ablation setup. In row 2, we mixed our compressed to 192 dimensions model with HNSW approximate nearest neighbor search to form a closer-to-realistic-production system. However, we can still evaluate it as a lower-bound for the compression and a lower-bound for the ANN search compared to the full TAS-B (row 2). The blind evaluation results follow the path of our internal validation on MSMARCO-v1: We do lose roughly 2 points nDCG@10 compared to the full + uncompressed search. We see this as a good result, as we are still comfortably in front of a standalone baseline (row 1) with more than 4 points nDCG@10 gain.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">PODCAST TRACK</head><p>We summarize our submitted TREC-Podcast'21 runs in Table <ref type="table" coords="3,274.12,668.60,3.01,7.94">3</ref>. For all runs, we consider the concatenation of episode title and podcast segment as documents, and we only take the query field of the TREC-topics as queries. Our TAS-B trained retrieval models are </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RQ-P-1</head><p>To what extent does our compressed TAS-B trained dense retriever, trained on MSMARCO-V1, generalize to the TREC-Podcast'21 retrieval task?</p><p>We evaluate our runs on the official TREC-Podcast'21 qrels, and present the results in Table <ref type="table" coords="3,416.39,667.94,3.01,7.94" target="#tab_1">4</ref>. Our compressed TAS-B trained dense retriever substantially outperforms BM25 and shows a margin of 6 points in nDCG@10. Furthermore, it shows comparable results to our full TAS-B trained retrieval with knowledge distilled 𝐵𝐸𝑅𝑇 𝐶𝐴𝑇 re-ranking (row 3), with only -2 points loss in nDCG@10. This demonstrates the great potential of our efficient yet effective compressed TAS-B trained dense retriever. Previous work has shown that sparse and dense signals are complementary, and thus, a hybrid approach usually yields effectiveness gains <ref type="bibr" coords="4,75.41,517.43,13.36,7.94" target="#b10">[11]</ref>. Therefore, we study:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RQ-P-2</head><p>To what extent does combining our TAS-B dense retriever with a BM25 sparse retriever improve the performance on the TREC-Podcast'21 retrieval task?</p><p>We follow two different approaches to combine sparse and dense retrieval. In our first approach, we merge top-1000 retrieved documents of BM25 and our TAS-B trained dense retriever and skip duplicates. Then we re-rank the outcome with our knowledge distilled 𝐵𝐸𝑅𝑇 𝐶𝐴𝑇 to obtain the final ranking. For our second approach, we generate a dense (FAISS) index using our TAS-B trained dense retriever and a sparse index using BM25. Then we apply weighted interpolation on the individual results as described and implemented in Pyserini <ref type="bibr" coords="4,96.45,656.65,13.49,7.94" target="#b10">[11]</ref>. Both approaches show similar performance and substantially outperform BM25 (compare row 1 to row 4 and row 5 in Table <ref type="table" coords="4,85.18,678.57,3.40,7.94" target="#tab_1">4</ref>) with a margin of 8 points in nDCG@10. However, they do not show gains over our dense retrieval and re-ranking approach (compare row 3 to row 4 and row 5 in Table <ref type="table" coords="4,215.87,700.49,2.94,7.94" target="#tab_1">4</ref>).</p><p>Besides ad-hoc retrieval, the segment retrieval task of TREC-Podcast'21 also contains Re-Rank Entertaining, Re-Rank Subjective, and Re-Rank Discussion tasks. Reddy et al. <ref type="bibr" coords="4,466.38,109.71,14.72,7.94" target="#b16">[17]</ref> highlight the relation of linguistic style to peoples' engagement with podcasts. Following this line of research in the re-ranking tasks we investigate:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RQ-P-3</head><p>To what extent does incorporating auxiliary information, i.e., emotion and argument-mining scores, to the retrieval scores improve the performance on the TREC-Podcast'21 Re-Rank Entertainment and Re-Rank Subjective tasks?</p><p>Experiments by Reddy et al. <ref type="bibr" coords="4,431.85,192.23,14.72,7.94" target="#b16">[17]</ref> show that high engagement is related to more positive and less negative emotions and sentiment. In this work, we use a fine-grained emotions classifier fine-tuned on the GoEmotions dataset <ref type="bibr" coords="4,418.21,225.11,9.32,7.94" target="#b2">[3]</ref>. While there might be a correlation between entertainment and engagement, entertaining for the Re-Rank Entertaining task is described as "amusing and entertaining to the listener, rather than informative or evaluative"<ref type="foot" coords="4,500.29,255.84,3.38,6.44" target="#foot_0">1</ref> . Based on this description and the lack of data for training and tuning, we only consider one minus the neutral score as a signal for re-ranking. Our submitted runs show substantial gains over BM25 with a 1-4 points margin in nDCG@10 (compare row 1 with rows 6-9 in Table <ref type="table" coords="4,550.59,301.82,3.00,7.94" target="#tab_2">5</ref>). However, our experiments show no gains, and in fact losses if we compare the non-re-ranked models against our submitted re-ranked models (compare rows 2-5 to rows 6-9 in Table <ref type="table" coords="4,491.20,334.70,2.94,7.94" target="#tab_2">5</ref>).</p><p>We utilize a BERT-based argument/non-argument classifier and a simple dictionary-based subjectivity classifier for the Re-Rank Subjective task. We combine the classification scores with the relevance scores to re-rank the top-1000 retrieved podcasts. Our submitted runs substantially outperform BM25 with a 4-6 points margin in nDCG@10 (compare row 1 with rows 6-9 in Table <ref type="table" coords="4,500.09,400.45,2.88,7.94" target="#tab_3">6</ref>). However, following the Re-Rank Entertaining task, our experiments show losses if we compare the non-re-ranked models against our submitted re-ranked models (compare rows 2-5 to rows 6-9 in Table <ref type="table" coords="4,529.24,433.33,2.94,7.94" target="#tab_3">6</ref>).</p><p>Although our re-ranking seems insufficient in contrast to our expectations, the released Podcast'21 evaluation data will further enable us to conduct proper training and evaluation to better incorporate auxiliary information in future work.</p><p>After their initial effectiveness leaps for in-domain training and evaluation of DR approaches <ref type="bibr" coords="4,430.10,499.08,9.44,7.94" target="#b3">[4,</ref><ref type="bibr" coords="4,442.41,499.08,6.18,7.94" target="#b6">7,</ref><ref type="bibr" coords="4,451.47,499.08,10.35,7.94" target="#b11">12,</ref><ref type="bibr" coords="4,464.70,499.08,10.21,7.94" target="#b24">25]</ref>, a major question becomes the out-of-domain, or zero-shot, effectiveness of these neural models <ref type="bibr" coords="4,358.60,521.00,13.41,7.94" target="#b22">[23]</ref>. Our first participation at the TREC-Podcast track gives us an excellent opportunity to study the effects of pool bias <ref type="bibr" coords="4,317.96,542.92,13.50,7.94" target="#b12">[13,</ref><ref type="bibr" coords="4,333.70,542.92,10.31,7.94" target="#b13">14,</ref><ref type="bibr" coords="4,346.25,542.92,10.31,7.94" target="#b19">20,</ref><ref type="bibr" coords="4,358.81,542.92,10.31,7.94" target="#b23">24,</ref><ref type="bibr" coords="4,371.36,542.92,10.13,7.94" target="#b26">27]</ref>, and discuss its impact on take away messages: RQ-P-4 What can we learn about out-of-pool evaluation for DR by comparing 2020 (out-of-pool) with 2021 (in-pool) TREC-Podcast results?</p><p>We have an ideal setup for comparing the two TREC years, as the Podcast track utilizes the same collection, and a similar-typed yet distinct set of queries for both years. We had no in-domain training data for our neural rankers (except for tuning the single sparse-dense hybrid score weighting parameter of the run TUW_hybrid_ws).</p><p>Judging from the overview paper of last year's Podcast track <ref type="bibr" coords="4,546.83,658.31,9.27,7.94" target="#b8">[9]</ref>, the initial retrieval of all runs was based on term-based matching, and no dense retriever participated.</p><p>Table <ref type="table" coords="5,77.85,85.73,3.45,7.70">7</ref>: Comparing out-of-pool (2020) vs. in-pool (2021) ad-hoc retrieval evaluation for dense retrieval on TREC-Podcast. J@k indicates the ratio of judged passages at depth k; nDCG-J@10 refers to using the -J option on trec_eval to only evaluate judged documents for nDCG@10 Run TREC-Podcast 2020 (out-of-pool) TREC-Podcast 2021 (in-pool) J@10 nDCG@10 J@30 nDCG@30 nDCG-J@10 bpref J@10 nDCG@10 J@30 nDCG@30 bpref In Table <ref type="table" coords="5,95.98,228.66,3.11,7.94">7</ref>, we present the evaluation results for our 2021-runs for both TREC-Podcast years using common approaches to tackle pool bias <ref type="bibr" coords="5,88.88,250.58,9.33,7.94" target="#b1">[2,</ref><ref type="bibr" coords="5,100.46,250.58,10.12,7.94" target="#b18">19]</ref>. The evaluation using the 2020 judgments is completely out-of-pool (meaning our results did not participate in the pooling process for the judgments). Let us assume we only observe nDCG@10 values for TREC-Podcast 2020 without looking at the judged ratios. This scenario would conclude that zero-shot retrieval with TAS-B (row 2) completely fails, as it trails BM25 by 9 points nDCG@10. Additionally, re-ranking with BERT CAT (rows 4 &amp; 5) looks like a failure with -3 points nDCG@10 compared to BM25. Only the hybrid BM25 + TAS-Balanced (row 3) shows a slight improvement over BM25. Now, once we take judgment ratios into account, we see that these results might not represent a valid conclusion. We observe that the out-of-pool setting has an enormous impact on the ratio of judged (relevant or non-relevant) passages on our neural retrieval runs (rows 2, 4, 5). TAS-Balanced drops to 53% of judged passages at depth 10. All while BM25 is almost fully judged with 98%.</p><p>Turning to the 2021 results, the takeaway message turns completely: TAS-Balanced (row 2; still zero-shot) outperforms BM25 (row 1) by 6 points nDCG@10 in a fully judged setting. This is a 15 point nDCG@10 change. Furthermore, the sparse-dense hybrid (row 3) again improves over TAS-B. Interestingly, BERT CAT does not further help -this could be our first confirmed limitation in the zero-shot scenario, as we expected BERT CAT to outperform BERT DOT strongly. Once we observe nDCG@30, we again fall into the problem of pool-bias, as the judgment rate between BM25 and BERT DOT diverges substantially (as many runs probably used BM25 as their starting point, and we only have a guaranteed pooling depth &lt; 30).</p><p>So what can we take away from these results? The question of the robustness and reliability of previously generated test collections is not new <ref type="bibr" coords="5,93.57,579.35,13.24,7.94" target="#b12">[13]</ref>. However, it becomes increasingly important as we -as a community -want to evaluate the new paradigm of trained dense retrieval on more than just a few web-focused collections <ref type="bibr" coords="5,278.90,601.27,13.22,7.94" target="#b22">[23]</ref>. While we do not presume to generalize from this one observation on TREC-Podcast, we see a striking divide in results between in-pool and out-of-pool evaluation of simple term-based BM25 and neural ranking approaches. We caution that other term-based-retrievalpooled collections might show similar results. Therefore, we want to highlight the great importance and our gratitude of continuous TREC-style evaluation campaigns, which are the most robust way of evaluating this increasingly diverse set of indexing approaches.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,327.52,256.55,221.12,62.71"><head>Table 2 :</head><label>2</label><figDesc>Official TREC-DL'21 passage retrieval results.</figDesc><table coords="2,327.52,273.95,221.12,45.31"><row><cell>Run</cell><cell cols="3">nDCG@10 MRR@100 MAP@100</cell></row><row><cell>1 TUW_DR_Base</cell><cell>0.4991</cell><cell>0.6768</cell><cell>0.1540</cell></row><row><cell>2 TUW_TAS-B_768</cell><cell>0.5619</cell><cell>0.7333</cell><cell>0.2093</cell></row><row><cell>3 TUW_TAS-B_ANN</cell><cell>0.5426</cell><cell>0.7015</cell><cell>0.1932</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,317.96,452.36,240.25,162.31"><head>Table 4 :</head><label>4</label><figDesc>TREC-Podcast'21 ad-hoc retrieval results.</figDesc><table coords="3,317.96,469.77,240.25,144.90"><row><cell>Run/Model</cell><cell>nDCG @10 @30 @1K</cell><cell>P@10</cell></row><row><cell>1 BM25</cell><cell cols="2">.2486 .2725 .4467 .3080</cell></row><row><cell cols="3">2 TUW_tasb192_ann .3082 .2970 .4286 .3720</cell></row><row><cell>3 TUW_tasb_cat</cell><cell cols="2">.3255 .3289 .4952 .3860</cell></row><row><cell cols="3">4 TUW_hybrid_cat .3234 .3358 .5315 .3860</cell></row><row><cell>5 TUW_hybrid_ws</cell><cell cols="2">.3205 .3283 .5255 .3840</cell></row><row><cell cols="3">trained on MSMARCO-V1. However, queries in TREC-Podcast are</cell></row><row><cell cols="3">shorter and differently structured, and documents are longer and</cell></row><row><cell cols="2">transcribed from speech. Thus, we investigate:</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,60.67,85.73,226.22,170.32"><head>Table 5 :</head><label>5</label><figDesc>TREC-Podcast'21 Re-Rank Entertaining results.</figDesc><table coords="4,79.94,103.13,187.96,152.91"><row><cell>Run/Model</cell><cell>nDCG @10 @30 @1K</cell><cell>P@10</cell></row><row><cell>1 BM25</cell><cell cols="2">.1104 .1420 .2705 .1175</cell></row><row><cell cols="2">Runs w/ re-ranking (as submitted)</cell><cell></cell></row><row><cell cols="3">2 TUW_tasb192_ann .1366 .1443 .2273 .1175</cell></row><row><cell>3 TUW_tasb_cat</cell><cell cols="2">.1353 .1514 .2691 .1450</cell></row><row><cell cols="3">4 TUW_hybrid_cat .1437 .1582 .3065 .1500</cell></row><row><cell>5 TUW_hybrid_ws</cell><cell cols="2">.1207 .1481 .2869 .1325</cell></row><row><cell cols="2">Runs w/o re-ranking</cell><cell></cell></row><row><cell cols="3">6 TUW_tasb192_ann .1549 .1689 .2475 .1425</cell></row><row><cell>7 TUW_tasb_cat</cell><cell cols="2">.1443 .1700 .2858 .1550</cell></row><row><cell cols="3">8 TUW_hybrid_cat .1430 .1746 .3176 .1525</cell></row><row><cell>9 TUW_hybrid_ws</cell><cell cols="2">.1332 .1716 .3078 .1500</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="4,66.45,273.48,214.65,170.32"><head>Table 6 :</head><label>6</label><figDesc>TREC-Podcast'21 Re-Rank Subjective results.</figDesc><table coords="4,79.94,290.89,187.96,152.91"><row><cell>Run/Model</cell><cell>nDCG @10 @30 @1K</cell><cell>P@10</cell></row><row><cell>1 BM25</cell><cell cols="2">.1971 .2187 .4093 .2350</cell></row><row><cell cols="2">Runs w/ re-ranking (as submitted)</cell><cell></cell></row><row><cell cols="3">6 TUW_tasb192_ann .2605 .2501 .3940 .3200</cell></row><row><cell>7 TUW_tasb_cat</cell><cell cols="2">.2533 .2657 .4565 .2775</cell></row><row><cell cols="3">8 TUW_hybrid_cat .2433 .2600 .4884 .2675</cell></row><row><cell>9 TUW_hybrid_ws</cell><cell cols="2">.2556 .2691 .4847 .2925</cell></row><row><cell cols="2">Runs w/o re-ranking</cell><cell></cell></row><row><cell cols="3">2 TUW_tasb192_ann .2765 .2687 .4064 .3350</cell></row><row><cell>3 TUW_tasb_cat</cell><cell cols="2">.2572 .2720 .4577 .3075</cell></row><row><cell cols="3">4 TUW_hybrid_cat .2453 .2660 .4867 .2950</cell></row><row><cell>5 TUW_hybrid_ws</cell><cell cols="2">.2733 .2903 .4996 .3275</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,320.88,702.28,183.84,6.18"><p>https://trecpodcasts.github.io/participant-instructions-2021.html</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,333.39,240.68,225.58,6.18;5,333.39,248.65,225.88,6.18;5,333.39,256.62,225.89,6.18;5,333.39,264.54,44.49,6.23" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,333.39,256.62,223.00,6.18">MS MARCO : A Human Generated MAchine Reading COmprehension Dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Payal</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,340.99,264.54,33.93,6.23">Proc. of NIPS</title>
+		<meeting>of NIPS</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,272.56,224.81,6.18;5,333.39,280.48,224.81,6.23;5,333.39,288.45,169.46,6.23" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,455.22,272.56,102.98,6.18;5,333.39,280.53,31.94,6.18">Retrieval evaluation with incomplete information</title>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Buckley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,377.07,280.48,181.14,6.23;5,333.39,288.45,146.93,6.23">Proceedings of the 27th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 27th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="25" to="32" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,296.47,224.99,6.18;5,333.39,304.44,225.88,6.18;5,333.39,312.36,108.66,6.23" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Dorottya</forename><surname>Demszky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dana</forename><surname>Movshovitz-Attias</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeongwoo</forename><surname>Ko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alan</forename><surname>Cowen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gaurav</forename><surname>Nemade</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sujith</forename><surname>Ravi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2005.00547</idno>
+		<title level="m" coord="5,422.41,304.44,133.82,6.18">GoEmotions: A dataset of fine-grained emotions</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,320.38,224.81,6.18;5,333.39,328.35,224.81,6.18;5,333.15,336.32,226.13,6.18;5,333.39,344.24,66.80,6.23" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="5,456.95,328.35,101.25,6.18;5,333.15,336.32,222.77,6.18">RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Yingqi</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuchen</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jing</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruiyang</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xin</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daxiang</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hua</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Haifeng</forename><surname>Wang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.08191</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,352.26,224.81,6.18;5,333.15,360.23,226.23,6.18;5,332.89,368.15,174.34,6.23" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sophia</forename><surname>Althammer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Schröder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mete</forename><surname>Sertkan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.02666</idno>
+		<title level="m" coord="5,397.11,360.23,162.27,6.18;5,332.89,368.20,102.27,6.18">Improving Efficient Neural Ranking Models with Cross-Architecture Knowledge Distillation</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,376.17,224.81,6.18;5,333.39,384.09,154.80,6.23" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,468.39,376.17,89.81,6.18;5,333.39,384.14,103.29,6.18">Evaluating Transformer-Kernel Models at TREC Deep Learning 2020</title>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,448.92,384.09,35.84,6.23">Proc. of TREC</title>
+		<meeting>of TREC</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,392.11,224.81,6.18;5,333.39,400.08,224.81,6.18;5,333.18,408.00,225.72,6.23;5,333.39,415.97,204.61,6.23" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,378.37,400.08,179.83,6.18;5,333.18,408.05,63.01,6.18">Efficiently Teaching an Effective Dense Retriever with Balanced Topic Aware Sampling</title>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,408.72,408.00,150.19,6.23;5,333.39,415.97,202.26,6.23">Proceedings of the 44rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;21)</title>
+		<meeting>the 44rd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR &apos;21)</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,423.99,225.13,6.18;5,333.18,431.91,225.02,6.23;5,333.39,439.88,17.16,6.23" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,524.07,423.99,34.44,6.18;5,333.18,431.96,192.23,6.18">TU Wien @ TREC Deep Learning &apos;19 -Simple Contextualization for Re-ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Markus</forename><surname>Zlabinger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,537.80,431.91,20.40,6.23;5,333.39,439.88,13.73,6.23">Proc. of TREC</title>
+		<meeting>of TREC</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,447.90,224.81,6.18;5,333.39,455.87,224.81,6.18;5,333.39,463.79,154.40,6.23" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">F</forename><surname>Gareth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Yu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2103.15953</idno>
+		<title level="m" coord="5,505.83,455.87,52.37,6.18;5,333.39,463.84,40.68,6.18">Trec 2020 podcasts track overview</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,471.81,224.99,6.18;5,333.39,479.78,225.99,6.18;5,333.39,487.70,224.81,6.23;5,333.39,495.67,224.81,6.23;5,333.39,503.69,224.81,6.18" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,462.28,479.78,97.10,6.18;5,333.39,487.75,80.82,6.18">Dense Passage Retrieval for Open-Domain Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Vladimir</forename><surname>Karpukhin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Barlas</forename><surname>Oguz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sewon</forename><surname>Min</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrick</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ledell</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sergey</forename><surname>Edunov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Danqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wen-Tau</forename><surname>Yih</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.550</idno>
+		<ptr target="https://doi.org/10.18653/v1/2020.emnlp-main.550" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,426.73,487.70,131.48,6.23;5,333.39,495.67,134.41,6.23">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Online</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="6769" to="6781" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,511.66,225.58,6.18;5,333.39,519.63,225.99,6.18;5,333.39,527.55,225.51,6.23;5,333.39,535.52,225.50,6.23;5,333.39,543.49,225.99,6.23;5,333.39,551.51,225.63,6.18;5,333.17,559.48,97.00,6.18" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,420.07,519.63,139.31,6.18;5,333.39,527.60,200.96,6.18">Pyserini: A Python Toolkit for Reproducible Information Retrieval Research with Sparse and Dense Representations</title>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xueguang</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3404835.3463238</idno>
+		<ptr target="https://doi.org/10.1145/3404835.3463238" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,547.32,527.55,11.58,6.23;5,333.39,535.52,225.50,6.23;5,333.39,543.49,204.83,6.23">Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval (Virtual Event, Canada) (SIGIR &apos;21)</title>
+		<meeting>the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval (Virtual Event, Canada) (SIGIR &apos;21)<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2356" to="2362" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,567.45,224.81,6.18;5,333.39,575.37,224.81,6.23;5,333.18,583.39,18.66,6.18" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.11386</idno>
+		<title level="m" coord="5,510.86,567.45,47.34,6.18;5,333.39,575.42,172.91,6.18">Distilling Dense Representations for Ranking using Tightly-Coupled Teachers</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,591.31,196.13,6.23" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="5,387.20,591.36,91.21,6.18">Fairness in information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Aldo</forename><surname>Lipani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,490.30,591.31,36.37,6.23">Proc. of SIGIR</title>
+		<meeting>of SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,599.33,224.81,6.18;5,333.39,607.25,225.58,6.23;5,333.23,615.27,24.81,6.18" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="5,497.79,599.33,60.41,6.18;5,333.39,607.30,100.37,6.18">The effect of pooling and evaluation depth on IR metrics</title>
+		<author>
+			<persName coords=""><forename type="first">Xiaolu</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alistair</forename><surname>Moffat</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J Shane</forename><surname>Culpepper</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,439.24,607.25,83.60,6.23">Information Retrieval Journal</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="416" to="445" />
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,623.24,224.81,6.18;5,333.39,631.21,224.94,6.18;5,333.39,639.13,224.81,6.23;5,333.39,647.10,82.03,6.23" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="5,525.83,623.24,32.37,6.18;5,333.39,631.21,224.94,6.18;5,333.39,639.18,48.10,6.18">Simple and Effective Unsupervised Redundancy Elimination to Compress Dense Vectors for Passage Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Xueguang</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Minghan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ji</forename><surname>Xin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,393.52,639.13,164.69,6.23;5,333.39,647.10,79.31,6.23">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,655.12,225.99,6.18;5,333.39,663.04,124.95,6.23" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="5,543.12,655.12,16.26,6.18;5,333.39,663.09,89.37,6.18">Automatic differentiation in PyTorch</title>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sam</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Soumith</forename><surname>Chintala</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gregory</forename><surname>Chanan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,671.06,224.81,6.18;5,333.39,678.98,224.81,6.23;5,333.39,686.95,224.81,6.23;5,333.39,694.92,225.27,6.23;6,69.23,89.05,225.63,6.23;6,69.01,97.07,108.28,6.18" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="5,530.66,671.06,27.54,6.18;5,333.39,679.03,159.62,6.18">Modeling Language Usage and Listener Engagement in Podcasts</title>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mariya</forename><surname>Lazarova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.acl-long.52</idno>
+		<ptr target="https://doi.org/10.18653/v1/2021.acl-long.52" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,506.57,678.98,51.63,6.23;5,333.39,686.95,224.81,6.23;5,333.39,694.92,193.39,6.23;6,69.23,89.05,33.80,6.23">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Online</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="632" to="643" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,105.04,225.99,6.18;6,69.23,112.96,167.10,6.23" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,143.12,105.04,152.10,6.18;6,69.23,113.01,70.35,6.18">Understanding inverse document frequency: on theoretical arguments for IDF</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,145.02,112.96,70.90,6.23">Journal of documentation</title>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,69.23,120.93,224.81,6.23;6,69.23,128.90,224.81,6.23;6,69.23,136.87,224.81,6.23;6,69.23,144.89,224.81,6.18" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,132.07,120.98,60.24,6.18">Alternatives to Bpref</title>
+		<author>
+			<persName coords=""><forename type="first">Tetsuya</forename><surname>Sakai</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1277741.1277756</idno>
+		<ptr target="https://doi.org/10.1145/1277741.1277756" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,205.46,120.93,88.59,6.23;6,69.23,128.90,224.81,6.23;6,69.23,136.87,24.33,6.23;6,187.58,136.87,25.74,6.23">Proceedings of the 30th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 30th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval<address><addrLine>Amsterdam, The Netherlands; New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="71" to="78" />
+		</imprint>
+	</monogr>
+	<note>SIGIR &apos;07)</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,152.86,224.81,6.18;6,69.23,160.78,92.44,6.23" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="6,125.73,152.86,168.31,6.18;6,69.23,160.83,40.47,6.18">Comparing Metrics across TREC and NTCIR: The Robustness to System Bias</title>
+		<author>
+			<persName coords=""><forename type="first">Tetsuya</forename><surname>Sakai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,121.73,160.78,36.38,6.23">Proc. of CIKM</title>
+		<meeting>of CIKM</meeting>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,69.23,168.80,225.99,6.18;6,69.23,176.72,224.81,6.23;6,69.23,184.69,91.01,6.23" xml:id="b20">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lysandre</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Wolf</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.01108</idno>
+		<title level="m" coord="6,283.13,168.80,12.09,6.18;6,69.23,176.77,203.99,6.18">Dis-tilBERT, a distilled version of BERT: smaller, faster, cheaper and lighter</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,192.71,225.88,6.18;6,69.23,200.63,224.81,6.23;6,69.23,208.60,225.88,6.23;6,68.99,216.62,225.88,6.18;6,69.01,224.59,89.47,6.18" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="6,204.60,192.71,87.31,6.18;6,85.77,200.68,164.82,6.18">Cross-topic Argument Mining from Heterogeneous Sources</title>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Stab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tristan</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benjamin</forename><surname>Schiller</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D18-1402</idno>
+		<ptr target="https://doi.org/10.18653/v1/D18-1402" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,262.47,200.63,31.57,6.23;6,69.23,208.60,223.11,6.23">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="3664" to="3674" />
+		</imprint>
+	</monogr>
+	<note>Pranav Rai, and Iryna Gurevych</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,232.56,224.81,6.18;6,69.23,240.53,224.81,6.18;6,69.23,248.50,156.69,6.18" xml:id="b22">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Nandan</forename><surname>Thakur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andreas</forename><surname>Rücklé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Abhishek</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2104.08663[cs.IR]</idno>
+		<title level="m" coord="6,117.18,240.53,176.86,6.18;6,69.23,248.50,82.14,6.18">BEIR: A Heterogenous Benchmark for Zero-shot Evaluation of Information Retrieval Models</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,69.23,256.47,224.81,6.18;6,69.23,264.39,93.00,6.23" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="6,202.75,256.47,91.29,6.18;6,69.23,264.44,41.76,6.18">Score Adjustment for Correction of Pooling Bias</title>
+		<author>
+			<persName coords=""><forename type="first">William</forename><surname>Webber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Laurence</forename><forename type="middle">A F</forename><surname>Park</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,123.02,264.39,36.37,6.23">Proc. of SIGIR</title>
+		<meeting>of SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,69.23,272.41,225.58,6.18;6,69.12,280.38,226.10,6.18;6,69.23,288.30,224.81,6.23;6,69.23,296.27,67.05,6.23" xml:id="b24">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Lee</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ye</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kwok-Fung</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jialin</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Junaid</forename><surname>Ahmed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arnold</forename><surname>Overwijk</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.00808</idno>
+		<title level="m" coord="6,208.73,280.38,86.50,6.18;6,69.23,288.35,176.22,6.18">Approximate Nearest Neighbor Negative Contrastive Learning for Dense Text Retrieval</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,304.29,225.89,6.18;6,69.23,312.26,224.81,6.18;6,69.23,320.18,175.69,6.23" xml:id="b25">
+	<monogr>
+		<title level="m" type="main" coord="6,86.36,312.26,207.68,6.18;6,69.23,320.23,61.85,6.18">Jointly Optimizing Query Encoder and Product Quantization to Improve Retrieval Performance</title>
+		<author>
+			<persName coords=""><forename type="first">Jingtao</forename><surname>Zhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiaxin</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yiqun</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiafeng</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Min</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shaoping</forename><surname>Ma</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2108.00644</idno>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,69.23,328.20,224.81,6.18;6,69.23,336.12,115.93,6.23" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="6,127.11,328.20,166.93,6.18;6,69.23,336.17,64.28,6.18">How Reliable Are the Results of Large-Scale Information Retrieval Experiments?</title>
+		<author>
+			<persName coords=""><forename type="first">Justin</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,145.94,336.12,36.37,6.23">Proc. of SIGIR</title>
+		<meeting>of SIGIR</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

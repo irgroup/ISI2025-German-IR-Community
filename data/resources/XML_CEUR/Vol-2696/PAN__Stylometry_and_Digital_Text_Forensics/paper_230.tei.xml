@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,160.34,115.90,294.68,12.90;1,223.43,135.75,168.50,10.75">Celebrity Profiling using Twitter Follower Feeds Notebook for PAN at CLEF 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,237.42,172.15,58.89,8.64"><forename type="first">Abigail</forename><surname>Hodge</surname></persName>
+							<email>hodge.ab@northeastern.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Northeastern University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,315.68,172.15,62.26,8.64"><forename type="first">Samantha</forename><surname>Price</surname></persName>
+							<email>price.sam@northeastern.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Northeastern University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,160.34,115.90,294.68,12.90;1,223.43,135.75,168.50,10.75">Celebrity Profiling using Twitter Follower Feeds Notebook for PAN at CLEF 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5AA57F968F3B89CAEA05419A4BA1C48B</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:06+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our approach to completing the Celebrity Profiling shared task set forth by PAN at CLEF 2020. We discuss the features selected (including part-of-speech tags, named entity types, and word vectors) as well as the logistic regression, random forest and support-vector models we tested for this task. The resulting confusion matrices and evaluation scores are provided.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>This task is, on the surface at least, very similar to the 2019 PAN Celebrity Classification task <ref type="bibr" coords="1,172.14,615.83,15.27,8.64" target="#b19">[19]</ref>. This task required competitors to classify celebrities by their birth year</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="13" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="14" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="15" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In this paper, we attempted to solve a natural language processing problem set forth by PAN as part of the organization's 2020 competition. At a basic level, the problem required a celebrity profiling ML model that could estimate the age, occupation, and gender of a given celebrity based upon the tweets of their Twitter followers <ref type="bibr" coords="1,437.35,381.15,15.27,8.64" target="#b20">[20]</ref>. More specifically, the test input was a list of JSON objects representing the tweets of followers, and the output was a list of JSON objects where each object contained the ID of a given celebrity, their predicted occupation (among a possible list of 'sports', 'performer', 'creator', and 'politics'), their predicted birth year (between 1940 to 1999), and their predicted gender ('male' or 'female'). The most unique aspect of this problem was that no information about a celebrity from their Twitter account or other sources was provided as input for the test dataset; the celebrities had to be profiled solely on the basis of their followers' tweets.</p><p>First, we discuss some related work done in this field, namely, PAN's 2019 celebrity profiling task, which required competitors to profile celebrities based on their own tweets. Next, we discuss our methodology for feature extraction and model building. Finally, we explain the results of our models for age, gender, and occupation. An earlier version of this paper was submitted for an academic project at Northeastern University <ref type="bibr" coords="1,134.77,548.52,10.58,8.64" target="#b6">[7]</ref>.</p><p>(between 1940 and 2012), gender (male, female, or non-binary), fame (rising, star, or superstar) and occupation (sports, performer, creator, politics, manager, science, professional, religious) based on their tweets. This task differed from the 2019 task in a few key ways. First, the fame classification task was not present. Second, the remaining three tasks had fewer categories. Birth year was restricted from 1940-1999, the nonbinary class was no longer present for the gender category, and the manager, science, professional, and religious classes were no longer present for the occupation category. However, we also had significantly fewer data points to work with. The 2019 task had 48,335 celebrities to use for training. The 2020 task had only 1,920. Furthermore, for the 2020 task, we used data from the celebrity's followers, not the celebrities themselves.</p><p>For our feature extraction, we built off of work done by Argamon et al. <ref type="bibr" coords="2,443.08,239.26,10.58,8.64" target="#b0">[1]</ref>. They examined which features were generally most useful for anonymous authorship profiling, and had a good deal of success with POS tags. We also built off of our own success with word embeddings <ref type="bibr" coords="2,230.44,275.13,11.62,8.64" target="#b5">[6]</ref> for an age profiling task. This will be discussed in greater depth in the next section.</p><p>Generally, most of the submissions for the 2019 task seemed to find success using classical natural language processing and machine learning techniques. In fact, the three competitors in 2019 who attempted to use deep learning techniques reported that these techniques were not suited for the task. <ref type="bibr" coords="2,297.72,335.30,16.60,8.64" target="#b19">[19]</ref> Therefore, we chose to focus on models that do seem well suited: SVM, Logistic Regression, and Random Forest (discussed further in the Algorithms section). Our decisions about what algorithms to select were also influenced by our work on author and time period classification in another course <ref type="bibr" coords="2,134.77,383.12,10.58,8.64" target="#b5">[6]</ref>.</p><p>3 Approach Description</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Feature Extraction</head><p>For feature extraction, we decided to utilize features that have proven useful for author profiling problems in the past. Because we were not trying to profile the authors of the tweets, but rather a common person that all of these authors followed, we were required to make certain assumptions about the follower/followee relationship. We assumed that the followers of a celebrity might have similar interests to that celebrity, that is, a follower of a politician might post a lot about politics, a follower of a performer might post a lot about music/concerts, etc. We also assumed that celebrities might attract followers that are largely of a similar age and gender. Essentially, we decided to treat the aggregate group of tweets as though they were authored by the person we were trying to profile.</p><p>There are a few simple features that have proven highly effective for author profiling tasks, namely, stop words and part-of-speech (POS) tags. For example, Argamon et al. <ref type="bibr" coords="2,134.77,608.62,11.62,8.64" target="#b0">[1]</ref> found that men tend to use more determiners and prepositions, while women tend to use more pronouns, to the degree that these features are given significant weight in a machine learning model. Another effective feature appears to be n-grams <ref type="bibr" coords="2,434.90,632.53,16.60,8.64" target="#b15">[16]</ref> but we decided not to utilize n-grams as our dataset has a large vocabulary, and this would therefore require a lot of features to represent.</p><p>We had relative success with word embeddings with an author profiling task involving age, albeit on books rather than tweets <ref type="bibr" coords="3,310.69,131.27,10.58,8.64" target="#b5">[6]</ref>. Therefore, we decided to utilize them again for this project, averaging together the word embeddings for all words (in vocabulary) for a given celebrity's tweets. Finally, looking at last year's celebrity profiling task results, it appeared that occupation was generally the lowest scoring classifier <ref type="bibr" coords="3,452.09,167.13,16.60,8.64" target="#b19">[19]</ref> so we decided to add in features specifically to improve upon this classifier: named entity types. This was based on the logic that, for example, politicians would be more likely to talk about countries or organizations, creators would be more likely to talk about art, etc. However, it should be noted that adding named entity recognition to our pipeline significantly slowed down our feature extraction code-it took several minutes to run a single celebrity. However, we decided that the boost to classification was worth the extra runtime.</p><p>Ultimately, we decided on the following features: POS tags, stop-word count, named entity types, average word vectors, tweet length (in characters), number of links, number of hashtags, number of mentions, and number of emoji <ref type="bibr" coords="3,378.90,286.69,15.27,8.64" target="#b9">[10]</ref>. These were all normalized by total number of words in a celebrity's tweets (with the exception of word vectors and average tweet length, since those were already averages). Feature extraction of POS tags, stop words, NER types, and word vectors were done using the sPacy library <ref type="bibr" coords="3,163.82,334.51,10.58,8.64" target="#b7">[8]</ref>. Additional logic was executed using Numpy <ref type="bibr" coords="3,359.78,334.51,15.86,8.64" target="#b11">[12]</ref>[17].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Algorithms</head><p>After extracting features, we decided upon three different machine learning algorithms to train on these features and compare the resulting metrics: logistic regression, random forest, and support-vector machine (SVM). The models were constructed through Sci-Kit Learn <ref type="bibr" coords="3,174.76,417.33,15.35,8.64" target="#b12">[13]</ref> <ref type="bibr" coords="3,190.12,417.33,11.51,8.64" target="#b2">[3]</ref>. Each algorithm was implemented through three different models: one for occupation, one for gender, and one for birth year. Unique hyperparameters were defined for each model, and the optimized parameters were selected through 5-fold cross validation with scoring based on the macro f1 score (functionality also provided through Sci-Kit Learn <ref type="bibr" coords="3,225.69,465.15,26.46,8.64">[13][3]</ref>). Hyperparameter tuning resulted in higher f1 scores for all three chosen algorithms.</p><p>For the logistic regression model, the parameters chosen for tuning were the type of regularization (L1 or L2), the penalty on regularization (0.01, 0.1, or 1) and the type of solver (liblinear or saga). An article written by <ref type="bibr" coords="3,334.58,512.97,48.57,8.64" target="#b14">Qiao (2019)</ref>  <ref type="bibr" coords="3,385.79,512.97,16.60,8.64" target="#b14">[15]</ref> inspired the choice of hyperparameters for tuning. The optimized parameters for occupation were (L2, 0.1, saga), the parameters for gender were (L2, 0.1, liblinear), and the parameters for birth year were (L1, 1, saga).</p><p>The selection of random forest and support-vector machine was inspired by the PAN 2019 celebrity profiling task, as these two models were proven to be successful <ref type="bibr" coords="3,134.77,584.71,15.27,8.64" target="#b19">[19]</ref>. The possible parameters for the random forest classifiers (based on Koehrsen, 2018 <ref type="bibr" coords="3,158.17,596.66,15.93,8.64" target="#b10">[11]</ref>) were number of estimators (50, 100, 500), max depth (None, 5, 10), and max features (auto or log2). Ultimately, the chosen parameters for training the random forest classifiers were (500, None, auto) for occupation, (500, None, auto) for gender, and (50, log2, 5) for birth year.</p><p>Finally, regularization penalty, (0.01, 0.1, 1) kernel type (linear, poly, rbf), and gamma value (0.1, 1, 10) <ref type="bibr" coords="3,238.36,656.44,58.57,8.64">(Fraj, 2018 [4]</ref>) were chosen as the adjustable hyperparame-ters for the support-vector machine model. The best parameters were determined to be (0.1, 0.1, linear) for occupation, (0.1, 0.1, linear) for gender, and (0.01, 0.1, linear) for birth year.</p><p>After running cross-validation and training all classifiers with the extracted features and optimized hyperparameters, metrics were determined for the different classifiers based on a section of the training data (20%) set aside for testing. Additionally, an alternative f1-score (besides the one from Sci-Kit Learn <ref type="bibr" coords="4,338.84,191.04,11.20,8.64" target="#b2">[3]</ref>) for birth year was calculated, as PAN <ref type="bibr" coords="4,156.10,203.00,16.60,8.64" target="#b20">[20]</ref> dictated in the task description that any predicted year within a specific range of years would be considered correct (true birthyear -m &lt; predicted birthyear &lt; true birthyear + m); this alternative f1-score took this window of error into account. Finally, PAN <ref type="bibr" coords="4,156.85,238.86,16.60,8.64" target="#b20">[20]</ref> also mentioned that submissions to the competition would be judged based upon a special "cRank" metric that combines the f1-scores for occupation, gender, and birth year. Thus, the cRanks for logistic regression, random forest, and SVM were also calculated in this project (results below).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We defined baseline models using Sci-Kit Learn's DummyClassifier class to compare to our trained models <ref type="bibr" coords="4,212.71,342.48,10.58,8.64" target="#b2">[3]</ref>. Figure <ref type="figure" coords="4,258.31,342.48,4.98,8.64" target="#fig_0">1</ref> displays the results from the occupation classification model, Figure <ref type="figure" coords="4,194.06,354.43,4.98,8.64" target="#fig_1">2</ref> shows gender classification, and Figure <ref type="figure" coords="4,363.38,354.43,4.98,8.64" target="#fig_2">3</ref> shows birth year classification. The classification report is a heat map that demonstrates the precision, recall, and, f1 score for every possible class; lighter colors indicate lower scores and darker colors indicate higher scores. Due to the large range of birth years as possible classes, a visualization of the metrics could not be produced, but a textual description is provided. All of the subsequent visualizations were constructed through Yellowbrick <ref type="bibr" coords="4,407.70,414.21,11.62,8.64" target="#b1">[2]</ref> and Matplotlib <ref type="bibr" coords="4,134.77,426.16,10.58,8.64" target="#b8">[9]</ref>.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Logistic Regression</head><p>This section contains classification reports and confusion matrices for the occupation and gender logistic regression classifiers (Figures <ref type="figure" coords="6,335.49,151.19,3.82,8.64" target="#fig_3">4</ref><ref type="figure" coords="6,339.31,151.19,3.82,8.64" target="#fig_4">5</ref><ref type="figure" coords="6,339.31,151.19,3.82,8.64" target="#fig_5">6</ref><ref type="figure" coords="6,343.13,151.19,3.82,8.64" target="#fig_6">7</ref>), as well as a textual description of metrics for the birth year classifier. The confusion matrices are also heat maps, where a darker square indicates more predictions and a lighter square indicates fewer predictions. These classifiers were trained with the hyperparameters mentioned in Section 3.2. As can be seen in the figures, the logistic regression occupation classifier significantly outperformed the baseline occupation classifier. Its highest f1-score was 0.832 for the politics class.  The gender classifier was also more successful than the baseline, with a maximum f1-score of 0.792 (for the male label).    the metric information derived from the occupation, gender, and birth year random forest classifiers. In this case, the metrics are clearly superior to those from the baseline model. In comparison to the logistic regression occupation model, the random forest occupation model had a slightly worse accuracy, but higher maximum f1-score (0.830 for politics). The random forest gender classifier had a worse accuracy (0.70) and maximum f1-score (male label) than the logistic regression algorithm. The custom f1-score for birth year was basically the same for both algorithms, with a slight edge given to logistic regression.          </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Submission</head><p>Based on the results described above, it was difficult to choose which combination of models was most effective, as the scores for each category were similar. Table <ref type="table" coords="14,457.42,149.42,4.98,8.64" target="#tab_0">1</ref> displays the (rounded) f1-score that each classifier produced for each category. Ultimately, the final metric of evaluation was cRank <ref type="bibr" coords="14,300.29,173.33,15.27,8.64" target="#b20">[20]</ref>. The cRank value for logistic regression was 0.541, the value for random forest was 0.522, and the value for SVM was 0.535. This result, paired with the relative consistency of the metrics produced by the logistic regression models, indicated that a combination of three logistic regression models was the preferable algorithm to classify occupation, gender, and birth year. Thus, the software submitted to TIRA <ref type="bibr" coords="14,250.81,233.10,16.60,8.64" target="#b13">[14]</ref> contained three logistic regression models to predict labels (utilizing additional Python modules <ref type="bibr" coords="14,307.04,245.06,15.77,8.64" target="#b17">[18]</ref>[5]) from the tweets of celebrity followers. The final results were: a c-rank of 0.577, a birth year f1-score of 0.432, a gender f1-score of 0.681, and an occupation f1-score of 0.707 <ref type="bibr" coords="14,353.88,268.97,15.27,8.64" target="#b20">[20]</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusions</head><p>Overall, the three ML algorithms that were chosen produced relatively equal results for the classification categories (occupation, gender, and birth year). The classifications of occupation and gender were the most successful, as the ultimate metrics of the trained models were clearly superior to those retrieved from the baseline models. Classifying birth year was the most complicated process and yielded smaller metrics due to the number of possible classes. Comparing the algorithms by cRank, logistic regression appeared to be the most effective. In the future we would like to experiment with a recurrent neural network to determine if it will offer better results than the algorithms we utilized.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,203.78,321.60,207.80,8.64;5,183.14,341.27,249.08,194.34"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Metrics for Baseline Occupation Classifier</figDesc><graphic coords="5,183.14,341.27,249.08,194.34" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,212.08,547.45,191.20,8.64;5,213.39,567.11,188.57,73.08"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Metrics for Baseline Gender Classifier</figDesc><graphic coords="5,213.39,567.11,188.57,73.08" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,206.07,652.04,203.21,8.64"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Metrics for Baseline Birth Year Classifier</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,181.30,458.59,252.76,8.64;6,179.14,254.25,257.07,192.50"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Metrics for Logistic Regression Occupation Classifier</figDesc><graphic coords="6,179.14,254.25,257.07,192.50" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="7,160.95,318.95,293.45,8.64;7,179.14,115.84,257.07,191.27"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Confusion Matrix for Logistic Regression Occupation Classifier</figDesc><graphic coords="7,179.14,115.84,257.07,191.27" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="7,189.60,604.88,236.15,8.64;7,180.99,398.08,253.38,194.96"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: Metrics for Logistic Regression Gender Classifier</figDesc><graphic coords="7,180.99,398.08,253.38,194.96" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6" coords="8,169.26,310.95,276.85,8.64;8,181.30,115.84,252.77,183.27"><head>Figure 7 :</head><label>7</label><figDesc>Figure 7: Confusion Matrix for Logistic Regression Gender Classifier</figDesc><graphic coords="8,181.30,115.84,252.77,183.27" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7" coords="8,183.59,482.60,248.17,8.64;8,215.02,413.99,185.31,56.77"><head>Figure 8 :</head><label>8</label><figDesc>Figure 8: Metrics for Logistic Regression Birth Year Classifier</figDesc><graphic coords="8,215.02,413.99,185.31,56.77" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8" coords="8,134.77,556.90,345.82,8.64;8,134.77,568.85,345.82,8.64;8,134.77,580.81,345.82,8.64;8,134.77,592.76,345.82,8.64;8,134.77,604.72,345.82,8.64;8,134.77,616.67,345.82,8.64;8,134.77,628.63,345.82,8.64;8,134.77,640.58,130.89,8.64"><head></head><label></label><figDesc>Figures 9-13 display the metric information derived from the occupation, gender, and birth year random forest classifiers. In this case, the metrics are clearly superior to those from the baseline model. In comparison to the logistic regression occupation model, the random forest occupation model had a slightly worse accuracy, but higher maximum f1-score (0.830 for politics). The random forest gender classifier had a worse accuracy (0.70) and maximum f1-score (male label) than the logistic regression algorithm. The custom f1-score for birth year was basically the same for both algorithms, with a slight edge given to logistic regression.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9" coords="9,190.43,345.90,234.50,8.64;9,181.30,145.25,252.77,188.81"><head>Figure 9 :</head><label>9</label><figDesc>Figure 9: Metrics for Random Forest Occupation Classifier</figDesc><graphic coords="9,181.30,145.25,252.77,188.81" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10" coords="9,167.59,623.43,280.18,8.64;9,176.07,422.78,263.22,188.81"><head>Figure 10 :</head><label>10</label><figDesc>Figure 10: Confusion Matrix for Random Forest Occupation Classifier</figDesc><graphic coords="9,176.07,422.78,263.22,188.81" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11" coords="10,196.24,321.46,222.88,8.64;10,180.99,122.04,253.38,187.58"><head>Figure 11 :</head><label>11</label><figDesc>Figure 11: Metrics for Random Forest Gender Classifier</figDesc><graphic coords="10,180.99,122.04,253.38,187.58" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12" coords="10,175.90,547.63,263.57,8.64;10,181.91,351.90,251.54,183.89"><head>Figure 12 :</head><label>12</label><figDesc>Figure 12: Confusion Matrix for Random Forest Gender Classifier</figDesc><graphic coords="10,181.91,351.90,251.54,183.89" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13" coords="10,190.23,646.65,234.90,8.64;10,134.77,578.07,358.28,56.74"><head>Figure 13 :</head><label>13</label><figDesc>Figure 13: Metrics for Random Forest Birth Year Classifier</figDesc><graphic coords="10,134.77,578.07,358.28,56.74" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14" coords="11,212.07,457.36,191.21,8.64;11,181.91,254.25,251.54,191.27"><head>Figure 14 :</head><label>14</label><figDesc>Figure 14: Metrics for SV Occupation Classifier</figDesc><graphic coords="11,181.91,254.25,251.54,191.27" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15" coords="12,191.73,346.37,231.89,8.64;12,176.99,143.87,261.38,190.65"><head>Figure 15 :</head><label>15</label><figDesc>Figure 15: Confusion Matrix for SV Occupation Classifier</figDesc><graphic coords="12,176.99,143.87,261.38,190.65" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16" coords="12,220.38,624.82,174.60,8.64;12,182.83,420.48,249.69,192.50"><head>Figure 16 :</head><label>16</label><figDesc>Figure 16: Metrics for SV Gender Classifier</figDesc><graphic coords="12,182.83,420.48,249.69,192.50" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17" coords="13,200.03,375.99,215.29,8.64;13,176.38,179.03,262.61,185.12"><head>Figure 17 :</head><label>17</label><figDesc>Figure 17: Confusion Matrix for SV Gender Classifier</figDesc><graphic coords="13,176.38,179.03,262.61,185.12" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18" coords="13,214.37,589.65,186.61,8.64;13,134.77,520.43,364.65,57.38"><head>Figure 18 :</head><label>18</label><figDesc>Figure 18: Metrics for SV Birth Year Classifier</figDesc><graphic coords="13,134.77,520.43,364.65,57.38" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="14,183.68,303.93,248.00,74.93"><head>Table 1 :</head><label>1</label><figDesc>F1 Scores per Category for every Classifier</figDesc><table coords="14,183.68,303.93,248.00,51.71"><row><cell></cell><cell>Occupation</cell><cell>Gender</cell><cell>Birth Year</cell></row><row><cell>Logistic Regression</cell><cell>0.754</cell><cell>0.735</cell><cell>0.346</cell></row><row><cell>Random Forest</cell><cell>0.744</cell><cell>0.689</cell><cell>0.333</cell></row><row><cell>Support-Vector</cell><cell>0.738</cell><cell>0.706</cell><cell>0.349</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="14,142.61,602.73,329.52,7.77;14,150.95,613.34,216.56,8.12;14,150.95,624.65,149.54,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="14,339.64,602.73,132.50,7.77;14,150.95,613.69,66.60,7.77">Automatically profiling the author of an anonymous text</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1461928.1461959</idno>
+		<ptr target="https://doi.org/10.1145/1461928.1461959" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,222.91,613.69,57.93,7.77">Commun. ACM</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page" from="119" to="123" />
+			<date type="published" when="2009-02">02 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.61,635.17,327.78,7.77;14,150.95,646.13,220.63,7.77;14,150.95,657.08,122.44,7.77" xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Bengfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Bilbro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Danielsen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Mcintyre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Roman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Poh</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.1206264</idno>
+		<ptr target="http://www.scikit-yb.org/en/latest/" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,150.95,646.13,43.70,7.77">Yellowbrick</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.61,119.96,328.23,7.77;15,150.95,130.92,312.99,7.77;15,150.95,141.88,329.21,7.77;15,150.95,152.84,321.77,7.77;15,150.95,163.80,70.98,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="15,207.73,141.88,272.43,7.77;15,150.95,152.84,23.75,7.77">API design for machine learning software: experiences from the scikit-learn project</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Buitinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Louppe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mueller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Niculae</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Grobler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Layton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Holt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,192.54,152.84,276.34,7.77">ECML PKDD Workshop: Languages for Data Mining and Machine Learning</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="108" to="122" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.61,174.76,201.46,7.77;15,150.95,185.71,299.74,7.77" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">B</forename><surname>Fraj</surname></persName>
+		</author>
+		<ptr target="https://medium.com/all-things-ai/in-depth-parameter-tuning-for-svc-758215394769" />
+		<title level="m" coord="15,193.05,174.76,122.63,7.77">In depth: Parameter tuning for svc</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.61,196.67,261.06,7.77" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="15,188.81,196.67,104.12,7.77">ndjson 0.3.1. Python Module</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Grant</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note>python ndjson support</note>
+</biblStruct>
+
+<biblStruct coords="15,142.61,207.63,316.66,7.77;15,150.95,218.59,178.44,7.77" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Hodge</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Price</surname></persName>
+		</author>
+		<title level="m" coord="15,268.00,207.63,191.27,7.77">Classification of time period and author age in fiction</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+		<respStmt>
+			<orgName>Northeastern University</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">student project at</note>
+</biblStruct>
+
+<biblStruct coords="15,142.61,229.55,322.89,7.77;15,150.95,240.51,150.05,7.77" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Hodge</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Price</surname></persName>
+		</author>
+		<title level="m" coord="15,227.41,229.55,209.71,7.77">Artificial intelligence final report: Celebrity profiling 2020</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+		<respStmt>
+			<orgName>Northeastern University</orgName>
+		</respStmt>
+	</monogr>
+	<note>student project at</note>
+</biblStruct>
+
+<biblStruct coords="15,142.61,251.47,295.35,7.77;15,150.95,262.43,310.68,7.77" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="15,248.33,251.47,189.63,7.77;15,150.95,262.43,243.33,7.77">spacy 2: Natural language understanding with bloom embeddings, convolutional neural networks and incremental parsing</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note>To appear</note>
+</biblStruct>
+
+<biblStruct coords="15,142.61,273.39,336.12,7.77;15,150.95,284.00,212.80,8.12" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="15,199.16,273.39,138.41,7.77">Matplotlib: A 2d graphics environment</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">D</forename><surname>Hunter</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/MCSE.2007.55</idno>
+		<ptr target="https://doi.org/10.1109/MCSE.2007.55" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="15,343.74,273.39,134.99,7.77">Computing in Science &amp; Engineering</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="90" to="95" />
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,295.30,301.75,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="15,228.92,295.30,100.63,7.77">emoji 0.5.4. Python Module</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Wurster</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note>identifies emojis in text</note>
+</biblStruct>
+
+<biblStruct coords="15,142.24,306.26,275.43,7.77;15,150.95,317.22,327.33,7.77;15,150.95,328.18,96.12,7.77" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Koehrsen</surname></persName>
+		</author>
+		<ptr target="https://towardsdatascience.com/hyperparameter-tuning-the-random-forest-in-python-using-scikit-learn-28d2aa77dd74" />
+		<title level="m" coord="15,204.09,306.26,185.18,7.77">Hyperparameter tuning the random forest in python</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,339.14,273.23,7.77" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">E</forename><surname>Oliphant</surname></persName>
+		</author>
+		<title level="m" coord="15,206.33,339.14,64.31,7.77">A guide to NumPy</title>
+		<imprint>
+			<publisher>Trelgol Publishing USA</publisher>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="volume">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,350.10,338.35,7.77;15,150.95,361.06,300.54,7.77;15,150.95,372.02,322.31,7.77;15,150.95,382.63,192.98,8.12" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="15,295.94,372.02,144.73,7.77">Scikit-learn: Machine learning in Python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="15,446.86,372.02,26.40,7.77;15,150.95,382.97,110.80,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,393.93,335.40,7.77;15,150.95,404.89,306.17,7.77;15,150.95,415.85,72.72,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="15,333.86,393.93,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,259.53,404.89,193.52,7.77">Information Retrieval Evaluation in a Changing World</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,426.81,277.33,7.77;15,150.95,437.77,321.54,7.77;15,150.95,448.73,51.30,7.77" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Qiao</surname></persName>
+		</author>
+		<ptr target="https://towardsdatascience.com/logistic-regression-model-tuning-with-scikit-learn-part-1-425142e01af5" />
+		<title level="m" coord="15,184.11,426.81,207.07,7.77">Logistic regression model tuning with scikit-learn -part 1</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,459.69,324.28,7.77;15,150.95,470.65,318.78,7.77;15,150.95,481.60,302.53,7.77;15,150.95,492.56,265.34,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="15,209.89,470.65,200.27,7.77">Overview of the 2nd Author Profiling Task at PAN 2014</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Chugur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Trenkmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1180/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,305.90,481.60,147.58,7.77;15,150.95,492.56,56.61,7.77">Working Notes Papers of the CLEF 2014 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Halvey</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">W</forename><surname>Kraaij</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2014-09">Sep 2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,503.52,329.66,7.77;15,150.95,514.13,285.90,8.12" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="15,323.81,503.52,148.09,7.77;15,150.95,514.48,81.25,7.77">The numpy array: a structure for efficient numerical computation</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Van Der Walt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">C</forename><surname>Colbert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="15,238.37,514.48,134.99,7.77">Computing in Science &amp; Engineering</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,525.44,110.79,7.77" xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="15,207.72,525.44,21.92,7.77">Joblib</title>
+		<imprint>
+			<biblScope unit="volume">0</biblScope>
+			<biblScope unit="issue">16</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,253.02,525.44,186.49,7.77" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="15,344.96,525.44,94.55,7.77">python parallel computing</title>
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,258.79,525.44,55.55,7.77">Python Module</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,536.40,334.00,7.77;15,150.95,547.36,313.71,7.77;15,150.95,558.32,78.71,7.77" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="15,292.93,536.40,65.88,7.77">Celebrity Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,376.62,536.40,99.62,7.77;15,150.95,547.36,313.71,7.77;15,150.95,558.32,39.86,7.77">57th Annual Meeting of the Association for Computational Linguistics (ACL 2019). Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2019-07">Jul 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="15,142.24,569.28,324.87,7.77;15,150.95,580.23,284.33,7.77;15,150.95,591.19,96.22,7.77" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="15,292.93,569.28,174.17,7.77">Overview of the Celebrity Profiling Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="15,185.57,580.23,206.43,7.77">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<title level="s" coord="15,398.18,580.23,37.11,7.77;15,150.95,591.19,19.77,7.77">CLEF and CEUR</title>
+		<imprint>
+			<date type="published" when="2020-09">2020. Sep 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

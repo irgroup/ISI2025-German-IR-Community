@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,146.18,115.90,323.00,12.90;1,290.54,133.83,34.27,12.90;1,223.43,154.69,168.49,10.75">Plagiarism Alignment Detection by Merging Context Seeds Notebook for PAN at CLEF 2014</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,225.12,192.09,54.53,8.64"><forename type="first">Philipp</forename><surname>Gross</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">pressrelations GmbH</orgName>
+								<address>
+									<settlement>Düsseldorf</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,303.48,192.09,75.95,8.64"><forename type="first">Pashutan</forename><surname>Modaresi</surname></persName>
+							<email>modaresi@cs.uni-duesseldorf.de</email>
+							<affiliation key="aff1">
+								<orgName type="department">Institute of Computer Science</orgName>
+								<orgName type="institution">Heinrich-Heine-University of Düsseldorf</orgName>
+								<address>
+									<settlement>Düsseldorf</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,146.18,115.90,323.00,12.90;1,290.54,133.83,34.27,12.90;1,223.43,154.69,168.49,10.75">Plagiarism Alignment Detection by Merging Context Seeds Notebook for PAN at CLEF 2014</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">70F6A28301CBB2AFBD61E9E74D31D3A0</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:38+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We describe our submitted algorithm to the text alignment sub-task of the plagiarism detection task in the PAN2014 challenge that achieved a plagdet score 0.855. By extracting contextual features for each document character and grouping those that are relevant for a given pair of documents, we generate seeds of atomic plagiarism cases. These are then merged by an agglomerative singlelinkage strategy using a defined distance measure.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Given a pair of text documents, the problem of text alignment is the task of identifying all pairs of contiguous passages that are equal up to obfuscation. The various strategies of the latter pose a challenge for this task. They reach from randomized simple operations like word or sentence permutations to more sophisticated transformations like semantic word variation or translation cycles, or even manual paraphrasing.</p><p>The problem of text alignment is a sub-task of the PAN 2014 Plagiarism Detection task. It also contains the sub-task source retrieval that concerns he retrieval of source documents when a suspicious document is given. Our submission only deals with the problem of text alignment. We follow the common strategy as explained in <ref type="bibr" coords="1,435.17,523.86,10.79,8.64" target="#b1">[2]</ref>:</p><p>1. Seed generation: Given a suspicious document X and a source document Y select a set of likely plagiarism cases, which are pairs of small passages in X and Y that are very similar by a defined measure. 2. Merging: Merge two plagiarism cases whose passages in X and Y are close to each other. Repeat this step until there are no adjacent plagiarism cases left. 3. Extraction and filtering: Postprocess the remaining plagiarism cases, filter outliers, and generate output plagiarism cases.</p><p>In the following we describe our submitted algorithm in detail and give the evaluation results for various corpora.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Problem Statement</head><p>In this section we formally define the problem of text alignment as part of PAN 2014 Plagiarism Detection task. The precise objective of this task is, for a given set of plagiarism cases S, to find a set of detections R such that the score plagdet(S, R) is high.</p><p>We follow a slightly different terminology compared to <ref type="bibr" coords="2,371.17,182.48,11.62,8.64" target="#b2">[3]</ref> and recall all definitions for the readers convenience.</p><p>A document of length n X is a finite totally ordered set X = {x i : i = 0, . . . , n X } of (positioned) characters x i = (c, i), c ∈ C, where C denotes some finite set of symbols. A passage P ⊆ X is a connected subset, thus either empty or of the form</p><formula xml:id="formula_0" coords="2,227.96,256.72,252.64,9.65">P = { x i : 0 ≤ a ≤ i &lt; b ≤ n}.<label>(1)</label></formula><p>For brevity we use the notion of closed intervals and define [x a , x b ] = P for non-empty passages.</p><p>Given a pair of documents (X, Y ) we define a passage reference r as a rectangular subset in the Cartesian product set r ⊆ X × Y . Every non-empty passage reference is always of the form</p><formula xml:id="formula_1" coords="2,139.98,347.78,340.61,9.65">r = [x a , x b ] × [y c , y d ] = {(x i , y j ) : 1 ≤ a ≤ i &lt; b ≤ n X , 1 ≤ c ≤ j &lt; d ≤ n Y } (2)</formula><p>for passages [x a , x b ] ⊆ X and [y c , y d ] ⊆ Y . Each pair (x, y) ∈ X × Y gives rise to a passage reference by taking the singleton set {(x, y)}, called seed. It is a minimal passage reference. Note that every non-empty passage reference is the linear span of finitely many seeds.</p><p>We say that a passage reference r detects another passage reference s if both belong to the same product space X × Y and have non-empty intersection r ∩ s. The latter is also a passage reference. By embedding a document into the disjoint union of all documents, the definition r ∩ s extends naturally to passage references with different pairs of parent documents (namely, by the empty intersection).</p><p>We define the perimeter of a passage reference r as</p><formula xml:id="formula_2" coords="2,159.53,502.60,321.06,9.65">π(r) = 2(b -a) + 2(d -c) if r = [x a , x b ] × [y c , y d ], and π(∅) = 0.<label>(3)</label></formula><p>The union of passage references is in general not a passage reference. But the perimeter extends in a natural way for such sets by taking the (one-dimensional) volume of the boundary. The upshot of the perimeter is that a passage reference r detects another passage reference s if and only if π(r ∩ s) &gt; 0.</p><p>A set (or corpus) of plagiarism cases S is just a set of passage references for varying document pairs (X, Y ), X, Y ∈ D and some set of documents D.</p><p>The quality of a set of detections R is evaluated by the numerical plagdet score. It is a composition of the micro precision, micro recall and granularity. For the sake of completeness, we recall their definitions. With S</p><formula xml:id="formula_3" coords="2,201.67,622.98,278.93,44.36">• R = {s ∩ r | s ∈ S, r ∈ R} let prec(S, R) = π(S • R) π(R) , rec(S, R) = π(S • R) π(S) .<label>(4)</label></formula><p>Precision and recall give rise to the classical F 1 -measure, i.e. the harmonic mean of precision and recall. In order to penalize fragmented passage references one weights the F 1 measure with the granularity,</p><formula xml:id="formula_4" coords="3,231.62,164.55,248.97,24.36">gran(S, R) = s∈S R |R s | |S R | ∈ [1, |R|],<label>(5)</label></formula><p>where</p><formula xml:id="formula_5" coords="3,176.54,201.77,284.81,9.65">S R = {s | s ∈ S, ∃r ∈ R detects s} and R s = {r | r ∈ R, r detects s}.</formula><p>Then the plagdet-score is defined as the weighted F 1 -measure:</p><formula xml:id="formula_6" coords="3,200.38,235.89,276.34,24.17">plagdet(S, R) = F 1 (prec(S, R), rec(S, R)) log 2 (1 + gran(S, R)) ∈ [0, 1]. (<label>6</label></formula><formula xml:id="formula_7" coords="3,476.72,242.95,3.87,8.64">)</formula><p>3 Feature Extraction and Seed Generation</p><p>In this section we describe our approach to extract seeds of passages from X × Y for some pair of documents X and Y . We decided to apply feature extraction on a per document basis. Hence, this step can be done in a preprocessing phase before actually considering pairs of documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Extraction of contextual features for documents</head><p>Throughout the paper, F denotes the set of all features. As seen below, we use skip word ngrams as features, but for the sake of clarity we keep it general first. Given a document X = {x i } we map each character to a finite set of binary features x i → ϕ(x i ) = {f i1 , . . . , f id }, d = d(i), f ij ∈ F . Recall that the power set P(F ) is the set of all subsets of F . Therefore, we defined a feature map</p><formula xml:id="formula_8" coords="3,272.56,470.61,208.03,9.65">f X : X → P(F ).<label>(7)</label></formula><p>In return, by mapping</p><formula xml:id="formula_9" coords="3,239.08,494.11,241.51,32.63">F f → {x i | f ∈ ϕ(x i )} ∈ P(X) we get an index map ι X : F → P(X).<label>(8)</label></formula><p>It tells us at which character positions in the document a feature f is present.</p><p>In our approach we first tokenized the document X into a sequence of lowercased stemmed words w 0 , w 1 , . . . by omitting whitespaces, non-alphanumeric characters and stop words, and used skip-bigrams of length 1 to 4:</p><formula xml:id="formula_10" coords="3,146.28,609.32,330.44,20.91">ϕ(x i ) = {w β w α } β=α-4,...,α if x i is the beginning character of a word w α . ∅ otherwise. (<label>9</label></formula><formula xml:id="formula_11" coords="3,476.72,615.72,3.87,8.64">)</formula><p>Table <ref type="table" coords="3,173.82,644.48,4.98,8.64" target="#tab_0">1</ref> illustrates the feature extraction for the example phrase The quick brown fox jumps over the lazy dog. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Selection of relevant features</head><p>Clearly, features which are not present at all, or appear at almost every character are useless for the text alignment task. In order to reduce the number of generated features, we apply a simple feature selection strategy. If ι X (f ) is non-empty and has low cardinality, then we consider f as meaningful. We say that f ∈ F is a relevant feature (for X), if the cardinality satisfies the following estimation:</p><formula xml:id="formula_12" coords="4,274.16,384.01,206.43,9.65">1 ≤ |ι X (f )| ≤<label>(10)</label></formula><p>for some given threshold parameter . The latter is also called relevance threshold. The subset of all relevant features is denoted as F X ⊆ F .</p><p>In our approach we use a constant relevance threshold = 4. For time constraints we kept this simple approach because it already worked quite well.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Feature extraction of document pairs and seed generation</head><p>The feature extraction for documents carries over to feature extraction to pairs of documents. Given a suspicious document X and a source document Y their index maps give rise to a natural index map of X × Y :</p><formula xml:id="formula_13" coords="4,158.78,542.35,317.66,9.65">ι XY : F → P(X × Y ), f → {(x i , y j ) | f ∈ ϕ(x i ) and f ∈ ϕ(y i )}. (<label>11</label></formula><formula xml:id="formula_14" coords="4,476.44,542.67,4.15,8.64">)</formula><p>It maps a feature f to the set of all pairs (x i , y j ) of characters such that f is simultaneously present at x i and y i . Now let F X ∩ F Y ⊆ F be the subset of features which are relevant for X and Y . The union</p><formula xml:id="formula_15" coords="4,227.05,611.41,253.55,20.76">σ(X, Y ) = f ∈F X ∩F Y ι XY (f ) ⊆ X × Y (12)</formula><p>is the seed set of plagiarism cases between X and Y . These atomic plagiarism cases are the starting point of a merge process, which is explained in the next section.</p><p>We can deduce an estimation of the cardinality in terms of the relevance threshold. Namely, for each f ∈ F X ∩ F Y holds the estimation</p><formula xml:id="formula_16" coords="5,134.77,148.57,345.83,31.42">1 ≤ |ι XY (f )| = |ι X (f )| • |ι Y (f )| ≤ 2 . (13) Hence, |σ(X, Y )| ≤ 2 |F X ||F Y |.</formula><p>Consequently, the number of seeds can be estimated just in terms of X and Y without having to inspect the pair (X, Y ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Merging</head><p>In this section we describe the process of merging passage references in the product space X × Y for two documents X and Y . The merge criterion will be given in terms of a distance function and the merge process is then the agglomerative single-linkage clustering with an additional termination condition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Merge criteria</head><p>In order to define a distance between two passage references, let us first introduce further notation.</p><p>For two non-empty passages</p><formula xml:id="formula_17" coords="5,134.77,340.56,345.83,21.61">P 1 = [x a1 , x b1 ] and P 2 = [x a2 , x b2 ] in X let their distance be dist(P 1 , P 2 ) = min{|u 1 -u 2 | : a 1 ≤ u 1 ≤ b 1 , a 2 ≤ u 2 ≤ b 2 }.</formula><p>It is positive if and only if P 1 and P 2 are disjoint. Now, for two non-empty passage references</p><formula xml:id="formula_18" coords="5,134.77,364.47,345.83,53.32">P 1 × Q 1 , P 2 × Q 2 ⊆ X × Y their distance is dist(P 1 × Q 1 , P 2 × Q 2 ) = 2 dist(P 1 , P 2 ) + 2 dist(Q 1 , Q 2 ) σ + π(P 1 × Q 1 ) + π(P 2 × Q 2 ) ,<label>(14)</label></formula><p>where σ &gt; 0 denotes a constant smoothing parameter that is defined empirically. The distance is zero if and only if P 1 ∩ P 2 = ∅ and Q 1 ∩ Q 2 = ∅, or equivalently</p><formula xml:id="formula_19" coords="5,134.77,450.03,125.23,9.65">P 1 × Q 1 ∩ P 2 × Q 2 = ∅,</formula><p>and thus reflects the fact that two passages are directly adjacent. If the distance is positive, but lesser than a given threshold τ , the passages have empty intersection but are relatively close.</p><p>The merge of two passage references in X × Y is the smallest passage reference that contains both. It always contains their union but is in general strictly larger.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Agglomerative clustering</head><p>Having defined criteria for merging two passage references, we apply agglomerative single-linkage clustering. That is, in each step we merge a pair of passage references that have minimal distance. If there is no pair whose distance is lesser or equal than a given constant τ &gt; 0, the process terminates.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Filtering and passage extraction</head><p>At the end of the merge process we remove all passage references where the suspicious passage has less than 15 words. The remaining passage references are the detected plagiarism cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Evaluation Results</head><p>We evaluated the algorithm on the data sets of the previous competition PAN2013 <ref type="bibr" coords="6,468.98,153.60,11.62,8.64" target="#b2">[3]</ref> and the current competition PAN2014 using Tira <ref type="bibr" coords="6,332.90,165.38,11.47,8.59" target="#b0">[1]</ref>. For completeness, we also state the runtime, although it does not affect the ranking of the algorithm in the competition. See Table <ref type="table" coords="6,176.02,189.47,4.98,8.64" target="#tab_1">2</ref> for the development results and Table <ref type="table" coords="6,335.59,189.47,4.98,8.64" target="#tab_2">3</ref> for the end results.</p><p>We also ran smaller experiments restricted to a fixed obfuscation strategy (Table <ref type="table" coords="6,469.81,203.50,3.60,8.64" target="#tab_3">4</ref>). To no surprise the algorithm underperforms for summary obfuscated plagiarism cases because we use no synonym dictionaries. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Conclusion</head><p>The simple heuristics we used in our approach, already worked quite well and comparable to the state of the art text alignment algorithms for random and translation cycle obfuscations. In order to tackle the problem of summary obfuscation in the future, we intend to incorporate more semantic knowledge into the feature extraction stage.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,134.77,115.83,345.83,135.91"><head>Table 1 .</head><label>1</label><figDesc>Features extracted for the characters x0, . . . x43 of the example string The quick brown fox jumps over the lazy dog. Characters that were not at the beginning of a contiguous alphanumeric substring have no features and are omitted from the table. The symbol * is a placeholder for the empty word.</figDesc><table coords="4,165.27,172.86,284.81,78.88"><row><cell cols="2">Offset Token</cell><cell>f1</cell><cell>f2</cell><cell>f3</cell><cell>f4</cell></row><row><cell cols="2">4 quick</cell><cell>* _quick</cell><cell>* _quick</cell><cell>* _quick</cell><cell>* _quick</cell></row><row><cell cols="4">10 brown quick_brown * _brown</cell><cell>* _brown</cell><cell>* _brown</cell></row><row><cell>16</cell><cell>fox</cell><cell cols="2">brown_fox quick_fox</cell><cell>* _fox</cell><cell>* _fox</cell></row><row><cell cols="2">20 jump</cell><cell cols="3">fox_jump brown_jump quick_jump</cell><cell>* _jump</cell></row><row><cell cols="3">35 lazy jump_lazy</cell><cell cols="3">fox_lazy brown_lazy quick_lazy</cell></row><row><cell>40</cell><cell>dog</cell><cell>lazy_dog</cell><cell>jump_dog</cell><cell>fox_dog</cell><cell>brown_dog</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,134.77,262.87,345.82,81.12"><head>Table 2 .</head><label>2</label><figDesc>Text alignment results with retrieval performance and runtime for the data sets of PAN2013. The experiments were executed on an 8-core system.</figDesc><table coords="6,164.96,297.99,285.42,46.00"><row><cell>Corpus</cell><cell cols="3">Pairs PlagDet Precision Recall Granularity Runtime</cell></row><row><cell cols="2">pan13-training-corpus 4007 0.825 0.935</cell><cell>0.743 1.00485</cell><cell>48s</cell></row><row><cell>pan13-test-corpus1</cell><cell>399 0.837 0.930</cell><cell>0.760 1.00000</cell><cell>5s</cell></row><row><cell>pan13-test-corpus2</cell><cell>4042 0.831 0.939</cell><cell>0.750 1.00421</cell><cell>4ls</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,134.77,409.39,345.82,81.12"><head>Table 3 .</head><label>3</label><figDesc>Text alignment results with retrieval performance and runtime for the data sets of PAN2014. The experiments were executed on an 1-core system, provided by the host.</figDesc><table coords="6,164.96,444.50,285.42,46.00"><row><cell>Corpus</cell><cell cols="4">Pairs PlagDet Precision Recall Granularity Runtime</cell></row><row><cell cols="3">pan14-training-corpus 5164 0.821 0.928</cell><cell>0.763 1.02805</cell><cell>183s</cell></row><row><cell>pan14-test-corpus2</cell><cell>?</cell><cell>0.826 0.933</cell><cell>0.766 1.02514</cell><cell>180s</cell></row><row><cell>pan14-test-corpus3</cell><cell>?</cell><cell>0.855 0.925</cell><cell>0.818 1.02187</cell><cell>169s</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="6,170.16,555.90,275.03,70.16"><head>Table 4 .</head><label>4</label><figDesc>Text alignment plagdet scores with respect to obfuscation strategies</figDesc><table coords="6,172.85,580.06,269.65,46.00"><row><cell>Corpus</cell><cell cols="3">None Random Cyclic translation Summary</cell></row><row><cell cols="2">training-corpus-2013-01-21 0.903 0.812</cell><cell>0.824</cell><cell>0.299</cell></row><row><cell>test-corpus1-2013-03-08</cell><cell>0.901 0.791</cell><cell>0.854</cell><cell>0.412</cell></row><row><cell>test-corpus2-2013-01-21</cell><cell>0.913 0.811</cell><cell>0.835</cell><cell>0.316</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,138.13,234.53,331.25,7.77;7,146.47,245.49,313.35,7.77;7,146.47,256.45,309.62,7.77;7,146.47,267.41,304.52,7.77;7,146.47,278.37,159.46,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,159.43,245.49,197.32,7.77">Recent trends in digital text forensics and its evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Beyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Busse</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,284.31,256.45,171.78,7.77;7,146.47,267.41,116.89,7.77">Information Access Evaluation. Multilinguality, Multimodality, and Visualization</title>
+		<title level="s" coord="7,269.13,267.41,126.47,7.77">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Forner</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Mãijller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Paredes</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Stein</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">8138</biblScope>
+			<biblScope unit="page" from="282" to="302" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,138.13,289.33,324.16,7.77;7,146.47,300.29,325.14,7.77;7,146.47,311.24,246.48,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,182.34,300.29,249.39,7.77">Overview of the 5th international competition on plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tippmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,449.69,300.29,21.92,7.77;7,146.47,311.24,220.33,7.77">CLEF 2013 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,138.13,322.20,306.42,7.77;7,146.47,333.16,333.44,7.77;7,146.47,344.12,291.89,7.77;7,146.47,355.08,153.75,7.77;7,146.47,366.04,186.20,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,340.49,322.20,104.06,7.77;7,146.47,333.16,71.70,7.77">An evaluation framework for plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=1944566.1944681" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,236.12,333.16,243.78,7.77;7,146.47,344.12,69.21,7.77;7,275.24,344.12,46.75,7.77">Proceedings of the 23rd International Conference on Computational Linguistics: Posters</title>
+		<meeting>the 23rd International Conference on Computational Linguistics: Posters<address><addrLine>Stroudsburg, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="997" to="1005" />
+		</imprint>
+	</monogr>
+	<note>COLING &apos;10</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

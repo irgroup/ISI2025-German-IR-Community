@@ -1,0 +1,831 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,151.58,115.90,312.20,12.90;1,223.43,135.75,168.50,10.75">Using Hashtags and POS-Tags for Author Profiling Notebook for PAN at CLEF 2019</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,274.89,172.15,65.58,8.64"><forename type="first">Flurin</forename><surname>Gishamer</surname></persName>
+							<email>gishamer@pm.me</email>
+							<affiliation key="aff0">
+								<orgName type="institution">ZHAW Zurich University of Applied Sciences</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,151.58,115.90,312.20,12.90;1,223.43,135.75,168.50,10.75">Using Hashtags and POS-Tags for Author Profiling Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">213E50B848D47CB663FC4FBA820CD3E9</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:59+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper investigates automatic methods to separate human created from bot created Tweets, and in the case of human, determine the gender of an author. The novel contribution is the investigation of 2 research questions, firstly the usability of part of speech tags and secondly the usability of hashtags as additional features. It therefore extends the models presented by Daneshvar et al. and  Basile et al.  in the course of past Author Profiling Tasks @ Pan. The results are evaluated as part of the Author Profiling Task @ Pan 2019. It will be shown that the segmentation of hashtags as well as using POS-Tags n-grams can increase the accuracy when classifying bot and gender on the PAN Twitter-dataset. By adding these features and combining them in an ensemble classifier, it was possible to achieve accuracies of 94% for bots and 84% for gender for the English language on the official test set. However, with 79% for bots and 71% for gender, the performance on the Spanish part of the dataset differs significantly. Possible reasons for this shall be examined in the evaluation of the system.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The ubiquity of social media, in private communication and media coverage calls for strategies to validate both identity of users as well as the validity of the shared content to prevent misuse and manipulation of public opinion.</p><p>In <ref type="bibr" coords="1,160.95,462.18,11.62,8.64" target="#b0">[1]</ref> Shao et al. state that the deliberate spreading of false information, so-called fake news, is a serious concern. Guess, Nagler and Tucker, who conducted a representative online survey on Facebook users behavior in connection with fake news, say that "The vast majority of Facebook users in our data did not share any articles from fake news domains" <ref type="bibr" coords="1,197.15,510.00,10.58,8.64" target="#b1">[2]</ref>. If one compares this with the finding from Chu, Gianvecchio, Wang and Jajodia in <ref type="bibr" coords="1,192.47,521.95,11.62,8.64" target="#b2">[3]</ref> that 24% of the Tweets generated on Twitter originate from bots, and relates it with the statement of Shao et al. that "social bots played a disproportionate role in spreading articles from low-credibility sources" <ref type="bibr" coords="1,354.95,545.86,10.58,8.64" target="#b0">[1]</ref>, it can be concluded that the identification of bot profiles on social media is an important and promising approach to prevent the spreading of fake news, and thus the manipulation of public opinion.</p><p>The present work deals with the identification of features, which are suitable to improve the accuracy of existing methods. The focus lies on the identification of bots as well as the identification of gender from authors on Twitter. Both POS-tags as well as the information contained in hashtags are considered.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Research Questions</head><p>The present work examines two central questions, namely:</p><p>1. "Does the syntactic structure of Twitter Tweets reveal information about the author's identity with respect to gender/bot, moreover, if so, are such patterns universal, i.e. are these patterns independent of content ?" Part of speech tags were chosen to represent the syntactic structure. To consider the sequential nature of the data, POS tags bi-and tri-grams were used as features..</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">"Do hashtags in Twitter</head><p>Tweets contain information about the identity of the author and can this information improve the accuracy of gender/bot-classification when looking at the individual words they comprise?" Due to the special nature of hashtags, where users are forced to use a single word, therefore using compound words, the approach of segmenting hashtags and using the resulting words as features was chosen.</p><p>The goal is to develop a model that can classify Tweets via the use of an enriched body of features, analyzing them in parallel and combining them.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Author Profiling Task @ PAN 2019</head><p>In <ref type="bibr" coords="2,146.11,372.36,11.62,8.64" target="#b3">[4]</ref> author profiling is described as: "the analysis of shared content in order to predict different attributes of authors such as gender, age, personality, native language, or political orientation."</p><p>The task described by Rangel et al. in <ref type="bibr" coords="2,303.03,408.23,11.62,8.64" target="#b4">[5]</ref> is concerned with the identification of an authors gender and additionally if the author is either human or bot.</p><p>PAN is a series of workshops concerned with digital text forensics <ref type="bibr" coords="2,413.52,432.14,11.62,8.64" target="#b5">[6]</ref> and is carried out as part of the CLEF conference which is concerned with the systematic evaluation of information access systems.</p><p>The common basis of all participants is a dataset containing 100 Tweets per author, which are combined in one file per author with a corresponding label assigned to it. A label can have the following values: bot/human, and in the case of humans, female/male.</p><p>The dataset of the Author Profiling Task 2019 includes the languages English and Spanish. The English dataset contains 4120 authors, of which 2060 are bots, and the remaining 2060 are divided into 1300 female and 1300 male authors. The Spanish dataset contains 3000 authors, of which 1500 are bots, and the remaining 1500 are divided into 750 female and 750 male authors.</p><p>Consequently, the gender of the author or whether the author is human should be inferred based on a set of short messages which are available in purely textual form (without meta information or additional content such as images). The evaluation of all submitted systems is carried out on the online platform Tira <ref type="bibr" coords="2,375.16,599.51,10.58,8.64" target="#b6">[7]</ref>.</p><p>To obtain the final scores, the results of all participants are ranked by accuracy. A detailed description as well as results and comparisons of systems submitted to the Author Profiling Task @ Pan 2019 can be found in the official overview paper <ref type="bibr" coords="2,448.23,635.38,10.58,8.64" target="#b4">[5]</ref>.</p><p>A data set concerned with bot-detection is the honeypot data set. It was introduced by Morstatter et al. in <ref type="bibr" coords="3,211.40,154.32,10.58,8.64" target="#b7">[8]</ref>, and as the name suggests was created using so-called honeypot bots. They say that honeypot bots such that "... any user in the network that connects to a honeypot will be considered as a bot" <ref type="bibr" coords="3,285.20,178.23,10.58,8.64" target="#b7">[8]</ref>. To identify bots, they developed an extension of the AdaBoost algorithm which they call BoostOr, and used the honeypot dataset to evaluate it. According to Morstatter et al. BoostOr "focuses more on the mislabeled bots and downweights mis-labeled regular users." <ref type="bibr" coords="3,316.06,214.10,10.58,8.64" target="#b7">[8]</ref>.</p><p>In <ref type="bibr" coords="3,161.73,226.05,11.62,8.64" target="#b8">[9]</ref> Cai, Li and Zengi Introduce their Behaviour enhanced deep bot detection model. It is an artificial neural network architecture which uses an LSTM, to learn a representation of the sequence of an authors Twitter history. They evaluated their model on the honeypot dataset presented in <ref type="bibr" coords="3,280.98,261.92,10.58,8.64" target="#b7">[8]</ref>, and report in <ref type="bibr" coords="3,350.04,261.92,11.62,8.64" target="#b8">[9]</ref> that this model, called BeDM reaches an F1 score of 87.32% as opposed to the BoostOr model presented in <ref type="bibr" coords="3,440.04,273.87,11.62,8.64" target="#b7">[8]</ref> which, according to Cai et al. reaches an F1 score of 86.10%</p><p>In <ref type="bibr" coords="3,160.89,297.78,16.60,8.64" target="#b9">[10]</ref> Basile et al. presented a model with a "simple SVM system (using the scikit-learn LinearSVM implementation) that uses character 3-to 5-grams and word 1-to 2-grams with tf-idf weighting" through which they achieved the best result in the Author Profiling Task @ Pan 2017. In the following year, several of the best-ranked systems (when only considering textual features) employed similar strategies with respect to n-grams and the classification algorithm used.</p><p>According to <ref type="bibr" coords="3,204.41,369.51,11.62,8.64" target="#b3">[4]</ref> the best result in the combined Author Profiling Task @ Pan 2018 was achieved by Takahashi et al. <ref type="bibr" coords="3,267.50,381.47,16.60,8.64" target="#b10">[11]</ref> Their text component consists of a bi-directional recurrent neural network whose output leads via two successive pooling layers into a fully connected layer. As features, they used word vectors. In this system, however, the result of the textual features is supplemented with information from images, which are analyzed using a convolutional neural network. The achieved accuracy averaged over all three languages was according to <ref type="bibr" coords="3,281.85,441.24,11.62,8.64" target="#b3">[4]</ref> 78.72%.</p><p>Rangel et al. state in <ref type="bibr" coords="3,230.48,453.20,11.62,8.64" target="#b3">[4]</ref> that the system of Daneshvar and Inkpen was able to achieve the best results when only textual features were considered. The features were similar to <ref type="bibr" coords="3,145.38,477.11,15.27,8.64" target="#b9">[10]</ref>, with the addition of word 3-grams for the English part of the dataset and subsequent Latent Semantic Analysis for all languages. The classification algorithm used was a support vector machine <ref type="bibr" coords="3,255.42,501.02,15.27,8.64" target="#b11">[12]</ref>.</p><p>According to <ref type="bibr" coords="3,206.55,512.97,11.62,8.64" target="#b3">[4]</ref> the accuracy averaged over all three languages for Daneshvar's model was 81.70%. This result is noteworthy as it shows that the best score of the 2018 task was achieved without the use of the provided images.</p><p>According to <ref type="bibr" coords="3,203.89,548.84,11.62,8.64" target="#b3">[4]</ref> Tellez et al. achieved the second-best result when considering only textual features, with a value of 80.99%. Similar to <ref type="bibr" coords="3,348.06,560.80,16.60,8.64" target="#b9">[10]</ref> and <ref type="bibr" coords="3,385.77,560.80,15.27,8.64" target="#b11">[12]</ref>, the Bag of Words approach was chosen using the tf-Idf weighting scheme, and support vector machines for classification. Note, however, the additional use of skip grams <ref type="bibr" coords="3,397.97,584.71,15.27,8.64" target="#b12">[13]</ref>.</p><p>In <ref type="bibr" coords="3,160.82,596.66,16.60,8.64" target="#b13">[14]</ref> Reuter, Pereira-Martins and Kalita present a pipeline to segment Hashtags. It is a combination of several approaches, where the use of maximum known matching seems to be worth mentioning, which tries to determine a metric for the length of matches, and the result which delivers the longest match is rated highest.</p><p>In <ref type="bibr" coords="3,160.57,644.48,16.60,8.64" target="#b14">[15]</ref> Declerck and Lendvai mention that Spanish sources contain fewer hashtags than German ones, and that the camelCase notation is mainly used in English sources. Their approach segments hashtags written in camelCase notation in a first step, and then uses them as a decision basis for segmenting hashtags written in lower case letters.</p><p>In <ref type="bibr" coords="4,161.06,235.43,16.60,8.64" target="#b15">[16]</ref> and <ref type="bibr" coords="4,198.14,235.43,11.62,8.64" target="#b3">[4]</ref> it is stated that participants either normalized Tweets by removing hashtags altogether, or used ratios of hashtags with respect to Tweets.</p><p>To the author's best knowledge, the approach of replacing hashtags with words extracted by segmentation has not yet been used in a model submitted to the Pan workshop.</p><p>The use of POS tags as features in the form of n-grams has already been discussed by Martinc et al. <ref type="bibr" coords="4,203.16,307.16,16.60,8.64" target="#b16">[17]</ref> in the Author Profiling Task @ Pan 2017, but only trigrams were considered here. Furthermore, a single instance of a Logistic Regression Classifier was employed for classification, to which a combination of differently weighted features was provided.</p><p>In <ref type="bibr" coords="4,160.53,354.98,16.60,8.64" target="#b17">[18]</ref> López-Santillán, Gonzalez-Gurrola and Ramfrez-Alonso introduce a model in which they create embeddings of POS tags, using the same procedure as is used for word embeddings. Here they chose the skip-gram approach. In addition to the word embeddings the obtained document vector is then enriched with these POS-embeddings.</p><p>The LDSE baseline by Rangel, Rosso and Franco is described under <ref type="bibr" coords="4,435.94,402.80,16.60,8.64" target="#b18">[19]</ref> and is concerned with the Task of Language variety identification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Model Overview</head><p>The model proposed in this paper is based on and extends the model presented by Daneshvar et al. in <ref type="bibr" coords="4,211.51,482.50,16.60,8.64" target="#b11">[12]</ref> and Basile et al. in <ref type="bibr" coords="4,306.67,482.50,15.27,8.64" target="#b9">[10]</ref>. It comprises two main components, of which the first is the preprocessing pipeline, which is responsible for tokenization and preprocessing of the Tweets.</p><p>As is shown in Figure <ref type="figure" coords="4,237.76,518.37,3.74,8.64" target="#fig_0">1</ref>, the classification pipeline consists of a text and a POS-part, of which the text component is similar to the implementation in <ref type="bibr" coords="4,400.44,530.32,16.60,8.64" target="#b11">[12]</ref> [10] <ref type="bibr" coords="4,440.41,530.32,15.27,8.64" target="#b12">[13]</ref>, with the addition of hashtag segmentation and handling of compound emojis. The second component is concerned with the classification of POS-tags.</p><p>The text and POS-part are combined in an ensemble classifier, which uses a support vector machine as meta classifier.</p><p>The resulting output is a prediction which is either bot/female/male, written to an XML file per author. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Methodology</head><p>This section provides a detailed discussion of the proposed model concerning the research questions presented in the introduction. It first describes the preprocessing pipeline and its specifics, with a particular focus on the peculiarities of Twitter Tweets, and then the detailed structure of the classification pipeline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Feature Extraction</head><p>As can be seen in Figure <ref type="figure" coords="5,234.03,316.64,4.98,8.64" target="#fig_1">2</ref> during the preprocessing phase, the concatenated Tweets per author are tokenized and Twitter specific replacements, hashtag-segmentation and part of speech tagging is performed simultaneously.</p><p>All of the preprocessing is performed using the spaCy NLP Framework as introduced in <ref type="bibr" coords="5,171.35,364.46,16.60,8.64" target="#b19">[20]</ref> by Honnibal and Montani. For the English part, the en_cor_web_sm language model was used, which incorporates a convolutional neural network trained on the OntoNotes corpus, consisting of blog articles, news, and comments <ref type="bibr" coords="5,419.80,388.37,15.27,8.64" target="#b20">[21]</ref>.</p><p>For the Spanish part, the es_core_news_sm language model was used which is trained on the AnCora and WikiNER corpus instead, which comprises news and media content <ref type="bibr" coords="5,167.18,424.24,15.27,8.64" target="#b21">[22]</ref>. The Twitter specific functionality was implemented via the extension of custom pipeline objects provided by spaCy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Twitter Specific Preprocessing</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Substitutions</head><p>Similar to <ref type="bibr" coords="5,178.14,500.54,16.60,8.64" target="#b11">[12]</ref> the first step was to perform several substitutions on the concatenated Tweets per author: Domain names: URLURL End of a tweet: SNTDLM E-mail addresses: EMAILEMAIL Twitter handles: USERMENTION Line breaks: LNFD</p><p>To obtain accurate part of speech tags (POS tags), the replacement SNTDLM was used to indicate the end of a sentence to the tagger explicitly. As with <ref type="bibr" coords="5,408.57,613.30,15.27,8.64" target="#b11">[12]</ref>, sequences of the same letters, which occurred more than three times, were replaced with a sequence of 3 letters, resulting in a replacement of the following form: heeey, heeeeeey, heeeeeeey → heeey</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Custom POS tags</head><p>The jargon used in social media has some constructs that do not occur in verbal communication or classical texts. In order to consider this, the POS tags have been enhanced with the following elements: Domain names: URL Emojis: EMJI E-mail addresses: EML Hashtags: HSHT Twitter Handles: HNDL Emojis Emojis can be modified in several ways, e.g. there is a skin-tone modifier which can be used to change the skin color of Emojis. Additionally, the combination of several Emojis is possible, e.g. in the family Emoji , which consist of , and : Combining several emojis is generally achieved by creating a sequence with the so-called Zero-Width-Joiner (ZWJ). When using a whitespace tokenizer, this is problematic in several ways: firstly during tokenization, such sequences are cut at the ZWJ, and secondly, the ZWJ remains in the resulting token stream. Therefore the tokenizer was adapted to recognize compound emojis and treat them as one token. For the POS tagger this means that regardless of the length of a sequence of emojis, the result is always one POS-tag.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Hashtag Segmentation</head><p>To determine whether hashtags contain information about the identity of an author, when classifying bot/female/male, the procedure of segmenting composite hashtags into individual words was chosen, resulting in replacements of the form: #makeamericagreatagain → make america great again #roomforrent → room for rent</p><p>If the hashtag consist of a single word, a wordlist lookup is first performed to avoid divisions such as the following: #iconic → i conic #handsome → hand some The Viterbi algorithm who was first presented by Viterbi in <ref type="bibr" coords="6,390.50,524.93,16.60,8.64" target="#b22">[23]</ref> and more specific an adaptation of it by Bacon <ref type="bibr" coords="6,254.22,536.89,16.60,8.64" target="#b23">[24]</ref> was used to segment composite hashtags into individual words. In <ref type="bibr" coords="6,203.91,548.84,16.60,8.64" target="#b24">[25]</ref> it is described as follows: "the VA may be viewed as a solution to the problem of maximum a posteriori probability (MAP) estimation of the state sequence of a finite-state discrete-time Markov process". To calculate the probability of the word under consideration, the algorithm needs to access word frequency lists. During the development of the model, such lists were generated from the Pan Dataset, but it was found that word frequency lists based on the OpenSubtitles corpus by Lison and Tiedemann <ref type="bibr" coords="6,181.73,620.57,16.60,8.64" target="#b25">[26]</ref> gave superior results. Hence the final model uses them instead.</p><p>In the actual algorithm a test is performed first, if the length of a hashtag is less than 3 characters, or it is contained within the provided wordlist, the word without the pound character is returned. Then a nested loop is executed which steps through the string, considering each substring contained in the hashtag, and using a function to assign it a probability.</p><p>The mentioned function takes a word as argument and returns its probability, which is calculated by dividing its frequency by the total number of word occurrences within the provided word-frequency list (this information is contained data variable). The words with the highest probability found are then returned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Classification</head><p>The classification pipeline shown in Figure <ref type="figure" coords="7,314.75,347.50,4.98,8.64" target="#fig_2">3</ref> consists of an ensemble that combines the results of the text and POS components using an SVM meta-learner to make the final prediction. The ensemble was implemented with the ML-Ensemble framework developed by Flennerhag which facilitates parallel computations <ref type="bibr" coords="7,401.28,383.37,15.27,8.64" target="#b26">[27]</ref>. For the single components such as the tf-idf vectorizer, singular value decomposition or the linear svm classifier the sci-kit learn framework was used.</p><p>Experiments were conducted with both, a soft-and hard-voting approach, it was found that the ensemble achieves the best results using a soft-voting approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>N-Grams</head><p>As proposed in <ref type="bibr" coords="7,200.53,473.03,16.60,8.64" target="#b9">[10]</ref> word 1-to 2-grams in addition to character 3-to 5-grams were used in the text-component. As suggested in <ref type="bibr" coords="7,314.90,484.99,15.27,8.64" target="#b11">[12]</ref>, for English, character 3-grams were also included. For the POS-Pipeline grid-search was performed which indicated that a combination of word 2-and 3-grams are the optimal setting.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Text Component</head><p>The text component uses both word n-grams and character n-grams as features. Each of which is transformed separately into tf-Idf vectors, where only tokens with a term frequency greater than or equal to 2 are considered. The set of resulting document vectors is the source material for latent semantic analysis. This part of the pipeline is essentially an extension to the systems presented under <ref type="bibr" coords="7,309.39,598.56,16.60,8.64" target="#b11">[12]</ref>  <ref type="bibr" coords="7,328.10,598.56,15.27,8.64" target="#b9">[10]</ref>. Experiments with logistic regression have been carried out. However, a support vector machine with a linear kernel has proved to be the most effective choice, just like in <ref type="bibr" coords="7,339.97,622.47,15.27,8.64" target="#b11">[12]</ref>. In order to enable multi-class classification different strategies were considered out of which the best results were achieved with a One vs. One approach. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>POS Component</head><p>In the POS component, n-grams were also generated in a first step, but only on the token level (no character n-grams were used). The use of n-grams was chosen to allow the classifier to at least fundamentally analyze the information which lies in the sequence of the data. Inspired by the text component, latent semantic analysis was also experimented with but showed no improvement in accuracy. Interestingly, in contrast to the text component, the accuracy increased when using logistic regression over a support vector machine. Hence the final version uses it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Probability Calibration</head><p>In <ref type="bibr" coords="8,145.11,349.28,16.60,8.64" target="#b27">[28]</ref> Platt et al. explain that "Posterior probabilities are also required when a classifier is making a small part of an overall decision, and the classification outputs must be combined for the overall decision." <ref type="bibr" coords="8,278.68,373.19,15.27,8.64" target="#b27">[28]</ref>. He continues to point out that support vector machines output an uncalibrated value which is not a probability. The ensemble of the proposed model uses a meta-classifier with a soft-voting approach, which means that it receives as input class-probabilities instead of hard labels. Therefore the SVMcalssifier must be calibrated, as opposed to the logistic regression classifier of the POScomponent, which according to Niculescu-Mizil and Caruan <ref type="bibr" coords="8,376.11,432.97,16.60,8.64" target="#b28">[29]</ref> already predicts wellcalibrated probabilities. The calibration of the SVM was performed over the holdout set of 3 folds; this step was directly included in the training process. In Figure <ref type="figure" coords="8,441.33,456.88,4.98,8.64" target="#fig_3">4</ref> one can see the reliability curve and the effect of calibration on the SVM-classifier.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Evaluation</head><p>This section presents and evaluates the results that the proposed model was able to achieve on both the training and the test data. Special attention will be paid to the performance of the POS-component and the differences between the Spanish and English parts of the data-set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Results on the Training Data</head><p>In accordance with <ref type="bibr" coords="8,212.25,610.30,16.60,8.64" target="#b11">[12]</ref> 60% of the PAN training data was used to train the models, and 40 % was used to evaluate them. In addition, 10-fold cross-validation was employed during training. The following models were evaluated on the training data:   <ref type="table" coords="9,271.57,500.75,3.74,8.64" target="#tab_0">1</ref>, which lists the mean accuracies for each examined model for English and Spanish, it is noticeable that although a wide range of features has been considered, the differences are all below 2%. Nevertheless, the combination of hashtag-segmentation and POS classification leads to a measurable improvement in the overall result.</p><p>Both hashtags and POS n-grams have a higher influence on the English part of the data-set. The hashtags in the English part improve the accuracy from 92.6% to 94.4%, whereas the accuracy in the Spanish part increases from 90.2% to 91.4%. The differences for the POS component are even more pronounced. Looking at the differences when adding the POS component, it can be seen that the increase in precision in the English part is 0.5%, whereas in the Spanish part it is only 0.1%. Table <ref type="table" coords="9,432.09,620.30,4.98,8.64">2</ref> shows the results with respect to precision for the final model on the training data by language and class, here it shows, that the difference between class bot and gender for the Spanish part is 5% higher than for the English part: Considered in isolation, with a mean accuracy of 81.3 % for Spanish, the POS component has a significantly lower accuracy than the text component, but it improves the overall result when used in an ensemble. The results for precision, recall, and F1-Score of the POS-component can be seen in Table <ref type="table" coords="10,336.78,155.18,4.98,8.64" target="#tab_1">3</ref> Since a One vs. One approach was chosen to implement the multiclass-classification, each of the three classes bot/female/male has its own instance per component. The confusion matrix in Figure <ref type="figure" coords="10,228.41,191.04,4.98,8.64" target="#fig_4">5</ref> now shows that in both languages the number of bots wrongly classified as men was much higher than the number of bots classified as women. In English 10 women compared to 15 men, and in Spanish even 4 women compared to 20 men.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Results on the Test Data</head><p>In order to evaluate the proposed model on the official test data set, it was first trained on the entire training data and in a second step evaluated on the test data. The results are listed in Table <ref type="table" coords="10,208.12,293.21,3.88,8.64" target="#tab_2">4</ref>:</p><p>What is particularly noteworthy about the results on the test data are the significant differences between English and Spanish. The fact that the model achieved better results on the English data-set could already be observed during training but was amplified on the test data-set. Where on the training data-set the accuracy for Spanish was 84.5% for the gender classification task compared to 89.5% for English, on the test data-set, it became 71.2% for Spanish compared to 84% for English.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>1. Syntactic structure: It has been shown that it is possible to use POS-tags to classify Tweets based on their syntactic structure, which means classification is possible without any information about the actual content of a text. In addition, it was determined during the evaluation that these features are suitable to improve the accuracy of a system which until now has only classified on the basis of words. 2. Hashtags: The results presented as part of the evaluation show that it is possible to improve accuracy when classifying, by segmenting the hashtags contained in the Tweets into individual tokens/words and replacing them with the original hashtag. It has also been shown that the approach presented, using word-frequency lists and the Viterbi algorithm to perform this segmentation is feasible. However, it was not possible to determine what caused the large differences in accuracy between Spanish and English. A possible explanation for this are the different corpora used to train the Tokenizer/POS taggers in English and Spanish, and the respective word-frequency lists. Although López-Santillán et al. do not use tf-idf vectors, but embeddings of POS tags as features <ref type="bibr" coords="10,294.30,584.16,15.27,8.64" target="#b17">[18]</ref>, it is interesting that they also report lower accuracies for Spanish than English.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Outlook</head><p>It would be interesting to investigate to what extent longer sequences enable an improvement in accuracy using an algorithm that is able to better address the relationship between the individual elements. The use of LSTM or GRU networks would be conceivable here. This would be a further step towards a model that can classify text independent of content.</p><p>In the proposed model, the tokens obtained by segmenting the hashtags were treated exactly the same as other tokens. It should be examined whether a further improvement in accuracy could be achieved through a different weighting scheme of the tokens obtained from the hashtag segmentation.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,239.89,187.20,135.58,8.12;4,163.68,113.61,287.99,58.86"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Components of the Pipeline</figDesc><graphic coords="4,163.68,113.61,287.99,58.86" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,240.77,177.92,133.82,8.12"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Feature Extraction Pipeline</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="7,249.60,213.59,116.15,8.12;7,163.68,101.65,287.98,97.21"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Classification Pipeline</figDesc><graphic coords="7,163.68,101.65,287.98,97.21" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="8,257.14,203.56,101.07,8.12;8,235.68,80.82,144.00,108.00"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Reliability Curves</figDesc><graphic coords="8,235.68,80.82,144.00,108.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="9,257.82,420.76,99.71,8.12;9,163.68,290.82,288.00,115.20"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Confusion Matrix</figDesc><graphic coords="9,163.68,290.82,288.00,115.20" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="9,147.03,115.83,333.56,63.21"><head>Table 1 .</head><label>1</label><figDesc>Model Comparison on Training Data</figDesc><table coords="9,147.03,115.98,333.56,63.06"><row><cell></cell><cell></cell><cell></cell><cell cols="2">Table 2. Final Model on</cell></row><row><cell></cell><cell></cell><cell></cell><cell cols="2">Training Data</cell></row><row><cell>Model</cell><cell>Features</cell><cell>En Es</cell><cell></cell></row><row><cell cols="2">Text Component N-Grams</cell><cell>0.926 0.902</cell><cell></cell><cell>En</cell><cell>Es</cell></row><row><cell cols="2">Text Component N-Grams, Hashtags</cell><cell>0.944 0.914</cell><cell>Bot</cell><cell>1.00 0.99</cell></row><row><cell>Ensemble</cell><cell cols="2">N-Grams, Hashtags, POS-tags 0.950 0.915</cell><cell cols="2">Gender 0.89 0.84</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="9,159.67,202.97,192.27,63.07"><head>Table 3 .</head><label>3</label><figDesc>POS-Component on Training Data</figDesc><table coords="9,159.67,224.89,192.27,41.15"><row><cell></cell><cell cols="2">Precision</cell><cell>Recall</cell><cell></cell><cell cols="2">F1-Score</cell></row><row><cell></cell><cell>En</cell><cell>Es</cell><cell>En</cell><cell>Es</cell><cell>En</cell><cell>Es</cell></row><row><cell>Bot</cell><cell cols="6">0.96 0.94 0.96 0.93 0.96 0.93</cell></row><row><cell cols="7">Gender 0.70 0.68 0.71 0.69 0.71 0.69</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="9,376.84,203.90,103.75,61.21"><head>Table 4 .</head><label>4</label><figDesc>Final Model on Test Data</figDesc><table coords="9,383.39,234.92,90.65,30.19"><row><cell></cell><cell>En</cell><cell>Es</cell></row><row><cell>Bot</cell><cell cols="2">0.935 0.792</cell></row><row><cell cols="3">Gender 0.840 0.712</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="8">Acknowledgements</head><p>I would like to express my very great appreciation to <rs type="person">Prof. Dr. Martin Braschler</rs> for his valuable and constructive contribution to the planning and development of this paper. His feedback as a supervisor has always been of great value to me.</p><p>I would also like to thank <rs type="person">Saman Daneshvar</rs> for providing the source code of his model, which allowed me to focus on my research questions.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="11,142.61,326.19,331.60,7.77;11,150.95,336.80,297.86,8.12" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="11,434.63,326.19,39.59,7.77;11,150.95,337.15,141.78,7.77">The spread of low-credibility content by social bots</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Shao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L</forename><surname>Ciampaglia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">C</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,299.40,337.15,85.92,7.77">Nature communications</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4787</biblScope>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,348.11,321.74,7.77;11,150.95,358.72,264.64,8.12" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="11,269.75,348.11,194.60,7.77;11,150.95,359.06,114.83,7.77">Less than you think: Prevalence and predictors of fake news dissemination on facebook</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Guess</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Nagler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Tucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,272.91,359.06,62.76,7.77">Science advances</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4586</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,370.02,334.87,7.77;11,150.95,380.98,311.21,7.77;11,150.95,391.94,70.87,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="11,324.81,370.02,152.67,7.77;11,150.95,380.98,28.58,7.77">Who is tweeting on twitter: human, bot, or cyborg?</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Chu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gianvecchio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Jajodia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,194.97,380.98,263.41,7.77">Proceedings of the 26th annual computer security applications conference</title>
+		<meeting>the 26th annual computer security applications conference</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="21" to="30" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,402.90,324.57,7.77;11,150.95,413.86,315.06,7.77;11,150.95,424.82,196.11,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="11,395.57,402.90,71.61,7.77;11,150.95,413.86,272.57,7.77">Overview of the 6th author profiling task at pan 2018: multimodal gender identification in twitter</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Montes-Y Gómez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="s" coord="11,442.10,413.86,23.91,7.77;11,150.95,424.82,108.11,7.77">CEUR Workshop Proceedings, CEUR</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,435.78,337.13,7.77;11,150.95,446.74,318.52,7.77;11,150.95,457.69,300.36,7.77;11,150.95,468.65,64.49,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="11,408.13,435.78,71.61,7.77;11,150.95,446.74,211.87,7.77">Overview of the 7th author profiling task at pan 2019: Bots and gender profiling</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Losada</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="s" coord="11,255.19,457.69,134.27,7.77">CEUR Workshop Proceedings, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019-09">September 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,479.61,312.25,7.77;11,150.95,490.57,301.85,7.77;11,150.95,501.53,316.87,7.77;11,150.95,512.49,319.86,7.77;11,150.95,523.45,322.38,7.77;11,150.95,534.41,289.25,7.77;11,150.95,545.37,64.49,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="11,150.95,501.53,316.87,7.77;11,150.95,512.49,140.81,7.77">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,406.60,523.45,66.74,7.77;11,150.95,534.41,252.27,7.77">Proceedings of the Tenth International Conference of the CLEF Association (CLEF 2019)</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF 2019)</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">September 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,556.32,336.02,7.77;11,150.95,567.28,305.42,7.77;11,150.95,578.24,210.01,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="11,334.85,556.32,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,255.80,567.28,200.58,7.77;11,150.95,578.24,144.92,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,589.20,337.29,7.77;11,150.95,600.16,302.69,7.77;11,150.95,611.12,308.91,7.77;11,150.95,622.08,57.53,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="11,360.84,589.20,119.06,7.77;11,150.95,600.16,173.88,7.77">A new approach to bot detection: striking the balance between precision and recall</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Morstatter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">H</forename><surname>Nazer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">M</forename><surname>Carley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,363.60,600.16,90.04,7.77;11,150.95,611.12,282.05,7.77">IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016">2016. 2016</date>
+			<biblScope unit="page" from="533" to="540" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,142.61,633.04,331.39,7.77;11,150.95,644.00,326.94,7.77;11,150.95,654.95,31.38,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="11,245.09,633.04,191.52,7.77">Behavior enhanced deep bot detection in social media</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zengi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,456.07,633.04,17.93,7.77;11,150.95,644.00,275.94,7.77">2017 IEEE International Conference on Intelligence and Security Informatics (ISI)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="128" to="130" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,119.96,336.11,7.77;12,150.95,130.92,269.82,7.77" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Basile</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Dwyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Medvedeva</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Rawee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Haagsma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Nissim</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1707.03764</idno>
+		<title level="m" coord="12,429.02,119.96,49.32,7.77;12,150.95,130.92,117.99,7.77">N-gram: New groningen author-profiling model</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="12,142.24,141.01,320.18,7.77;12,150.95,151.97,329.64,7.77;12,150.95,162.93,70.98,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="12,431.55,141.01,30.86,7.77;12,150.95,151.97,242.96,7.77">Text and image synergy with feature cross technique for gender identification</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Takahashi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Tahara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Nagatani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Miura</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Taniguchi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Ohkuma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,400.35,151.97,80.25,7.77;12,150.95,162.93,44.83,7.77">Working Notes Papers of the CLEF</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,173.02,313.43,7.77;12,150.95,183.98,325.24,7.77;12,150.95,194.94,23.90,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="12,248.72,173.02,190.70,7.77">Gender identification in twitter using n-grams and lsa</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Daneshvar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Inkpen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,150.95,183.98,299.84,7.77">Proceedings of the Ninth International Conference of the CLEF Association (CLEF</title>
+		<meeting>the Ninth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,205.03,330.27,7.77;12,150.95,215.99,320.52,7.77;12,150.95,226.95,312.18,7.77;12,150.95,237.91,76.46,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="12,150.95,215.99,320.52,7.77;12,150.95,226.95,20.05,7.77">Gender identification through multi-modal tweet analysis using microtc and bag of visual words</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">S</forename><surname>Tellez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Miranda-Jiménez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Moctezuma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Graff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Salgado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ortiz-Bejar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,190.45,226.95,272.69,7.77">Proceedings of the Ninth International Conference of the CLEF Association</title>
+		<meeting>the Ninth International Conference of the CLEF Association<address><addrLine>CLEF</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,248.00,325.73,7.77;12,150.95,258.61,106.59,8.12" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="12,298.01,248.00,100.04,7.77">Segmenting twitter hashtags</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Reuter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pereira-Martins</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kalita</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,404.96,248.00,63.01,7.77;12,150.95,258.96,63.27,7.77">Intl. J. on Natural Lang. Computing</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,269.06,319.84,7.77;12,150.95,280.01,299.32,7.77;12,150.95,290.97,31.38,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="12,244.93,269.06,131.30,7.77">Processing and normalizing hashtags</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Declerck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lendvai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,395.34,269.06,66.74,7.77;12,150.95,280.01,269.44,7.77">Proceedings of the International Conference Recent Advances in Natural Language Processing</title>
+		<meeting>the International Conference Recent Advances in Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="104" to="109" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,301.07,326.94,7.77;12,150.95,312.03,322.91,7.77;12,150.95,322.98,157.52,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="12,313.89,301.07,155.29,7.77;12,150.95,312.03,224.00,7.77">Overview of the 5th author profiling task at pan 2017: Gender and language variety identification in twitter</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,393.53,312.03,80.33,7.77;12,150.95,322.98,41.67,7.77">Working Notes Papers of the CLEF</title>
+		<title level="s" coord="12,199.55,322.98,48.17,7.77">CEUR, CEUR</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,333.08,322.11,7.77;12,150.95,344.04,228.40,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="12,325.02,333.08,139.33,7.77;12,150.95,344.04,96.62,7.77">Pan 2017: Author profiling-gender and language variety prediction</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Martinc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Skrjanec</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Zupan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Pollak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,266.51,344.04,82.96,7.77">CLEF (Working Notes)</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,354.13,308.78,7.77;12,150.95,365.09,324.49,7.77;12,150.95,376.05,325.24,7.77;12,150.95,387.01,23.90,7.77" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="12,385.51,354.13,65.51,7.77;12,150.95,365.09,307.97,7.77">Custom document embeddings via the centroids method: Gender classification in an author profiling task</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>López-Santillán</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gonzalez-Gurrola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Ramfrez-Alonso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,150.95,376.05,299.84,7.77">Proceedings of the Ninth International Conference of the CLEF Association (CLEF</title>
+		<meeting>the Ninth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,397.10,309.53,7.77;12,150.95,408.06,314.28,7.77;12,150.95,419.02,322.26,7.77;12,150.95,429.98,31.38,7.77" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="12,308.54,397.10,143.22,7.77;12,150.95,408.06,107.79,7.77">A low dimensionality representation for language variety identification</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Franco-Salvador</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,277.48,408.06,187.76,7.77;12,150.95,419.02,258.99,7.77">Proceedings of the 17th International Conference on Intelligent Text Processing and Computational Linguistics (CICLing&apos;16)</title>
+		<meeting>the 17th International Conference on Intelligent Text Processing and Computational Linguistics (CICLing&apos;16)</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="156" to="169" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,440.07,336.30,7.77;12,150.95,451.03,295.34,7.77;12,150.95,461.99,297.83,7.77;12,150.95,472.94,107.08,7.77" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="12,253.31,440.07,225.23,7.77;12,150.95,451.03,25.06,7.77">An improved non-monotonic transition system for dependency parsing</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,195.02,451.03,251.27,7.77;12,150.95,461.99,74.95,7.77">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2015-09">September 2015</date>
+			<biblScope unit="page" from="1373" to="1378" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,483.04,245.17,7.77;12,150.95,494.00,95.43,7.77" xml:id="b20">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<ptr target="https://spacy.io/models/en" />
+		<title level="m" coord="12,249.32,483.04,138.09,7.77">English • spacy models documentation</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,504.09,246.17,7.77;12,150.95,515.05,94.43,7.77" xml:id="b21">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<ptr target="https://spacy.io/models/es" />
+		<title level="m" coord="12,249.32,504.09,139.09,7.77">Spanish • spacy models documentation</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,525.14,336.61,7.77;12,150.95,535.75,270.68,8.12" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="12,194.73,525.14,284.12,7.77;12,150.95,536.10,33.40,7.77">Error bounds for convolutional codes and an asymptotically optimum decoding algorithm</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Viterbi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,191.29,536.10,148.91,7.77">IEEE transactions on Information Theory</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="260" to="269" />
+			<date type="published" when="1967">1967</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,546.19,189.70,7.77;12,150.95,557.15,155.75,7.77" xml:id="b23">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Bacon</surname></persName>
+		</author>
+		<ptr target="http://stackoverflow.com/a/481773/554406" />
+		<title level="m" coord="12,192.78,546.19,139.16,7.77">How can i split multiple joined words?</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,566.90,312.91,8.12" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="12,203.14,567.24,75.23,7.77">The viterbi algorithm</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">D</forename><surname>Forney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,285.31,567.24,88.40,7.77">Proceedings of the IEEE</title>
+		<imprint>
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="268" to="278" />
+			<date type="published" when="1973">1973</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,577.34,332.59,7.77;12,150.95,588.30,83.67,7.77" xml:id="b25">
+	<monogr>
+		<title level="m" type="main" coord="12,242.53,577.34,232.29,7.77;12,150.95,588.30,53.33,7.77">Opensubtitles2016: Extracting large parallel corpora from movie and tv subtitles</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Tiedemann</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,598.39,206.21,7.77" xml:id="b26">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Flennerhag</surname></persName>
+		</author>
+		<ptr target="http://ml-ensemble.com/" />
+		<title level="m" coord="12,208.72,598.39,47.32,7.77">Ml-ensemble</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,608.48,311.42,7.77;12,150.95,619.09,318.72,8.12" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="12,205.24,608.48,248.41,7.77;12,150.95,619.44,109.51,7.77">Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Platt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,267.77,619.44,129.44,7.77">Advances in large margin classifiers</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="61" to="74" />
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,629.53,329.72,7.77;12,150.95,640.49,315.39,7.77;12,150.95,651.45,31.38,7.77" xml:id="b28">
+	<analytic>
+		<title level="a" type="main" coord="12,275.21,629.53,193.24,7.77">Predicting good probabilities with supervised learning</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Niculescu-Mizil</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Caruana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,163.16,640.49,251.22,7.77">Proceedings of the 22nd international conference on Machine learning</title>
+		<meeting>the 22nd international conference on Machine learning</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="625" to="632" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

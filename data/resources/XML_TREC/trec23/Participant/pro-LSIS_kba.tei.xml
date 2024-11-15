@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,72.48,62.03,431.05,12.90">Use of Time-Aware Language Model in Entity Driven Filtering System</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,150.55,87.93,82.91,10.75"><forename type="first">Vincent</forename><surname>Bouvier</surname></persName>
+							<email>vincent.bouvier@kware.fr</email>
+							<affiliation key="aff0">
+								<orgName type="department">Kware / Aix-Marseille</orgName>
+								<orgName type="laboratory">LSIS UMR</orgName>
+								<orgName type="institution">Université CNRS</orgName>
+								<address>
+									<addrLine>7296 Domaine universitaire de Saint Jérôme Avenue Escadrille Normandie</addrLine>
+									<postCode>13397</postCode>
+									<settlement>Niemen, MARSEILLE Cedex 20</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,349.37,87.93,69.27,10.75"><forename type="first">Patrice</forename><surname>Bellot</surname></persName>
+							<email>patrice.bellot@lsis.org</email>
+							<affiliation key="aff1">
+								<orgName type="department">Aix-Marseille</orgName>
+								<orgName type="laboratory">LSIS UMR</orgName>
+								<orgName type="institution">Université CNRS</orgName>
+								<address>
+									<addrLine>7296 Domaine universitaire de Saint Jérôme Avenue Escadrille Normandie</addrLine>
+									<postCode>13397</postCode>
+									<settlement>Niemen, MARSEILLE Cedex 20</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,72.48,62.03,431.05,12.90">Use of Time-Aware Language Model in Entity Driven Filtering System</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">8DDAF3E60DCF9BBD555E930CD0DBBE87</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:08+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Tracking entities, so that new or important information about that entities are caught, is a real challenge and has many applications (e.g., information monitoring, marketing,...). We are interesting in how to represent an entity profile to fulfill two purposes: 1. entity detection and disambiguation, 2. novelty and importance quantification. We propose an entity profile, which uses two language models. First, the Reference Language Model (RLM), which is mainly used for disambiguation. Second, we propose a formalization of a Time-Aware Language Model, which is used for novelty detection. To rank documents, we propose a semi-supervised classification approach which uses meta-features computed on documents using entity profiles and time series.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This article introduces the system for the Knowledge Base Acceleration (KBA) track from Text REtrieval Conference (TREC). This challenging task started in 2012 to answer a need in Information Retrieval. Many documents appear everyday on the Web. Finding relevant documents about a topic may be a difficult task depending on the definition of relevancy. The KBA track focuses on filtering documents that are centered on a topic while ranking them according to whether the documents carry important or additional information about the topic. <ref type="bibr" coords="1,81.96,603.60,78.76,8.64" target="#b8">(Frank et al., 2012)</ref> showed that the time lag between the publication date of cited news articles and the date the news is actually written onto the concerned Wikipedia article can be really big (median 356 days) especially for non-popular entities. A possible application is to use highly ranked documents as suggestions for contributor of Wikipedia.</p><p>The KBA track is divided in two tasks: CCR (Cumulative Citation Recommendation) and SSF <ref type="bibr" coords="1,296.50,205.30,96.56,8.64">(Streaming Slot Filling)</ref>. CCR task is to filter out documents worth citing in a profile of an entity (e.g., Wikipedia or freebase article). SSF task is to detect changes on the given slots for each of the target entities. This article focuses only on CCR task.</p><p>In CCR task, the system is to filter out, from a stream, the documents relative to target entities. The system must also be able to give the usefulness of a document ranked using one of those 4 relevance classes:</p><p>-garbage: no information about target entity; -neutral: informative but not citable; -useful: bio, primary or secondary source useful when creating a profile from scratch; -vital: timely info about the entity's current state, actions, or situation.</p><p>The stream-corpus contains timestamped documents crawled from newswires, blogs, forums, reviews,. . . . The stream corpus must be processed in chronological order in order to perform real life filtering simulation. In addition, the documents relevancy assessment must be performed as soon as the document appears on the stream. A decision cannot be postponed. Each year a set of entities is selected by organizers and a set of documents is annotated according to the selected entities. In 2014, about 30,000 documents have been annotated (8,000 can be used for training purposes).</p><p>Our approach uses semi-supervised build entity profile, time series analysis to compute a set of metafeatures for each documents. The meta-features are used in a classification system to determine the class of the documents among garbage, neutral, useful and vital. In the remaining of this article we detail the whole concept around entity profile, then we describe the different meta-features used in the classification system. We then detail the different strategies we adopt. We eventually discuss about our experiments onto the KBA framework and the results from the official and unofficial KBA submissions. Unofficial KBA submissions comes from experiments run after the official submission deadline.</p><p>The term entity describes a single and unique representation of a person, an organization, music band,. . . . Documents refer to entities using their surface form names. An entity may have several surface form names (e.g., Tim Cook, the Apple CEO,...). In addition, one surface form may be used for several entities (e.g., Boris Berezovsky the business man or the pianist). Such ambiguous entities are called homonymous. We propose a filtering system based on two steps filtering method for each document: 1. keep the document only if an occurrence of a surface form is found in it; 2. give a class to the document for each entity detected in step 1. We propose an approach that uses entity profiles as well as a classification system to perform those two steps.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Detecting entities within documents</head><p>The first step of the filtering system is aimed to find documents that contain an occurrence of the entity. <ref type="bibr" coords="2,90.12,310.32,68.91,8.64" target="#b6">(Cucerzan, 2007)</ref> propose an approach that uses Wikipedia to build an entity profile. Given the entity dedicated Wikipedia Page, the method consists in using heuristics and knowledge base graph exploration to extract: a language model, a list of relations (all entities having a connection to the entity dedicated Wikipedia Page) and a list of surface form names.</p><p>The most intuitive way to detect an entity within a document is to find occurrences of any surface form. We propose heuristics to automatically build patterns out of surface form names. Those heuristics are aimed to detect acronyms and middle names. We use the notation [ ] to surround optional words. We use * to announce that the word is incomplete. We use this notation in addition to the <ref type="bibr" coords="2,236.06,505.97,43.43,8.64;2,72.00,517.92,23.24,8.64" target="#b6">(Cucerzan, 2007)</ref> approach to search for surface forms within the Wikipedia page centered on the entity. For instance, the system can now detect that B.N.S.F. railway stands for Burlington Northern Santa Fe railway.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Language Models in Entity Profile</head><p>One main aim of the entity profile is to help in entity disambiguation. <ref type="bibr" coords="2,141.19,615.66,62.14,8.64" target="#b11">(Navigli, 2009)</ref> shows that having a context, in which a word occurs in, helps in word sense disambiguation. The same observation can be transferred to entities. <ref type="bibr" coords="2,161.21,651.52,118.30,8.64" target="#b14">(Sehgal and Srinivasan, 2007)</ref> define an entity profile as a language model build using the top-n documents found on Google. Then, they compare the obtained result with the Wikipedia page corresponding to the entity and obtained good results. However, such method does not address the homonymous issue. <ref type="bibr" coords="2,306.47,85.21,56.13,8.64" target="#b7">(Efron, 2014)</ref> proposed a method to update the language model of an entity profile using documents ranked as relevant by their system. However, results were impacted badly. Indeed, updating the language model, which is used to describe the entity, may lead to a topic drift. To avoid the topic drift, we define an entity profile with two language models serving two different but essential purposes: -the Reference Language Model (RLM) gathers information aimed to help identifying the entity within documents. The language model is a unigram representation where each word is associated with a probability. To completely avoid the topic drift, a RLM must only be updated with manual inputs. In addition, approaches from <ref type="bibr" coords="2,414.42,252.59,68.71,8.64" target="#b6">(Cucerzan, 2007;</ref><ref type="bibr" coords="2,485.74,252.59,13.70,8.64;2,296.50,264.54,100.80,8.64" target="#b14">Sehgal and Srinivasan, 2007)</ref> can be used to easily build such model.</p><p>-the Time-Aware Language Model (TALM) catches a representation of current events that occurs for an entity. The language model is a unigram representation where each word is associated with a probability and a timestamp. Contrary to the RLM, the TALM is constantly updated using documents ranked as relevant to an entity. We use the time component and a sigmoid function to forget about information after a certain time laps. We think that two identical events can appear at different time laps and we want to be able to catch both of thus. Indeed the fact that an event is happening again after a period may infer that something important is happening for the entity about that particular event (e.g, someone's getting married several times).</p><p>3 Language Models formalization</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">The Reference Language Model</head><p>The RLM represents the knowledge on the entity. Tthose knowledge helps for entity disambiguation. We propose to use probabilities from the RLM to directly compare them to the document using distance, like the cosine similarity. The distance score indicates whether the context is similar to the one described in the RLM or not.</p><p>Let us define R as a set of documents such as</p><formula xml:id="formula_0" coords="2,296.50,608.14,207.50,9.65">[d 1 , ..., d n ∈ R]. Let tf (w i , d n ) the function that</formula><p>gives the number of occurrences of a word w i in a document d n . We define df (w i , R) the number of time a word w i occurs in the language model R such as:</p><formula xml:id="formula_1" coords="2,330.91,675.13,173.09,14.11">df (w i , R) = R n=0 tf (w i , d n ) (1)</formula><p>Let us define the functions len(d n ) the number of occurrences of each words [w 1 , ..., w i ] ∈ d n and len(R) the number of occurrences of each words [w 1 , ..., w i ] ∈ R such as:</p><formula xml:id="formula_2" coords="3,118.85,104.73,160.64,27.47">len(d n ) = dn i=0 tf (w i , d n ) len(R) = R n=0 len(d n ) (2)</formula><p>The normalized version of term frequency is referred to as the term probability. We then define:</p><formula xml:id="formula_3" coords="3,125.31,169.89,154.18,29.62">p(w i |d n ) = tf (wi,dn) len(dn) p(w i |R) = df (wi,R) len(R) (3)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">The Time-Aware Language Model</head><p>The Time-Aware Language Model (TALM) searches for novelty about an entity. The TALM aggregates information from documents being relevant for the entity. However gathering too much information may lead, at a certain point, to miss novelty. In addition, a Language Model with too many information in it may lead to a drift. We design the TALM so that it uses a time-aware function allowing it to smoothly forget old documents. A time-aware function gives a weight according to two events e 1 and e 2 having respectively a timestamp t e1 and t e2 with t e1 ≥ t e2 . We propose D a time-aware function that gives, to a word, less credit if it was seen a long time ago. The amount of time required to forget about an information is defined using a constant parameter λ as follows:</p><formula xml:id="formula_4" coords="3,80.72,431.97,188.77,56.30">∆ t = 1 λ * (t e1 -t e2 ) D(t e1 , t e1 ) =      1, if ∆ t &lt; 0 0, if ∆ t &gt; 1 1 1+e (ρ((∆ t )-0.5))</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>otherwise</head><p>(4) Let us define T A a time-aware language model made up of a set of timestamped documents such as [d1 → t d1 , ..., d n → t dn ] ∈ T A . We use A as an indicator that the function is using in time-aware context. Let us consider d c a new document having a timestamp t c . Let tf A (w i , d n , t c ) a function that computes the number of occurrences of words w i in a document d n while considering a time t c . We also define df A (wi, t c , R) the number of time a word w i occurs in T A as follows:</p><formula xml:id="formula_5" coords="3,79.08,636.84,193.34,26.08">tf A (w i , d n , t c ) = D(t c , t dn ).count(w i |d n ) df A (w i , T A , t c ) = D n=0 tf A (w i , d n , t c )</formula><p>(5) Considering a time t c , let us define the function len A (d n , t c ) the number occurrences of each words [w 1 , ..., w i ] ∈ d n . Let us define len A (T A , t c ) the number of occurrences of each words [w 1 , ..., w i ] ∈ T A as follows:</p><formula xml:id="formula_6" coords="3,309.25,103.59,194.75,27.47">len A (d n , t c ) = dn i=0 tf A (w i , d n , t c ) len A (T A , t c ) = D n=0 len A (d n , t c ) (6)</formula><p>Let us define N A (T A , t c ) the number of documents considered at time t c and idf A (w i , t, T A ) the inverse documents frequency as follows:</p><formula xml:id="formula_7" coords="3,307.56,198.17,196.44,29.46">N A (T A , t c ) = D n=1 D(t c , t dn ) idf A (w i , t, T A ) = log N A (t,T A )+1 df A (wi,t,T A )+0.5 (7)</formula><p>To define the term probability functions, we need to consider the time t wi corresponding to the last time the word w i has occurred in T A . We now define p A (w i , t wi , t c |d n ) and p( A w i , t wi , t c |T A ) the term probability functions as follows:</p><formula xml:id="formula_8" coords="3,301.49,319.22,225.99,42.98">p A (w i , t wi , t c |d n ) = D(t c , t wi ). tf (wi,dn) size(dn) p A (w i , t wi , t c |T A ) = D(t c , t wi ). D n=0 p(wi,twi,tc|dn) D n=0 D(tc,t dn ) (8)</formula><p>4 Documents classification using meta-features</p><p>In the previous year of KBA, many systems have been using meta-features within a classification system <ref type="bibr" coords="3,313.58,434.60,95.46,8.64">(Bonnefoy et al., 2013a;</ref><ref type="bibr" coords="3,411.29,434.60,92.70,8.64">Bonnefoy et al., 2013b;</ref><ref type="bibr" coords="3,296.50,446.56,72.36,8.64" target="#b1">Balog et al., 2013;</ref><ref type="bibr" coords="3,371.11,446.56,101.28,8.64" target="#b4">Bouvier and Bellot, 2014)</ref>. Those study show that some meta-features works better than others. We summarize in the following subsections the meta-features we have been using as well as the new features designed with our new entity profile representation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Entity Disambiguation meta-features</head><p>The entity related meta-features are aimed to quantify, using different measures, how a document is relevant to the entity. In the first filtering step, a document is selected using only the surface form names. However, an entity can be ambiguous and thus a document may contains occurrences of surface form names of an homonymous entities.</p><p>To ensure a document refers to the target entity, we use the context given by the entity profile to compute the following features: -The Cosine Similarity is computed using the term frequency tf (w i |V ) of words (9) -The Surface Forms Term Frequency measures the term frequency of each surface forms within the document and the title; -Entity Relations Term Frequency measures the term frequency of each relations by type of relations (incoming, outgoing, mutual) extracted from the knowledge graph from Wikipedia.</p><formula xml:id="formula_9" coords="3,417.23,675.11,47.88,9.65">w i ∈ d R</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Novelty and Importance meta-features</head><p>We propose to use the Time-Aware Language Model (TALM) we formalize in section 3.2 to catch novelty by using different known measures : -Jensen Shannon Divergence (JSD) computes divergence between two vectors. It uses a third vector M resulting from averaging the dot products of the two vectors to compare. Let us define a set of n words w i ∈ d T A considering TALM T A and a document d appearing at time t d , JSD can be written such as: wi|d)   p(wi|M)</p><formula xml:id="formula_10" coords="4,76.98,366.04,207.06,56.13">M = 1 2 * (d + T A ) JSD = 1 2 * n i p A (w i , t d |T A )log p A (wi,t d |T A ) p(wi|M) + 1 2 * n i p(w i |d)log p(</formula><p>(10) -Time-Aware Novelty Score given by <ref type="bibr" coords="4,236.16,435.94,43.34,8.64;4,72.00,447.90,36.51,8.64" target="#b9">(Karkali et al., 2014)</ref>. They have tested different approaches to measure novelty on real world dataset. The novelty score that outperforms others is computed using a smoothed version of the well known tf.idf weighting scheme with time components. We transcribe the equation so that we can use it with the TALM (equation 11).</p><p>Burst detection have been used in event detections or forcasting <ref type="bibr" coords="4,150.05,543.67,71.93,8.64" target="#b10">(Kleinberg, 2002;</ref><ref type="bibr" coords="4,225.99,543.67,53.50,8.64;4,72.00,555.62,22.69,8.64" target="#b13">Sakaki et al., 2010;</ref><ref type="bibr" coords="4,98.40,555.62,86.37,8.64" target="#b16">Weng and Lee, 2011)</ref>. It has been shown in <ref type="bibr" coords="4,72.00,567.58,90.74,8.64" target="#b0">(Amodeo et al., 2011;</ref><ref type="bibr" coords="4,166.88,567.58,74.69,8.64" target="#b12">Peetz et al., 2014;</ref><ref type="bibr" coords="4,245.72,567.58,33.78,8.64;4,72.00,579.53,38.11,8.64" target="#b15">Wang et al., 2007)</ref> that the relevancy of search results can be improved using timed information such as abnormal peaks (bursts) of queries in log files or of keywords or even documents related to an entity in a stream. There are diverse reasons to explain a burst. Figure <ref type="figure" coords="4,72.00,639.31,4.98,8.64" target="#fig_2">1</ref> shows a burst when an important event occurs concerning the entity BNSF Railway. The meta-features we propose to use for importance quantification are: -The Kleinberg Burst measures; -The Elastic Burst measures that uses wavelet trees to estimate burst strength; </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Experimental Setup</head><p>The Entity profiles are build as a pre-process step using a dump of Wikipedia from january 2012 in addition to the reference files provided for each entities. Thus, each entity have: -a Reference Language Model (RLM) initialized. The RLM can be empty if no reference file has been provided; -a set of relations (incoming, outgoing, mutual) found using Wikipedia knowledge graph exploration. In the case where no Wikipedia page were found for an entity, the set remains empty; -a set of surface forms found using heuristics from <ref type="bibr" coords="4,296.50,512.90,69.99,8.64" target="#b6">(Cucerzan, 2007)</ref> and the pattern recognition introduced in section 2.1; -an empty Time-Aware Language Model, which is filled while going through the stream-corpus.</p><p>Finally, each documents [d 1 , ..., d n ] ∈ S from the stream S is processed according to the two filtering steps:</p><p>1. The document d n contains an occurrence of a surface form from one or several entities. The document is evaluated for each entity detected in it. Otherwise, the document is not evaluated;</p><p>2. For each entity detected in the document d n , the meta-features are computed and the classification system output the relevancy of the document as well as a confidence score. The rel-</p><formula xml:id="formula_11" coords="5,116.83,59.16,387.17,17.31">N S A (d, t d , T A ) = 1 d i=0 tf A (wi,t,T A ) * d i=0 tf A (w i , t d , T A ).idf A (w i , t d , T A )<label>(11)</label></formula><p>evancy and the score is stored in the final run submissions.</p><p>We define different strategies to compute metafeatures. Indeed, each entity profile is made up of a TALM that has to be updated with documents. Documents may contain noise that we don't want to be reflected in the TALM. We use two different strategies to update the TALM: -Update with Document (UD): the TALM is updated with the full document; -Update with Snippet (US): the TALM is updated only with the paragraph that contains occurrences of the entity; -No Update (NU): the TALM (and the metafeatures associated to it) are not used in order to see if it brings any value to our system. For the classification system, we use a Random Forrest classifier with 50 trees. We designed four different classification strategies: -the first strategy, 2STEPS, considers the problem as a binary classification problem where we use two classifiers in cascade. The first one C GN/U V is to classify among two classes: Garbage/Neutral and Useful/Vital. For documents being classified as Useful/Vital a second classifier C U/V is used to determine the final output class between Useful and Vital; -the second strategy, SINGLE, performs directly a classification between the four classes; -the third strategy, VvsAll, trains a classifier on all documents considering only two classes vital and others (all classes but vital). When this classifier gives a nonvital class, the SINGLE method is used to determine another class among Garbage, Neutral and Useful;the last strategy, MULTI, uses scores emitted by all previous classifiers and learns the best output class considering all classifier's scores for every classes.</p><p>We submit 9 runs where each run explore a combination of update strategy combine with a classification strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Results analysis</head><p>We propose a two step filtering system where the first step is aimed to keep only documents having an occurrence of a surface form of at least one entity. To measure the performance of the first step we draw the table 1. Those results show that we obtain satisfactory performance since 87% of documents concerning the entities are found with only about 6% of error rate.</p><p>Found and in truth data:</p><p>87.10% Found and not in truth data:</p><p>5.90% Not found:</p><p>12.9% The second filtering step consists in giving a class to every documents kept from the first step. For the official submission, we designed 9 different strategies and we obtain the results summarized in table 2. The official measure is the f-measure (harmonic mean of precision and recall). We clearly see that getting satisfactory results for vital document is really difficult. However we obtain almost .80 of f-measure on filtering useful and vital documents. This means that our system is able to depict that a document is centered on an entity at a rate of 80%.</p><p>After the submission deadline we found a bug in our first filtering step. Some patterns were not working properly then some documents were missing. After running the system again, the first step performances have then increased. We obtained similar f-measure results for the step 2.</p><p>Found &amp; in truth data 98.95% +11.85% Found &amp; not in truth data 8.89% +2.99% Not found 1.05% -11.85% For many entities we have just a few information. We wanted to measure if performance could be in-Figure <ref type="figure" coords="6,118.98,299.59,3.88,8.64">2</ref>: Showing a burst of documents corresponding to an important news about BNSF Railway. crease with some more knowledge for all entities. We set a limit of 5 reference documents for each entities. Some already have reference documents given by KBA organizers. We add up to 5 useful documents from the training to each entity. We use the first 5 documents seen for each entity. By doing so, we upgrade the profile with more knowledge while still having a scalable system. We obtained the results summarized in table 4. As we can see performances have been widely increased for both useful and vital filtering. In order to observe the impact of each features on the classification, we look at the Variable Importance (VI) given by <ref type="bibr" coords="6,171.37,699.34,66.01,8.64" target="#b5">(Breiman, 2001)</ref>. The VI indicate how significant is a feature in classification decision by randomly changing the values associated to each feature (one at a time) and observing the out of bag error. We show from figure 2 that the Reference Language Model (RLM) and the Time-Aware Language Model (TALM) are among the top 5 important features. In addition, relations discovered on the Wikipedia page of the entity (OUT RELATIONS) are also very decisive. Finding known relation within a document helps discovering Vital information. On the negative side, we noticed that burst detection does not really helps in finding Vital information which is counter intuitive.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Systems</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Conclusion and Perspectives</head><p>To conclude, we present a filtering system based on two filtering steps. We demonstrate that the first step obtained very good results in documents preselection. We see that we obtain satisfactory results based on current KBA-Framework. We also show that the results could be widely increased when having more knowledge about an entity while still having a scalable system. Finally we discovered that the meta-features linked to the Reference Language Model and the Time-Aware Language Model were really useful in vital document classification.</p><p>We noticed that burst detection is not always a reliable clue depending on the entity. In the future, we will invest on whether some features correspond more to some entities than others to automatically choose the appropriate system.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,86.94,489.95,162.19,6.13;2,86.94,497.92,166.38,6.13"><head></head><label></label><figDesc>B.N.S.F. railway =&gt; B * N * S * F * railway Chad R. Kroeger =&gt; Chad [R * ] Kroeger</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,467.60,675.43,36.40,8.64;3,296.50,687.07,207.50,8.96;3,296.50,699.34,149.95,8.64;4,76.98,82.76,57.33,8.74;4,176.73,77.83,4.39,4.37;4,176.73,79.47,76.76,7.97;4,145.47,81.66,8.30,8.74;4,162.14,88.79,4.39,4.37;4,162.14,89.58,48.62,8.59;4,210.76,81.66,8.30,8.74;4,227.43,88.79,4.39,4.37;4,227.43,89.58,48.45,8.59"><head></head><label></label><figDesc>given the vector representation of the document d and the Reference Language Model (equation 9); cos(d, R) = n i=1 tf (wi|d).tf (wi|R)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,296.50,305.10,207.49,8.64;4,296.50,317.06,188.19,8.64;4,296.50,57.83,207.50,231.85"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Showing a burst of documents corresponding to an important news about BNSF Railway.</figDesc><graphic coords="4,296.50,57.83,207.50,231.85" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="6,146.27,57.83,283.48,226.33"><head></head><label></label><figDesc></figDesc><graphic coords="6,146.27,57.83,283.48,226.33" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,296.50,153.52,207.50,211.81"><head>Table 1 :</head><label>1</label><figDesc>First filtering step results</figDesc><table coords="5,296.50,175.57,207.50,189.77"><row><cell>Systems</cell><cell>NU</cell><cell cols="2">F-measure Vital UD US</cell></row><row><cell>MULTI</cell><cell cols="2">.321 .326</cell><cell>.316</cell></row><row><cell cols="3">SINGLE .252 .261</cell><cell>.290</cell></row><row><cell cols="3">2STEPS .248 .304</cell><cell>.292</cell></row><row><cell>VvsAll</cell><cell cols="2">.217 .224</cell><cell>.297</cell></row><row><cell></cell><cell cols="3">F-measure Vital+Useful</cell></row><row><cell>MULTI</cell><cell cols="2">.777 .783</cell><cell>.783</cell></row><row><cell cols="3">SINGLE .764 .779</cell><cell>.784</cell></row><row><cell cols="3">2STEPS .759 .771</cell><cell>.782</cell></row><row><cell>VvsAll</cell><cell cols="2">.690 .692</cell><cell>.720</cell></row><row><cell cols="4">Table 2: Scores obtained on our systems MULTI,</cell></row><row><cell cols="4">SINGLE, 2STEPS and VvsOthers with different set-</cell></row><row><cell cols="4">tings NO-UPD, UPD-DOC, UPD-SNPT for vital</cell></row><row><cell cols="3">and vital+useful classification</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,296.50,651.57,207.49,20.59"><head>Table 3 :</head><label>3</label><figDesc>First filtering step results with bug fixed on surface forms patterns</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,72.00,472.84,207.50,189.77"><head>Table 4 :</head><label>4</label><figDesc>Scores obtained on our systems MULTI, SINGLE, 2STEPS and VvsOthers with different settings NO-UPD, UPD-DOC, UPD-SNPT for vital and vital+useful classification</figDesc><table coords="6,100.18,472.84,151.14,132.16"><row><cell></cell><cell></cell><cell cols="2">F-measure Vital</cell></row><row><cell></cell><cell>NU</cell><cell>UD</cell><cell>US</cell></row><row><cell>MULTI</cell><cell cols="2">.387 .381</cell><cell>.364</cell></row><row><cell cols="3">SINGLE .346 .337</cell><cell>.307</cell></row><row><cell cols="3">2STEPS .351 .301</cell><cell>.315</cell></row><row><cell>VvsAll</cell><cell cols="2">.339 .327</cell><cell>.301</cell></row><row><cell></cell><cell cols="3">F-measure Vital+Useful</cell></row><row><cell>MULTI</cell><cell cols="2">.894 .895</cell><cell>.891</cell></row><row><cell cols="3">SINGLE .902 .892</cell><cell>.893</cell></row><row><cell cols="3">2STEPS .890 .889</cell><cell>.894</cell></row><row><cell>VvsAll</cell><cell cols="2">.895 .895</cell><cell>.891</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,72.00,80.33,207.49,8.64;7,81.96,91.29,197.53,8.64;7,81.96,102.07,197.54,8.82;7,81.96,113.03,197.53,8.59;7,81.96,123.99,197.53,8.59;7,81.96,134.94,160.77,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,180.77,91.29,98.72,8.64;7,81.96,102.25,63.22,8.64">On relevance, time and query expansion</title>
+		<author>
+			<persName coords=""><forename type="first">Giuseppe</forename><surname>Amodeo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Giambattista</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Giorgio</forename><surname>Gambosi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,163.49,102.07,116.01,8.59;7,81.96,113.03,197.53,8.59;7,81.96,123.99,83.21,8.59">Proceedings of the 20th ACM Conference on Information and Knowledge Management, CIKM 2011</title>
+		<meeting>the 20th ACM Conference on Information and Knowledge Management, CIKM 2011<address><addrLine>Glasgow, United Kingdom</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2011-10-24">2011. October 24-28, 2011</date>
+			<biblScope unit="page" from="1973" to="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,156.34,207.49,8.64;7,81.96,167.29,197.54,8.64;7,81.96,178.25,197.53,8.64;7,81.96,189.03,197.53,8.82;7,81.96,199.99,197.53,8.59;7,81.96,210.95,135.86,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,237.98,167.29,41.51,8.64;7,81.96,178.25,197.53,8.64;7,81.96,189.21,64.82,8.64">Multi-step classification approaches to cumulative citation recommendation</title>
+		<author>
+			<persName coords=""><forename type="first">Krisztian</forename><surname>Balog</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Heri</forename><surname>Ramampiaro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naimdjon</forename><surname>Takhirov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kjetil</forename><surname>Nørvåg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,168.84,189.03,110.65,8.59;7,81.96,199.99,120.89,8.59">Open research Areas in Information Retrieval, OAIR &apos;13</title>
+		<meeting><address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2013-05-15">2013. May 15-17, 2013</date>
+			<biblScope unit="page" from="121" to="128" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,232.34,207.50,8.64;7,81.96,243.30,197.53,8.64;7,81.96,254.08,197.54,8.82;7,81.96,265.04,197.53,8.59;7,81.96,276.18,76.10,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,159.65,243.30,119.84,8.64;7,81.96,254.26,89.42,8.64">Lsis/lia at trec 2012 knowledge base acceleration</title>
+		<author>
+			<persName coords=""><forename type="first">Ludovic</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vincent</forename><surname>Bouvier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrice</forename><surname>Bellot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,192.15,254.08,87.35,8.59;7,81.96,265.04,193.21,8.59">The Twenty-First Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="500" to="298" />
+		</imprint>
+	</monogr>
+	<note>TREC 2012) Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="7,72.00,297.39,207.50,8.64;7,81.96,308.35,197.53,8.64;7,81.96,319.13,197.53,8.82;7,81.96,330.09,197.53,8.59;7,81.96,341.05,197.53,8.59;7,81.96,352.01,197.53,8.59;7,81.96,363.14,89.81,8.64" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,144.57,308.35,134.92,8.64;7,81.96,319.31,143.17,8.64">A weakly-supervised detection of entity central documents in a stream</title>
+		<author>
+			<persName coords=""><forename type="first">Ludovic</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vincent</forename><surname>Bouvier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrice</forename><surname>Bellot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,244.22,319.13,35.28,8.59;7,81.96,330.09,197.53,8.59;7,81.96,341.05,197.53,8.59;7,81.96,352.01,11.83,8.59">The 36th International ACM SIGIR conference on research and development in Information Retrieval, SIGIR &apos;13</title>
+		<meeting><address><addrLine>Dublin, Ireland</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2013-07-28">2013. July 28 -August 01, 2013</date>
+			<biblScope unit="page" from="769" to="772" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,384.36,207.50,8.64;7,81.96,395.31,197.53,8.64;7,81.96,406.09,197.53,8.82;7,81.96,417.05,197.53,8.59;7,81.96,428.01,156.17,8.82" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,254.79,384.36,24.71,8.64;7,81.96,395.31,197.53,8.64;7,81.96,406.27,158.28,8.64">Filtering Entity Centric Documents using Profile Update and Random Forest Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Vincent</forename><surname>Bouvier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrice</forename><surname>Bellot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,264.55,406.09,14.94,8.59;7,81.96,417.05,197.53,8.59;7,81.96,428.01,73.26,8.59">The Twenty-Second Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="500" to="302" />
+		</imprint>
+	</monogr>
+	<note>TREC 2013) Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="7,72.00,449.22,207.50,8.82;7,81.96,460.18,88.28,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,168.83,449.40,63.36,8.64">Random forests</title>
+		<author>
+			<persName coords=""><forename type="first">Leo</forename><surname>Breiman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,244.79,449.22,34.71,8.59;7,81.96,460.18,34.69,8.59">Machine Learning</title>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="5" to="32" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,481.57,207.50,8.64;7,81.96,492.53,197.53,8.64;7,81.96,503.31,197.53,8.59;7,81.96,514.27,197.53,8.59;7,81.96,525.23,197.53,8.59;7,81.96,536.19,197.53,8.59;7,81.96,547.15,163.58,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,184.49,481.57,95.01,8.64;7,81.96,492.53,178.93,8.64">Large-scale named entity disambiguation based on wikipedia data</title>
+		<author>
+			<persName coords=""><forename type="first">Silviu</forename><surname>Cucerzan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,81.96,503.31,197.53,8.59;7,81.96,514.27,197.53,8.59;7,81.96,525.23,197.53,8.59;7,81.96,536.19,113.37,8.59">EMNLP-CoNLL 2007, Proceedings of the 2007 Joint Conference on Empirical Methods in Natural Language Processing and Computational Natural Language Learning</title>
+		<meeting><address><addrLine>Prague, Czech Republic</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2007-06-28">2007. June 28-30, 2007</date>
+			<biblScope unit="page" from="708" to="716" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,568.54,207.49,8.64;7,81.96,579.50,197.53,8.64;7,81.96,590.28,197.54,8.82;7,81.96,601.24,197.53,8.82;7,81.96,612.38,37.36,8.64" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,153.45,568.54,126.04,8.64;7,81.96,579.50,197.53,8.64;7,81.96,590.46,36.17,8.64">The university of illinois&apos; graduate school of library and information science at trec 2013</title>
+		<author>
+			<persName coords=""><forename type="first">Miles</forename><surname>Efron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,140.42,590.28,139.08,8.59;7,81.96,601.24,153.18,8.59">The Twenty-Second Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="500" to="302" />
+		</imprint>
+	</monogr>
+	<note>TREC 2013) Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="7,72.00,633.59,207.50,8.64;7,81.96,644.55,197.53,8.64;7,81.96,655.51,197.53,8.64;7,81.96,666.46,197.53,8.64;7,81.96,677.24,197.54,8.82;7,81.96,688.20,197.54,8.82;7,81.96,699.34,17.43,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,199.81,655.51,79.68,8.64;7,81.96,666.46,197.53,8.64;7,81.96,677.42,17.93,8.64">Building an entitycentric stream filtering test collection for trec 2012</title>
+		<author>
+			<persName coords=""><forename type="first">Max</forename><surname>John R Frank</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><forename type="middle">A</forename><surname>Kleiman-Weiner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Feng</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ce</forename><surname>Niu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Ré</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,119.15,677.24,160.35,8.59;7,81.96,688.20,127.95,8.59">The Twenty-First Text REtrieval Conference (TREC 2012) Proceedings</title>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="500" to="298" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,61.30,207.50,8.64;7,306.47,72.26,197.53,8.64;7,306.47,83.22,197.53,8.64;7,306.47,94.00,126.18,8.82" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="7,375.58,61.30,128.43,8.64;7,306.47,72.26,138.92,8.64;7,480.19,72.26,23.80,8.64;7,306.47,83.22,197.53,8.64;7,306.47,94.18,28.81,8.64">Franc ¸ois Rousseau, Alexandros Ntoulas, and Michalis Vazirgiannis</title>
+		<author>
+			<persName coords=""><forename type="first">Margarita</forename><surname>Karkali</surname></persName>
+		</author>
+		<idno>CoRR, abs/1401.1456</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note>Using temporal idf for efficient novelty detection in text streams</note>
+</biblStruct>
+
+<biblStruct coords="7,296.50,113.11,207.50,8.64;7,306.47,123.89,197.53,8.82;7,306.47,134.85,197.53,8.59;7,306.47,145.81,197.53,8.59;7,306.47,156.77,197.53,8.82;7,306.47,167.90,32.38,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,415.32,113.11,88.69,8.64;7,306.47,124.07,95.16,8.64">Bursty and hierarchical structure in streams</title>
+		<author>
+			<persName coords=""><forename type="first">Jon</forename><forename type="middle">M</forename><surname>Kleinberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,426.64,123.89,77.36,8.59;7,306.47,134.85,197.53,8.59;7,306.47,145.81,173.28,8.59">Proceedings of the Eighth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</title>
+		<meeting>the Eighth ACM SIGKDD International Conference on Knowledge Discovery and Data Mining<address><addrLine>Edmonton, Alberta, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2002-07-23">2002. July 23-26, 2002</date>
+			<biblScope unit="page" from="91" to="101" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,186.83,207.50,8.64;7,306.47,197.61,150.20,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,392.48,186.83,111.52,8.64;7,306.47,197.79,33.77,8.64">Word sense disambiguation: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">Roberto</forename><surname>Navigli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,347.84,197.61,78.51,8.59">ACM Comput. Surv</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,216.72,207.50,8.64;7,306.47,227.68,197.53,8.64;7,306.47,238.46,139.86,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,375.17,227.68,128.83,8.64;7,306.47,238.64,35.67,8.64">Using temporal bursts for query modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Maria-Hendrike</forename><surname>Peetz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Edgar</forename><surname>Meij</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maarten</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,350.18,238.46,33.43,8.59">Inf. Retr</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="74" to="108" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,257.57,207.50,8.64;7,306.47,268.53,197.53,8.64;7,306.47,279.49,197.53,8.64;7,306.47,290.27,197.53,8.59;7,306.47,301.22,197.53,8.82;7,306.47,312.36,113.18,8.64" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,368.16,268.53,135.84,8.64;7,306.47,279.49,177.31,8.64">Earthquake shakes twitter users: Real-time event detection by social sensors</title>
+		<author>
+			<persName coords=""><forename type="first">Takeshi</forename><surname>Sakaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Makoto</forename><surname>Okazaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yutaka</forename><surname>Matsuo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,306.47,290.27,197.53,8.59;7,306.47,301.22,127.69,8.82">Proceedings of the 19th International Conference on World Wide Web, WWW &apos;10</title>
+		<meeting>the 19th International Conference on World Wide Web, WWW &apos;10<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="851" to="860" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,331.29,207.50,8.64;7,306.47,342.07,197.53,8.82;7,306.47,351.90,197.53,12.20;7,306.47,366.47,197.53,8.59;7,306.47,377.43,197.53,8.59;7,306.47,388.39,137.16,8.59" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="7,332.53,342.25,103.36,8.64">Profiling topics on the web</title>
+		<author>
+			<persName coords=""><forename type="first">Aditya</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sehgal</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Padmini</forename><surname>Srinivasan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,454.65,342.07,49.35,8.59;7,306.47,351.90,197.53,12.20;7,306.47,366.47,197.53,8.59;7,306.47,377.43,197.53,8.59;7,306.47,388.39,14.46,8.59">Proceedings of the WWW2007 Workshop I 3 : Identity, Identifiers, Identification, Entity-Centric Approaches to Information and Knowledge Management on the Web</title>
+		<meeting>the WWW2007 Workshop I 3 : Identity, Identifiers, Identification, Entity-Centric Approaches to Information and Knowledge Management on the Web<address><addrLine>Banff, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2007-05-08">2007. May 8, 2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,407.50,207.50,8.64;7,306.47,418.46,197.53,8.64;7,306.47,429.42,197.53,8.64;7,306.47,440.20,197.53,8.59;7,306.47,451.16,197.53,8.59;7,306.47,462.11,197.53,8.59;7,306.47,473.07,115.66,8.82" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="7,403.75,418.46,100.24,8.64;7,306.47,429.42,178.56,8.64">Mining correlated bursty topic patterns from coordinated text streams</title>
+		<author>
+			<persName coords=""><forename type="first">Xuanhui</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiao</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Sproat</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,306.47,440.20,197.53,8.59;7,306.47,451.16,197.53,8.59;7,306.47,462.11,49.79,8.59">Proceedings of the 13th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</title>
+		<meeting>the 13th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining<address><addrLine>San Jose, California, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2007-08-12">2007. August 12-15, 2007</date>
+			<biblScope unit="page" from="784" to="793" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,296.50,492.18,207.50,8.64;7,306.47,502.96,197.53,8.82;7,306.47,513.92,197.53,8.59;7,306.47,524.88,188.01,8.59" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,454.53,492.18,49.47,8.64;7,306.47,503.14,51.57,8.64">Event detection in twitter</title>
+		<author>
+			<persName coords=""><forename type="first">Jianshu</forename><surname>Weng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bu-Sung</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,375.44,502.96,128.57,8.59;7,306.47,513.92,192.87,8.59">Proceedings of the Fifth International Conference on Weblogs and Social Media</title>
+		<meeting>the Fifth International Conference on Weblogs and Social Media<address><addrLine>Barcelona, Catalonia, Spain</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2011-07-17">2011. July 17-21, 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

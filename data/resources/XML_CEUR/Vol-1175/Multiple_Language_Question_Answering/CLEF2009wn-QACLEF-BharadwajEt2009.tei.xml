@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main"></title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A87AB0D9DEF7DC003C0BA64A7D40FC4B</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:21+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper talks about the system which we have submitted for the ResPubliQA task. We participated in building the QA system for en-en part. We followed a different method for each question type. In this paper we outline the methods which we adapted and the results which we obtained.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>HE main focus of QA is to gain the knowledge of the user's question and retrieve the sentences that are close to the answer. The ResPubliQA task expects the system to understand the question and retrieve the corresponding passage in the text which contains the answer. The architecture of our QA system is 1) Question Analysis 2) Passage retrieval and 3) Passage selection. Question analysis involves the classification of the question into pre-defined question types, extraction of query words and determining the answer type. Passage retrieval searches for passages in the document collection which are likely to contain the answer. Passage selection ranks the list of candidate answers to determine the final answer. First, we introduce the task, and then we describe the pre-processing we carried over the data in section 2. In section 3 we describe the approach which we have followed for answering the questions. Section 4 describes the results we obtained while section 5 presents the analysis and conclusion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">PREPROCESSING THE DATA</head><p>In ResPubliQA task, we are provided with the data that is delimited into passages and we are expected to return the passage that contains the answer. We are provided with both the question language and the target language in which the answers are to be present. The task is mainly directed towards cross language question answering. We participated in the  track with both source and destination languages as English. We indexed the data using Lucene, an open source search library. Lucene implements okapi BM25 retrieval model <ref type="bibr" coords="1,550.73,226.71,10.70,9.07" target="#b5">[6]</ref>. Using this search library we have built passage index, that is, each passage in a document is considered as a retrieval unit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">OUR APPROACH</head><p>Our QA system incorporates pipeline architecture as shown in figure <ref type="figure" coords="1,341.88,322.26,3.78,9.07" target="#fig_0">1</ref>. It consists of three core components: 1) Question analysis, 2) Passage retrieval and 3) Passage selection. The implementation details of all the three components are described below. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Question Analysis</head><p>In question analysis, we classified the given 95 questions into one of the pre-defined classes. The pre-defined question types or classes are Factoid, Definitive, Reason, Procedure, purpose. The classification is semi-automatic. As the question classes are fixed, by observation we identified patterns for each of the classes. The patterns for Factoid and Definitive are inter-related and hence we classified the questions under these categories into a single class FactDef which was later The methods followed for each of the question class which includes both passage retrieval and passage selection methodologies are described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Factoid</head><p>To answer a factoid question, first, we retrieve a set of relevant passages. So, a keyword query constructed by stripping of all the stop words and interrogative words (when, where, which etc.) in the question. This keyword query is given to Lucene to retrieve a ranked set of relevant passages.</p><p>From this set, one of the passages is given as the answer to a question. Our approach for selecting an answer containing passage is a two step process as described below.</p><p>1. Answer type: Using the answer type of a question, we identify a set of passages which contain answer candidates.</p><p>To obtain the answer type of a question, we have implemented a question classifier using support vector machines (SVM) <ref type="bibr" coords="2,223.27,604.09,10.73,9.07" target="#b2">[3]</ref>. The classifier was trained on UIUC <ref type="bibr" coords="2,178.15,616.81,11.76,9.07" target="#b1">[2]</ref> dataset which consists of 5,500 questions for training and 500 questions for testing. Every question in the dataset was labeled into a coarse grained and a fine grained category from a total number of 6 and 50 categories respectively. We have used the bag-of-words feature to predict the category, that is, the answer type of a question. The classifier showed an accuracy of 86.8%, when tested on 500 questions from the UIUC dataset under the coarse grained classification. And, an accuracy of 78.2% under fine grained classification. As the classification accuracy is higher for coarse grained classification and also because of the limitations of many NER systems to recognize fine grained named entity types in passages, only coarse answer type is used to identify passages with answer candidates. 2. Density: Tellex et al. <ref type="bibr" coords="2,443.83,142.45,11.85,9.07" target="#b4">[5]</ref> showed that density based measures work well for passage retrieval in QA. So, the passages resulting from the above step are then re-ranked based on the density of the question keywords in them. Density is defined as the average distance between the answer and question keywords in a passage. There are several ways to compute density. We adopt a simple formula as described in <ref type="bibr" coords="2,349.32,244.23,11.78,9.07" target="#b3">[4]</ref> to compute density of query terms in a passage.</p><p>Finally, among the re-ranked passages, the top ranked passage is produced as the answer given a question.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Definitive</head><p>We used answer patterns for definitive questions and used them for passage selection. The question focus or Qword are extracted by removing the stop words (a pre-compiled list) from the question.</p><p>The main answer patterns for definitive questions as given in <ref type="bibr" coords="2,313.32,409.40,11.76,9.07" target="#b0">[1]</ref> are (where A is the Qword and X is the expected answer) As our system does not need to extract the answer but to retrieve the passage, we modified the patterns and extended them by adding few more patterns like "Qword + means/ mean/ has/". So effectively the queries used to search the index are the modified queries which are formed by adding the answer patterns. We also queried the index by adding various versions of the modified query like "Qword means", Qword + means, "Qword, called" etc. This resulted in various results for each modified query. For identifying the correct answer, we performed various experiments like giving boost to results of a particular query, giving weight to each query and calculating the final weight of each result, performing various intersection and union operations for finding the final result on the development dataset. From these experiments, the one that gave most correct results was "prioritizing the search patterns and preserving that order while searching". The optimal priority order of search patterns is shown below. All the remaining questions, that is, questions from Reason, Procedure and Purpose types are answered naively by giving a top ranked passage, with a minimum length of N words, from the passage retrieval component as the answer. In our experiments on the development data, we have observed better results for N=25. So, we used the same value for finding the answer to the questions in test data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RESULTS</head><p>The </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSION</head><p>We described our participation in ResPubliQA task. We have developed a monolingual English QA system. Our system does not rely on any external knowledge resources or any complex information retrieval, information extraction and natural language processing techniques. Instead, it uses an effective combination of naive techniques from the above areas to achieve a decent performance. Our system analyses passages from passage retrieval output to identify the correct answer in the case of factoid and definition questions, whereas, the top ranked passage was produced as an answer for the remaining questions in the test set. The analysis method used for selecting the answer differs for factoid and definition questions.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="1,338.76,589.45,200.98,9.07"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Pipeline Architecture of our QA system</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,56.90,68.59,466.11,502.81"><head>Table 1 :</head><label>1</label><figDesc>Generic patterns in questions from different classesOut of the 46 questions in FactDef class, 27 questions are from factoid class and remaining 19 are from definitive class.</figDesc><table coords="1,56.90,354.71,19.21,28.30"><row><cell>T</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,46.82,159.25,250.43,213.84"><head></head><label></label><figDesc>So if we achieve result for the first query, then it is given as the final answer. If there are no results then we proceed to the next query. Finally if we have no results for any of the patterns, then the system doesn't answer the question.</figDesc><table coords="3,64.82,159.25,77.86,141.60"><row><cell>1. "Qword means"</cell></row><row><cell>2. "Qword mean"</cell></row><row><cell>3. "Qword is/are"</cell></row><row><cell>4. "Qword, called"</cell></row><row><cell>5. "called Qword"</cell></row><row><cell>6. "Qword was"</cell></row><row><cell>7. Qword</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="3,46.82,56.02,511.72,592.92"><head>Table 2 :</head><label>2</label><figDesc>Results for monolingual English ResPubliQA task</figDesc><table coords="3,46.82,519.82,252.06,129.12"><row><cell>test dataset for ResPubliQA task consists of a subset of</cell></row><row><cell>the JRC-ACQUIS Multilingual Parallel Corpus4, and 500</cell></row><row><cell>questions distributed over factoid, definitive, procedure,</cell></row><row><cell>reason and purpose classes. JRC-ACQUIS is a freely available</cell></row><row><cell>parallel corpus of European Union legal documents. It</cell></row><row><cell>comprises selected texts written between 1950 and 2006 with</cell></row><row><cell>parallel translation in 22 European languages. We used</cell></row><row><cell>English documents in the corpus. Out of the 500 questions in</cell></row><row><cell>all languages, we have answered 95 questions which are</cell></row><row><cell>categorized under monolingual English QA task. The results</cell></row><row><cell>of our system as provided by the CLEF are shown in table 2.</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,351.48,411.25,173.00,8.21;3,558.14,411.25,7.36,8.21;3,349.32,422.53,215.58,8.21;3,349.32,433.81,215.80,8.21;3,349.32,445.09,98.42,8.21" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="3,494.83,411.25,29.65,8.21;3,558.14,411.25,7.36,8.21;3,349.32,422.53,215.58,8.21;3,349.32,433.81,29.69,8.21">Patterns of Potential Answer Expressions as Clues to the Right Answers</title>
+		<author>
+			<persName coords=""><forename type="first">Soubbotin</forename><surname>Soubbotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Insightsoft-M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,401.81,433.81,163.31,8.21;3,349.32,445.09,70.90,8.21">Proceedings of the Tenth Text REtrieval Conference (TREC)</title>
+		<meeting>the Tenth Text REtrieval Conference (TREC)</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,350.76,467.19,186.42,8.21;3,349.32,477.99,132.17,8.21" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="3,504.35,467.19,32.83,8.21;3,349.32,477.99,69.04,8.21">Learning question classifiers</title>
+		<author>
+			<persName coords=""><forename type="first">Xin</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xin</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Roth</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="556" to="562" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,359.18,499.59,200.77,8.21;3,349.32,510.39,210.65,8.21;3,349.32,521.19,209.99,8.21;3,349.32,531.99,175.47,8.21" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,476.82,499.59,83.13,8.21;3,349.32,510.39,108.94,8.21">Question classification using support vector machines</title>
+		<author>
+			<persName coords=""><forename type="first">Dell</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lee</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wee</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,474.41,510.39,85.56,8.21;3,349.32,521.19,209.99,8.21;3,349.32,531.99,149.16,8.21">proceedings of the 26th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 26th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,343.56,553.62,220.06,8.21;3,349.32,564.42,213.40,8.21;3,349.32,575.22,203.03,8.21;3,349.32,586.02,173.72,8.21;3,349.32,597.06,190.71,8.21;3,349.32,608.10,73.80,8.21" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,539.34,564.42,23.38,8.21;3,349.32,575.22,203.03,8.21;3,349.32,586.02,159.25,8.21">SiteQ: Engineering high performance QA system using lexicosemantic pattern matching and shallow NLP</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">G</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Seo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B.-H</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B.-K</forename><surname>Kwak</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Cha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>An</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Kim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,349.32,597.06,190.71,8.21;3,349.32,608.10,46.87,8.21">Proceedings of the Tenth Text REtrieval Conference (TREC 2001)</title>
+		<meeting>the Tenth Text REtrieval Conference (TREC 2001)</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,343.56,629.72,210.12,8.21;3,349.32,640.52,215.80,8.21;3,349.32,651.32,210.07,8.21;3,349.32,662.12,211.95,8.21;3,349.32,672.92,209.71,8.21;3,349.32,683.72,90.22,8.21" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,468.42,640.52,96.70,8.21;3,349.32,651.32,196.19,8.21">Quantitative Evaluation of Passage Retrieval Algorithms for Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Stefanie</forename><surname>Tellex</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Boris</forename><surname>Katz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aaron</forename><surname>Fernandes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gregory</forename><surname>Marton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,349.32,662.12,211.95,8.21;3,349.32,672.92,209.71,8.21;3,349.32,683.72,63.29,8.21">Proceedings of the 26th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)</title>
+		<meeting>the 26th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)</meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,343.56,705.32,199.06,8.21;3,349.32,716.39,209.98,8.21;3,349.32,727.43,197.45,8.21" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,435.34,716.39,62.12,8.21">Okapi at TREC-4</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gatford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Payne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,514.27,716.39,45.03,8.21;3,349.32,727.43,170.23,8.21">Proceedings of the 4th Text REtrieval Conference (TREC-4)</title>
+		<meeting>the 4th Text REtrieval Conference (TREC-4)</meeting>
+		<imprint>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

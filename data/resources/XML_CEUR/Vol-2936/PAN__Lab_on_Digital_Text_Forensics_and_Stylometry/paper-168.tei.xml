@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,88.69,84.74,380.60,15.42">Author classification as pre-training for pairwise</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,154.90,92.76,11.96"><forename type="first">Romain</forename><surname>Futrzynski</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Peltarion</orgName>
+								<address>
+									<addrLine>Holländargatan 17</addrLine>
+									<postCode>111 60</postCode>
+									<settlement>Stockholm</settlement>
+									<country key="SE">Sweden</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,88.69,84.74,380.60,15.42">Author classification as pre-training for pairwise</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">7F7290ACCFA026EFA6041A5F7669834D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>BERT, similarity</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we propose to use a standard BERT model for the PAN 2021 Authorship Verification task where two texts must be determined to either have the same or different authors. The model is chiefly trained to classify short sequences of text as belonging to one of three thousand authors selected from the large training dataset. Additional tasks are also used simultaneously during training in order to capitalize on the information available, namely, a masked language model task, a fandom classification task, and an author-fandom separation task. To perform Authorship Verification, an embedding is extracted from the trained BERT model. In order to reduce the computational cost, only a short sample of text is processed by BERT, but the same text is sampled a hundred times at random locations, and the embeddings from each sample are reduced to a single representation using the median. The representations from two texts are compared by cosine similarity, which is rescaled empirically so that most of the ambiguous pairs lie on the 0.5 threshold. Evaluated on authors and topics absent from the training dataset, this model achieved F1=0.832 and AUC=0.798.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Authorship verification <ref type="bibr" coords="1,198.95,443.29,13.00,10.91" target="#b0">[1]</ref> is one of the shared tasks at PAN 2021 <ref type="bibr" coords="1,395.67,443.29,11.59,10.91" target="#b1">[2]</ref>. The purpose of this task is to determine whether or not two texts from a given pair were written by the same author, without any prior knowledge about the authors or the topics of the texts. The texts used for authorship verification are stories extracted from www.fanfiction.net happening within a fandom (i.e., a popular fictional universe such as Harry Potter, Twilight, True Blood), written by fans of this fandom. The particular fandom of a text is known during training, but it is not available to models during evaluation on the test set. Moreover, both the authors and fandoms included in the training set are different from those included in the test set.</p><p>The method proposed here is to train a standard BERT <ref type="bibr" coords="1,335.61,551.69,12.69,10.91" target="#b2">[3]</ref> model using an author classification task. Since the authors in the unseen test set are different from the authors available for training, the model cannot be used to directly identify specific authors. Instead, a representation of an input text, in the form of an embedding vector, is extracted from the model before its classification layer. By using a large number of authors during training, the model learns to produce representations of text that can be compared via cosine similarity to determine if they share the same author. In addition, the model is trained simultaneously on a masked language model task, a fandom classification task, and an author-fandom separation task in order to induce desirable properties in the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Dataset preprocessing</head><p>The dataset used for training is the large training set from the CLEF 2020 authorship verification task <ref type="bibr" coords="2,110.26,213.34,11.43,10.91" target="#b3">[4]</ref>. This dataset is composed of text pairs labeled with whether they were written by the same or different authors. An anonymous author identifier and the fandom are also provided for each text of the pair. In order to train the model using a classification task, the dataset is first reorganized as a list of 493,296 unique texts labeled with their author and fandom.</p><p>A single author may have written between 1 and up to 30 texts, within 1 to 6 fandoms. In order to provide as much diversity as possible while not slowing down the training time, a training split is created by gathering every text from the authors who have written within exactly 6 fandoms, resulting in a training split containing 72,471 distinct texts, from 3,353 distinct authors, and covering 1,471 distinct fandoms.</p><p>A validation split is also created from the training texts. Only authors who have written within 5 fandoms or less may be included in the validation split, ensuring that the authors from the training and validation splits are distinct. The validation split is structured as text pairs in order to to be evaluated in a fashion similar to the end task. To constitute the validation split, 2,500 text pairs are sampled at random ensuring that they were written by different authors, and 2,500 text pairs are sampled at random ensuring that both texts were written by the same author, and furthermore ensuring that the two texts from a given pair are distinct. The validation split therefore contains 5,000 text pairs, for a total of 9,816 distinct texts, within 1,253 distinct fandoms, from 7,216 distinct authors who do not overlap with the authors of the training split.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Model description</head><p>The model used relies on the BERT <ref type="bibr" coords="2,246.52,502.30,12.76,10.91" target="#b2">[3]</ref> architecture and English pretraining as provided by the bert-base-cased 1 model from the transformers Python module.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Model input</head><p>This model is given a tokenized text as input. The texts contained in the dataset are often full stories, commonly reaching over 5,000 tokens. Since the computation time required by transformer models grows quadratically with the length of the input sequence, the model is only given 28 consecutive tokens, picked at a random location in the text which is independent for every text and every epoch. Besides decreasing the computation time, it is expected to force the model to focus on brief writing patterns. The size of 28 aims to promote focusing on such short patterns, while still providing enough tokens to let the model leverage the contextual understanding of self-attention.</p><p>The sequence of tokens is also prepended by a CLS token whose embedding is intended to be used for classification tasks, and appended with a SEP token which brings to the total model input size to 30 tokens. Although the model is always given texts one at a time, the SEP token is added as a way for the model to store information without affecting any of the classification or language modeling tasks used during training, and to resemble the pretraining setup more closely.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Model output</head><p>For classification tasks during training, and for the authorship verification task during validation and test, the pooler vector is used. This vector is the result of passing the embedding of the CLS token through a linear layer followed by a hyperbolic tangent activation function. The first half of this pooler vector, i.e. its first 384 values, serves as an embedding of the author, which is used for author classification during training and for similarity evaluation during validation and test. The second half of the pooler vector, i.e. its last 384 values, is used only for fandom classification during training.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Training procedure</head><p>The model is trained using the four tasks described below. The optimizer used is AdamW <ref type="bibr" coords="3,493.07,371.46,12.92,10.91" target="#b4">[5]</ref> with a learning rate of 2e-5, and a batch size of 250. The linear layers used for the author and fandom classification training tasks use a different, higher learning rate of 1e-3. The model is trained for 20 epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Language model task</head><p>During training, 10% of the input tokens are randomly replaced by a mask token. This differs from the 15% rate used in the original pretraining in order to avoid masking too much of the relatively short token sequences. The language model head of BERT is run on the sequence of token embeddings, and its ability to recover the original token for every masked token is tuned using a crossentropy loss. The purpose of the language model task is to prevent catastrophic forgetting of the original pre-trained weights, and to promote learning of author-specific words and idioms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Author classification</head><p>The model is simultaneously trained to identify the author of every text in the training split as a classification task. For this purpose, the model uses the first half of the pooler vector, passed to a linear layer with an output size corresponding to the number of unique authors in the training split, that is, 3,353. No activation function and no bias term are used in this linear layer, in order to promote the learning of 384-size embedding vectors that are more directly suitable for comparison using cosine similarity. The performance of the author classification task is tuned using the crossentropy loss function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Fandom classification</head><p>Similarly, the model is trained to identify the fandom of every text in the training split as another classification task. For this task, the second half of the pooler vector is used. This is passed to another linear layer with an output size of corresponding to the number of unique fandoms in the training split, that is, 1,471. No activation function is used in this layer, although the bias term is enabled. The purpose of this task is to promote fandom awareness, and may possibly contribute to improving the language model in conjunction with the author classification task. The performance of the fandom classification task is tuned using the crossentropy loss function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Author-fandom separation</head><p>Since the end task is to verify authorship independently from fandom, it is undesirable that the model uses its predictions about fandom in order discriminate different authors. To counter this phenomenon, a simple network is trained to classify fandoms from the first half of the pooler vector, which is normally intended to embed authors only. This network is made of a linear layer with bias and output size of the full pooler vector, i.e. 768, followed by the SELU <ref type="bibr" coords="4,493.30,335.46,12.68,10.91" target="#b5">[6]</ref> activation function, a 10% dropout layer, and a last linear layer projecting to the number of fandoms without bias.</p><p>This network is trained using a crossentropy loss in parallel but independently from the main model, therefore using the same training batches but having its own gradient updates. Then, the crossentropy loss from this network is recalculated as part of the main model training. This loss is scaled by a coefficient of 0.1 and subtracted from the sum of the losses from three other tasks. This creates the total loss that is used for training. The reason for scaling down the loss of this task is that since every author in the training split has contributed to only 6 fandoms, good fandom classification could reasonably be expected even if the authors were embedded using style consideration only.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Validation procedure</head><p>The validation task is to receive two texts, and return whether or not the author is the same. As this differs from any of the training tasks, a different procedure is used.</p><p>A single text may easily range in the thousands of tokens, whereas the model is trained using a sequence length of 30 tokens. To proceed, 100 short sequences of 28 tokens are sampled at independent random locations within a text, and the CLS and SEP tokens are added similarly to the training format. The model then runs a forward pass, and the first half of the pooler output vector is stored for each of these 100 sequences as an embedding of the sequence. These embeddings are then reduced to a single 384-component vector using the median of each component. The same steps are repeated for the second text of a pair, yielding another median-reduced vector.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 1</head><p>Comparison of using a 10 and 384 embedding size, measured after 20 epochs on the validation set. AUC c@1 F1 F0.5u Overall 10-component embedding 0.830 0.760 0.771 0.737 0.781 384-component embedding 0.864 0.802 0.817 0.757 0.810</p><p>Finally, the two reduced vectors are compared using cosine similarity. Since the task rewards models that answer 0.5 as an uncertain result, it is desirable to scale the cosine similarity scores so that similar and dissimilar authors lie on each side of 0.5. For this purpose, the ROC curve on the validation split is plotted every epoch, and the threshold corresponding to the halfway step is monitored, giving an approximation of the middle of the curve. After 20 epochs, the threshold is 0.6592 which is rounded to 0.65. Therefore, during the test run, the values of cosine similarity between 0 and 0.625 are linearly rescaled between 0 and 0.5; the values between 0.675 and 1 are rescaled between 0.5 and 1; the values between 0.625 and 0.675 are collapsed to 0.5. The rescaled cosine similarity is reported as the answer to the test task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Results</head><p>The evolution of the model performance over epochs is reported here. In addition to the model described which uses an embedding size of 384, half the embedding size of BERT, progress is also reported for another model using only 10 components in its embedding. In this model, the first 10 values of the pooler vector are used as author embedding, the next 10 values are used for fandom classification, and the remaining 748 values are simply ignored. Although it appears to perform relatively well, as shown in Table <ref type="table" coords="5,327.32,421.83,3.72,10.91">1</ref>, only the model using 384 components was submitted since it has the best overall performance.</p><p>Furthermore, the plots show progress over 100 epochs but the model submitted was only trained for the first 20 epochs. The purpose of submitting only the 384-component model after 20 epochs is to preserve as much information from BERT's original pretraining as possible in order to help generalization to unknown authors and fandoms. In order to speed up training, the validation metrics are calculated from only 600 texts pairs sampled at random from the 5,000 text pairs contained in the validation split set. Finally, the plots are smoothed using a gaussian distribution of standard deviation 4 epochs, with the original curves shown as a lighter shade. shows the performance for both the 10-component embedding and the 384-component embedding model.</p><p>Table <ref type="table" coords="5,126.70,570.87,5.01,10.91" target="#tab_0">2</ref> shows the final results of the model, evaluated on the unseen test set using the TIRA platform <ref type="bibr" coords="5,130.55,584.42,11.43,10.91" target="#b6">[7]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Concluding remarks</head><p>It is interesting to note that the metrics measured on unknown authors reach similar values whether an embedding size of 384 or 10 is used. However, the smaller embedding size has inher-   ently less capacity to store information so that its generalization performance on significantly different data can be questioned. Further studies, notably regarding other embedding sizes, the length of the input sequence, and the amount of short sequences sampled from a large text, would provide interesting information about the performance of models trained for classification on similarity-like tasks.  While the model only processes short sequences of text, this must be repeated several times in order to get more reliable results. As a result, using the model as it is to regularly process large amounts of text pairs may be problematic, especially on hardware that isn't specifically designed for tensor operations.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="6,89.29,90.62,416.69,8.93;6,89.29,102.62,45.40,8.87;6,89.29,118.47,416.70,217.72"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Validation metrics calculated on a random subset of the the validation split after every epoch of training.</figDesc><graphic coords="6,89.29,118.47,416.70,217.72" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="6,89.29,354.58,341.90,8.93;6,89.29,370.47,416.69,128.80"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Losses of the first three training tasks as a function of the epoch number.</figDesc><graphic coords="6,89.29,370.47,416.69,128.80" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="7,89.29,90.62,353.13,8.93;7,89.29,106.51,416.70,128.50"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Accuracy of the first three training tasks as a function of the epoch number.</figDesc><graphic coords="7,89.29,106.51,416.70,128.50" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="7,89.29,253.40,416.94,8.93;7,89.29,265.40,416.69,8.87;7,89.29,277.36,416.70,8.87;7,89.29,289.31,93.81,8.87;7,89.29,305.16,416.71,128.41"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Left: loss of the network classifying fandoms from the author embedding. Center: accuracy of the network classifying fandoms from the author embedding. Right: ratio of the accuracy obtained by the main fandom classification task over the same accuracy obtained by the network working from the author embedding.</figDesc><graphic coords="7,89.29,305.16,416.71,128.41" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,88.99,517.52,418.66,69.87"><head>Table 2</head><label>2</label><figDesc>Official final results of the 384-component embedding model, with overall score calculated as the average of all metrics.</figDesc><table coords="6,200.46,561.09,194.36,26.30"><row><cell>AUC</cell><cell>c@1</cell><cell cols="2">F1 F0.5u Brier Overall</cell></row><row><cell cols="3">0.798 0.663 0.832 0.668 0.796</cell><cell>0.752</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,671.00,141.54,8.97"><p>https://huggingface.co/bert-base-cased</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,107.59,555.55,399.60,10.91;7,107.59,569.10,398.40,10.91;7,107.06,582.65,227.36,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,107.59,569.10,250.65,10.91">Overview of the Authorship Verification Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,411.27,569.10,94.72,10.91;7,107.06,582.65,47.32,10.91">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="7,162.37,582.65,103.05,10.91">Notebook Papers, CEUR</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,107.59,596.19,399.60,10.91;7,107.59,609.74,400.24,10.91;7,107.59,623.29,398.40,10.91;7,107.59,636.84,398.40,10.91;7,107.59,650.39,205.74,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,185.94,623.29,320.04,10.91;7,107.59,636.84,215.91,10.91">Overview of PAN 2021: Authorship Verification, Profiling Hate Speech Spreaders on Twitter, and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L D L P</forename><surname>Sarracén</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wolska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,346.31,636.84,159.67,10.91;7,107.59,650.39,133.25,10.91">12th International Conference of the CLEF Association (CLEF 2021)</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,107.59,86.97,398.40,10.91;8,107.59,100.52,311.37,10.91" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<title level="m" coord="8,324.77,86.97,181.22,10.91;8,107.59,100.52,181.08,10.91">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,107.59,114.06,399.60,10.91;8,107.59,127.61,398.39,10.91;8,107.59,141.16,399.06,10.91;8,107.59,154.71,148.06,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,203.51,127.61,302.47,10.91">Overview of the Cross-Domain Authorship Verification Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="https://pan.webis.de" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,134.33,141.16,342.64,10.91">Working notes of CLEF 2020 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+			<biblScope unit="page" from="22" to="25" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,107.59,168.26,400.08,10.91" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Loshchilov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Hutter</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1711.05101</idno>
+		<title level="m" coord="8,210.37,168.26,168.55,10.91">Decoupled weight decay regularization</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,107.59,181.81,399.60,10.91;8,107.59,195.36,122.77,10.91" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Klambauer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Unterthiner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mayr</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.02515</idno>
+		<title level="m" coord="8,351.79,181.81,150.40,10.91">Self-normalizing neural networks</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,107.59,208.91,399.60,10.91;8,107.59,222.46,398.40,10.91;8,107.59,236.01,399.59,10.91;8,107.59,252.00,123.08,7.90" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,326.42,208.91,176.17,10.91">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,237.51,222.46,268.48,10.91;8,107.59,236.01,125.79,10.91">Information Retrieval Evaluation in a Changing World, The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

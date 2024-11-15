@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,380.58,15.42;1,89.29,106.66,317.31,15.42">ur-iw-hnt at CheckThat! 2022: Cross-lingual Text Summarization for Fake News Detection</title>
+				<funder ref="#_eYqbA4p">
+					<orgName type="full">Volkswagen Foundation</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,134.97,75.99,11.96"><forename type="first">Hoai</forename><forename type="middle">Nam</forename><surname>Tran</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Information Science</orgName>
+								<orgName type="institution">University of Regensburg</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,177.92,134.97,78.61,11.96"><forename type="first">Udo</forename><surname>Kruschwitz</surname></persName>
+							<email>udo.kruschwitz@ur.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Information Science</orgName>
+								<orgName type="institution">University of Regensburg</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,380.58,15.42;1,89.29,106.66,317.31,15.42">ur-iw-hnt at CheckThat! 2022: Cross-lingual Text Summarization for Fake News Detection</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">2928B84ED3D04E6B00EED529B59CB1DC</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:22+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Fake news detection</term>
+					<term>BART</term>
+					<term>T5</term>
+					<term>extractive summarization</term>
+					<term>abstractive summarization</term>
+					<term>translation</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We describe our submission to the CLEF CheckThat! 2022 challenge. We contributed to Tasks 3A and 3B -multiclass fake news classification in English and German, respectively. Our approach incorporates extractive and abstractive summarization techniques by utilizing fine-tuned DistilBART and T5-3B. For cross-linguality, we use automatic machine translation to improve model inference. Our approved run for Task 3B was the official winner according to both F1 and Accuracy, with a fair margin to the second place. For Task 3A, we describe a wide range of models that we experimented with. While only one submission per team was permitted, we also describe the non-submitted setup that tops the leaderboard performance in this task.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The distribution of fake news is not a new problem, but due to its scale, it has become an urgent social and political issue <ref type="bibr" coords="1,200.93,392.21,11.49,10.91" target="#b0">[1]</ref>. Here we understand fake news to be intentionally and verifiably false information with the purpose of deceiving its reader <ref type="bibr" coords="1,348.48,405.76,11.43,10.91" target="#b1">[2]</ref>.</p><p>Task 3 of the CLEF 2022 CheckThat! Shared Task <ref type="bibr" coords="1,336.73,419.31,13.00,10.91" target="#b2">[3]</ref> focuses on Multiclass Fake News Classification with English (3A) and German (3B) test sets (reusing the previous year's dataset for training). That is the task with our contribution.</p><p>The critical motivations for our work are as follows. We have seen transformer-based models becoming the basis for most state-of-the-art NLP applications, including a wide range of classification tasks, e.g., <ref type="bibr" coords="1,212.70,487.06,11.58,10.91" target="#b3">[4]</ref>. However, we acknowledge that there are restrictions on the input size in transformer models, which is why we are inspired by the findings that automatic summarization as a step towards cutting down long documents has been demonstrated to help identify fake news <ref type="bibr" coords="1,176.06,527.70,11.58,10.91" target="#b4">[5]</ref>. Finally, there are indications that automatic machine translation can help improve text classification, e.g., in our own work <ref type="bibr" coords="1,331.31,541.25,11.43,10.91" target="#b5">[6]</ref>.</p><p>In this paper, we use transformer models for summarization and multiclass classification. Additionally, we use automatic machine translation for the German subtask to improve model inference. We conducted several experiments, but only one submission was allowed, and in the official leaderboard, we ended up being ranked 1 st in Task 3B and 9 th in Task 3A. Here we also discuss our non-submitted approaches for which post-competition results demonstrate that they would be ranked 1 st in both 3A and 3B with a substantial margin over the leaderboard's best performers. This paper describes our experiments in more detail.</p><p>To encourage reproducibility of experimental work, we make all models available via Hugging Face<ref type="foot" coords="2,109.11,139.41,3.71,7.97" target="#foot_0">1</ref> and additional data via GitHub<ref type="foot" coords="2,253.35,139.41,3.71,7.97" target="#foot_1">2</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>We briefly sketch related work here and focus on what directly inspired us for this paper.</p><p>Fake News Detection is an unresolved task for which Transformer models with self-attention <ref type="bibr" coords="2,89.29,226.89,13.00,10.91" target="#b6">[7]</ref> like BERT <ref type="bibr" coords="2,153.91,226.89,11.58,10.91" target="#b3">[4]</ref>, BART <ref type="bibr" coords="2,202.93,226.89,11.58,10.91" target="#b7">[8]</ref>, and T5 <ref type="bibr" coords="2,256.09,226.89,12.99,10.91" target="#b8">[9]</ref> are actively utilized. Since fake news can appear in every language, multilingual models like XLM-RoBERTa <ref type="bibr" coords="2,345.00,240.44,17.97,10.91" target="#b9">[10]</ref> apply their cross-lingual ability in several tasks and benchmarks. One such dataset is FakeCovid, consisting of fact-checked articles from 92 fact-checking websites <ref type="bibr" coords="2,266.48,267.54,16.32,10.91" target="#b10">[11]</ref>. Shahi et al. <ref type="bibr" coords="2,342.65,267.54,17.98,10.91" target="#b11">[12]</ref> conducted an exploratory study of COVID-19 misinformation on the Twitter platform to define four different classes for the current dataset used in this Shared Task <ref type="bibr" coords="2,264.93,294.63,12.68,10.91" target="#b2">[3]</ref> and in the previous one <ref type="bibr" coords="2,384.70,294.63,16.09,10.91" target="#b12">[13]</ref>. To collect high-quality data, Shahi <ref type="bibr" coords="2,141.23,308.18,17.93,10.91" target="#b13">[14]</ref> proposes a semi-automatic framework where both machines and humans are involved in the process to mitigate the workload.</p><p>In last year's Shared Task, Hartl and Kruschwitz used the same DistilBART model we adopt here for summarization (though we use it for extractive rather than abstractive summarization) <ref type="bibr" coords="2,89.29,362.38,16.31,10.91" target="#b14">[15]</ref>. In later work, they refined this approach to achieve state-of-the-art performance for the task of fake news detection using a common reference benchmark collection <ref type="bibr" coords="2,432.68,375.93,11.43,10.91" target="#b4">[5]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Dataset</head><p>The dataset has been annotated using four labels: "true", "false", "partially false", and "other". As indicated in Table <ref type="table" coords="2,171.10,448.10,3.73,10.91" target="#tab_0">1</ref>, the distribution of the released dataset is rather imbalanced. The training set is the same as last year's 3A task <ref type="bibr" coords="2,259.86,461.65,16.41,10.91" target="#b12">[13]</ref>. The difference here is the later released test sets consisting of 612 English data points for task 3A and 586 German data points for task 3B. Both test sets have substantially more "true" labels than "partially false", while the training set and development set have more "partially false" than "true" labels.</p><p>As shown in Table <ref type="table" coords="2,181.30,515.85,3.66,10.91">2</ref>, the dataset contains some very long texts in both title and text. Therefore, one challenge of this Shared Task is to consider this length, especially when it goes beyond the standard token limits of typical transformer models. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Methodology</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Summarization</head><p>For the summarization task, we use two particular models for two different approaches: DistilBART-CNN-12-6 <ref type="foot" coords="3,186.29,452.60,3.71,7.97" target="#foot_2">3</ref> for extractive summarization and T5-3B<ref type="foot" coords="3,367.48,452.60,3.71,7.97" target="#foot_3">4</ref> for abstractive summarization. Extraction-based summarization selects the best representations of words and sentences of the given document or text input. In contrast, abstraction-based summarization generates shorter text which can be new sentences capturing the prominent notion of the source text input. In the used library <ref type="bibr" coords="3,175.13,508.55,18.02,10.91" target="#b15">[16]</ref> (see Chapter 4.4), we extract the output embeddings from the chosen model inference and cluster these with k-means <ref type="bibr" coords="3,305.22,522.10,16.24,10.91" target="#b16">[17]</ref>. The Elbow method is used to determine the optimal k-value <ref type="bibr" coords="3,176.65,535.65,16.09,10.91" target="#b17">[18]</ref>. While it is also possible to restrict the amount of output text by a fixed number of sentences or a fixed ratio, we want to use the optimal cluster of sentences instead to avoid losing any possibly relevant sentences. Our chosen model is DistilBART-CNN-12-6 which is based on BART <ref type="bibr" coords="3,205.77,576.30,12.99,10.91" target="#b7">[8]</ref> with distillation <ref type="bibr" coords="3,298.31,576.30,16.41,10.91" target="#b18">[19]</ref>, fine-tuned with the CNN and DailyMail dataset <ref type="bibr" coords="3,124.71,589.85,16.41,10.91" target="#b19">[20]</ref>. In contrast to extraction, we use the three billion parameter version of T5 <ref type="bibr" coords="3,492.99,589.85,12.99,10.91" target="#b8">[9]</ref> to generate shorter sentences with the same prefix used in the pre-training process for the CNN/DailyMail dataset <ref type="bibr" coords="3,196.23,616.95,16.26,10.91" target="#b19">[20]</ref>. While the default input token length limit is 512, the model uses relative positional embeddings, which allows it to utilize much longer text at the cost of higher computing resources like memory consumption <ref type="bibr" coords="4,312.05,86.97,16.55,10.91" target="#b20">[21,</ref><ref type="bibr" coords="4,331.91,86.97,7.65,10.91" target="#b8">9]</ref>. We also apply some omissible soft pre-processing steps to ensure retention of usually lossy token information and cleaner input for further processing. To solve the problem of token length, as mentioned in Chapter 3, we combine the title with the text for summarization in the following order: "title" + ". " + "text".</p><p>We refer the interested reader to the project repository for further details.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Multi-Class Classification</head><p>The dataset has four different classes (see Table <ref type="table" coords="4,307.33,190.89,3.65,10.91" target="#tab_0">1</ref>), which have imbalanced distributions. To classify them, we use BERT Base Uncased <ref type="bibr" coords="4,278.31,204.44,12.99,10.91" target="#b3">[4]</ref> as our baseline model and include three large models: BERT Large Uncased <ref type="bibr" coords="4,211.49,217.99,11.28,10.91" target="#b3">[4]</ref>, XLM-RoBERTa Large <ref type="bibr" coords="4,316.63,217.99,16.09,10.91" target="#b9">[10]</ref>, and T5-3B <ref type="bibr" coords="4,386.60,217.99,11.28,10.91" target="#b8">[9]</ref>. The default fine-tuning process consists of tokenization, splitting the dataset into train, development, and dev-test sets, and then the actual training. After the automatic machine translation step for the cross-lingual task, the inference is the last step for classification of the test set for submission and for the later released ground-truth labels to see how well our fine-tuned models perform. The main metric is macro-F1 since the dataset is imbalanced; specifically, the averaged F1 score as in Equation <ref type="formula" coords="4,501.23,285.73,5.01,10.91">1</ref>is calculated <ref type="bibr" coords="4,146.74,299.28,16.25,10.91" target="#b21">[22]</ref>.</p><formula xml:id="formula_0" coords="4,219.70,322.01,286.29,28.92">ℱ 1 = 1 𝑛 ∑︁ 𝑥 F1 𝑥 = 1 𝑛 ∑︁ 𝑥 2𝑃 𝑥 𝑅 𝑥 𝑃 𝑥 + 𝑅 𝑥 (1)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Machine Translation</head><p>For the cross-lingual task (3B), we use the free Google Translate service to translate the whole German test set into English for inference. In our previous work, this has been shown to be effective <ref type="bibr" coords="4,131.04,414.46,11.58,10.91" target="#b5">[6]</ref>. Given the scale of translation data, Google utilizes this as an obvious choice.</p><p>Since Google Translate has an internal character limit, we only take the first 5000 tokens for translation. After the automatic machine translation, we repeat the summarization step on these newly created data and start the inference process.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Experimental Setup</head><p>All of our experiments are conducted on a single RTX A6000 with 48 GB VRAM. We use the SimpleTransformers library <ref type="foot" coords="4,231.31,516.63,3.71,7.97" target="#foot_4">5</ref> for the T5 model and all other transformer models with the Hugging Face Transformers library <ref type="foot" coords="4,248.73,530.18,3.71,7.97" target="#foot_5">6</ref> . For the summarization task, we use the Bert Extractive Summarizer library<ref type="foot" coords="4,176.92,543.73,3.71,7.97" target="#foot_6">7</ref>  <ref type="bibr" coords="4,183.86,545.48,16.34,10.91" target="#b15">[16]</ref>, and for machine translation, we use the deep-translator library <ref type="foot" coords="4,490.08,543.73,3.71,7.97" target="#foot_7">8</ref> in combination with the free public Google Translate service <ref type="foot" coords="4,348.08,557.28,3.71,7.97" target="#foot_8">9</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Experiments</head><p>First, we conduct a stratified split of the development set by the standard 80:20 ratio to have a dev-test set to choose our submission. Then in our experiments, we make five runs of each model with the default hyperparameters, including these changes for all models (except for T5-3B):</p><p>• Maximum Steps: 705 Table <ref type="table" coords="5,126.85,381.19,5.04,10.91" target="#tab_2">3</ref> shows that the T5-3B classifier with DistilBART-CNN-12-6 as the extractive summarizer is the best overall model for both tasks, with 39.54% (best in 3A) and 29.58% (second-highest in 3B), respectively. Our submission (marked with *) is the extraction-based BERT Large model's first run taking 1 st place in the 3B leaderboard, and is the third-highest performer of our experiments for Test 3B. The best performing model in 3B is XLM-RoBERTa Large with T5-3B as the abstractive summarizer with a macro-F1 score of 30.06%. For 3A, the best abstractive classification model is BERT Large with 36.48%; for 3B, the best extractive classification model is T5-3B with 29.58%. All results are macro-F1 scores (see Equation <ref type="formula" coords="5,379.24,476.03,3.57,10.91">1</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Discussion</head><p>We observe that the variation of the different performances between the five runs of each model is high (up to 9.53% in extractive BERT Large for Test 3B), an indication of overfitting. Some possible explanations for this might be the choice of imprecise hyperparameters or the substantial discrepancy between the different parts of the dataset. Furthermore, the abstractive T5-3B test result might also be caused by overfitting. While our submission is over the 50% mark and has the lowest difference of only 0.22%, the seemingly stable results between the development set and the dev-test set do not guarantee a good score in the test set. Interestingly, the extractive T5-3B has scored on the dev and dev-test set lower than 50% and is the best overall performer. Abstractive summarization generally gives the BERT models higher macro-F1 results than extractive summarization. Nevertheless, the results of both summarization techniques are similar, and thus both approaches are still viable. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1.">Limitations</head><p>Because of time constraints, we have not implemented ensembling strategies in our experiments. However, there is plenty of scope as ensembles have been demonstrated to offer substantial gains over individual classifiers, e.g., <ref type="bibr" coords="6,254.20,630.42,11.36,10.91" target="#b4">[5,</ref><ref type="bibr" coords="6,268.29,630.42,12.32,10.91" target="#b22">23]</ref>.</p><p>For the same reason, only one summarization model for each technique and the number of transformer models for the classification task was possible. The chosen ratio of the stratified split might cause too few data points for the dev-test set, so a different ratio like 50:50 would have been an alternative.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">Future Work</head><p>In the future, it would be interesting to see how good larger models like XLM-R XL/XXL <ref type="bibr" coords="7,475.90,150.24,17.96,10.91" target="#b23">[24]</ref> or other models like Big Bird <ref type="bibr" coords="7,212.21,163.79,18.07,10.91" target="#b24">[25]</ref> or PEGASUS <ref type="bibr" coords="7,294.96,163.79,18.07,10.91" target="#b25">[26]</ref> perform. For the cross-lingual task, using multilingual models without needing machine translation is another option to experiment with. Alternatively, text generation models like T5 <ref type="bibr" coords="7,294.16,190.89,12.99,10.91" target="#b8">[9]</ref> and BART <ref type="bibr" coords="7,359.50,190.89,13.00,10.91" target="#b7">[8]</ref> can also be used for machine translation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion</head><p>We described our family of approaches to the task of multiclass fake news classification for English and German. At the core, they use fine-tuned transformer architectures and incorporate extractive and abstractive summarization (to be able to deal with long input documents). For the multilingual task, we also incorporate automatic machine translation. The results demonstrate that both summarization techniques and automatic machine translation are competitive. In particular, for the multilingual setting, we observe a large margin between our winning submission and the places further down on the leaderboard. Our analysis also uncovers that large language models perform best if overfitting can be avoided.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,88.99,90.49,384.18,278.33"><head>Table 1</head><label>1</label><figDesc>Some Dataset Statistics</figDesc><table coords="3,88.99,119.88,384.18,248.93"><row><cell></cell><cell>Labels</cell><cell cols="5">Training Set Development Set Test Set 3A Test Set 3B</cell></row><row><cell></cell><cell>True</cell><cell cols="2">142</cell><cell>69</cell><cell>210</cell><cell>243</cell></row><row><cell></cell><cell>False</cell><cell cols="2">465</cell><cell>113</cell><cell>315</cell><cell>191</cell></row><row><cell cols="2">Partially False</cell><cell cols="2">217</cell><cell>141</cell><cell>56</cell><cell>97</cell></row><row><cell></cell><cell>Other</cell><cell>76</cell><cell></cell><cell>41</cell><cell>31</cell><cell>55</cell></row><row><cell></cell><cell>All</cell><cell cols="2">900</cell><cell>364</cell><cell>612</cell><cell>586</cell></row><row><cell>Table 2</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">Token Length Distribution</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="7">Variables Statistics Training Set Development Set Test Set 3A Test Set 3B</cell></row><row><cell></cell><cell>Median</cell><cell></cell><cell>70</cell><cell>66</cell><cell>73</cell><cell>67</cell></row><row><cell>Title</cell><cell cols="2">Mean Minimum</cell><cell>286 3</cell><cell>171 3</cell><cell>78 11</cell><cell>71 3</cell></row><row><cell></cell><cell cols="2">Maximum</cell><cell>9960</cell><cell>8092</cell><cell>200</cell><cell>234</cell></row><row><cell></cell><cell>Median</cell><cell></cell><cell>3035</cell><cell>3115</cell><cell>3655</cell><cell>4009</cell></row><row><cell>Text</cell><cell cols="2">Mean Minimum</cell><cell>4167 18</cell><cell>4498 25</cell><cell>6052 289</cell><cell>5617 507</cell></row><row><cell></cell><cell cols="2">Maximum</cell><cell>32767</cell><cell>44359</cell><cell>100000</cell><cell>45309</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,88.99,90.49,406.93,465.56"><head>Table 3</head><label>3</label><figDesc>Experimental runs conducted for Tasks 3A and 3B (actual submission marked with *)</figDesc><table coords="6,99.36,122.10,396.56,433.94"><row><cell cols="7">Summarization Model Classification Model Run Nr. Dev Dev-Test Test 3A Test 3B</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>47.59</cell><cell>48.19</cell><cell>28.39</cell><cell>23.81</cell></row><row><cell></cell><cell></cell><cell>2</cell><cell>50.02</cell><cell>44.27</cell><cell>28.48</cell><cell>27.22</cell></row><row><cell></cell><cell>BERT Base</cell><cell>3</cell><cell>48.16</cell><cell>41.41</cell><cell>30.20</cell><cell>25.94</cell></row><row><cell></cell><cell></cell><cell>4</cell><cell>49.97</cell><cell>41.47</cell><cell>29.88</cell><cell>26.21</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>48.04</cell><cell>47.06</cell><cell>32.23</cell><cell>25.98</cell></row><row><cell></cell><cell></cell><cell>1*</cell><cell>52.40</cell><cell>52.18</cell><cell>28.33</cell><cell>28.99</cell></row><row><cell>DistilBART-CNN-12-6 (extractive)</cell><cell>BERT Large</cell><cell>2 3 4</cell><cell>46.43 48.77 49.21</cell><cell>39.96 52.78 48.44</cell><cell>26.87 30.70 32.31</cell><cell>19.46 28.69 25.32</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>53.25</cell><cell>51.85</cell><cell>30.19</cell><cell>20.46</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>50.53</cell><cell>41.04</cell><cell>30.42</cell><cell>27.40</cell></row><row><cell></cell><cell></cell><cell>2</cell><cell>50.93</cell><cell>44.54</cell><cell>33.11</cell><cell>28.01</cell></row><row><cell></cell><cell>XLM-R Large</cell><cell>3</cell><cell>49.08</cell><cell>48.56</cell><cell>30.82</cell><cell>26.09</cell></row><row><cell></cell><cell></cell><cell>4</cell><cell>50.80</cell><cell>43.99</cell><cell>28.23</cell><cell>21.94</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>50.95</cell><cell>40.29</cell><cell>32.47</cell><cell>23.34</cell></row><row><cell></cell><cell>T5-3B</cell><cell>1</cell><cell>48.05</cell><cell>46.52</cell><cell>39.54</cell><cell>29.58</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>54.05</cell><cell>45.76</cell><cell>35.41</cell><cell>27.14</cell></row><row><cell></cell><cell></cell><cell>2</cell><cell>48.12</cell><cell>44.73</cell><cell>31.88</cell><cell>28.03</cell></row><row><cell></cell><cell>BERT Base</cell><cell>3</cell><cell>50.02</cell><cell>40.58</cell><cell>33.73</cell><cell>25.84</cell></row><row><cell></cell><cell></cell><cell>4</cell><cell>49.58</cell><cell>47.21</cell><cell>31.86</cell><cell>23.91</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>48.89</cell><cell>40.29</cell><cell>31.13</cell><cell>24.18</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>56.33</cell><cell>51.15</cell><cell>28.89</cell><cell>21.34</cell></row><row><cell>T5-3B (abstractive)</cell><cell>BERT Large</cell><cell>2 3 4</cell><cell>45.85 55.08 52.15</cell><cell>37.87 46.80 47.08</cell><cell>32.88 35.24 36.48</cell><cell>23.43 28.33 27.01</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>51.32</cell><cell>46.91</cell><cell>30.56</cell><cell>21.77</cell></row><row><cell></cell><cell></cell><cell>1</cell><cell>51.54</cell><cell>44.81</cell><cell>31.66</cell><cell>28.99</cell></row><row><cell></cell><cell></cell><cell>2</cell><cell>49.36</cell><cell>42.84</cell><cell>35.63</cell><cell>30.06</cell></row><row><cell></cell><cell>XLM-R Large</cell><cell>3</cell><cell>49.73</cell><cell>44.91</cell><cell>35.67</cell><cell>27.82</cell></row><row><cell></cell><cell></cell><cell>4</cell><cell>50.59</cell><cell>44.79</cell><cell>36.01</cell><cell>26.86</cell></row><row><cell></cell><cell></cell><cell>5</cell><cell>51.78</cell><cell>40.25</cell><cell>35.29</cell><cell>28.09</cell></row><row><cell></cell><cell>T5-3B</cell><cell>1</cell><cell>52.08</cell><cell>43.82</cell><cell>29.72</cell><cell>23.72</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,659.88,236.80,8.97"><p>https://huggingface.co/hntran/CLEF_2022_CheckThatLab_Task3</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,108.93,670.84,231.50,8.97"><p>https://github.com/HN-Tran/CLEF_2022_CheckThatLab_Task3</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,108.93,660.06,187.81,8.97"><p>https://huggingface.co/sshleifer/distilbart-cnn-12-6</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,108.93,671.02,103.86,8.97"><p>https://huggingface.co/t5-3b</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="4,108.93,627.10,109.16,8.97"><p>https://simpletransformers.ai/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="4,108.93,638.06,131.91,8.97"><p>https://huggingface.co/transformers</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="4,108.93,649.02,220.32,8.97"><p>https://github.com/dmmiller612/bert-extractive-summarizer</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_7" coords="4,108.93,659.98,162.76,8.97"><p>https://github.com/nidhaloff/deep-translator</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_8" coords="4,108.93,670.94,105.02,8.97"><p>https://translate.google.com/</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>This work was supported by the project <rs type="projectName">COURAGE: A Social Media Companion Safeguarding and Educating Students</rs> funded by the <rs type="funder">Volkswagen Foundation</rs>, grant number <rs type="grantNumber">95564</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funded-project" xml:id="_eYqbA4p">
+					<idno type="grant-number">95564</idno>
+					<orgName type="project" subtype="full">COURAGE: A Social Media Companion Safeguarding and Educating Students</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,112.66,488.71,394.53,10.91;7,112.66,502.26,394.61,10.91;7,112.66,515.81,393.33,10.91;7,112.66,529.36,394.52,10.91;7,112.66,542.91,90.72,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,228.76,502.26,259.02,10.91">Automated fact-checking for assisting human fact-checkers</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">P A</forename><surname>Corney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hasanain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Alam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elsayed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Papotti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shaar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">D S</forename><surname>Martino</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,178.14,515.81,327.84,10.91;7,112.66,529.36,104.28,10.91">Proceedings of the Thirtieth International Joint Conference on Artificial Intelligence, IJCAI 2021</title>
+		<editor>
+			<persName><forename type="first">Z</forename><surname>Zhou</surname></persName>
+		</editor>
+		<meeting>the Thirtieth International Joint Conference on Artificial Intelligence, IJCAI 2021<address><addrLine>Virtual Event / Montreal, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021-08-27">19-27 August 2021. 2021</date>
+			<biblScope unit="page" from="4551" to="4558" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,556.46,393.33,10.91;7,112.66,570.01,179.52,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,232.29,556.46,218.03,10.91">Social media and fake news in the 2016 election</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Allcott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gentzkow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,460.42,556.46,45.57,10.91;7,112.66,570.01,100.66,10.91">Journal of economic perspectives</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="211" to="236" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,583.56,393.33,10.91;7,112.66,597.10,393.59,10.91;7,112.66,610.65,382.34,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,452.21,583.56,53.78,10.91;7,112.66,597.10,266.01,10.91">Overview of the CLEF-2022 CheckThat! lab task 3 on fake news detection</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Köhler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Struß</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Siegel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schütz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,401.42,597.10,104.83,10.91;7,112.66,610.65,286.23,10.91">Working Notes of CLEF 2022-Conference and Labs of the Evaluation Forum, CLEF &apos;2022</title>
+		<meeting><address><addrLine>Bologna, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,624.20,393.33,10.91;7,112.66,637.75,393.33,10.91;7,112.66,651.30,393.32,10.91;7,112.66,664.85,393.33,10.91;8,112.66,86.97,394.03,10.91;8,112.66,100.52,185.51,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,323.15,624.20,182.83,10.91;7,112.66,637.75,186.91,10.91">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+		<ptr target="https://aclanthology.org/N19-1423.doi:10.18653/v1/N19-1423" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,327.87,637.75,178.11,10.91;7,112.66,651.30,393.32,10.91;7,112.66,664.85,99.97,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Long and Short Papers</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,114.06,394.52,10.91;8,112.66,127.61,394.53,10.91;8,112.66,141.16,94.41,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,220.71,114.06,282.13,10.91">Applying automatic text summarization for fake news detection</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Hartl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,127.25,127.61,375.64,10.91">Proceedings of the 13th Language Resources and Evaluation Conference (LREC 2022)</title>
+		<meeting>the 13th Language Resources and Evaluation Conference (LREC 2022)</meeting>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="2702" to="2713" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,154.71,395.17,10.91;8,112.66,168.26,393.33,10.91;8,112.33,181.81,394.86,10.91;8,112.66,195.36,394.92,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,228.21,154.71,98.55,10.91;8,354.05,154.71,153.78,10.91;8,112.66,168.26,70.65,10.91">An ensembling strategy with multiple BERT models</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">N</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</author>
+		<ptr target="https://aclanthology.org/2021.germeval-1.12" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,204.78,168.26,301.21,10.91;8,112.33,181.81,201.14,10.91">Proceedings of the GermEval 2021 Shared Task on the Identification of Toxic, Engaging, and Fact-Claiming Comments</title>
+		<meeting>the GermEval 2021 Shared Task on the Identification of Toxic, Engaging, and Fact-Claiming Comments<address><addrLine>Duesseldorf, Germany</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021. 2021</date>
+			<biblScope unit="page" from="83" to="87" />
+		</imprint>
+	</monogr>
+	<note>ur-iw-hnt at GermEval</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,208.91,395.17,10.91;8,112.66,222.46,393.33,10.91;8,112.66,236.01,395.01,10.91;8,112.66,249.56,302.40,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,148.79,222.46,106.04,10.91">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=3295222.3295349" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,277.88,222.46,228.11,10.91;8,112.66,236.01,216.25,10.91">Proceedings of the 31st International Conference on Neural Information Processing Systems, NIPS&apos;17</title>
+		<meeting>the 31st International Conference on Neural Information Processing Systems, NIPS&apos;17<address><addrLine>USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="6000" to="6010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,263.11,395.17,10.91;8,112.66,276.66,395.17,10.91;8,112.66,290.20,393.33,10.91;8,112.66,303.75,395.17,10.91;8,112.66,317.30,395.01,10.91;8,112.66,330.85,191.55,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,148.38,276.66,359.46,10.91;8,112.66,290.20,180.48,10.91">BART: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.703</idno>
+		<ptr target="https://aclanthology.org/2020.acl-main.703.doi:10.18653/v1/2020.acl-main.703" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,320.04,290.20,185.95,10.91;8,112.66,303.75,395.17,10.91;8,112.66,317.30,32.81,10.91">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="7871" to="7880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,344.40,394.53,10.91;8,112.66,357.95,393.33,10.91;8,112.66,371.50,394.04,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,112.66,357.95,341.66,10.91">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<ptr target="http://jmlr.org/papers/v21/20-074.html" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,462.63,357.95,43.36,10.91;8,112.66,371.50,123.70,10.91">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,385.05,394.53,10.91;8,112.66,398.60,393.33,10.91;8,112.66,412.15,393.32,10.91;8,112.66,425.70,394.62,10.91;8,112.66,439.25,386.47,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,271.58,398.60,234.41,10.91;8,112.66,412.15,20.10,10.91">Unsupervised cross-lingual representation learning at scale</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Conneau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Khandelwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Chaudhary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wenzek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guzmán</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-main.747</idno>
+		<ptr target="https://aclanthology.org/2020.acl-main.747.doi:10.18653/v1/2020.acl-main.747" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,155.39,412.15,350.59,10.91;8,112.66,425.70,238.14,10.91">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="8440" to="8451" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,452.79,393.33,10.91;8,112.66,466.34,395.17,10.91;8,112.66,479.89,394.03,10.91;8,112.66,493.44,56.11,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,228.62,452.79,277.37,10.91;8,112.66,466.34,94.66,10.91">FakeCovid -A Multilingual Cross-domain Fact Check News Dataset for COVID-19</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Nandini</surname></persName>
+		</author>
+		<ptr target="http://workshop-proceedings.icwsm.org/pdf/2020_14.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,231.18,466.34,276.64,10.91;8,112.66,479.89,134.27,10.91">Workshop Proceedings of the 14th International AAAI Conference on Web and Social Media</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,506.99,393.33,10.91;8,112.66,520.54,283.01,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,292.17,506.99,213.82,10.91;8,112.66,520.54,42.26,10.91">An exploratory study of covid-19 misinformation on twitter</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Dirkson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">A</forename><surname>Majchrzak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,162.86,520.54,154.86,10.91">Online Social Networks and Media</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page">100104</biblScope>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,534.09,393.32,10.91;8,112.66,547.64,232.83,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,266.92,534.09,239.07,10.91;8,112.66,547.64,86.71,10.91">Overview of the CLEF-2021 CheckThat! lab task 3 on fake news detection</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Struß</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,207.67,547.64,105.91,10.91">Working Notes of CLEF</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,561.19,394.53,10.91;8,112.66,574.74,173.79,10.91" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="8,172.47,561.19,329.93,10.91">AMUSED: An Annotation Framework of Multi-modal Social Media Data</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.00502</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,588.29,393.33,10.91;8,112.66,601.84,393.33,10.91;8,112.66,615.39,249.87,10.91" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="8,224.76,588.29,183.74,10.91;8,438.47,588.29,67.52,10.91;8,112.66,601.84,174.20,10.91">Exploring Text Summarization for Fake News Detection</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Hartl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,309.22,601.84,96.42,10.91">CLEF (Working Notes)</title>
+		<title level="s" coord="8,481.06,602.85,24.92,9.72;8,112.66,615.39,139.33,10.91">CEUR Workshop Proceedings, CEUR-WS</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2936. 2021</date>
+			<biblScope unit="page" from="508" to="519" />
+		</imprint>
+	</monogr>
+	<note>University of Regensburg at CheckThat!</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,628.93,393.32,10.91;8,112.66,642.48,107.17,10.91" xml:id="b15">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Miller</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1906.04165</idno>
+		<title level="m" coord="8,158.14,628.93,275.00,10.91">Leveraging bert for extractive text summarization on lectures</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,656.03,395.17,10.91;8,112.39,669.58,393.60,10.91;9,112.66,86.97,267.34,10.91" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="8,203.89,656.03,303.94,10.91;8,112.39,669.58,30.70,10.91">Some methods for classification and analysis of multivariate observations</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Macqueen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,166.16,669.58,339.83,10.91;9,112.66,86.97,46.28,10.91">Proceedings of the fifth Berkeley symposium on mathematical statistics and probability</title>
+		<meeting>the fifth Berkeley symposium on mathematical statistics and probability<address><addrLine>Oakland, CA, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1967">1967</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="281" to="297" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,100.52,393.32,10.91;9,112.66,114.06,212.83,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="9,265.97,100.52,240.01,10.91;9,112.66,114.06,42.46,10.91">Review on determining number of cluster in k-means clustering</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">M</forename><surname>Kodinariya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">R</forename><surname>Makwana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,163.29,114.06,93.48,10.91">International Journal</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="90" to="95" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,127.61,393.33,10.91;9,112.33,141.16,29.19,10.91" xml:id="b18">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Rush</surname></persName>
+		</author>
+		<idno>ArXiv abs/2010.13002</idno>
+		<title level="m" coord="9,224.07,127.61,173.13,10.91">Pre-trained summarization distillation</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,154.71,395.17,10.91;9,112.66,168.26,394.53,10.91;9,112.66,181.81,394.53,10.91;9,112.39,195.36,394.31,10.91;9,112.66,208.91,221.54,10.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="9,482.65,154.71,25.18,10.91;9,112.66,168.26,225.76,10.91">Teaching machines to read and comprehend</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">M</forename><surname>Hermann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kocisky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grefenstette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Espeholt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Kay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Suleyman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper/2015/file/afdec7005cc9f14302cd0474fd0f3c96-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="s" coord="9,261.99,181.81,240.26,10.91">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Cortes</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Lawrence</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Lee</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sugiyama</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Garnett</surname></persName>
+		</editor>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<date type="published" when="2015">2015</date>
+			<publisher>Curran Associates, Inc</publisher>
+		</imprint>
+	</monogr>
+	<note>Blunsom</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,394.61,10.91;9,112.66,236.01,393.33,10.91;9,112.66,249.56,394.53,10.91;9,112.28,263.11,395.38,10.91;9,112.66,276.66,320.48,10.91" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="9,262.88,222.46,224.84,10.91">Self-attention with relative position representations</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Shaw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N18-2074</idno>
+		<ptr target="https://aclanthology.org/N18-2074.doi:10.18653/v1/N18-2074" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.66,236.01,393.33,10.91;9,112.66,249.56,277.24,10.91">Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>New Orleans, Louisiana</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="464" to="468" />
+		</imprint>
+	</monogr>
+	<note>Short Papers</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,290.20,359.20,10.91" xml:id="b21">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Opitz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Burst</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1911.03347</idno>
+		<title level="m" coord="9,191.49,290.20,99.04,10.91">Macro f1 and macro f1</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,303.75,395.17,10.91;9,112.66,317.30,393.33,10.91;9,112.66,330.85,267.81,10.91" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="9,286.04,303.75,221.79,10.91;9,112.66,317.30,61.92,10.91">Improving hate speech detection with deep learning ensembles</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zimmerman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Fox</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,199.59,317.30,306.40,10.91;9,112.66,330.85,170.04,10.91">Proceedings of the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)</title>
+		<meeting>the Eleventh International Conference on Language Resources and Evaluation (LREC 2018)</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="2546" to="2553" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,344.40,393.33,10.91;9,112.66,357.95,393.33,10.91;9,112.66,371.50,393.33,10.91;9,112.66,385.05,395.01,10.91;9,112.66,398.60,191.55,10.91" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="9,387.56,344.40,118.43,10.91;9,112.66,357.95,202.13,10.91">Larger-scale transformers for multilingual masked language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Anantharaman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Conneau</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.repl4nlp-1.4</idno>
+		<ptr target="https://aclanthology.org/2021.repl4nlp-1.4.doi:10.18653/v1/2021.repl4nlp-1.4" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,348.23,357.95,157.75,10.91;9,112.66,371.50,244.98,10.91">Proceedings of the 6th Workshop on Representation Learning for NLP (RepL4NLP-2021)</title>
+		<meeting>the 6th Workshop on Representation Learning for NLP (RepL4NLP-2021)<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="29" to="33" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,412.15,394.53,10.91;9,112.28,425.70,395.55,10.91;9,112.66,439.25,39.03,10.91;9,168.34,439.25,338.85,10.91;9,112.28,452.79,395.55,10.91;9,112.66,466.34,394.03,10.91;9,112.66,479.89,210.47,10.91" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="9,322.58,425.70,185.25,10.91;9,112.66,439.25,34.16,10.91">Big Bird: Transformers for Longer Sequences</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zaheer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Guruganesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">A</forename><surname>Dubey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ainslie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Alberti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ontanon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Pham</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ravula</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ahmed</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper/2020/file/c8512d142a2d849725f31a9a7a361ab9-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.28,452.79,256.30,10.91">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Larochelle</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Ranzato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Hadsell</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Balcan</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Lin</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="17283" to="17297" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,493.44,393.33,10.91;9,112.66,506.99,393.33,10.91;9,112.66,520.54,393.32,10.91;9,112.66,534.09,394.03,10.91;9,112.66,547.64,72.36,10.91" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="9,269.04,493.44,236.95,10.91;9,112.66,506.99,135.36,10.91">PEGASUS: Pre-training with extracted gap-sentences for abstractive summarization</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Saleh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Liu</surname></persName>
+		</author>
+		<ptr target="https://proceedings.mlr.press/v119/zhang20ae.html" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,396.38,506.99,109.60,10.91;9,112.66,520.54,213.32,10.91;9,401.95,521.55,104.03,9.72;9,112.66,535.10,75.65,9.72">Proceedings of the 37th International Conference on Machine Learning</title>
+		<editor>
+			<persName><forename type="first">H</forename><forename type="middle">D</forename><surname>Iii</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Singh</surname></persName>
+		</editor>
+		<meeting>the 37th International Conference on Machine Learning<address><addrLine>PMLR</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page" from="11328" to="11339" />
+		</imprint>
+	</monogr>
+	<note>Proceedings of Machine Learning Research</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

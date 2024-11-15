@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,149.03,114.39,317.30,14.35;1,258.10,132.32,99.16,14.35;1,223.65,152.43,168.05,11.96">Authorship clustering using multi-headed recurrent neural networks Notebook for PAN at CLEF 2016</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,274.33,188.76,66.69,9.96"><forename type="first">Douglas</forename><surname>Bagnall</surname></persName>
+							<email>douglas@halo.gen.nz</email>
+						</author>
+						<title level="a" type="main" coord="1,149.03,114.39,317.30,14.35;1,258.10,132.32,99.16,14.35;1,223.65,152.43,168.05,11.96">Authorship clustering using multi-headed recurrent neural networks Notebook for PAN at CLEF 2016</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A526C2618443A61A327303A7A4280CA0</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:45+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>A recurrent neural network that has been trained to separately model the language of several documents by unknown authors is used to measure similarity between the documents. It is able to find clues of common authorship even when the documents are very short and about disparate topics. While it is easy to make statistically significant predictions regarding authorship, it is difficult to group documents into definite clusters with high accuracy.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="13" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+		<surface n="14" ulx="0.0" uly="0.0" lrx="595.28" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The most successful entry in the PAN 2015 author identification task <ref type="bibr" coords="1,408.77,345.86,11.62,9.96" target="#b6">[7]</ref>[2] used a form of recurrent neural network (RNN) to simultaneously model the language of several authors. The relative success of each author's model when presented with an anonymous text was treated as an indication of true authorship. This technique is reused here, but with different interpretive steps to suit the different task.</p><p>The use of recurrent neural networks for language models is not new, and was most recently revived by Mikolov <ref type="bibr" coords="1,252.35,417.59,10.58,9.96" target="#b5">[6]</ref>. The novelty of <ref type="bibr" coords="1,332.58,417.59,11.62,9.96" target="#b1">[2]</ref> was the use of a single recurrent state that was shared by multiple language models, reducing both overfitting and computational cost. The system produces scores in the form of relative entropies which suit the attribution problem well because it avoids the problems of high dimensional feature space, cutting directly to pairwise similarity scores.</p><p>While this suited the PAN2015 author identification task <ref type="bibr" coords="1,371.99,477.37,11.31,9.96" target="#b6">[7]</ref>, and the combination of language modelling and information theory is clearly useful in uncovering authorship, the approach may have drawbacks when used for clustering. At its core it produces an asymmetrical matrix of pair-wise divergence scores. Lacking both symmetry and the triangle inequality, this matrix cannot be used with clustering algorithms designed for metric spaces -which is to say most of them.</p><p>This paper briefly describes the multi-headed recurrent neural network introduced in <ref type="bibr" coords="1,145.67,561.05,10.58,9.96" target="#b1">[2]</ref>, then looks at a method of turning its output into clustering decisions. But first comes a description of the task, noting in particular the scoring mechanisms which will come to contort the rest of the work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">The PAN 2016 author clustering task</head><p>For a full description of the competition, see the overview paper <ref type="bibr" coords="1,405.61,627.92,10.58,9.96" target="#b6">[7]</ref>. The following concise definition is taken from the PAN website: <ref type="foot" coords="1,334.27,638.60,3.49,6.97" target="#foot_0">1</ref>Given a collection of (up to 100) documents, identify authorship links and groups of documents by the same author. All documents are single-authored, in the same language, and belong to the same genre. However, the topic or textlength of documents may vary. The number of distinct authors whose documents are included in the collection is not given.</p><p>The task covers three alphabetic languages (English, Greek, and Dutch), with six problems in each language. As described in the quoted passage, each problem consists of up to 100 documents. Two forms of answer are required for each problem: a set of clusters, indicating texts presumed to be by a single author; and a set of weighted links between text pairs where a higher weight relates to a higher probability that the two texts are from the same author. These two outputs are scored in different ways. The clustering are evaluated using the F(BCubed) <ref type="bibr" coords="2,271.33,261.56,14.11,9.96" target="#b0">[1]</ref> measure which averages the precision and recall of each document. The weighted links are scored using mean average precision <ref type="bibr" coords="2,454.04,273.51,12.10,9.96" target="#b4">[5]</ref> (or MAP), which punishes for every false link that is scored higher than a true link. Although the scores are presented in the form of probabilities, MAP doesn't actually care about their relative values, just their rank.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">The multi-headed recurrent neural network language model</head><p>This description is simplified for brevity; for more detail see <ref type="bibr" coords="2,378.68,370.82,11.62,9.96" target="#b1">[2]</ref> or <ref type="bibr" coords="2,403.99,370.82,11.62,9.96" target="#b5">[6]</ref> for an overview of RNN based language modelling.</p><p>A standard character-level language model will, given an unfinished sequence of text x 1 , x 2 , x 3 , . . . , x i-1 , predict the next character x i . That is, it outputs a probability distribution over the possible characters p(x i |x i-1 , x i-2 , . . . , x 1 ). Such a model is usually trained on a corpus of text and the probabilities it emits are based on that text (and of course its structure and meta-parameters). Given the hypothesis that the writing style of an author will inevitably be reflected in choices made at the character level (even if that relationship is very faint), it follows that a language model trained solely on one author's work is likely to better predict another text by that author than would a model trained on the work of another author.</p><p>An RNN based language model will usually have a softmax activation for the output layer z. Where there are k output nodes (corresponding to the set of possible symbols), softmax for node j is defined as</p><formula xml:id="formula_0" coords="2,273.44,547.38,66.20,26.30">σ(z) j = e zj ∑ k e z k</formula><p>which provides values that can be treated as mutually exclusive probabilities. The multiheaded RNN language model differs in that it simultaneously models the language of many documents at once by using multiple softmax groups. Given M documents, there are M * k output nodes arranged in M independent softmax groups. Each of these groups is trained primarily on a single text, with some stochastic "leakage" from other texts which helps regulate the output layer weights, preventing gross overfitting. The error gradient is back-propagated to the shared hidden layer.</p><p>In most regards the network follows the basic structure described by Elman <ref type="bibr" coords="3,466.49,118.00,10.58,9.96" target="#b3">[4]</ref>, which is to say it resembles a multi-layer perceptron with a single hidden layer modified so the hidden state depends in part on the previous iteration's hidden state.</p><p>At each time step t, the hidden state h t depends on the hidden state at the previous time step h t-1 as well as the input vector x t which represents a single character. Where b h is a bias vector, W xh and W hh are weight matrices, and f h is a non-linear function, the update of the hidden state is h t = f h (W hh h t-1 + W xh x t + b h ). An output vector y t is derived from the hidden state, with y t = f y (W hy h t + b y ). For this work, as in <ref type="bibr" coords="3,466.48,204.75,10.58,9.96" target="#b1">[2]</ref>, the "ReSQRT" function is used for f h :</p><formula xml:id="formula_1" coords="3,238.03,242.65,128.13,34.23">f h (x) = { √ x + 1 -1 if x ≥ 0 0 otherwise.</formula><p>The input layer uses a "one-hot" representation of the symbols; there is a node for each of the N symbols in the alphabet, and at each time step the node for the current symbol is set to 1 while the rest are 0. The network is trained using a variant of adagrad <ref type="bibr" coords="3,345.51,592.28,12.97,9.96" target="#b2">[3]</ref> and back-propagation through time (BPTT). Simply described this involves iteratively adjusting the weight matrices with an individual monotonically decreasing learning rate for each weight.</p><p>The recurrent hidden layer can be thought of as modelling the language as a whole, while the various sub-models pick out aspects of the recurrent state that suit their document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Method</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Text preprocessing</head><p>In order to simplify the computational task and remove the distorting effect of extremely rare characters, all the texts were mapped to a smaller character set following the method described in <ref type="bibr" coords="4,185.48,193.18,10.58,9.96" target="#b1">[2]</ref>. The following description is an abbreviated version of a section of that paper. In addition, in two out of the five runs for each language, rare words were replaced by special tokens (Section 3.2).</p><p>The text is converted into the NFKD unicode normal form, which decomposes accented letters into the letter followed by the combining accent. Capital letters are further decomposed into an uppercase marker followed by the corresponding lowercase letter.</p><p>Various rare characters that seem largely equivalent are mapped together; for example the en-dash ("-") and em-dash ("-") are rare and appear to be used interchangeably in practice so these are mapped together.</p><p>For the Greek text, all Latin characters are mapped to a single token (the letter s) on the basis that foreign quotations and references appear too rarely for their content to be valuable and an attempt to model them would be wasteful, but the tendency to use them might be a useful signal. Following similar logic, all digits in all languages are mapped to 7. Runs of whitespace are collapsed into a single space.</p><p>At the end of this processing, any character with a frequency lower than 1 in 10,000 is discarded. Any characters occurring in a text but not in the resultant alphabet are ignored-there is no "unknown" token. Alphabet sizes are 45 for English, 47 for Dutch, and 51 for Greek.</p><p>Runs of more than 5 identical characters are truncated at 5. This is mainly aimed at the Latin stretches in Greek text, where the exact word length is probably not a useful signal.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Eliminating low document frequency words</head><p>There are always going to be character level patterns in text that are more indicative of topic or genre than authorial style. Genre is to ostensibly controlled in the PAN corpora, but topic is not. A content-agnostic language model trained on a text containing topicspecific words will expect those words to appear frequently.</p><p>For example, this is the entirety of a text used in the Dutch review training problems:</p><p>Ik heb de Blackberry 9790 Bold nu sinds vijf dagen, en ik ben zeer tevreden over deze telefoon. Ik was op zoek naar een telefoon zonder te veel poespas en onzinnige applicaties, maar die wil snel en gemakkelijk werkt. Het menu werkt snel en instinctief. Als ik iets wil veranderen, heb ik het zo gevonden. Tijdens vergaderingen gebruik ik soms de luidspreker; dat werkt perfect. Ik heb overigens verschillende recensies gelezen over een slechte batterij, maar mijn blackberry houdt het wel de hele dag vol. Volgens mij hebben andere smartphones veelal dezelfde problemen.</p><p>The word blackberry doesn't occur anywhere else in the corpus, yet it accounts for about 3.5% of this text. A naively trained language model could be forgiven for assuming that a propensity to write blackberry is a trademark of this author, which is unlikely in reality.</p><p>To counter this for some runs words that occur in only a very few documents (including in the controls) are replaced by a rare word token (arbitrarily, the degree sign °). The following quote is the above review modified according to the rules described with the words occuring in fewer than 1 percent of documents replaced with °tokens: ¹ik heb de ¹°7777 ¹°nu sinds vijf dagen, en ik ben zeer tevreden over deze telefoon. ¹ik was op zoek naar een telefoon zonder te veel °en °°, maar die wil snel en gemakkelijk werkt. ¹het menu werkt snel en °. ¹als ik iets wil veranderen, heb ik het zo gevonden. ¹tijdens vergaderingen gebruik ik soms de °; dat werkt perfect. ¹ik heb overigens verschillende °gelezen over een slechte batterij, maar mijn °houdt het wel de hele dag vol. ¹volgens mij hebben andere smartphones °dezelfde problemen.</p><p>While this clearly removes some topic specific words (Blackberry, Bold, applicaties, luidspreker), it also mangles some possibly useful and seemingly ordinary words and phrases (poespas en onzinnige, veelal). <ref type="foot" coords="5,369.47,345.89,3.49,6.97" target="#foot_1">2</ref> It is difficult to ascertain whether this is of net benefit on the small training set, or indeed what the threshold should be. For each language an ensemble of five models was used; for two of these the document frequency threshold was used. There are around 300 documents for each language (see next section) so the lowest effective threshold is in the order of 0.005, corresponding to the word occurring in a single document.</p><p>It would likely be of benefit to take part-of-speech information into account when discarding words, but that would complicate things and involve tagging software that is not unavailable for all languages.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">MHRNN set up</head><p>Although in both the training and test sets there are six independent problems for each language, there is (at least in the training set) overlap between the sets with some texts being in multiple problems. As a result, although the training problem sizes sum to 390, 471, and 330 texts for English, Dutch, and Greek respectively, there are only 201, 278, and 189 individual texts, also respectively. Numbers for the tests sets are unknown.</p><p>All the documents from all the problems in each language were combined into a single model, along with 80 "control" texts selected at random from the 2013, 2014, and 2015 PAN training corpora. That means that in the training set for the Greek model there were 269 (i.e. 189 problem texts + 80 control) softmax groups; for the Dutch 358, and for the English 281.</p><p>Calculating all the problems at once is beneficial in a number of ways. The more text that the model as a whole sees, the better it can model the target language. More text allows the hidden layer to be larger, giving it more subtlety. Treating each problem individually with a larger portion of control texts (e.g. 250 control texts per problem) would possibly work, at great computational cost. On the other hand, the presence of the other problems may be beneficial as they teach the model more about the genres in question. Many of the control texts in English (for example) are excerpts from bad 19th century novels, which differ significantly from the PAN2016 problem texts.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Interpreting the results</head><p>The cross-entropy of each sub-model running against each text is collected in a matrix. For every problem the relevant sub-set of the matrix (i.e. problem texts evaluated by problem models) is gathered up. Because some texts are inherently more difficult to model than others, the problem matrix is adjusted by subtracting the mean score given to each text by the control models. This gives the problem matrix a mean of approximately zero.</p><p>The control models were used for this (rather than the models of the problem itself, or those of other problems) because between them the problems share authors across many texts. Using these models to normalise scores might skew the matrix if a few authors dominate. On the other hand, some of the control texts are known to possess peculiar styles while others could well be by the same authors as the the problem texts (given that they are from previous competitions and PAN draws corpora from limited pools). No attempt was made to find out. The matrix is then added to its own transpose for symmetry and made positive and monotonically increasing by exponentiation. That is given the normalised matrix M is converted thus M ′ = e M +M T . The top triangle of M ′ is scaled to the range 0-1 for the MAP scores. This simple strategy seems to work reasonably well for MAP scores.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Optimising F(BCubed): the cowardly approach</head><p>By definition, the F(BCubed) metric must be above 0.5 when all documents are placed in their own individual clusters of size one (because this makes the precision of each document 1, while recall is at worst 1/N when all documents belong to the same cluster). On the other hand, placing all documents in a single big cluster will in result in an Fscore less than 0.5 in the typical case. <ref type="foot" coords="7,283.81,185.76,3.49,6.97" target="#foot_2">3</ref> This reflects that the fully disconnected solution states only the a-priori truth that each document is in a cluster with itself, and F(BCubed) rewards the restraint of that claim.</p><p>Therefore, given no other information, the optimal strategy is predict N fully disconnected clusters of size 1. It only makes sense to depart from this strategy when the underlying detection is strong. In this paper, the fully disconnected solution is called the cowardly strategy, and the rest of this section is devoted to detecting ways in which it might be bettered.</p><p>Figure <ref type="figure" coords="7,178.05,283.19,4.98,9.96">3</ref> shows the problem.</p><p>Fig. <ref type="figure" coords="7,150.95,483.61,3.36,8.97">3</ref>. The x axis is the threshold at which to link two texts, using simple agglomerative clustering. The y axis is the resultant F(BCubed) score. In the bottom left, all the documents are in one cluster and all the links are redundant. The flat line at the top right corresponds to the diagonal of the affinity matrix: these are the thresholds at which documents would link to themselves. In between is a large cliff. Sometimes there is a little hill at the top of the cliff. The task is to climb the hill without falling off the cliff. It is completely dark. You don't know where the cliff is, or whether there is a hill. Where there is no hill (as with problem002), you are better off sticking to the right. That is the cowardly strategy which this paper struggles to better. The exact values on both axes are largely irrelevant. With the cluster-aware approach, the link is scored with the mean of all the links in the resulting cluster.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6">Optimising F(BCubed): the cluster-aware approach</head><p>One problem with the simple agglomerative approach is that the a link between two documents can cluster together a large number of other documents that might otherwise seem unrelated. This is equivalent to singlelinkage in the metric clustering case. Figure <ref type="figure" coords="8,306.56,177.77,4.98,9.96" target="#fig_2">4</ref> attempts to illustrate the problem. As clusters get big, the probability of a single link leading to cataclysmic super-cluster grows, causing the cliff in Figure <ref type="figure" coords="8,221.68,225.59,3.74,9.96">3</ref>.</p><p>A modified agglomerative approach was developed where each link's score is adjusted to the mean of all the links in the cluster it forms. This approach, which appeared to give better results, is not described here because it was mistakenly not used in the PAN evaluation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.7">Optimising F(BCubed): the accidental small-cluster steep cliff approach</head><p>Due to a foolish programming error, the cluster-aware strategy was replaced by an algorithm was used that effectively punished any link that joined more than two documents together. That is, the documents were all made to partner up before any of them could consider larger clusters.</p><p>Although this error seems drastic, the algorithm turns out to have some nice features. Figure <ref type="figure" coords="8,163.06,422.75,4.98,9.96">5</ref> shows the modified F(BCubed) curves for the same examples as Figure <ref type="figure" coords="8,455.19,422.75,3.74,9.96">3</ref>. The cliff is steeper and the hill, where there is one, is broader and flatter (though lower). This makes aiming at better-than-cowardly easier using the simple heuristic described in the next section. Results on the training set using the same heuristic and the intended algorithm (as in Section 3.6) are in aggregate very similar to those obtained with this accidental method, though the variance is larger. The intended algorithm appears to make higher scores achievable in a narrower band of thresholds; outside the band the scores are worse.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.8">Optimising F(BCubed): the clusteriness heuristic</head><p>The aim of these clustering explorations is to find a method that beats the cowardly strategy. This appears achievable by using the simple heuristic of finding anchor points in the F(BCubed) landscape, as shown in Figure <ref type="figure" coords="8,329.62,583.39,3.74,9.96">5</ref>, and choosing a point between them according to a fixed ratio. The exact ratio was chosen per language and genre based on a terrible mixture of greed and fear. In the end a slightly risky coefficient was chosen as the underlying detection seems quite sound (reflected in significantly better than random MAP scores on the training set), and if sticking to the cowardly baseline is the best strategy it is almost certainly going to result in a tie. Thus safety is discarded in pursuit of a win. Fig. <ref type="figure" coords="9,150.95,413.41,3.36,8.97">5</ref>. The x axis is the threshold at which to link two texts, using an odd algorithm that prefers documents to form monogamous pairs rather than large clusters. F(BCubed) is shown with blue ×, and the number of clusters is shown with red +, and has been scaled to fit the same y axis (so 1 means N clusters, 1/N means 1 cluster). The number of clusters is known to the clustering algorithm while the F(BCubed) score is not. The algorithm uses the bottom of the "cluster cliff" and the median of the diagonal values (that is, the love models have for their own documents) as anchors, marked as grey dotted line. A threshold is chosen between these points using a predetermined clusteriness coefficient (in this case is 0.85), simply by reaching that far from the diagonal anchor to the cliff anchor. Calling the clusteriness c, the cliff and diagonal anchors tc and t d , and the final threshold t yields t = t d -c * (t d -tc). This clusteriness heuristic also works with the simple agglomerative or cluster aware strategies, though the cliff is not so steep and the landscape at the top is more exaggerated.  <ref type="table" coords="10,157.76,412.91,3.36,8.97">1</ref>. Indicative MAP and F(BCubed) scores derived from one run on the training set. The coward column shows the F(BCubed) score for a fully disconnected solution where each document is in its own cluster. The best column shows the maximum score obtainable using the techniques described here, while the next column (c b ) shows the clusteriness setting necessary to obtain that score. The fixed column show the scores obtained by setting the clusteriness according to heuristics based on language and genre, and the corresponding c f column shows that setting. The two diff columns show the difference between the cowardly approach and the best and fixed scores respectively; gains are highlighted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.9">Optimising F(BCubed): example training set results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Lang</head><p>Table <ref type="table" coords="10,173.85,524.72,4.98,9.96">1</ref> shows some results obtained on the training set. It shows that for most of the English problems there is no chance of getting a better-than-cowardly result (using these techniques), but for the other languages this is not only possible but is achieved using the preset values. Those preset values were of course adjusted with full knowledge of the training set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.10">Ensembles</head><p>Five nets were trained for each language, and the raw cross entropy matrices were summed before subsequent processing. All the models were trained in a similar fashion, using a form of adagrad optimisation, with somewhat haphazard variation in a few meta-parameters. A summary of the meta-parameters is shown in Table <ref type="table" coords="11,399.21,118.00,3.74,9.96" target="#tab_1">2</ref>. <ref type="foot" coords="11,406.67,116.72,3.49,6.97" target="#foot_3">4</ref>Whether this variation in meta-parameters (or indeed the use of ensembles at all) actually helps was not thoroughly explored. As the number of documents is much greater than typically found in the PAN2015 challenge, the hidden layers can be larger than seen in <ref type="bibr" coords="11,354.23,526.36,10.58,9.96" target="#b1">[2]</ref>, resulting in hopefully more accurate and nuanced modelling at the cost of training time.</p><p>In ordinary language modelling, the point is to achieve maximum accuracy, and to this end a validation corpus is often used to avoid overfitting the model to the training set. For this task a similar approach is used, though accuracy of the language model itself is of course not the primary concern. It was found that a slightly overfit model (vis-a-vis a validation text, averaged across all sub-models) seems to give better MAP results. Hence the nets were trained until the validation entropy had been worsening for a small number of epochs.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,134.76,545.35,345.81,9.07;3,134.76,556.42,345.82,8.97;3,134.76,567.37,327.14,8.97;3,169.35,345.67,276.67,185.86"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. The multi-headed RNN language model has multiple sub-models, each making predictions based primarily on a single unique text. If some aspects of the text's author's style is captured by the sub-model, other texts by the same author are likely to be relatively well predicted by it.</figDesc><graphic coords="3,169.35,345.67,276.67,185.86" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="6,134.76,560.12,345.81,9.07;6,134.76,571.18,345.81,8.97;6,134.76,582.14,345.81,8.97;6,134.76,593.10,205.74,8.97;6,152.06,388.26,311.28,158.06"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Extracting normalised relative entropies for a problem (in this case, problem002 in the training set). The control models are used to normalise the text scores. Darker colours mean more affinity; the diagonal shows that each model is good at modelling the text it was trained on. Subfigure b has been made symmetric and positive (see text).</figDesc><graphic coords="6,152.06,388.26,311.28,158.06" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="8,321.51,240.80,159.08,9.07;8,321.51,251.87,159.08,9.26;8,321.51,262.82,159.08,9.26;8,321.51,273.78,159.07,8.97;8,321.51,284.74,159.07,8.97;8,321.51,295.70,159.07,8.97;8,321.51,306.66,59.18,8.97;8,328.44,119.54,145.25,107.48"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Linking B to D seems attractive, but it implicitly forms the links A -D, A -E, B -E, C -D, and C -E; and the quality of those links needs to be taken into account. With the cluster-aware approach, the link is scored with the mean of all the links in the resulting cluster.</figDesc><graphic coords="8,328.44,119.54,145.25,107.48" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="7,134.76,307.12,345.82,162.71"><head></head><label></label><figDesc></figDesc><graphic coords="7,134.76,307.12,345.82,162.71" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="9,134.76,235.72,345.83,163.91"><head></head><label></label><figDesc></figDesc><graphic coords="9,134.76,235.72,345.83,163.91" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="11,134.76,169.42,345.84,320.92"><head>Table 2 .</head><label>2</label><figDesc>Meta-parameters that varied across training runs. size is the number of neurons in the network's hidden layer (for efficiency reasons, one less than a multiple of four is always chosen). PSN is the standard deviation of Gaussian pre-synaptic noise added during training. leak is the chance that each training example has of affecting a non-target softmax group in the first epoch (subsequently it decays exponentially). Over-fit is the number of epochs that training continues after the average cross-entropy against a validation text has started worsening. word DF refers to the document frequency threshold for word inclusion; a dash means no words are removed.</figDesc><table coords="11,167.01,169.42,281.32,226.11"><row><cell></cell><cell>size</cell><cell>PSN</cell><cell>leak</cell><cell>over-fit</cell><cell>direction</cell><cell>word DF</cell></row><row><cell>Dutch</cell><cell>299</cell><cell>0.5</cell><cell>1 2N</cell><cell>4</cell><cell>forward</cell><cell>-</cell></row><row><cell></cell><cell>159</cell><cell>0.3</cell><cell>1 3N</cell><cell>2</cell><cell>forward</cell><cell>-</cell></row><row><cell></cell><cell>139</cell><cell>0.3</cell><cell>1 2N</cell><cell>4</cell><cell>reverse</cell><cell>0.005</cell></row><row><cell></cell><cell>99</cell><cell>0.5</cell><cell>1 2N</cell><cell>3</cell><cell>forward</cell><cell>0.01</cell></row><row><cell></cell><cell>139</cell><cell>0.3</cell><cell>1 2N</cell><cell>5</cell><cell>reverse</cell><cell>-</cell></row><row><cell>English</cell><cell>299</cell><cell>0.5</cell><cell>1 2N</cell><cell>4</cell><cell>forward</cell><cell>-</cell></row><row><cell></cell><cell>139</cell><cell>0.3</cell><cell>1 2N</cell><cell>5</cell><cell>reverse</cell><cell>-</cell></row><row><cell></cell><cell>239</cell><cell>1</cell><cell>1 3N</cell><cell>2</cell><cell>reverse</cell><cell>0.005</cell></row><row><cell></cell><cell>139</cell><cell>0.3</cell><cell>1 2N</cell><cell>5</cell><cell>forward</cell><cell>0.01</cell></row><row><cell></cell><cell>159</cell><cell>0.5</cell><cell>1 2N</cell><cell>2</cell><cell>forward</cell><cell>-</cell></row><row><cell>Greek</cell><cell>299</cell><cell>0.3</cell><cell>1 2N</cell><cell>3</cell><cell>forward</cell><cell>0.005</cell></row><row><cell></cell><cell>279</cell><cell>0.5</cell><cell>1 2N</cell><cell>4</cell><cell>forward</cell><cell>-</cell></row><row><cell></cell><cell>159</cell><cell>0.3</cell><cell>1 3N</cell><cell>5</cell><cell>reverse</cell><cell>-</cell></row><row><cell></cell><cell>159</cell><cell>1</cell><cell>1 2N</cell><cell>3</cell><cell>forward</cell><cell>0.005</cell></row><row><cell></cell><cell>139</cell><cell>0.3</cell><cell>1 2N</cell><cell>5</cell><cell>reverse</cell><cell>-</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,144.73,655.90,228.92,8.97"><p>http://pan.webis.de/clef16/pan16-web/author-identification.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="5,144.73,655.90,244.38,8.97"><p>I do not speak Dutch and can only guess at the value of these words.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="7,144.73,644.94,335.84,8.97;7,144.73,655.90,174.08,8.97"><p>Typical not only in the sense of a randomly sampled partition, but more importantly this is empirically true for all the training set problems.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="11,144.73,644.94,381.55,8.97;11,144.73,655.90,198.28,8.97"><p>Full meta-parameter details are defined in code at https://github.com/douglasbagnall/bog/tree/master/config; there is little to be gained from an exhaustive summary.</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>For each language, two of the five models read the texts backwards, learning to predict the characters that lead to the current state. While reversed language models are no better than forward ones on their own, they were included on the hypothesis that their differing perspective should help the ensemble.</p><p>There were also two nets for each language with a word document frequency threshold or 0.005 or 0.01. The arrangement of all the meta-parameters is essentially ad-hoc. Results are shown in Table <ref type="table" coords="12,258.09,581.28,3.74,9.96">3</ref>. At the time of writing it is unknown how these results compare to other approaches.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Lang</head><p>Where the P-BCubed column in Table <ref type="table" coords="12,308.39,607.30,4.98,9.96">3</ref> is 1, it is likely (but not certain) that the software has settled on the cowardly strategy (Section 3.5). Where it is not 1, the software has deviated from this strategy, whether successfully or not. There is cause for optimism where the MAP scores are greater than 0.1 and the BCubed precision is not far below 1. On the whole the software looks to have favoured valour over caution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Discussion</head><p>The technique described seems to perform reasonably well on an intrinsically difficult problem, but it is sadly difficult to be certain how it compares to other methods. Most entries in the PAN competition appear to have suffered problems relating to their understanding of the scoring system, which may be hiding some successes at actually detecting links between texts. The PAN committee published a baseline result on an early-bird test set with an F(BCubed) score of 0.6922, and a MAP of 0.000459. As has been well established, the fully-disconnected cowardly strategy offers a hard-to-beat, easy-to-achieve baseline for F(BCubed). For MAP a beatable but useful baseline might be a fully connected graph with random link strengths. Randomly shuffling the link arrays gives results like the final column in Table <ref type="table" coords="13,200.68,643.17,3.74,9.96">4</ref>. The average of this column is 0.036 -two orders of magnitude better than the "official" baseline. MAP rewards verbosity. Even if a method gives no ranking of undesired links, it is better to assign them low random weights than to ignore them altogether.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">A zero-effort baseline</head><p>As explained at length in Section 3.5, a system that sticks to the a-priori truth that each document is in a cluster with itself will obtain an F(BCubed) of around 0.8. Thus it is easy to define a zero-effort baseline that randomizes links for MAP and uses the cowardly strategy for F(BCubed). Unfortunately this baseline would have performed quite well in competition. Many teams seem not to have grasped the fundamental biases of the two scoring mechanisms, although their underlying solutions may be sound.</p><p>This suggests a weakness in F(BCubed) <ref type="bibr" coords="14,309.80,213.64,14.11,9.96" target="#b0">[1]</ref> for evaluating very difficult clustering problems. Whereas from an informational point of view putting everything in a single cluster might not seem very different from putting everything in separate clusters of size one, F(BCubed) over-rewards the latter claim. It may be that there is no clustering evaluation system that suits all problems.</p><p>MAP and F(BCubed) are evidently both quite tricky to code and reason about. It might help in future competitions if some form of evaluation software was available so that inexperienced coders could gain a better understanding of the task and their progress in it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Variations and run-time</head><p>A major drawback to this technique is the time it takes. As described in the paper it took far longer than any other technique. An obvious way to speed up the process would be to reduce the ensemble size to one (for a five-fold improvement). Reducing the number of hidden neurons would further improve speed but reduce efficacy a small margin.</p><p>Going the other way, increasing the amount and quality of control text would increase the system's overall understanding of the language, and allow the number of hidden nodes to be increased. This should lead to somewhat better results without fundamental changes.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="14,138.12,493.62,309.43,8.97;14,146.47,504.58,329.16,8.97" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="14,316.48,493.62,131.07,8.97;14,146.47,504.58,165.34,8.97">A comparison of extrinsic clustering evaluation metrics based on formal constraints</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Amigó</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gonzalo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Artiles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Verdejo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,317.46,504.58,74.51,8.97">Information retrieval</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="461" to="486" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,138.12,515.26,319.26,8.97;14,146.47,526.22,122.27,8.97" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="14,192.29,515.26,238.57,8.97">Author identification using multi-headed recurrent neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Bagnall</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1506.04891</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="14,138.12,536.90,317.29,8.97;14,146.47,547.86,324.68,8.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="14,262.35,536.90,193.06,8.97;14,146.47,547.86,81.11,8.97">Adaptive subgradient methods for online learning and stochastic optimization</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Duchi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Hazan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Singer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,233.49,547.86,155.49,8.97">The Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2121" to="2159" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,138.12,558.54,295.09,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="14,192.55,558.54,87.43,8.97">Finding structure in time</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">L</forename><surname>Elman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,285.86,558.54,63.68,8.97">Cognitive science</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="179" to="211" />
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,138.12,569.22,337.55,8.97;14,146.47,580.18,84.58,8.97" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Raghavan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schütze</surname></persName>
+		</author>
+		<title level="m" coord="14,301.59,569.22,128.86,8.97">Introduction to information retrieval</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,138.12,590.86,329.05,8.97;14,146.47,601.82,162.56,8.97" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="14,192.37,590.86,198.26,8.97">Statistical Language Models Based on Neural Networks</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+		<respStmt>
+			<orgName>Brno University of Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Ph. D. thesis</note>
+</biblStruct>
+
+<biblStruct coords="14,138.12,612.50,315.93,8.97;14,146.47,623.46,321.66,8.97;14,146.47,634.42,306.48,8.97;14,146.47,645.38,94.90,8.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="14,194.44,623.46,200.75,8.97">Clustering by Authorship Within and Across Documents</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,413.94,623.46,54.19,8.97;14,146.47,634.42,149.81,8.97">Working Notes Papers of the CLEF 2016 Evaluation Labs</title>
+		<title level="s" coord="14,302.46,634.42,150.49,8.97;14,146.47,645.38,19.30,8.97">CEUR Workshop Proceedings, CLEF and CEUR</title>
+		<imprint>
+			<date type="published" when="2016-09">Sep 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

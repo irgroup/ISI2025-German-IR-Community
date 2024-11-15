@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,149.38,115.96,316.59,12.62">JUST at VQA-Med: A VGG-Seq2Seq Model</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,211.36,153.70,66.36,8.74"><forename type="first">Bashar</forename><surname>Talafha</surname></persName>
+							<email>talafha@live.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Jordan University of Science and Technology</orgName>
+								<address>
+									<settlement>Irbid</settlement>
+									<country key="JO">Jordan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,304.88,153.70,94.65,8.74"><forename type="first">Mahmoud</forename><surname>Al-Ayyoub</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Jordan University of Science and Technology</orgName>
+								<address>
+									<settlement>Irbid</settlement>
+									<country key="JO">Jordan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,149.38,115.96,316.59,12.62">JUST at VQA-Med: A VGG-Seq2Seq Model</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5B1C1880C2922A921B1DFA213476EA28</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:53+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Sequence to sequence</term>
+					<term>VGG Network</term>
+					<term>Global Vectors for Word Representation</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes the VGG-Seq2Seq system for the Medical Domain Visual Question Answering (VQA-Med) Task of ImageCLEF 2018. The proposed system follows the encoder-decoder architecture, where the encoders fuses a pretrained VGG network with an LSTM network that has a pretrained word embedding layer to encode the input. To generate the output, another LSTM network is used for decoding. When used with a pretrained VGG network, the VGG-Seq2Seq model managed to achieve reasonable results with 0.06, 0.12, 0.03 BLEU, WBSS and CBSS, respectively. Moreover, the VGG-Seq2Seq is not expensive to train.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Visual Question Answering (VQA) is a recent and exciting problem at the intersection between Computer Vision (CV) and Natural Language Processing (NLP), where the input is an image and a question related to it written in a natural language and the output is the correct answer to the question. The answer can be a simple yes/no, choosing one of several options, a single word, or a complete phrase of sentence <ref type="bibr" coords="1,259.44,476.65,10.52,8.74" target="#b1">[2,</ref><ref type="bibr" coords="1,271.61,476.65,7.01,8.74" target="#b3">4]</ref>.</p><p>From a first glance, the VQA problem seem like a very challenging one. The traditional CV techniques used for extracting useful information from images and the NLP techniques typically used for Question Answering (QA) are very far from each other and the interplay between them seem to be complex. Moreover the ability to construct an useful answer based on such multi-modal input adds to the complexity of the problem. Luckily, the recent advances in Deep Learning (DL) have paved the way to building more robust VQA techniques <ref type="bibr" coords="1,429.93,560.41,9.96,8.74" target="#b3">[4]</ref>.</p><p>In this paper, we are interested in an interesting variation of VQA where both the image and question are from the medical domain. It is known as the Medical Domain Visual Question Answering (VQA-Med) Task <ref type="bibr" coords="1,377.35,596.34,10.52,8.74" target="#b4">[5]</ref> of ImageCLEF 2018 <ref type="bibr" coords="1,134.77,608.30,9.96,8.74" target="#b7">[8]</ref>. This task requires building a model that provide an answer to question about the content of a medical image. In order to address this task, we propose a DL model we call: VGG-Seq2Seq model. The model takes an image and a question as input and outputs the answer of this question based on fusing features extracted based on the image content with those extracted from the question itself.</p><p>The rest of this paper is organized as follows. The following section presents a very brief coverage of the related work. Sections 3 and 4 discuss the problem at hand and the model we propose to handle it. The experimental evaluation of our model and its discussion are presented in Section 5. Finally, the paper is concluded in Section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Works</head><p>According to a recent survey on the VQA problem <ref type="bibr" coords="2,362.44,225.84,9.96,8.74" target="#b3">[4]</ref>, most of the exiting approaches are based on DL techniques. The only interesting exceptions are the Answer Type Prediction (ATP) technique of <ref type="bibr" coords="2,339.91,249.75,10.52,8.74" target="#b8">[9]</ref> and the Multi-World QA of <ref type="bibr" coords="2,134.77,261.70,14.61,8.74" target="#b11">[12]</ref>. Of course, there are other non-DL approaches that are used as baseline for various datasets and approaches. Discussing them is outside the scope of this paper.</p><p>Regarding the DL-based approaches for VQA, most of them employ one of the word embedding techniques (typically, Word2Vec <ref type="bibr" coords="2,353.34,309.85,15.50,8.74" target="#b13">[14]</ref>) sometimes coupled with a Recurrent Neural Networks (RNN) to embed the question. Moreover, most of them use Convolutional Neural Networks (CNN) to extract features from the images. Examples of such approaches include iBOWIMG <ref type="bibr" coords="2,393.25,345.71,14.61,8.74" target="#b24">[25]</ref>, Full-CNN <ref type="bibr" coords="2,462.33,345.71,14.61,8.74" target="#b10">[11]</ref>, Ask Your Neurons (AYN) <ref type="bibr" coords="2,249.72,357.67,14.61,8.74" target="#b12">[13]</ref>, Vis+LSTM <ref type="bibr" coords="2,324.05,357.67,14.61,8.74" target="#b17">[18]</ref>, Dynamic Parameter Prediction (DPPnet) <ref type="bibr" coords="2,181.35,369.62,14.61,8.74" target="#b14">[15]</ref>, etc. Another type of DL-based techniques employ some sort of attention mechanism such as Where to Look (WTL) <ref type="bibr" coords="2,379.20,381.58,14.61,8.74" target="#b18">[19]</ref>, Recurrent Spatial Attention (R-SA) <ref type="bibr" coords="2,213.41,393.53,14.61,8.74" target="#b25">[26]</ref>, Stacked Attention Networks (SAN) <ref type="bibr" coords="2,389.30,393.53,14.61,8.74" target="#b22">[23]</ref>, Hierarchical Coattention (CoAtt) <ref type="bibr" coords="2,215.85,405.49,14.61,8.74" target="#b9">[10]</ref>, Neural Module Networks (NMNs) <ref type="bibr" coords="2,388.70,405.49,9.96,8.74" target="#b0">[1]</ref>, etc.</p><p>Most of the work discussed in this section is not directly applicable to the VQA-Med for two reasons. The first one is an obvious one which is the focus on the medical domain, which gives this problem its unique set of challenges. As for the other one, it is related to how the sentences of the answers are constructed in VQA-Med, which is different from existing VQA datasets such as DAtaset for QUestion Answering on Realworld images (DAQUAR) <ref type="bibr" coords="2,394.13,477.54,14.61,8.74" target="#b11">[12]</ref>, Visual7W <ref type="bibr" coords="2,462.33,477.54,14.61,8.74" target="#b25">[26]</ref>, Visual Madlibs <ref type="bibr" coords="2,202.54,489.50,14.61,8.74" target="#b23">[24]</ref>, COCO-QA <ref type="bibr" coords="2,274.91,489.50,14.61,8.74" target="#b17">[18]</ref>, Freestyle Multilingual Image Question Answering dataset (FM-IQA) <ref type="bibr" coords="2,254.31,501.45,9.96,8.74" target="#b2">[3]</ref>, Visual Question Answering (VQA) <ref type="bibr" coords="2,426.09,501.45,9.96,8.74" target="#b1">[2]</ref>, etc.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Task Description and Dataset</head><p>Nowadays, patients can access and review their medical reports related to their healthcare due to the availability and accessibility of electronic medical records which will help them better understand their conditions. This increases the need for an automated system capable of taking questions related to some medical problems along with accompanying images to support this question and provide correct answer for them. This is exactly the task we are addressing in this work. Given an image in the medical domain associated with a set of clinically relevant questions, the goal of the task is answering the questions based on the visual image content <ref type="bibr" coords="2,198.97,656.12,9.96,8.74" target="#b4">[5]</ref>.</p><p>The dataset represents images related to medical domain. It was extracted from PubMed Central articles (essentially a subset of the ImageCLEF 2017 caption prediction task). The dataset is divided into about 5k training set and about 0.5k validation set of medical images associated with question-answer pairs, and about 0.5k testing set of medical images associated with only questions. Figure <ref type="figure" coords="3,475.61,166.81,4.98,8.74" target="#fig_0">1</ref> shows some examples from the training set <ref type="bibr" coords="3,325.22,178.77,9.96,8.74" target="#b4">[5]</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">The VGG-Seq2Seq Model</head><p>In this section, we discuss our VGG-Seq2Seq model, which follows the encoderdecoder architecture. The model is shown in Figure <ref type="figure" coords="3,371.05,457.17,3.87,8.74" target="#fig_1">2</ref>. In the following paragraphs, we discuss in detail its different parts.</p><p>The encoder consists of two main components. The first component is a Long short term memory (LSTM) network with a pretrained word embedding layer which encodes the question into a vector representation, while the second component is a pretrained VGG network that takes the image as an input and extracts a vector representation for that image. The final state of the encoding, the outputs of the two components are concatenated together into one vector called thought vector.</p><p>The decoder consists of LSTM network that takes the thought vector as initial state and 〈start〉 token as input in the first time step and try to predict the answer using softmax layer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Encoder</head><p>Two main components have been conducted in the encoder, the first component is a LSTM network with a pretrained word embedding layer, and the second component is the VGG network. In the first component the semantic meaning of the question will be extracted, a 300 dimensional pretrained word embedding layer is used to encode the word into a dense semantic space using Glove <ref type="bibr" coords="4,315.14,356.05,14.61,8.74" target="#b16">[17]</ref>. This word representation is then fed to a LSTM network with 1024 hidden nodes. LSTM <ref type="bibr" coords="4,182.20,383.24,10.52,8.74" target="#b6">[7]</ref> is a special type of Recurrent Neural Network (RNN) that has been designed to solve the problem of vanishing gradient. The LSTM layer used its memory cells to store the context information. LSTM has three gates (i.e. Input gate, forget gate and output gate) which will decide how the input will be handled.</p><p>At any time step, inputs to the LSTM cell are current word (x), previous hidden state (h-1) and previous memory state (c-1), and LSTM cell outputs are current hidden state (h) and current memory state (c). These states have 1024 hidden nodes. At last time step in the sequence, we will call last LSTM cell output hidden state (h) final hidden state, and output memory state final memory state.</p><p>In the second component, we use the concept of transfer learning where a pretrained model is used with some modification to serve a wholly new task. We use pretrained VGG network <ref type="bibr" coords="4,279.12,545.23,15.50,8.74" target="#b19">[20]</ref> with removing the last softmax layer. This network will output a vector of size 4096 representing a vector of features for the input image. This vector is then passed to tow fully-connected layers with 2500 and 1024 hidden nodes respectively. The main purpose of these two layers is to decrease the features vector dimension to become close to the LSTM output vectors.</p><p>The 1024 image features vector is then concatenated with both the LSTM final hidden state and final memory state as shown in figure <ref type="figure" coords="4,396.40,632.21,3.87,8.74" target="#fig_1">2</ref>, we will call those tow vectors thought vectors, we believe that the thought vectors will represent the semantic meaning of the input question and features of the input image.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Decoder</head><p>In this part the answer of the input image and question will be extracted. The decoder consists of LSTM layer that takes three inputs, the first input is 〈start〉 token that indicates to start decoding, the second input and third input are the decoder initial states which are previous hidden state and previous memory state. The decoder takes the encoder final states (i.e. encoder final hidden state and encoder final memory state) as initial states. Thus, the decoder initial states will be the thought vectors.</p><p>At the first time step, LSTM cell will takes 〈start〉 token as input given the initial state and calculates the probability distribution of the target word using softmax layer. The word with the highest probability will be the first word of the answer, this word will be then passed to the second LSTM cell as input and predict the second word of the answer. The full answer will be generated by repeating this process until the model predicts 〈end〉 token.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Evaluation and Results</head><p>This section discusses the experiments used to evaluate our model and the obtained results. However, we first need to discuss the evaluation process.</p><p>As described in VQA-Med task description <ref type="bibr" coords="5,337.24,361.51,9.96,8.74" target="#b4">[5]</ref>, three pre-processing steps are conducted on each answer before running the evaluation metrics: (a) converting each answer to lower-case, (b) removing all punctuations and tokenizing the the answer to a list of words and (c) removing stopwords using NLTKs English stopwords list.</p><p>In order to evaluate our models, three metrics are used as discussed in VQA-Med task description <ref type="bibr" coords="5,232.17,433.24,9.96,8.74" target="#b4">[5]</ref>: BLEU, WBSS and CBSS. The BLEU <ref type="bibr" coords="5,422.31,433.24,15.50,8.74" target="#b15">[16]</ref> metric is used to calculate the similarity between the predicted answer and the actual answer. The second metric is WBSS (Word-based Semantic Similarity) <ref type="bibr" coords="5,462.33,457.15,14.61,8.74" target="#b20">[21]</ref>, which calculates semantic similarity in the biomedical domain. Finally, CBSS (Concept-based Semantic Similarity) <ref type="bibr" coords="5,303.32,481.06,14.61,8.74" target="#b21">[22]</ref>, which is similar to WBSS, except that it can extract biomedical concepts from the answers using MetaMap via the pymetamap wrapper, and it builds a dictionary using these extracted concepts.</p><p>Three experiments are conducted to evaluate our model. They described as follows.</p><p>-In the first experiment, instead of using pretrained VGG-net we built a Convolutional Neural Network (CNN) that consists of three convolutional and max-pooling layers which behave as the feature extractor, followed by a fully connected layer. This network outputs a vector of size 4096 representing the input image features, this vector then will be fed to the 2500 fully connected layer and the rest of the architecture stayed as is. -In the second experiment, we implemented VGG-Seq2Seq model but, instead of using the pretrained network, we built and trained the VGG network with its convolutional layers on the dataset, the rest of the architecture stayed as is.</p><p>-In the last experiment, we run our proposed model (VGG-Seq2Seq) with pretrained VGG-net on the dataset.</p><p>The three above experiments are trained using a single layer of LSTM network on the encoder with a dimension of 1024 and a single layer of LSTM network on the decoder with a dimension of 2048. All models were trained using RMSprop optimizer <ref type="bibr" coords="6,225.25,187.10,10.52,8.74" target="#b5">[6]</ref> with 0.001 learning rate on 500 epochs with 512 batch size at each epoch and 300 word embedding size. As shown in Table <ref type="table" coords="6,439.95,199.05,3.87,8.74" target="#tab_0">1</ref>, the results show that VGG-Seq2Seq (pre-trained VGG) achieves reasonable results with 0.06, 0.12, 0.03 BLEU, WBSS and CBSS, respectively. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>In this paper, we addressed the very interesting yet challenging VQA-Med Task of ImageCLEF 2018. We introduced our VGG-Seq2Seq model which employs an encoder-decoder architecture, where the encoders fuses a pretrained VGG network with an LSTM network that has a pretrained word embedding layer to encode the input. As for the answer generation, another LSTM network is used as a decoded. When used with a pretrained VGG network, the VGG-Seq2Seq model managed to achieve reasonable results with 0.06, 0.12, 0.03 BLEU, WBSS and CBSS, respectively. Moreover, the VGG-Seq2Seq is not expensive to train. Obviously, the VGG-Seq2Seq model is far from perfect. We intend to work on it to increase its accuracy and enhance its run-time and space requirements.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,134.77,364.55,345.82,7.89;3,134.77,375.54,12.29,7.86;3,134.77,209.17,345.83,140.61"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Samples of images associated with question-answer pairs from the training set [5].</figDesc><graphic coords="3,134.77,209.17,345.83,140.61" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,238.88,291.83,137.59,7.89;4,134.77,115.84,345.81,161.22"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. The VGG-Seq2Seq Model.</figDesc><graphic coords="4,134.77,115.84,345.81,161.22" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,134.77,254.70,345.83,145.63"><head>Table 1 .</head><label>1</label><figDesc>Results of different modelsIt is worth mentioning that the best performing VGG-Seq2Seq is not very expensive to train. It took an average of 252.8 seconds per epoch on a Virtual Machine (VM) equipped with Tesla K80 GPU card with 24GB of RAM. The VM had Ubuntu OS with CUDA 9.0. For the implementation, we use Keras with TensorFlow 1.8 backend.</figDesc><table coords="6,175.80,273.75,263.76,41.94"><row><cell>Model</cell><cell>BLEU</cell><cell>WBSS CBSS</cell></row><row><cell cols="3">VGG-Seq2Seq (Pre-trained VGG) 0.060986477 0.12167 0.029064</cell></row><row><cell>VGG-Seq2Seq</cell><cell cols="2">0.047820372 0.104488 0.014981</cell></row><row><cell>CNN-Seq2Seq</cell><cell cols="2">0.035619839 0.093911 0.011004</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.96,612.84,337.64,7.86;6,151.52,623.78,293.61,7.89" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,362.95,612.84,117.64,7.86;6,151.52,623.80,158.48,7.86">Deep compositional question answering with neural module networks</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Andreas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rohrbach</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Darrell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Klein</surname></persName>
+		</author>
+		<idno>CoRR abs/1511.02799</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,634.88,337.64,7.86;6,151.52,645.84,329.07,7.86;6,151.52,656.80,220.76,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,167.97,645.84,128.90,7.86">Vqa: Visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Antol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mitchell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Batra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lawrence Zitnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Parikh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,320.72,645.84,159.88,7.86;6,151.52,656.80,127.68,7.86">Proceedings of the IEEE International Conference on Computer Vision</title>
+		<meeting>the IEEE International Conference on Computer Vision</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="2425" to="2433" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,119.67,337.64,7.86;7,151.52,130.63,329.07,7.86;7,151.52,141.59,245.31,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,395.92,119.67,84.67,7.86;7,151.52,130.63,257.10,7.86">Are you talking to a machine? dataset and methods for multilingual image question</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Xu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,431.19,130.63,49.40,7.86;7,151.52,141.59,152.01,7.86">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="2296" to="2304" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,153.34,337.63,7.86;7,151.52,164.30,133.43,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="7,207.14,153.34,244.03,7.86">Survey of visual question answering: Datasets and techniques</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">K</forename><surname>Gupta</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.03865</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,142.96,176.05,337.64,7.86;7,151.52,187.01,329.08,7.86;7,151.52,197.97,329.07,7.86;7,151.52,208.93,203.51,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,416.91,176.05,63.68,7.86;7,151.52,187.01,264.16,7.86">Overview of the ImageCLEF 2018 medical domain visual question answering task</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Farri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lungren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+		<ptr target="org&lt;http://ceur-ws.org&gt;" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,437.46,187.01,43.13,7.86;7,151.52,197.97,61.29,7.86">CLEF2018 Working Notes</title>
+		<title level="s" coord="7,223.10,197.97,179.07,7.86">CEUR Workshop Proceedings, CEUR-WS.</title>
+		<meeting><address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">September 10-14 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,220.68,337.63,7.86;7,151.52,231.64,329.07,7.86;7,151.52,242.60,67.61,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,309.96,220.68,170.63,7.86;7,151.52,231.64,126.12,7.86">Rmsprop: Divide the gradient by a running average of its recent magnitude</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Swersky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,285.66,231.64,151.62,7.86">Neural networks for machine learning</title>
+		<title level="s" coord="7,444.66,231.64,35.93,7.86;7,151.52,242.60,27.16,7.86">Coursera lecture</title>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="volume">6</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,254.35,337.64,7.86;7,151.52,265.28,92.85,7.89" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,288.76,254.35,100.73,7.86">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,398.69,254.35,81.90,7.86">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,277.06,337.63,7.86;7,151.52,288.02,329.07,7.86;7,151.52,298.98,329.07,7.86;7,151.52,309.94,329.07,7.86;7,151.52,320.90,329.07,7.86;7,151.52,331.86,329.07,7.86;7,151.52,342.81,329.07,7.86;7,151.52,353.77,46.58,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,197.95,309.94,265.23,7.86">Overview of ImageCLEF 2018: Challenges, datasets and evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ionescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Villegas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">G S</forename><surname>De Herrera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Andrearczyk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">D</forename><surname>Cid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Liauchuk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Kovalev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Farri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lungren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">T</forename><surname>Dang-Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Piras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Riegler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Gurrin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,151.52,320.90,329.07,7.86;7,151.52,331.86,324.97,7.86">Experimental IR Meets Multilinguality, Multimodality, and Interaction. Proceedings of the Ninth International Conference of the CLEF Association (CLEF 2018)</title>
+		<title level="s" coord="7,151.52,342.81,167.97,7.86">LNCS Lecture Notes in Computer Science</title>
+		<meeting><address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018">September 10-14 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,365.53,337.63,7.86;7,151.52,376.48,329.07,7.86;7,151.52,387.44,86.01,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,244.33,365.53,217.03,7.86">Answer-type prediction for visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Kafle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Kanan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,151.52,376.48,324.88,7.86">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="4976" to="4984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,399.19,337.98,7.86;7,151.52,410.15,329.07,7.86;7,151.52,421.11,76.80,7.86" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,305.72,399.19,174.87,7.86;7,151.52,410.15,99.51,7.86">Hierarchical question-image co-attention for visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Batra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Parikh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,270.77,410.15,205.43,7.86">Advances In Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="289" to="297" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,432.86,337.97,7.86;7,151.52,443.82,185.89,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,239.11,432.86,241.48,7.86;7,151.52,443.82,58.44,7.86">Learning to answer questions from image using convolutional neural network</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,231.43,443.82,21.29,7.86">AAAI</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,455.57,337.98,7.86;7,151.52,466.53,329.07,7.86;7,151.52,477.49,167.19,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,263.18,455.57,217.42,7.86;7,151.52,466.53,175.82,7.86">A multi-world approach to question answering about real-world scenes based on uncertain input</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Malinowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fritz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,350.62,466.53,129.97,7.86;7,151.52,477.49,73.89,7.86">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="page" from="1682" to="1690" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,489.24,337.98,7.86;7,151.52,500.20,329.07,7.86;7,151.52,511.14,101.93,7.89" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,323.05,489.24,157.54,7.86;7,151.52,500.20,147.37,7.86">Ask your neurons: A deep learning approach to visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Malinowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rohrbach</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fritz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,307.44,500.20,173.15,7.86">International Journal of Computer Vision</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">1-3</biblScope>
+			<biblScope unit="page" from="110" to="135" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,522.91,337.97,7.86;7,151.52,533.87,329.07,7.86;7,151.52,544.83,217.12,7.86" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,407.41,522.91,73.17,7.86;7,151.52,533.87,232.55,7.86">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,404.48,533.87,76.12,7.86;7,151.52,544.83,123.83,7.86">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="page" from="3111" to="3119" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,556.58,337.97,7.86;7,151.52,567.54,329.07,7.86;7,151.52,578.50,304.75,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="7,297.81,556.58,182.78,7.86;7,151.52,567.54,206.47,7.86">Image question answering using convolutional neural network with dynamic parameter prediction</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Noh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Hongsuck Seo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Han</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,379.80,567.54,100.79,7.86;7,151.52,578.50,229.91,7.86">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="30" to="38" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,590.25,337.98,7.86;7,151.52,601.21,329.07,7.86;7,151.52,612.17,329.07,7.86;7,151.52,623.13,98.02,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="7,355.50,590.25,125.09,7.86;7,151.52,601.21,133.70,7.86">Bleu: a method for automatic evaluation of machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Papineni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Roukos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">J</forename><surname>Zhu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,306.56,601.21,174.03,7.86;7,151.52,612.17,162.47,7.86">Proceedings of the 40th annual meeting on association for computational linguistics</title>
+		<meeting>the 40th annual meeting on association for computational linguistics</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="311" to="318" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,634.88,337.98,7.86;7,151.52,645.84,329.07,7.86;7,151.52,656.80,215.28,7.86" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,325.45,634.88,155.14,7.86;7,151.52,645.84,35.30,7.86">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,207.71,645.84,272.88,7.86;7,151.52,656.80,120.77,7.86">Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP)</title>
+		<meeting>the 2014 conference on empirical methods in natural language processing (EMNLP)</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,119.67,337.98,7.86;8,151.52,130.63,329.07,7.86;8,151.52,141.59,25.60,7.86" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="8,285.30,119.67,195.29,7.86;8,151.52,130.63,38.08,7.86">Exploring models and data for image question answering</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kiros</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zemel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,211.26,130.63,204.44,7.86">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="2953" to="2961" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,152.55,337.97,7.86;8,151.52,163.51,329.07,7.86;8,151.52,174.47,173.07,7.86" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="8,291.81,152.55,188.77,7.86;8,151.52,163.51,57.11,7.86">Where to look: Focus regions for visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">J</forename><surname>Shih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hoiem</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,230.17,163.51,250.42,7.86;8,151.52,174.47,79.80,7.86">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="4613" to="4621" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,185.43,337.97,7.86;8,151.52,196.39,231.27,7.86" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="8,278.92,185.43,201.67,7.86;8,151.52,196.39,69.82,7.86">Very deep convolutional networks for large-scale image recognition</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Simonyan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Zisserman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1409.1556</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,205.08,337.98,10.13;8,151.52,218.28,329.07,7.89" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="8,321.33,207.34,159.27,7.86;8,151.52,218.30,174.33,7.86">Biosses: a semantic sentence similarity estimation system for the biomedical domain</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sogancıoglu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Öztürk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Özgür</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,332.52,218.30,58.56,7.86">Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">14</biblScope>
+			<biblScope unit="page" from="49" to="58" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,229.26,337.97,7.86;8,151.52,240.22,329.07,7.86;8,151.52,251.18,198.73,7.86" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="8,236.50,229.26,147.94,7.86">Verbs semantics and lexical selection</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Palmer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,405.71,229.26,74.88,7.86;8,151.52,240.22,270.92,7.86">Proceedings of the 32nd annual meeting on Association for Computational Linguistics</title>
+		<meeting>the 32nd annual meeting on Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="133" to="138" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,262.14,337.97,7.86;8,151.52,273.10,329.07,7.86;8,151.52,284.06,201.02,7.86" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="8,354.07,262.14,126.52,7.86;8,151.52,273.10,101.96,7.86">Stacked attention networks for image question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Smola</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,275.45,273.10,205.15,7.86;8,151.52,284.06,126.18,7.86">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="21" to="29" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.62,295.02,337.98,7.86;8,151.52,305.98,329.07,7.86;8,151.52,316.93,231.84,7.86" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="8,316.37,295.02,164.22,7.86;8,151.52,305.98,156.29,7.86">Visual madlibs: Fill in the blank description generation and question answering</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Park</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">C</forename><surname>Berg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">L</forename><surname>Berg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,328.99,305.98,100.33,7.86;8,458.45,305.98,22.14,7.86;8,151.52,316.93,99.63,7.86">IEEE International Conference</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2015">2015. 2015</date>
+			<biblScope unit="page" from="2461" to="2469" />
+		</imprint>
+	</monogr>
+	<note>Computer Vision (ICCV)</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,327.89,337.98,7.86;8,151.52,338.85,241.09,7.86" xml:id="b24">
+	<monogr>
+		<title level="m" type="main" coord="8,380.53,327.89,100.06,7.86;8,151.52,338.85,74.74,7.86">Simple baseline for visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Tian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Sukhbaatar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Szlam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1512.02167</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,142.62,349.81,337.98,7.86;8,151.52,360.77,329.07,7.86;8,151.52,371.73,190.99,7.86" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="8,344.21,349.81,136.39,7.86;8,151.52,360.77,70.53,7.86">Visual7w: Grounded question answering in images</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Groth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bernstein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Fei-Fei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,244.62,360.77,235.97,7.86;8,151.52,371.73,97.71,7.86">Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition</title>
+		<meeting>the IEEE Conference on Computer Vision and Pattern Recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="4995" to="5004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,1 +1,1 @@
-# ISI2024-German-IR-Community
+# ISI2025-German-IR-Community

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,157.37,115.96,300.61,12.62;1,231.59,133.89,152.19,12.62">Generating Text from Images in a Smooth Representation Space</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,213.94,171.56,67.40,8.74"><forename type="first">Graham</forename><surname>Spinks</surname></persName>
+							<email>graham.spinks@cs.kuleuven.besien.moens@cs.kuleuven.be</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">KU Leuven</orgName>
+								<address>
+									<settlement>Leuven</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,304.03,171.56,97.39,8.74"><forename type="first">Marie-Francine</forename><surname>Moens</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">KU Leuven</orgName>
+								<address>
+									<settlement>Leuven</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,157.37,115.96,300.61,12.62;1,231.59,133.89,152.19,12.62">Generating Text from Images in a Smooth Representation Space</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">AB440D4D373C64C316D81C7960DD4868</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:53+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>A methodology is described for the generation of relevant captions for images of an extensive medical dataset in the ImageCLEF 2018 Caption Prediction competition. Automatic and accurate textual descriptions of images could help relieve workload pressure for specialists and assist clinical professionals in multiple areas. Instead of generating textual sequences directly from images, we first learn a smooth, continuous representation space for the captions. Subsequently the task is reduced to the minimization of the mapping loss from image to continuous representation through the use of a deep convolutional neural network. We illustrate how our system learns to generate captions by aligning relevant embeddings. The submitted run achieves a score of roughly 13.76% and ranks 4th out of the 5 participating teams. The top submission in the competition achieved a score of 25.01%.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In this paper, our participation is described in the 2018 ImageCLEF Caption Prediction task <ref type="bibr" coords="1,203.98,452.88,10.52,8.74" target="#b4">[5]</ref> which is a part of the 2018 ImageCLEF competition <ref type="bibr" coords="1,447.06,452.88,9.96,8.74" target="#b5">[6]</ref>. The goal is to regenerate the original caption for a set of images where the caption is essentially a concise textual interpretation of the content of the image. The dataset consists of 4 million diverse images that cover a range of radiology/clinical data and was collected from open access biomedical journal articles (Pubmed Central). No additional external data was used for this submission.</p><p>A large amount of effort is dedicated in medical fields to correctly interpret and describe various images. Automation of this process might help reduce the bottleneck in certain diagnosis pipelines and help medical professionals focus on more important tasks.</p><p>Generating captions from images is also a task that requires an understanding of data representations in neural networks. The cross-modal nature of the task implies a successful alignment of visual and textual data. The nature of these modes are quite distinct as continuous images usually demand different processing techniques than discrete texts.</p><p>While the ImageCLEF competition also contains a concept detection subtask on the same dataset, this submission focuses on directly generating captions without any additional intermediate steps. This approach has the advantage that the text generation doesn't depend on any pre-fabricated conceptual labels and is directly inferable from images.</p><p>Current text-to-image systems that employ neural networks typically combine a Convolutional Neural Network (CNN) with a discrete decoder in the form of a Recurrent Neural Network (RNN), which in practice is often a Long Short-Term Memory (LSTM) network <ref type="bibr" coords="2,278.32,179.29,10.72,8.74" target="#b2">[3]</ref>[9] <ref type="bibr" coords="2,299.76,179.29,14.29,8.74" target="#b9">[10]</ref>. The difficulty of such approaches often lies in the discrete nature of natural language sentences. Back-propagation is challenging for such data as the gradient of the error becomes infinite on the boundary of discrete symbols.</p><p>In order to alleviate this problem, our approach starts by creating a smooth continuous code space for text, which is characterized by a coherent local structure where similar inputs are mapped to nearby codes. This contrasts with autoencoders that simply learn an identity mapping with unstructured latent representations. The advantage is that complex modifications can be made to the text while traversing the data manifold for slightly modified sentences. In order to obtain such a representation we use an Adversarially Regularized Autoencoder (ARAE) <ref type="bibr" coords="2,174.89,311.32,10.52,8.74" target="#b7">[8]</ref> which trains a discrete autoencoder in an adversarial setting.</p><p>In a subsequent step, we align the images to the continuous data manifold of the captions rather than to the discrete natural language. This has the benefit that in this stage we avoid the complex and costly discrete decoder step which is present in traditional image-to-text systems. Once image and text representation are aligned, we can decode the aligned vector with the decoder we obtained in the previous step, thus obtaining natural language text for each image.</p><p>We will show that our method creates a textual representations space from which the input can easily be reconstructed. By aligning the visual input to this space, we create varied captions for the images and obtain a score of 13.76% on the test set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methodology</head><p>We will briefly mention how the data was prepared before discussing the creation of the text representation as well as the caption generation. An overview of the entire methodology is presented in figure <ref type="figure" coords="2,315.95,516.86,3.87,8.74" target="#fig_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Data Preprocessing</head><p>In order to simplify the caption generation task, all words are converted to lowercase while any words that appear less than 100 times in the entire dataset are replaced by out-of-vocabulary markers. The remaining vocabulary contains 4303 different words. Any captions that exceed the length of 15 words are capped while any captions that are shorter are padded.</p><p>All images are randomly cropped to achieve data augmentation and transformed to 256x256 resolution. The images are normalized with a mean and standard deviation of 0.5. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Text Representation</head><p>While there are several methodologies to create dense continuous representations for discrete structures, each comes with both advantages and disadvantages. One might consider for example vector-based word or sentence embeddings that are trained by predicting the context of a word or one might simply use an autoencoder that reconstructs the original text from a compact representation. While the word or sentence embeddings capture basic semantic information their performance in additional tasks is often quite limited. Autoencoders do create a dense representation but the learned representation space is not smooth <ref type="bibr" coords="3,452.10,512.66,9.96,8.74" target="#b7">[8]</ref>.</p><p>For this task, we will use an ARAE <ref type="bibr" coords="3,320.19,524.61,10.52,8.74" target="#b7">[8]</ref> to construct smooth, continuous representations of the sentences. Such representations have been shown to lie in a smoother contracted codespace than a typical autoencoder, with the benefit that similar inputs are mapped to nearby codes. The ARAE combines the training of a generator (G) and critic (C) of a Generative Adversarial Model (GAN) <ref type="bibr" coords="3,439.30,572.43,10.52,8.74" target="#b1">[2]</ref> as well as an encoder (E) and decoder (D) of a regular discrete input autoencoder. In this setup, E creates a continuous text representation t of the input text, while D uses a cross-entropy loss to try to recreate the original sentence. Additionally, G is a 2layer feedforward network that learns how to generate realistic representations t. C estimates the Wasserstein distance between the generated and real distribution as defined in the Wasserstein GAN (WGAN) <ref type="bibr" coords="3,329.11,644.16,9.96,8.74" target="#b0">[1]</ref>, such that G is explicitly trained to minimize that distance. As a side-result of this setup G eventually learns to create diverse texts with a low perplexity score <ref type="bibr" coords="4,335.21,118.99,14.61,8.74" target="#b10">[11]</ref>. To keep the overview concise, only E and D are shown for the ARAE model in figure <ref type="figure" coords="4,377.61,130.95,3.87,8.74" target="#fig_0">1</ref>.</p><p>For this competition, the ARAE model of <ref type="bibr" coords="4,345.88,142.90,10.51,8.74" target="#b7">[8]</ref> is modified by passing the discrete integer list of text inputs to both the generator and critic after normalization between -0.5 and 0.5. This is done to encourage the ARAE to learn an even smoother version of the code space as the critic, C, learns to identify when a representation doesn't match a text input. We also slightly adapt the softmax-temperature parameter which influences the extent to which a code of a text is different than that of another. To increase variability we use a softmax temperature of 0.1 rather than 1.0 when calculating the cross-entropy loss. In order to obtain good generalization we perform early stopping and select the model where the reconstruction error on the validation set is minimal.</p><p>Using only the captions in the training set, a smooth manifold for the captions is thus created with the above model. In essence, each caption now has an equivalent continuous representation t, from which the original caption can be reconstructed. With such a representation, an alignment can be learned between the visual features and the relevant captions for each image, as explained in the next subsection.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Image-to-Text</head><p>In order to map the visual features to the continuous space we created for the captions, the input images are passed through a deep neural network that consists of 8 convolutional blocks. One such block contains a convolutional layer followed by a batch norm layer and a LeakyReLU activation function. At the end of the network another convolutional layer and two fully connected layers are added.</p><p>The output is then compared to the continuous textual representation of the caption as constructed in section 2.2. In our experiments we devised two methods to determine how suitable a text is for each image.</p><p>The first method simply uses a loss function derived from the cosine similarity between two embeddings. The output of the CNN network is then trained to be as similar to the continuous text code, t, as possible.</p><p>The second method essentially does the same but runs the output of the CNN through the decoder, D, that was trained before (see section 2.2). The generated output distribution is subsequently compared to that of the one generated by the continuous representation of the original caption. For the comparison we use the same cosine similarity metric as before. The reasoning behind this approach is that performance might improve after decoding the representation to individual time-steps as more information for alignment is available.</p><p>For both approaches, the weights of D are not updated during this stage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>A first important task in our system is to create textual representations that can be decoded to match the original text with enough accuracy. In order to Table <ref type="table" coords="5,163.05,115.91,4.13,7.89">1</ref>. Examples of preprocessed captions and their reconstruction from the autoencoder of the ARAE. EOS indicates the end-of-sentence marker while OOV indicates the out-of-vocabulary marker. do so, we perform preprocessing on the text as detailed in section 2.1 and train an ARAE model to encode and decode the sentences as detailed in section 2.2. For a trained ARAE, we demonstrate a range of good and bad examples of the original and decoded sentences in table <ref type="table" coords="5,308.70,365.22,3.87,8.74">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Original</head><p>The captions are subsequently encoded and the convolutional net is tasked with finding the optimal caption for each image. The captions are generated from the output representations with a greedy method and are evaluated using the script provided by ImageCLEF which measures the result as a percentage of the maximum BLEU score over all sentences. Before calculating the score, stemming is performed and stopwords and punctuation are removed.</p><p>The evaluation score is the percentage of the obtained BLEU score over all sentences compared to the maximum possible BLEU score. Thus if one would achieve the best possible BLEU score for each sentence, the score would be 100%. Using a cosine similarity metric, we reach an accuracy of roughly 13.5% on the validation set when comparing the continuous embeddings directly (method 1 in section 2.3). If we use method 2, i.e. after passing the embeddings through the decoder, we obtain an accuracy of roughly 12.4%. For the ImageCLEF submission we only submitted the results of method 1, which obtained a score 13.76% on the test set, indicating that the system didn't overfit on the validation set.</p><p>Note that since we are using a cutoff of 15 words per caption, the maximum obtainable score is roughly 36.4% for such captions, as measured on our ground truth validation set. While the performance does improve over the first epochs, it turns out that the network is not able to line up the different embeddings with high accuracy. In fact the output sentences evolve to quite similar output where only some details are modified as illustrated in table <ref type="table" coords="5,366.95,619.26,3.87,8.74" target="#tab_0">2</ref>.</p><p>This research provides an interesting direction for new image-to-text systems as there are several possible avenues for improvements. In a first step, training a stable model for larger captions might provide an immediate boost in perfor-  mance as more relevant textual output can be aligned with the images, thus obtaining higher BLEU scores. Another possibility to improve the results is to investigate different distance functions. While in this paper, a simple cosine embedding loss was used, this type of alignment might benefit from a measure that expresses a distributional divergence, such as the Wasserstein distance <ref type="bibr" coords="6,467.31,272.69,9.96,8.74" target="#b0">[1]</ref>. Finally, besides using an ARAE, other methods that create continuous representations might be more suitable for this type of alignment. For example, one might consider building a representation that includes concept labels or is constructed with image alignment in mind, such as the char-CNN-RNN representation <ref type="bibr" coords="6,462.26,320.51,9.96,8.74" target="#b6">[7]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>We present an alternative approach to caption generation by leveraging continuous representations for text that were learned with an ARAE model. Images are aligned to the continuous representations rather than discrete natural language. Measured as a percentage of the obtained BLEU scores over all sentences compared to the maximum possible BLEU score, this methodology achieves 13.76% on the submitted run and offers a promising avenue for follow-up research. The proposed setup can be a starting point for implementations with alternative network configurations and text representations that aim to enhance and exceed the obtained results.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,134.77,333.62,345.82,7.89;3,134.77,344.60,345.83,7.86;3,134.77,355.56,345.83,7.86;3,134.77,366.52,345.82,7.86;3,134.77,377.48,209.73,7.86;3,141.68,115.84,331.99,203.01"><head>Fig. 1 .</head><label>1</label><figDesc>Fig.1. Overview of the methodology. The encoder (E) of the ARAE model creates a textual representation for all captions which can be decoded to the original input with the decoder(D). In a second step each image is mapped to the continuous representation space with a CNN. D, for which the weights are frozen in this step, decodes the mapping to a caption for each image. CT image reference<ref type="bibr" coords="3,332.21,377.48,9.22,7.86" target="#b3">[4]</ref>.</figDesc><graphic coords="3,141.68,115.84,331.99,203.01" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,309.03,158.60,70.31,7.89;5,136.16,169.99,170.08,7.86;5,136.16,180.94,170.08,7.86;5,136.16,191.90,43.65,7.86;5,309.03,169.99,170.08,7.86;5,309.03,180.94,170.08,7.86;5,309.03,191.90,35.71,7.86;5,136.16,203.26,170.08,7.86;5,136.16,214.22,170.08,7.86;5,136.16,225.18,74.39,7.86;5,309.03,203.26,170.08,7.86;5,309.03,214.22,170.07,7.86;5,309.03,225.18,38.52,7.86;5,136.16,236.54,170.08,7.86;5,136.16,247.49,170.08,7.86;5,136.16,258.45,18.56,7.86;5,309.03,236.54,170.08,7.86;5,309.03,247.49,159.92,7.86;5,136.16,269.81,170.08,7.86;5,136.16,280.77,168.17,7.86;5,309.03,269.81,170.08,7.86;5,309.03,280.77,170.07,7.86;5,309.03,291.73,74.92,7.86"><head></head><label></label><figDesc>Reconstruction computed tomography of the abdomen showing enlarged adrenal glands , the left gland EOS computed tomography of the abdomen showing a left gland with with liver kidney EOS microscopic examination of the tumor specimen by hematoxylin and eosin stain revealed that EOS microscopic findings of the tumor showed showed hematoxylin and eosin staining ; that EOS ultrasound of the right upper quadrant showing the gallbladder free of stones blue EOS axial image the right kidney quadrant showing a common with wall the . EOS secondary electron image OOV of a fractured surface of an OOV lingual bar EOS sem structure photomicrograph of of a representative surface showing the OOV showing view EOS</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="6,136.16,147.64,79.80,7.89;6,136.16,159.03,264.89,7.86;6,136.16,169.99,247.12,7.86;6,136.16,180.94,322.87,7.86;6,136.16,191.90,314.12,7.86"><head>Output examples figure 2 a</head><label>2</label><figDesc>fundus photograph of the right eye showing a large and figure showing a mass in the right and the uterus and ovaries computed tomography scan showing a large mass in the right kidney and ureter computed tomography scan of the abdomen showing a large mass in the right</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,134.77,115.91,345.82,18.85"><head>Table 2 .</head><label>2</label><figDesc>Examples of output texts for different input images. While several captions are quite similar overall, some details are usually slightly modified.</figDesc><table /></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.96,527.97,337.64,7.86;6,151.52,538.93,97.80,7.86" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Arjovsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Chintala</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1701.07875</idno>
+		<title level="m" coord="6,338.08,527.97,67.70,7.86">Wasserstein gan</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,142.96,549.22,337.63,7.86;6,151.52,560.18,329.07,7.86;6,151.52,571.14,220.52,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,271.34,560.18,108.93,7.86">Generative adversarial nets</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pouget-Abadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mirza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Warde-Farley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ozair</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,401.57,560.18,79.02,7.86;6,151.52,571.14,127.04,7.86">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="2672" to="2680" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,581.43,337.64,7.86;6,151.52,592.39,329.07,7.86;6,151.52,603.34,184.19,7.86" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Sreenivasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">R</forename><surname>Arora</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Datla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Qadir</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Swisher</surname></persName>
+		</author>
+		<title level="m" coord="6,331.98,592.39,148.60,7.86;6,151.52,603.34,155.52,7.86">PRNA at ImageCLEF 2017 caption prediction and concept detection tasks</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,613.63,227.64,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,196.09,613.63,108.45,7.86">Leberabszess -CT axial PV</title>
+		<author>
+			<persName coords=""><surname>Hellerhoff</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+	<note>CC by 3.0</note>
+</biblStruct>
+
+<biblStruct coords="6,142.96,623.92,337.63,7.86;6,151.52,634.88,329.07,7.86;6,151.52,645.84,329.07,7.86;6,151.52,656.80,125.62,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,442.94,623.92,37.65,7.86;6,151.52,634.88,197.76,7.86">Overview of the ImageCLEF 2018 caption prediction tasks</title>
+		<author>
+			<persName coords=""><forename type="first">García</forename><surname>Seco De Herrera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Eickhoff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Andrearczyk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename></persName>
+		</author>
+		<ptr target="org&lt;http://ceur-ws.org&gt;" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,371.05,634.88,109.54,7.86;6,151.52,645.84,175.34,7.86">CLEF2018 Working Notes. CEUR Workshop Proceedings, CEUR-WS</title>
+		<meeting><address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">September 10-14 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,119.67,337.63,7.86;7,151.52,130.63,329.07,7.86;7,151.52,141.59,329.07,7.86;7,151.52,152.55,329.07,7.86;7,151.52,163.51,329.07,7.86;7,151.52,174.47,329.07,7.86;7,151.52,185.43,329.07,7.86;7,151.52,196.39,46.58,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,197.95,152.55,265.23,7.86">Overview of ImageCLEF 2018: Challenges, datasets and evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ionescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Villegas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">G S</forename><surname>De Herrera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Andrearczyk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">D</forename><surname>Cid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Liauchuk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Kovalev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Farri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lungren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">T</forename><surname>Dang-Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Piras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Riegler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Gurrin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,151.52,163.51,329.07,7.86;7,151.52,174.47,324.97,7.86">Experimental IR Meets Multilinguality, Multimodality, and Interaction. Proceedings of the Ninth International Conference of the CLEF Association (CLEF 2018)</title>
+		<title level="s" coord="7,151.52,185.43,167.97,7.86">LNCS Lecture Notes in Computer Science</title>
+		<meeting><address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018">September 10-14 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,207.34,337.64,7.86;7,151.52,218.30,163.37,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,346.09,207.34,134.51,7.86;7,151.52,218.30,26.15,7.86">Character-aware neural language models</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Jernite</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Sontag</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Rush</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,199.19,218.30,26.61,7.86">AAAI</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="2741" to="2749" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,229.26,337.64,7.86;7,151.52,240.22,329.07,7.86;7,151.52,251.18,25.60,7.86" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Rush</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.04223</idno>
+		<title level="m" coord="7,378.44,229.26,102.16,7.86;7,151.52,240.22,190.01,7.86">Adversarially regularized autoencoders for generating discrete structures</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,142.96,262.14,337.64,7.86;7,151.52,273.10,78.13,7.86" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Jiang</surname></persName>
+		</author>
+		<title level="m" coord="7,332.42,262.14,148.18,7.86;7,151.52,273.10,49.45,7.86">ISIA at the ImageCLEF 2017 image caption task</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,284.06,337.98,7.86;7,151.52,295.02,112.44,7.86" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lyndon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kim</surname></persName>
+		</author>
+		<title level="m" coord="7,284.93,284.06,195.66,7.86;7,151.52,295.02,83.76,7.86">Neural captioning for the ImageCLEF 2017 medical image challenges</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,305.98,337.98,7.86;7,151.52,316.93,329.07,7.86;7,151.52,327.89,329.07,7.86;7,151.52,338.85,25.60,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,256.12,305.98,220.76,7.86">Generating continuous representations of medical texts</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Spinks</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">F</forename><surname>Moens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,166.42,316.93,314.18,7.86;7,151.52,327.89,329.07,7.86">Proceedings of the 16th Annual Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 16th Annual Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

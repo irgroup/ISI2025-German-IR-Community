@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,171.68,85.73,268.64,14.87">IXE at the TREC 2005 TeraByte task</title>
+				<funder ref="#_E5KtckD">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,264.80,107.08,82.30,10.80"><forename type="first">Giuseppe</forename><surname>Attardi</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Dipartimento di Informatica</orgName>
+								<orgName type="institution">Università di Pisa</orgName>
+								<address>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,171.68,85.73,268.64,14.87">IXE at the TREC 2005 TeraByte task</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CE24998EEA4F0F4E5C929E86E1C17A11</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:02+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The TREC Terabyte task provides an opportunity to analyze scalability issues in document retrieval systems. I describe how to overcome some of these issues and in particular improvements to the IXE search engine in order to achieve higher precision while maintaining good retrieval performance. A new algorithm has been introduced to handle OR queries efficiently. A proximity factor is also computed and added to the relevance score obtained by the PL2 document weighting model: several experiments have been performed to tune its parameters. By tuning also other parameters used in relevance ranking, IXE achieved second best overall P@10 score, combined with the fastest reported retrieval speed.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The purpose of the TREC Terabyte track is "to investigate whether/how the IR community can scale traditional IR test-collection-based evaluation to significantly larger document collections than those currently used in TREC". However disk capacities and processor performance have increased enough that a collection of the size of the GOV2 collection can be handled on a single PC. In fact most of the participants in TREC 2005 used systems ranging from 1 to 2 CPUs, except for Peking University (16), University of Melbourne <ref type="bibr" coords="1,393.92,425.08,12.87,10.80" target="#b8">(8)</ref>, RMIT <ref type="bibr" coords="1,455.60,425.08,12.87,10.80" target="#b8">(8)</ref>, Dublin City University <ref type="bibr" coords="1,124.40,439.00,12.87,10.80" target="#b5">(5)</ref>.</p><p>My goal was to investigate indeed the issues of scaling to a distributed system of realistic size, so I experimented with the largest set of CPUs I could afford, irrespective of the individual performance and disk size. In fact I used machines with fairly slow CPU speed (800 MHz Pentium III), small and slow disk (60 GB at 4200 rpm), slightly compensated by 1 GB of RAM each. The software is based on the IXE search engine, which is a full blown Web search engine, designed to handle hundreds of queries per second on a single PC and providing integrated multithreaded search capabilities, a customizable query language, an extensible document reader architecture and an object store for document storage.</p><p>My experiments with such architecture at TREC 2004 showed that with a properly designed distributed system and careful tuning of several parameters, indeed the performance can scale linearly, and the system achieved the second best retrieval speed performance. However there were unexpected effects on relevance, which I have addressed this year as follows:</p><p>• a specialized algorithm has been introduced to handle OR queries, which are considered the most effective for the ad-hoc task • a proximity factor has been added in the computation of the relevance score • the global IDF across all the sub-collections is computed and distributed to each search node.</p><p>The effects of these changes were almost a doubling of P@10, achieving a score of 0.678, which ranks IXE close second to the best result of 0,690. IXE performance, measured as average time to retrieve to 20 results, was 0.14 sec, as compared to 29.46 sec for the other mentioned system, which employed 2 CPUs. Among all participants, only the University of Melbourne reported a performance below 1 sec (i.e. 0.2 sec) in the ad-hoc task.</p><p>In the rest of the paper I will discuss these solutions and describe the experiments performed in order to tune the parameters used in the evaluation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Search System Architecture</head><p>A cluster of Linux blade servers was used to build a high performance distributed search service on the GOV2 collection. The hardware consists of an RLX 300X chassis, filled with 24 800xi blades, whose current cost is about $ 10,000. One of the blades is dedicated to the role of control tower and is used to manage the cluster. The remaining 23 blades are used as server blades for indexing and search: they run the Linux Fedora Core 1 release. The overall amount of disk available is about 1.3 TB and the amount of RAM is 23 GB.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">The IXE Search Engine</head><p>For indexing and querying the collection, I used IXE (IndeXing and search Engine) a C++ library for developing search applications, which I had also used in TREC 2004. IXE provides a wide range of facilities for document handling, from tokenization to regular expressions, to multiple encoding, which can be extended through its pluggable document-reader architecture. IXE allows creating high throughput search services by means of integrated threading and HTTP support. The library has been designed for implementing high performance full-text search services, but is capable of handling more complex structures than pure text documents by means of an object store that provides persistency to C++ objects.</p><p>Query processing is handled though a Query Cursor Interface, which can be extended through the object-oriented mechanisms of class specialization and polymorphism. A query gets compiled before execution into an appropriate combination of QueryCursor's, each one handling a subquery. For instance queries like text matches sun moon // pages containing sun and moon text matches proximity 20 ['sun flower' moon] // moon must appear within 20 words from 'sun flower' are compiled to:</p><p>QueryCursorAll(QueryCursorWord("sun"), QueryCursorWord("moon")) QueryCursorProximity(20, QueryCursorAnd(QueryCursorPhrase("sun", "flower"), QueryCursorWord("moon")))</p><p>A QueryCursor provides an iterator interface to retrieve results form the query on demand, rather that as a bulk operation that fills a whole table of results. The application is so given the possibility of deciding how to use the results while they are generated, without having to wait for all of them to be collected. The iterator interface is the following:</p><formula xml:id="formula_0" coords="2,85.04,668.86,360.06,7.92">QueryResult* QueryCursor&lt;Collection&gt;::next(QueryResult&amp; min)</formula><p>QueryResult is a class describing a single result, i.e. a quadruple consisting of a collection id, document id, word position and relevance score. QueryResults are totally ordered in a natural lexicographic order of its components (except the score). The next(min) method returns the next results which is greater or equal than min. This generalization allows handling different type of requests with a single interface: for instance one can decide whether to use or not position information in looking for the occurrence of a word in a document.</p><p>For cursors which combine results from other cursors by performing their intersection, IXE exploits the Small Adaptive Set Intersection algorithm <ref type="bibr" coords="3,341.60,150.04,12.87,10.80" target="#b3">[3]</ref>. This algorithm requires results to be returned in increasing order. This constraint applies to all cursors, since they can be combined arbitrarily in queries. Cursors on words satisfy this constraint since they scan posting lists which are stored sorted by docid. This approach provides excellent performance and low memory use for And queries, which are most frequently used in Web search engines. In <ref type="bibr" coords="3,456.32,205.24,14.08,10.80" target="#b1">[1]</ref> I reported on benchmarks comparing IXE with Zettair and Lucene on such kind of queries.</p><p>For ad hoc retrieval though OR queries are preferable. Insisting on returning results sorted by docid has the effect that the presence of a frequent word in a query forces to sift through a large number of results. However for practical reasons it is typical to set a cutoff on the number of results considered (e.g. 20,000), but this may lead to discard highly relevant documents which just happened to have a high docid. A better strategy is to perform the union of the posting lists starting from that of the term with highest IDF: documents with higher relevance score are more likely to be returned first and if the cutoff is reached only documents containing just frequent words will be discarded. I implemented this strategy as a specialization of QueryCursorSome when all sub-cursors are of type QueryCursorWord. To avoid returning duplicates, I add a bitmap to each sub-cursor, with as many entries as the length of its posting list. When a result with docid d is obtained from one sub-cursor, I mark its position bit in all the following cursors: this requires advancing those cursors up to the first result greater than d. All sub-cursors will now point to document d, if they contain it. Hence I can compute the relevance score for d by adding the score from all sub-cursors that do. These cursors will be reset to the beginning when the iterator will move to the next sub-cursor. When iterating through a sub-cursor, marked results are skipped.</p><p>This algorithm turned out to be twice faster than another common solution of maintaining a limited set of accumulators (e.g. 20,000) mapping result docids to their corresponding relevance score. Whenever a docid is returned from one sub-cursor, its score is added to its accumulator. Apparently the cost of accessing the accumulators through hash tables overcomes the cost of scanning cursors repeatedly, which is speed up by means of skip lists.</p><p>The relevance score of a result is computed only after the iterator for the whole query has returned: this avoids computing scores for documents which will be discarded for instance for failing a join. In the runs I used the PL2 measure <ref type="bibr" coords="3,322.88,569.56,12.87,10.80" target="#b5">[5]</ref>, which performed better than BM25 and cosine measure in our tests on the 2004 qrels.</p><p>I expected to improve precision by incorporating a factor in the score to represent proximity. To compute the proximity score I applied the algorithm by Song et al. <ref type="bibr" coords="3,401.12,617.08,12.87,10.80">[7]</ref>, which computes a series of non overlapping spans of query terms occurrences in a document. Each term is given a weight according to the size of the span in which it occurs. The relevance contribution of one term occurrence is given by: x is an exponent that is used to restrain that the value decayed too rapidly with the density of a span increasing (0.09), y is an exponent to decrease the influence of the size of a span (0.19), pf is a factor used to dampen the overall influence of proximity in the relevance score.</p><p>The parameters x and y where tuned on the TeraByte 2004 qrels to produce the following values (n t in rows, span width in columns): </p><formula xml:id="formula_1" coords="4,84.08,299.67,20.69,7.33">width</formula><formula xml:id="formula_2" coords="4,92.24,322.95,436.41,30.85">2 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1 1 1 1 1 1 1 1 1 1 1 3 1.3 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.2 1.1 1.1 1.1 4 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.3 1.2</formula><p>Song reports improvements on P@10 which range from 4.7% to 10.2% on Trec-9 and Trec-11 collections respectively, which however correspond to an absolute increase of 1% from 26% on Trec-9 and of 2.5% from 24% on Trec-11. Our experiments on the 2004 qrels showed that adding the proximity weight had often negative effects on precision. Only by damping significantly the influence of proximity, using a value of pf = 1/8, I achieved an improvement of P@10 of approximately 1%. But since this improvement is on top of a quite higher score of over 65% this is not necessarily inconsistent with Song experiments and other experiments: i.e. one can only expect marginal improvements by incorporating proximity in the relevance score.</p><p>A second variant introduces a weight according to the "color" of term, which represents term features like capitalization or appearance in certain areas of the document (title, heading, anchor, etc).</p><p>Finally, I introduced a weight for query terms, to distinguish between terms extracted from the title topics (weight 1.0) from those extracted from the description or narrative (weight 0.3 or 0.1 depending on the length of the narrative).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Distributed Indexing and Search</head><p>The collection is distributed by partitioning it according to the local (document based) model <ref type="bibr" coords="4,524.00,605.32,12.87,10.80" target="#b6">[6]</ref>,</p><p>where each server handles an inverted index for a disjoint set of documents in the collection.</p><p>For building the indexes, I used the same indexing process <ref type="bibr" coords="4,363.44,639.16,14.08,10.80" target="#b1">[1]</ref> that I employed for TREC 2004, except that I divided the GOV2 collection into 23 shards, one for each blade and created a single index for each shard, containing around 1 million documents each, taking 4 GB of disk space.</p><p>Overall the index size is 92 GB, made up of three parts as listed in Table <ref type="table" coords="4,422.24,680.44,4.50,10.80" target="#tab_2">1</ref>.</p><p>Indexing the whole collection was done in parallel on all 23 blades and took ~12 hours, 2/3 of which was due to uncompressing the collection, which was done on the fly to overcome disk space limitations. Furthermore I employed an HTML document reader that performs full HTML structure analysis, in order to assign colors to terms. Skipping this extra analysis further increases indexing performance to 24 GB per hour on a single 800MHz PC. The index is enriched with additional text for each document which consists in:</p><p>1. Anchor text: extracted from the anchors of document's in-links 2. Description text: extracted from the description of the document, either from Dmoz or from the META description tag 3. URL tokens: extracted from the document's URL.</p><p>The index stores also a type ('color') for each term. Colors are used for weighting the term in relevance ranking and include: a) Title -for words in the document title b) Heading -for words in the document's headers c) Anchor -for words in the document's anchor elements d) Description -for words in Dmoz descriptions e) Url -for words in the document's url f) Context -for words in links to the document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Search</head><p>Each blade runs a search service on its shard of the collection. The service is accessible remotely in two forms:</p><p>• as an XML Web Service,</p><p>• through an internal binary communication protocol.</p><p>In both cases queries are submitted using the syntax for HTTP query strings, i.e. as a '?" followed by a series of parameter=value pairs each of which is URL-encoded.</p><p>A query broker runs on one of the blades: its task is to accept queries, dispatch them to the query servers, collect all results and merge them into a single result list. The broker communicates with the query servers by asynchronous IO, to reduce wait and latency. The broker can be invoked in batch mode to produce the TREC runs. A broker module instead gets instantiated within a thread pool through a Web interface to provide a query interface typical of Web search engines.</p><p>Each query server is responsible for a shard, a disjoint subset of documents in the collection (called local inverted files in <ref type="bibr" coords="6,221.84,258.28,12.75,10.80" target="#b6">[6]</ref>). The local inverted file organization uses system resources effectively, provides good query throughput and is more resilient to failures.</p><p>The index for each shard is generated locally and hence it does not contain global statistics like average document length and IDF. The computation of the PL2 score involves such parameters and unfortunately the variation of these parameters in different shards greatly affects precision.</p><p>Using IDF from the local indexes I could achieve a P@10 score of 49% at best. I introduced a change in the query broker to collect document frequency from all shards, compute the global document frequencies and distribute them to all indexes. Using these global statistics, P@10 grew up to 68%.</p><p>The choice of distributing the global statistics is controversial: other participants avoided doing so [personal communication], but apparently their score was not affected significantly, possibly because they were using a small number of CPUs. The significant lower relevance I measured when not using global statistics might be due to the non randomness in the composition of the shards. The shards were made dividing the collection according to the grouping in sub-collections as provided by TREC. Since the documents were grouped according to crawling order, i.e. through a breadth-first visit of the .gov domain, it is likely that a non uniform bias is present in the composition of documents in the various shards.</p><p>Google employs a distributed cluster architecture <ref type="bibr" coords="6,323.12,511.72,12.87,10.80" target="#b4">[4]</ref>, where each document server handles a shard of randomly selected documents. Such random distribution from a huge number of documents might produce a sufficiently similar IDF values in each shard to allow avoiding a global IDF. Since reportedly Google ranking relies on over a hundred other parameters, not using a global IDF may not have such an impact on relevance as in the TREC experiments.</p><p>Relying on the use of global statistics may complicate computing the relevance score for certain special query functions, provided by a Web search engine, e.g. searches restricted to a specific domain. To properly compute relevance, TF/IDF values for such searches would require the use of global values for the implicit collection defined by the domain. Computing and storing such statistics for every possible domain would be impractical. Alternatively one would have to compute such values on the fly for each query, performing a four step process: 1) collecting the IDF for the words in the query, 2) adding them up, 3) passing these values to each query server so that it could independently compute the ranking for the results from its shard and 4) collecting and merging the results from each shard. A similar solution is used in Terrier <ref type="bibr" coords="7,452.00,73.48,12.87,10.80" target="#b5">[5]</ref>, while in Sidra <ref type="bibr" coords="7,70.88,87.40,14.08,10.80" target="#b2">[2]</ref> ranking is performed by the query broker, by collecting ranking information from the servers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head><p>Search was distributed on the 23 blades, collecting 1000 results from each shard, which were merge sorted retaining only the top 1000.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Ad hoc</head><p>I submitted four runs to the ad hoc task. The baseline run (pisaTTitProx) used OR queries made with just the title words, color weighting was disabled while proximity weight was included. No link analysis was used.</p><p>A second run (pisaLonProx) used instead long queries, built by OR-ing title words with a weight of 1.0 and description and narrative words with a weight of 0.3 (lowered to 0.1 for long narratives).</p><p>The third run (pisaLonProxA) was similar to the second, with the inclusion of color weightings in the relevance score.</p><p>The fourth run (pisaLonProxC) was similar to the third, with the inclusion of a page link score computed according to the number n of links pointing to p, by the formula:</p><formula xml:id="formula_3" coords="7,237.20,345.39,136.62,45.46">   ≥ = otherwise N n N n p Lr / 0 . 1 ) (</formula><p>where N is an upper bound on a page's in-link number. The first run (pisaEff2) uses OR queries, proximity weights and a cutoff of 10,000 on each shard. The average time to return top 20 documents was 0.25 seconds.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run</head><p>The second run (pisaEff3) is similar except that it does not use proximity weights. The average time to return top 20 documents was 0.2 seconds.</p><p>The third run (pisaEff4) uses instead AND queries but increases the cutoff to 20k. AND queries are handled more efficiently, with an average time to return top 20 documents of 0.14 seconds. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Named page</head><p>For the named page task I used AND queries from the title topics. The three submitted runs differ from the baseline (pisaTNp) with the addition of proximity weights (pisaTNpProx) and page popularity (pisaTNpProxC). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusions</head><p>A significant improvement in precision has been achieved with the IXE search engine in the TeraByte ad-hoc task by introducing a new algorithm for handling OR queries and adopting the PL2 relevance score formula, combined with a proximity weight, a color weight and a popularity weight. Adding a proximity factor in the relevance score however produced only a modest, less than expected, improvement.</p><p>Experiments with a medium-scale distributed architecture showed as expected linear scalability in performance (either in the size of the collection or in queries per second). However precision was affected significantly when using a purely distributed search, without use of global statistics.</p><p>Computing global IDF values and distributing them to each server was necessary to maintain an overall high score in precision.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,229.04,678.32,156.27,34.16"><head></head><label></label><figDesc>span t is a maximal non overlapping span that contains t, n t is the number of query terms that occur in span t , |span t | is the width of span t , |q| is the length of the query,</figDesc><table coords="3,229.04,678.32,156.27,34.16"><row><cell>where:</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>t is a query term,</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>f</cell><cell>( t</cell><cell>,</cell><cell>span</cell><cell>t</cell><cell>)</cell><cell>=</cell><cell>y t span n</cell><cell>t</cell><cell>x</cell><cell>⋅</cell><cell>q</cell><cell>-pf t n</cell><cell>+</cell><cell>1</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,188.48,151.24,235.06,87.90"><head>Table 1 .</head><label>1</label><figDesc>Size of the index files for the GOV2 collection.</figDesc><table coords="5,188.48,151.24,235.06,70.08"><row><cell>Data Structure</cell><cell>Size</cell></row><row><cell>Lexicon</cell><cell>4.2 GB</cell></row><row><cell>Posting Lists (including positions)</cell><cell>62.0 GB</cell></row><row><cell>Metadata</cell><cell>26.0 GB</cell></row><row><cell>Document cache (optional)</cell><cell>84.0 GB</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="6.">Acknowledgements</head><p>This research was supported in part by the Italian MIUR ministry as part of project <rs type="projectName">Grid</rs>.it. <rs type="person">Maria Simi</rs> provided comments on a draft of the paper.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funded-project" xml:id="_E5KtckD">
+					<orgName type="project" subtype="full">Grid</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,77.56,535.25,101.16,14.87" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,98.00,556.36,443.41,10.80;8,98.00,570.04,291.48,10.80" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,250.88,556.36,286.04,10.80">Using Clustering and Blade Clusters in the TeraByte task</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Attardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Esuli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Patel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,98.00,570.04,256.01,10.80">Text REtrieval Conference (TREC) 2004 Proceedings</title>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,98.00,583.96,443.20,10.80;8,98.00,597.64,98.52,10.80" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="8,148.16,583.96,186.69,10.80">SIDRA: a Flexible Web Search System</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Costa</surname></persName>
+		</author>
+		<idno>DI/FCUL TR 4- 17</idno>
+		<imprint>
+			<date type="published" when="2004-11">November 2004</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">FCUL Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="8,98.00,611.56,442.78,10.80;8,98.00,625.24,443.32,10.80;8,98.00,639.16,360.12,10.80" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,387.68,611.56,153.10,10.80;8,98.00,625.24,191.81,10.80">Experiments on Adaptive Set Intersections for Text Retrieval Systems</title>
+		<author>
+			<persName coords=""><forename type="first">Erik</forename><forename type="middle">D</forename><surname>Demaine</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lopez-Ortiz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Munro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,311.36,625.24,229.96,10.80;8,98.00,639.16,141.05,10.80">Proceedings of the 3rd Workshop on Algorithm Engineering and Experiments</title>
+		<meeting>the 3rd Workshop on Algorithm Engineering and Experiments<address><addrLine>Washington, DC</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001">January 5-6, 2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,98.00,652.84,443.34,10.80;8,98.00,666.76,283.09,10.80" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="8,294.80,652.84,246.54,10.80;8,98.00,666.76,71.24,10.80">Web Search for A Planet: The Architecture of the Google Cluster</title>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Hoelzle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Barroso</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003-04">April 2003</date>
+			<publisher>IEEE</publisher>
+			<biblScope unit="page" from="22" to="28" />
+			<pubPlace>Micro Magazine</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,98.00,680.44,443.05,10.80;8,98.00,694.36,442.93,10.80;8,98.00,708.04,139.57,10.80" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,169.76,680.44,184.24,10.80">Terrier Information Retrieval Platform</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,375.44,680.44,165.61,10.80;8,98.00,694.36,243.06,10.80">Proceedings of the 27th European Conference on Information Retrieval (ECIR 2005)</title>
+		<meeting>the 27th European Conference on Information Retrieval (ECIR 2005)<address><addrLine>Santiago de Compostela, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2005-03">March 2005</date>
+			<biblScope unit="page" from="21" to="23" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,98.00,73.48,443.50,10.80;9,98.00,87.40,433.33,10.80" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,258.56,73.48,282.94,10.80;9,98.00,87.40,37.91,10.80">Query performance for tightly coupled distributed digital libraries</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ribeiro-Neto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">A</forename><surname>Barbosa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,156.32,87.40,293.94,10.80">Proceedings of the 3rd ACM Conference on Digital Libraries</title>
+		<meeting>the 3rd ACM Conference on Digital Libraries</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="182" to="190" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,98.00,101.08,443.34,10.80;9,98.00,115.00,309.72,10.80" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,268.88,101.08,190.62,10.80">Relevance Weighting of Search Terms</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">Sparck</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,470.00,101.08,71.34,10.80;9,98.00,115.00,199.43,10.80">Journal of the American Society for Information Science</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="129" to="146" />
+			<date type="published" when="1976">1976</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,98.00,128.68,443.02,10.80;9,98.00,142.60,339.49,10.80" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,228.08,128.68,266.94,10.80">Improving retrieval performance by relevance feedback</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Salton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,503.60,128.68,37.42,10.80;9,98.00,142.60,229.43,10.80">Journal of the American Society for Information Science</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="288" to="297" />
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,98.00,156.28,443.02,10.80;9,98.00,170.20,279.01,10.80" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="9,284.48,156.28,256.54,10.80;9,98.00,170.20,53.13,10.80">Viewing Term Proximity from a Different Perspective</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Ma</surname></persName>
+		</author>
+		<idno>TR-2005-69</idno>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<publisher>Microsoft Research Asia</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,98.00,183.88,443.16,10.80;9,98.00,197.80,299.65,10.80" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="9,243.44,183.88,297.72,10.80;9,98.00,197.80,114.20,10.80">Managing Gigabytes: Compressing and Indexing Documents and Images, 2nd edition</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Witten</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moffat</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Bell</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1999">1999</date>
+			<publisher>Morgan Kaufmann Publishers</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

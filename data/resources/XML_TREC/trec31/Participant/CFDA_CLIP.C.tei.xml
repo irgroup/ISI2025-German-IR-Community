@@ -1,0 +1,455 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,79.90,79.85,436.44,12.90">CFDA &amp; CLIP at TREC 2022 Conversational Assistance Track (CAsT)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,169.70,113.78,59.27,10.75;1,228.97,112.25,1.41,6.99"><forename type="first">Jia-Huei</forename><surname>Ju</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Research Center for Information Technology Innovation</orgName>
+								<orgName type="institution">Academia Sinica</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,239.68,113.78,86.70,10.75;1,326.38,112.25,1.88,6.99"><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">David R. Cheriton School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,336.62,113.78,84.70,10.75;1,421.32,112.25,1.88,6.99"><forename type="first">Li-Young</forename><surname>Chang</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">National Chengchi University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,200.61,127.84,81.07,10.75;1,281.68,126.31,1.88,6.99"><forename type="first">Ming-Feng</forename><surname>Tsai</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">National Chengchi University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,309.18,127.84,83.75,10.75;1,392.92,126.31,1.41,6.99"><forename type="first">Chuan-Ju</forename><surname>Wang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Research Center for Information Technology Innovation</orgName>
+								<orgName type="institution">Academia Sinica</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,79.90,79.85,436.44,12.90">CFDA &amp; CLIP at TREC 2022 Conversational Assistance Track (CAsT)</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">879B507A38E3091EF26E8AC31F966284</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this notebook, we introduce a new pipeline for TREC CAsT 2022. Comparing to the common multistage pipeline for conversational search, we experimented an alternative that does not require conversational query reformulation (CQR). Specifically, our pipeline equipped with conversational dense retriever and conversational passage re-ranker. Our empirical evaluation result on TREC CAsT dataset is also reported in this paper.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>One of the main challenge of conversational search is the ambiguous user's information needs. The latter turn user's information needs in the conversation (i.e., the raw utterances) often leaves out the important context. Some of these context-missing queries may result in the poor effectiveness in the scenario of conversational information seeking. To resolve the problem, the conversational query reformulation methods (CQR) is the crucial component in conversational information seeking systems. The CQR models aim at replenishing the context for current turn of user's utterances from historical context.</p><p>For example, <ref type="bibr" coords="1,142.02,574.23,103.89,9.46" target="#b10">Voskarides et al. (2020)</ref> used contextualized text features to classify important historical context (words); <ref type="bibr" coords="1,185.22,601.33,78.63,9.46" target="#b6">Lin et al. (2020)</ref> used the sequence-to-sequence (T5) model to generate queries with standalone meaning. Both of which augmented the CANARD dataset <ref type="bibr" coords="1,219.80,641.98,70.70,9.46;1,70.87,655.53,23.95,9.46" target="#b1">(Elgohary et al., 2019)</ref>, which has the aligned pairs of multi-turn raw utterances and manually rewritten query. Recently, some studies have made substantial progress on dense retrieval approaches for conversational search <ref type="bibr" coords="1,102.06,709.73,72.59,9.46" target="#b9">(Qu et al., 2020;</ref><ref type="bibr" coords="1,177.42,709.73,67.68,9.46" target="#b11">Yu et al., 2021;</ref><ref type="bibr" coords="1,247.87,709.73,42.63,9.46;1,70.87,723.27,29.40,9.46">Lin et al., 2021b)</ref>. They integrate CQR into dense retrieval models; thus, the models can directly retrieve passages in an end-to-end manner similar to standard ad-hoc retrieval.</p><p>In this paper, we treat conversational dense retrieval as the first-stage retrieval in our pipeline. As for the second-stage in our pipeline, we follow these works and build up an experimental conversastional passage re-ranking models. Specifically, we fine-tune a conversational passage reranking model <ref type="bibr" coords="1,372.09,297.75,59.61,9.46">(ConvRerank)</ref>, which aims at refining the passage candidates retrieved from contextualized query embedding (CQE) approach <ref type="bibr" coords="1,482.19,324.85,43.59,9.46;1,306.14,338.40,29.40,9.46">(Lin et al., 2021b)</ref>, one of the conversational dense retrieval methods. For the passage re-ranking model, we used monoT5 <ref type="bibr" coords="1,370.34,365.50,101.83,9.46" target="#b8">(Nogueira et al., 2020)</ref> and further fine-tune it with weakly-supervised training data from CQE <ref type="bibr" coords="1,357.63,392.60,81.61,9.46">(Lin et al., 2021b)</ref>. Finally, by combining the first-stage retrieved top 1000 passage candidates with ConvRerank, we construct a multistage pipeline without CQR, namely CQR-free multistage pipeline.</p><p>In the following sections, we introduce the common multistage pipeline approaches in Section 2, including the CQR-driven pipeline (Section 2.1) and the CQR-free pipeline (Section 2.2). Section 3 reports our experimental results on TREC CAsT dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">The Multistage Pipeline for Conversational Search</head><p>In this section, we describe two settings of multistage pipeline for conversational search. First, we recap preliminaries in previous multistage pipeline, which we regarded as the baseline submitted runs. Second, we introduce the CQR-free multistage pipeline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Preliminary</head><p>Formally, the goal of conversational search is to retrieve the relevant document d from collections D with a sequence set of multi-turn user utterances U = u 1 , u 2 , ..., u i , where u i indicates user's utterance at the i-th turn. We will introduce the components we used in our baseline submitted ap-proach, including the following three stages: (1) Conversational query reformulation;</p><p>(2) First-stage passage retrieval for top 1000 passages;</p><p>(3) Secondstage passage re-ranking.</p><p>Conversational query reformulation. We use a CQR approach followed the previous work <ref type="bibr" coords="2,270.17,149.55,18.95,9.46;2,70.87,163.10,48.98,9.46" target="#b6">(Lin et al., 2020)</ref>,<ref type="foot" coords="2,124.45,161.05,3.99,6.91" target="#foot_0">1</ref> T5 neural transfer reformulation (T5-NTR), denoted as F CQR . We can thereby reformulate the raw utterances at i-turn with the previous context as</p><formula xml:id="formula_0" coords="2,78.51,223.69,202.49,13.13">q i = F CQR (u 1 , u 2 , ...u i-3 , r i-3 , u i-2 , ...; u i ) 2</formula><p>where q i is the reformulated query and can be regarded as a standalone, omission-free query for the later stages in decontextualized manner. r indicates the system response provided in evaluation set and we use at most three responses due to the length limitation of T5 models. Both user's and system's utterances are regarded as the context for T5-NTR to rewrite.</p><p>First-stage passage retrieval. In this stage, we adopt the sparse and dense retrieval methods using Pyserini IR toolkit <ref type="bibr" coords="2,176.34,391.89,82.63,9.46">(Lin et al., 2021a)</ref> as the first-stage (candidate) passage retrieval. For the dense retrieval, we use the bi-encoders models, TCT-ColBERT <ref type="bibr" coords="2,141.25,432.54,79.10,9.46">(Lin et al., 2021c)</ref>, as well as the released checkpoint<ref type="foot" coords="2,156.21,444.04,3.99,6.91" target="#foot_2">3</ref> . With the reformulated query q and segmented passage p, we encode dense representations of passages and index via FAISS <ref type="bibr" coords="2,263.05,473.18,23.25,9.46;2,70.87,486.73,69.14,9.46" target="#b2">(Johnson et al., 2017)</ref>. Finally, we retrieve the top1000 relevant passages as the pool of first-stage retrieved candidates P i for each reformulated query q i . As for the sparse retrieval, we use the BM25 to retrieve top1000 relevant documents; subsequently, we segment the documents into passages<ref type="foot" coords="2,216.53,552.43,3.99,6.91" target="#foot_3">4</ref> as another kind of first-stage retrieved passages pool P i .</p><p>Second-stage passage ranking. In the passage re-ranking stage, we use monoT5 <ref type="bibr" coords="2,219.52,602.21,70.98,9.46;2,70.87,615.76,25.96,9.46" target="#b8">(Nogueira et al., 2020)</ref> and the released checkpoint. <ref type="foot" coords="2,227.96,613.71,3.99,6.91" target="#foot_4">5</ref> The text-totext input format of monoT5 is:</p><formula xml:id="formula_1" coords="2,106.85,651.74,183.02,10.63">Query: q i Document: p Relevant:,<label>(1)</label></formula><p>where p ∈ P i indicates the segmented passages in first-stage retrieved passages pool. Afterwards, we follow the "true/false" token logit trick of monoT5 <ref type="bibr" coords="2,346.68,115.37,99.42,9.46" target="#b8">(Nogueira et al., 2020)</ref>; the relevance of each query-passage pair can be estimated by softmax of "true" logit over "true/false" logits. The probability is regarded as relevance score for final re-ranking results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">The CQR-free multistage Pipeline</head><p>We introduce a multistage pipeline for conversational search without pre-processing the multi-turn query. Our proposed CQR-free multistage pipeline is comprised of conversational dense retrieval and conversational passage re-ranking.</p><p>Conversational dense passage retrieval. As the first-stage of CQR-free multistage pipeline, we follow the contextualized query embeddings (CQE) approach <ref type="bibr" coords="2,383.21,334.50,80.66,9.46">(Lin et al., 2021b)</ref>. We use the same CQE's conversational query encoder and the released checkpoint<ref type="foot" coords="2,396.01,359.56,3.99,6.91" target="#foot_5">6</ref> , which is basically a finetuned conversational query encoder, denoted as</p><formula xml:id="formula_2" coords="2,306.14,386.40,46.66,13.65">F ConvDPR q</formula><p>. For a certain user's raw utterance u i , we append its previous context U &lt;i and encoded into a single dense representation as follow</p><formula xml:id="formula_3" coords="2,358.02,440.60,167.12,14.19">E i q =F ConvDPR q (U &lt;i ; u i ),<label>(2)</label></formula><formula xml:id="formula_4" coords="2,357.83,458.78,88.50,14.27">E p =F ConvDPR d (p),</formula><p>where E i q is an aggregated embedding by adopting average pooling over all tokens's last hidden layers, excluding the BERT's special tokens as same as the original work. E p is the passage representation encoded by F ConvDPR d . In CQE paper, the document encoder is identical to TCT-ColBERT fine-tuned on MS MARCO <ref type="bibr" coords="2,366.95,570.56,79.00,9.46" target="#b0">(Bajaj et al., 2016)</ref>. Similar to dense retrieval described in Section 2.1, we used FAISSsupported Pyserini toolkit. Finally, we acquire the top1000 retrieved passage candidates pool P i for each raw utterance u i without query reformulation.</p><p>Conversational passage re-ranking. In this stage, we introduce a CQR-free re-ranking model (ConvRerank). We adopted monoT5 model checkpoints (T5-large, fine-tuned on MS MARCO for 100K steps) and further fine-tuned with conversational query U &lt;i ; u i for 20K steps; the training data is similar to the pseudo-labeled dataset in CQE. To avoid truncation of T5 tokenization (maximum sequence length is 512), we recast the input of Con-vRerank as the following text-to-text format:</p><formula xml:id="formula_5" coords="3,86.20,127.66,190.32,10.63">Query: u i | J (U &lt;i ) Document: p Relevant:</formula><p>where J indicate the joining function that concatenate each elements in the sequence with vertical bars " | " as boundaries. Once the ConvRerank is fine-tuned, we can estimate the relevance scores of each conversational query-passage pairs similar to monoT5 described in Section 2.1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiments and Results</head><p>Evaluation dataset. To validate the effectiveness of our proposed methods, we use the TREC CAsT evaluation set released in 2020. The dataset has 208 evaluation queries with human-judged relevance scores of passages from 0-4. The relevant passages are from TREC CAR <ref type="bibr" coords="3,166.80,337.71,85.29,9.46" target="#b7">(Nanni et al., 2017)</ref> and MS MARCO (v1) passage ranking dataset <ref type="bibr" coords="3,237.89,351.26,52.60,9.46;3,70.87,364.81,23.48,9.46" target="#b0">(Bajaj et al., 2016)</ref>.</p><p>Compared Methods We compare few settings of CQR-driven multistage pipeline as our baselins.</p><p>Our baselines are all equipped with conversational query reformulation (CQR), and using the T5 rewritten query (See Section 2.1). BM25 and TCT-ColBERT are two of our baseline retriever; monoT5 is our baseline passage re-ranking model.</p><p>As for the CQR-free multistage pipeline, we use CQE and ConvRerank (see Section 2.2) for the automatic session. In TREC CAsT 2022 submitted runs, we only submitted the results using BM25 and CQE as the first-stage retrieval.</p><p>Results on CAsT 2020. In Table <ref type="table" coords="3,222.32,560.12,4.01,9.46" target="#tab_0">1</ref>, we report the full ranking resuls of TREC CAsT 2020 evaluation topics with the nDCG cut-off at 3, 5, 500 and 1000 on the columns. The first two blocks in the Table are our baseline multistage pipeline, and the pipeine with asterisk marks in last two blocks are our proposed CQR-free multistage pipeline.</p><p>Generally, we observed that our proposed CQRfree multistage pipeline achieve the higher effectiveness of nDCG in shallower depth. Specifically, the CQE approach is superior than the BM25 and TCT-ColBERT (with reformulated query) in terms of nDCG cutoff at 3 and 5. Moreover, ConvRerank in the last two blocks approach outperform the baseline T5 reranking models (monoT5) in almost all judgement settings. We conclude that our proposed  Evaluation on CAsT 2022. In Table <ref type="table" coords="3,485.15,487.79,4.17,9.46" target="#tab_1">2</ref>, we reported our submitted runs and evaluation results on TREC CAsT 2022. Two types of CAsT 2022 tasks, automatic and manual are in the first and second blocks in the table, respectively. As expected, the CQR-free multistage pipeline outperformed our baseline multistage pipeline (i.e, the pipeline with query rewriting). Particularly, ConvRerank showed the better re-ranking effectiveness under different first-stage retrieval setting regardless of BM25 and CQE (the run CNC_AS-C and CNC_AD-C). Note that all our submitted runs using dense retrieval (e.g. CQE, TCT-ColBERT), we only use the first 4 segmented passages for each document in provided collections. Therefore, some results of dense retrieval may be inferior to the pipeline using BM25.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>According to the evaluation, the CQR-free multistage pipeline seems to be better than traditional multistage pipeline. Particularly, we hypothesize the dependencies of turns (of utterances) may affect the relevance of passage. For example, the passages which previous user's information needs had been satisfied shall be considered as less relevant. To attest our hypothesis, we leave the rationalizing CQE or ConvRerank as our future works.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,305.78,72.75,220.29,183.48"><head>Table 1 :</head><label>1</label><figDesc>The full-ranking results of CQR-free pipeline, with nDCG judgements cut-off at 3, 5, 500 and 1000.</figDesc><table coords="3,313.00,109.71,213.07,146.53"><row><cell>Pipeline</cell><cell>CQR</cell><cell></cell><cell></cell><cell>nDCG</cell></row><row><cell></cell><cell></cell><cell>3</cell><cell>5</cell><cell>500</cell><cell>1000</cell></row><row><cell>BM25</cell><cell>✓</cell><cell cols="3">0.1464 0.1432 0.2582 0.2824</cell></row><row><cell>+ monoT5</cell><cell>✓</cell><cell cols="3">0.3701 0.3613 0.4067 0.4089</cell></row><row><cell>TCT-ColBERT</cell><cell>✓</cell><cell cols="3">0.3381 0.3271 0.4349 0.4520</cell></row><row><cell>+ monoT5</cell><cell>✓</cell><cell cols="3">0.3819 0.3786 0.4801 0.4888</cell></row><row><cell>CQE</cell><cell>✗</cell><cell cols="3">0.3416 0.3288 0.4335 0.4532</cell></row><row><cell>+ monoT5</cell><cell>✓</cell><cell cols="3">0.3987 0.3876 0.4838 0.4946</cell></row><row><cell>+ ConvRerank  *</cell><cell>✗</cell><cell cols="3">0.4026 0.3973 0.4818 0.4977</cell></row><row><cell>CQE-hybrid</cell><cell>✗</cell><cell cols="3">0.3676 0.3506 0.4752 0.4954</cell></row><row><cell>+ monoT5</cell><cell>✓</cell><cell cols="3">0.3939 0.3857 0.5051 0.5196</cell></row><row><cell>+ ConvRerank  *</cell><cell>✗</cell><cell cols="3">0.4087 0.3993 0.5097 0.5273</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,305.83,274.67,221.98,201.01"><head>Table 2 :</head><label>2</label><figDesc>The full-ranking results of our submitted approaches using baseline multistage pipeline and CQRfree multistage pipeline.</figDesc><table coords="3,306.14,322.31,221.67,153.37"><row><cell>Pipeline (Run)</cell><cell cols="3">CQR nDCG@3 nDCG Recall</cell></row><row><cell>Type: Automatic</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25 + monoT5 (CNC_AS)</cell><cell>✓</cell><cell>0.235</cell><cell>0.369 0.515</cell></row><row><cell>BM25 + ConvRerank (CNC_AS-C)</cell><cell>✗</cell><cell>0.377</cell><cell>0.411 0.527</cell></row><row><cell>CQE + monoT5 (CNC_AD)</cell><cell>✓</cell><cell>0.334</cell><cell>0.286 0.320</cell></row><row><cell>CQE + ConvRerank (CNC_AD-C)</cell><cell>✗</cell><cell>0.347</cell><cell>0.294 0.320</cell></row><row><cell>Type: Manual</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25 + ConvRerank (CNC_AD-C)</cell><cell>-</cell><cell>0.397</cell><cell>0.537 0.702</cell></row><row><cell>TCT-ColBERT + ConvRerank (CNC_MD-C)</cell><cell>-</cell><cell>0.512</cell><cell>0.350 0.339</cell></row><row><cell cols="4">CQR-free multistage pipeline with conversation-</cell></row><row><cell cols="4">ally encoded query can provide more fine-grained</cell></row><row><cell cols="4">historical context in the latent space compared to</cell></row><row><cell>performing CQR in advance.</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,87.01,672.81,177.53,6.31;2,70.87,682.78,78.56,6.31"><p>https://huggingface.co/castorini/ t5-base-canard.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,86.73,692.78,203.89,7.77;2,70.87,702.75,81.42,7.77"><p>The parathesis indicates the sequence follows the temporal order in a dialogue.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,83.52,711.73,202.54,9.02;2,70.87,724.40,57.94,6.31"><p>3 https://huggingface.co/castorini/tct_ colbert-v2-</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="2,128.80,724.40,42.14,6.31;2,83.52,732.55,2.99,5.18;2,86.73,734.41,206.17,7.77;2,70.87,745.22,101.21,6.31"><p>msmarco.4  The official segmentation tools: https://github. com/grill-lab/trec-</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="2,172.07,745.22,63.92,6.31;2,83.52,753.36,181.02,9.02;2,70.87,766.03,108.59,6.31"><p>cast-tools/. 5 https://huggingface.co/castorini/ monot5-large-msmarco</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="2,322.28,756.07,199.05,6.31;2,306.14,766.03,119.85,6.31"><p>https://huggingface.co/castorini/tct_ colbert-v2-msmarco-cqe</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,70.87,199.13,219.52,8.64;4,81.59,210.09,209.20,8.64;4,81.78,221.05,207.52,8.64;4,81.78,232.01,208.60,8.64;4,81.78,242.97,209.01,8.64;4,81.78,253.93,181.22,8.64" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="4,177.72,242.97,113.06,8.64;4,81.78,253.93,177.45,8.64">Ms marco: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Payal</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alina</forename><surname>Stoica</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tong</forename><surname>Wang</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.1611.09268</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,275.21,219.92,8.64;4,81.78,286.17,207.36,8.64;4,81.78,296.96,207.36,8.81;4,81.53,307.91,209.26,8.58;4,81.78,318.87,207.36,8.58;4,81.34,329.83,207.80,8.58;4,81.11,340.79,209.27,8.81;4,81.78,351.92,200.92,8.64" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="4,145.89,286.17,143.25,8.64;4,81.78,297.12,112.43,8.64">Can you unpack that? learning to rewrite questions-in-context</title>
+		<author>
+			<persName coords=""><forename type="first">Ahmed</forename><surname>Elgohary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Denis</forename><surname>Peskov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jordan</forename><surname>Boyd-Graber</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D19-1605</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,213.27,296.96,75.87,8.58;4,81.53,307.91,209.26,8.58;4,81.78,318.87,207.36,8.58;4,81.34,329.83,207.80,8.58;4,81.11,340.79,74.03,8.58">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="5918" to="5924" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,373.20,220.01,8.64;4,81.78,384.16,163.55,8.64" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="4,81.78,384.16,159.28,8.64">Billion-scale similarity search with gpus</title>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthijs</forename><surname>Douze</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hervé</forename><surname>Jégou</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.1702.08734</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,405.44,219.92,8.64;4,81.78,416.40,209.10,8.64;4,81.78,427.36,207.36,8.64;4,81.78,438.32,207.36,8.64;4,81.78,449.11,209.01,8.81;4,81.78,460.07,207.36,8.58;4,81.42,471.03,208.96,8.81;4,81.78,482.15,207.36,8.64;4,81.78,493.11,106.44,8.64" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,132.39,416.40,158.48,8.64;4,81.78,427.36,207.36,8.64;4,81.78,438.32,207.36,8.64;4,81.78,449.28,60.06,8.64">Ronak Pradeep, and Rodrigo Nogueira. 2021a. Pyserini: A python toolkit for reproducible information retrieval research with sparse and dense representations</title>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xueguang</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3404835.3463238</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,164.87,449.11,125.92,8.58;4,81.78,460.07,207.36,8.58;4,81.42,471.03,204.93,8.81">Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21</title>
+		<meeting>the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<biblScope unit="page" from="2356" to="2362" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,514.39,220.01,8.64;4,81.78,525.35,209.01,8.64;4,81.78,536.14,209.01,8.81;4,81.78,547.10,209.01,8.58;4,81.78,558.06,208.60,8.81;4,81.78,569.19,207.36,8.64;4,81.78,580.15,46.77,8.64" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="4,81.78,525.35,209.01,8.64;4,81.78,536.31,58.36,8.64">2021b. Contextualized query embeddings for conversational search</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.emnlp-main.77</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,158.75,536.14,132.04,8.58;4,81.78,547.10,209.01,8.58;4,81.78,558.06,28.40,8.58">Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2021 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Dominican Republic. Association for Computational Linguistics</publisher>
+			<biblScope unit="page" from="1004" to="1015" />
+		</imprint>
+		<respStmt>
+			<orgName>Online and Punta Cana</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,601.43,220.01,8.64;4,81.78,612.39,207.35,8.64;4,81.42,623.35,207.72,8.64;4,81.47,634.14,207.67,8.58;4,81.50,645.09,208.88,8.81;4,81.78,656.22,204.23,8.64" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="4,81.78,612.39,207.35,8.64;4,81.42,623.35,192.15,8.64">2021c. In-batch negatives for knowledge distillation with tightly-coupled teachers for dense retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.repl4nlp-1.17</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,81.47,634.14,207.67,8.58;4,81.50,645.09,141.35,8.58">Proceedings of the 6th Workshop on Representation Learning for NLP (RepL4NLP-2021)</title>
+		<meeting>the 6th Workshop on Representation Learning for NLP (RepL4NLP-2021)</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<biblScope unit="page" from="163" to="173" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,677.50,219.51,8.64;4,81.78,688.46,209.10,8.64;4,81.78,699.42,207.36,8.64;4,81.78,710.38,207.36,8.64;4,81.78,721.34,69.73,8.64" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="4,113.25,699.42,175.89,8.64;4,81.78,710.38,207.36,8.64;4,81.78,721.34,65.26,8.64">Conversational question reformulation via sequence-to-sequence architectures and pretrained language models</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Feng</forename><surname>Tsai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chuan-Ju</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.2004.01909</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.87,742.62,218.27,8.64;4,81.78,753.58,207.52,8.64;4,81.78,764.54,35.19,8.64" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Federico</forename><surname>Nanni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Magnusson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.1705.04803</idno>
+		<title level="m" coord="4,160.74,753.58,128.56,8.64;4,81.78,764.54,31.67,8.64">Benchmark for complex answer retrieval</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,306.14,75.34,218.27,8.64;4,316.86,86.30,209.20,8.64;4,317.05,97.09,207.36,8.81;4,317.05,108.05,209.01,8.58;4,316.74,119.01,207.67,8.81;4,317.05,130.13,122.60,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="4,398.93,86.30,127.13,8.64;4,317.05,97.26,147.85,8.64">Document ranking with a pretrained sequence-to-sequence model</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiying</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.findings-emnlp.63</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,488.72,97.09,35.69,8.58;4,317.05,108.05,209.01,8.58;4,316.74,119.01,53.99,8.58">Findings of the Association for Computational Linguistics: EMNLP 2020</title>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="708" to="718" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,306.14,150.06,218.27,8.64;4,317.05,161.02,209.01,8.64;4,316.80,171.81,207.61,8.81;4,317.05,182.77,207.36,8.58;4,316.74,193.73,208.91,8.58;4,317.05,204.85,209.01,8.64;4,317.05,215.81,144.91,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="4,446.00,161.02,80.06,8.64;4,316.80,171.98,124.89,8.64">Open-retrieval conversational question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Chen</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Liu</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cen</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Minghui</forename><surname>Qiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohit</forename><surname>Iyyer</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3397271.3401110</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,463.09,171.81,61.33,8.58;4,317.05,182.77,207.36,8.58;4,316.74,193.73,208.91,8.58;4,317.05,204.85,40.00,8.64">Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;20</title>
+		<meeting>the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;20<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="539" to="548" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,306.14,235.74,218.27,8.64;4,317.05,246.70,209.01,8.64;4,317.05,257.66,209.01,8.64;4,317.05,268.45,207.36,8.81;4,317.05,279.40,209.01,8.58;4,317.05,290.36,96.31,8.81" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="4,478.23,246.70,47.83,8.64;4,317.05,257.66,209.01,8.64;4,317.05,268.61,15.00,8.64">Query resolution for conversational search with limited supervision</title>
+		<author>
+			<persName coords=""><forename type="first">Nikos</forename><surname>Voskarides</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pengjie</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Evangelos</forename><surname>Kanoulas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maarten</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,350.05,268.45,174.36,8.58;4,317.05,279.40,209.01,8.58;4,317.05,290.36,65.14,8.58">SIGIR 2020: 43rd international ACM SIGIR conference on Research and Development in Information Retrieval</title>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,306.14,310.46,219.52,8.64;4,317.05,321.42,207.36,8.64;4,317.05,332.21,209.01,8.81;4,317.05,343.17,207.36,8.58;4,316.69,354.12,208.96,8.81;4,317.05,365.25,207.52,8.64;4,317.05,376.21,92.33,8.64" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="4,424.32,321.42,100.09,8.64;4,317.05,332.38,59.17,8.64">Few-shot conversational dense retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Shi</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenghao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tao</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3404835.3462856</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,399.51,332.21,126.56,8.58;4,317.05,343.17,207.36,8.58;4,316.69,354.12,204.94,8.81">Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21</title>
+		<meeting>the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="829" to="838" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

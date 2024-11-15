@@ -1,0 +1,863 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,385.68,15.42;1,89.29,106.66,353.71,15.42;1,89.29,128.58,77.54,15.43">NLytics at CheckThat! 2021: Detecting Previously Fact-Checked Claims by Measuring Semantic Similarity</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,88.87,156.89,74.97,11.96"><forename type="first">Albert</forename><surname>Pritzkau</surname></persName>
+							<email>albert.pritzkau@fkie.fraunhofer.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Information Processing and Ergonomics FKIE</orgName>
+								<orgName type="institution">Fraunhofer Institute for Communication</orgName>
+								<address>
+									<addrLine>Fraunhoferstraße 20</addrLine>
+									<postCode>53343</postCode>
+									<settlement>Wachtberg</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,385.68,15.42;1,89.29,106.66,353.71,15.42;1,89.29,128.58,77.54,15.43">NLytics at CheckThat! 2021: Detecting Previously Fact-Checked Claims by Measuring Semantic Similarity</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">1B47BABD9A9EAE57F5DCC3625E0050BC</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:12+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Information Retrieval</term>
+					<term>Semantic Similarity</term>
+					<term>Deep Learning</term>
+					<term>Transformers</term>
+					<term>RoBERTa</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The following system description presents our approach to the detection of previously fact-checked claims. Given a claim originating from a tweet or a political debate, we specified the similarity to a collection of previously fact-checked claims. In line with the origin of the claims, the collection of previously fact-checked claims is composed of tweets and political debates respectively. The given task has been framed as a sequence similarity problem. Relevance scoring is based on semantic similarity. Similarity is calculated by distance metrics on representation vectors at paragraph level.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Social networks provide opportunities to conduct disinformation campaigns for organizations as well as individual actors. The proliferation of disinformation online, has given rise to a lot of research on automatic fake news detection. CLEF 2021 -CheckThat! Lab <ref type="bibr" coords="1,436.73,417.64,11.48,10.91" target="#b0">[1,</ref><ref type="bibr" coords="1,451.16,417.64,9.03,10.91" target="#b1">2]</ref> considers disinformation as a communication phenomenon. By detecting the use various claims in (political) communication, it takes into account not only the content but also how a subject matter is communicated by specific actors, in particular, by repetition of the same claims.</p><p>Task definition: Detect Previously Fact-Checked Claims Given a check-worthy claim, and a set of previously fact-checked claims, determine whether the claim has been previously fact-checked. Based on the source of the considered claims the shared task <ref type="bibr" coords="1,439.48,514.14,12.99,10.91" target="#b2">[3]</ref> defines the following subtasks both of which are framed as ranking tasks:</p><p>• Subtask A: Detect Previously Fact-Checked Claims in Tweets • Subtask B: Detect Previously Fact-Checked Claims in Political Debates/Speeches In this work, we covered our approach. Below, we describe the systems built for these two subtasks. At the core of our systems is RoBERTa <ref type="bibr" coords="2,335.95,100.52,11.58,10.91" target="#b3">[4]</ref>, a pre-trained model based on the Transformer architecture <ref type="bibr" coords="2,204.02,114.06,11.43,10.91" target="#b4">[5]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>The goal of the shared task is to investigate automatic techniques for Information Retrieval (IR) obtaining information resources relevant to an information need from a larger collection of information resources. In particular, we want to find the most similar paragraphs from a large set of documents given a query document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Relevancy scoring</head><p>Relevancy scoring is a process to determine the relevance of retrieved documents based on user queries, term frequencies, and other important parameters. In the simplest form, documents are ranked on how many words of the document match the terms in the query. In the given task the performance is evaluated with an Elastic Search baseline. Elastic Search uses two kinds of scoring function -TF-IDF and Okapi BM25 -both of which follow the same principal of lexical similarity. In particular, to determine a relevancy score TF-IDF as in equation( <ref type="formula" coords="2,466.69,330.06,4.44,10.91" target="#formula_2">3</ref>), short for term frequency-inverse document frequency, is used as a statistical measure to evaluate the importance of a query term 𝑡 to a document 𝑑 form a larger collection of documents 𝐷. The importance increases proportionally to the number of times a query term appears in the document as shown in equation ( <ref type="formula" coords="2,234.12,384.26,3.78,10.91" target="#formula_0">1</ref>) but is offset by the frequency of the query term in the whole collection as shown in equation <ref type="bibr" coords="2,233.04,397.81,10.48,10.91" target="#b1">(2)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TF(𝑡, 𝑑) =</head><p>term frequency in document total words in document</p><p>IDF(𝑡, 𝐷) = log 2 (︂ total documents in corpus documents with term</p><formula xml:id="formula_1" coords="2,395.77,458.88,110.21,18.55">)︂<label>(2)</label></formula><p>TF-IDF(𝑡, 𝑑, 𝐷) = 𝑇 𝐹 (𝑡, 𝑑) × 𝐼𝐷𝐹 (𝑡, 𝐷)</p><p>Based on TF-IDF, Okapi BM25 as in 4 handles some of it's shortcomings to make the function result more relevant to the user's query. Same as TF-IDF, relevance is calculated as a result of multiplying 𝑇 𝐹 and 𝐼𝐷𝐹 with the difference of how these values are calculated. With |𝐷| as the number of words in a document it takes into account the document's length. Furthermore, 𝑘1 normalizes the impact of the frequent occurrences of common words on the relevance score.</p><formula xml:id="formula_3" coords="2,146.05,600.20,359.93,33.71">BM25(𝐷, 𝑄) = 𝑛 ∑︁ 𝑖=1 𝐼𝐷𝐹 (𝑞 𝑖 , 𝐷) 𝑓 (𝑞 𝑖 , 𝐷) • (𝑘 1 + 1) 𝑓 (𝑞 𝑖 ) + 𝑘 1 • (1 -𝑏 + 𝑏 • |𝐷|/𝑑 𝑎𝑣𝑔 ))<label>(4)</label></formula><p>Beyond word matching, our approach considers semantic similarity for relevance estimation.</p><p>Neural network based language models are receiving significant attention in the field of natural language processing due to their capability to effectively capture semantic information representing words, sentences or even larger text elements in low-dimensional vector space. Exploiting language models for the task of ad-hoc retrieval has already been demonstrated by <ref type="bibr" coords="3,89.29,114.06,12.69,10.91" target="#b3">[4]</ref> and <ref type="bibr" coords="3,123.43,114.06,11.28,10.91" target="#b5">[6]</ref>. In this study, we investigated Sentence-BERT <ref type="bibr" coords="3,342.02,114.06,12.68,10.91" target="#b6">[7]</ref> to derive semantically meaningful sentence embeddings, that to some extent recognizes synonyms, acronyms or spelling variations.</p><p>From this point of view, the meaningfulness of a comparison of semantic similarity with lexical similarity as a baseline could be debated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Text embeddings</head><p>For a long time word embeddings such as Word2Vec <ref type="bibr" coords="3,336.38,204.39,11.58,10.91" target="#b7">[8]</ref>, PLSI <ref type="bibr" coords="3,379.61,204.39,11.59,10.91" target="#b8">[9]</ref>, GloVe <ref type="bibr" coords="3,429.19,204.39,18.07,10.91" target="#b9">[10]</ref> have been a cornerstone for deep learning (DL) NLP. The embeddings are often pre-trained on unlabeled text corpus from co-occurrence statistics. Due to this fact, these representations are context independent. To capture semantic and morpho-syntactic properties contextual representations sentence-level approaches such as Semi-Supervised Sequence Learning <ref type="bibr" coords="3,397.93,258.59,16.09,10.91" target="#b10">[11]</ref>, ULMFit <ref type="bibr" coords="3,455.56,258.59,17.75,10.91" target="#b11">[12]</ref> , ELMo <ref type="bibr" coords="3,89.29,272.14,16.41,10.91" target="#b12">[13]</ref>, GPT <ref type="bibr" coords="3,136.03,272.14,16.42,10.91" target="#b13">[14]</ref>, XLNet <ref type="bibr" coords="3,191.98,272.14,18.07,10.91" target="#b14">[15]</ref> and BERT <ref type="bibr" coords="3,261.55,272.14,18.07,10.91" target="#b15">[16]</ref> are gaining increasing importance. The ability of embeddings such as RoBERTa <ref type="bibr" coords="3,225.61,285.69,11.44,10.91" target="#b3">[4]</ref>, a pre-trained model based on the Transformer architecture <ref type="bibr" coords="3,89.29,299.24,12.71,10.91" target="#b4">[5]</ref> to capture semantic and morpho-syntactic properties has been shown on various NLP tasks like sentiment analysis, question answering.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">About BERT and RoBERTa</head><p>BERT stands for Bidirectional Encoder Representations from Transformers. It is based on the Transformer model architectures introduced by Vaswani et al. <ref type="bibr" coords="3,357.31,376.02,11.39,10.91" target="#b4">[5]</ref>. The general approach consists of two stages: first, BERT is pre-trained on vast amounts of text, with an unsupervised objective of masked language modeling and next-sentence prediction. Second, this pre-trained network is then fine-tuned on task specific, labeled data. The Transformer architecture is composed of two parts, an Encoder and a Decoder, for each of the two stages. The Encoder used in BERT is an attention-based architecture for NLP. It works by performing a small, constant number of steps.</p><p>In each step, it applies an attention mechanism to understand relationships between all words in a sentence, regardless of their respective position. By pre-training language representations, the Encoder yields models that can either be used to extract high quality language features from text data, or fine-tune these models on specific NLP tasks (classification, entity recognition, question answering, etc.). We rely on RoBERTa <ref type="bibr" coords="3,301.39,511.51,11.41,10.91" target="#b3">[4]</ref>, a pre-trained Encoder model which builds on BERT's language masking strategy. However, it modifies key hyperparameters in BERT such as removing BERT's next-sentence pre-training objective, and training with much larger minibatches and learning rates. Furthermore, RoBERTa was also trained on an order of magnitude more data than BERT, for a longer amount of time. This allows RoBERTa representations to generalize even better to downstream tasks compared to BERT. In this study, RoBERTa is at the core of each solution of the given subtasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Sentence embeddings</head><p>Sentence embeddings can be described as a document processing method of mapping sentences to vectors as a means of representing text with real numbers suitable for machine learning.</p><p>For RoBERTa, the representation vectors consisting of 768 numerical values are considered  as contextual word embeddings of a single token. Because there is one of these vectors for representing each token (output by each encoder), we are actually looking at a tensor of size 768 by the number of tokens (in our case 512). This tensor is transformed into a semantic representations of the whole input sequence. The simplest and most commonly extracted tensor is the last_hidden_state tensor -which is conveniently output by the BERT model. To convert the last_hidden_states tensor into a sequence vector, a mean pooling operation is used. This pooling operation takes the mean of all token embeddings. In this study, we investigated Sentence-BERT <ref type="bibr" coords="4,300.94,594.04,12.70,10.91" target="#b6">[7]</ref> to derive semantically meaningful sentence embeddings. Reimers and Gurevych <ref type="bibr" coords="4,249.42,607.59,12.84,10.91" target="#b6">[7]</ref> by modified the original BERT using Siamese networks. With Sentence-BERT we can now take advantage of BERT embeddings for the tasks like semantic similarity comparison and information retrieval via semantic search. Similarity metrics are applied to the resulting sequence vectors to calculate the respective similarity between different sequences. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Similarity metrics</head><p>To turn language into a machine-readable format, words and sentences are converted into high-dimensional vectors -organized so that each vector's geometric position can attribute meaning. We expect that similar meaning corresponds with proximity/orientation between those vectors. Similarity measurements such as cosine similarity or Manhattan/Euclidean distance, evaluate semantic textual similarity so that the scores can be exploited for a variety of helpful NLP tasks, including information retrieval. For Semantic Textual Similarity (STS) tasks Reimers and Gurevych <ref type="bibr" coords="5,195.47,367.54,12.84,10.91" target="#b6">[7]</ref> suggest to compute the Spearman's rank correlation between the cosine-similarity of the sentence embeddings and the gold labels, if they exist.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.">Evaluation measures</head><p>For both tasks the submitted ranked lists per claim have been evaluated using ranking evaluation measures MAP@k for 𝑘 ∈ {1, 3, 5, 10, 𝑎𝑙𝑙} (Mean Average Precision for the top-k vClaims), MRR (Mean Reciprocal Rank) and Precision@k for 𝑘 ∈ {3, 5, 10} (Precision for the top-k vClaims). MAP@5 has been defined as the official measure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Dataset</head><p>The data for the task was developed during the CLEF-2021 CheckThat! campaign <ref type="bibr" coords="5,453.62,530.09,11.36,10.91" target="#b0">[1,</ref><ref type="bibr" coords="5,467.71,530.09,7.47,10.91" target="#b1">2,</ref><ref type="bibr" coords="5,477.91,530.09,7.57,10.91" target="#b2">3]</ref>. As presented in Table <ref type="table" coords="5,197.95,543.64,3.68,10.91" target="#tab_0">1</ref>, the given collection contain 13825 and 19250 verified claims, respectively. Additional information is provided for each vClaim: the title of the entry, (the subtitle), the author/speaker, and the date of verification, (link to the justification). Additionally, there are 1000 and 563 positively labeled &lt;iClaim, vClaim&gt; pairs in the training set to possibly fine-tune the language model. However, to obtain sentence embeddings, in this study we assume a model without any task-specific fine-tuning. Thus, we postponed the fine-tuning to future work. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Our approach</head><p>Problem Definition. Suppose we have a set 𝐶 of claims and a set 𝑉 of previously verfied claims. Each claim 𝑐 ∈ 𝐶 and verfied claim 𝑣 ∈ 𝑉 can be represented as (𝑐, 𝑣, 𝑦), where 𝑦 is a variable indicating the distance between 𝑐 and 𝑣. Therefore, the solution of sentence-level retrieval task could be considered as a text similarity problem. Given a claim 𝑐 and a list of candidates of verfied claims 𝐶𝑎𝑛𝑑𝑖𝑑𝑎𝑡𝑒(𝑐) ⊂ 𝑉 , our goal is to predict 𝑝(𝑦|𝑐, 𝑣) of each input claim 𝑐 with each candidate 𝑣 ∈ 𝐶𝑎𝑛𝑑𝑖𝑑𝑎𝑡𝑒(𝑐).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Experimental setup</head><p>Word-Level Sentence Embeddings. A sentence is split into words 𝑤 1 , ..., 𝑤 𝑛 with length of n by the WordPiece tokenizer <ref type="bibr" coords="6,232.38,421.01,16.09,10.91" target="#b16">[17]</ref>. The word 𝑤 𝑖 and its index 𝑖 (𝑤 𝑖 's absolute position in the sentence) are projected to vectors by embedding sub-layers, and then added to the index-aware word embeddings:</p><formula xml:id="formula_4" coords="6,234.43,462.39,126.42,50.68">𝑤 ˆ𝑖 = 𝑊 𝑜𝑟𝑑𝐸𝑚𝑏𝑒𝑑(𝑤 𝑖 ) 𝑢 ˆ𝑖 = 𝐼𝑑𝑥𝐸𝑚𝑏𝑒𝑑(𝑖) ℎ 𝑖 = 𝐿𝑎𝑦𝑒𝑟𝑁 𝑜𝑟𝑚(𝑤 ˆ𝑖 + 𝑢 ˆ𝑖)</formula><p>We use Sentence-BERT <ref type="bibr" coords="6,206.15,521.73,12.80,10.91" target="#b6">[7]</ref> to compute dense vector representations for sentences and paragraphs. The embedding model is trained on paraphrases which is available from the model repository at huggingface.co<ref type="foot" coords="6,218.82,547.07,3.71,7.97" target="#foot_0">1</ref> . We determine the similarity at the paragraph level. Although the model can handle up to 512 tokens, we decided to split the documents into paragraphs with a target length of 15. Based on the length of the input claims (see Table <ref type="table" coords="6,427.77,575.93,4.11,10.91" target="#tab_1">2</ref>) we try to adapt the length of the examined fragments of the verified claim to keep the comparison roughly balanced. We are aware that with this restriction we have made a rather conservative choice. This parameter can be adjusted in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 3</head><p>Results on the test set on subtask A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Rank</head><p>Team MAP@5 MAP@1 RR P@3 P@5 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results and Discussion</head><p>We participated in both subtasks. Official evaluation results on the test set are presented in Table <ref type="table" coords="7,115.07,404.38,4.97,10.91">3</ref> and Table <ref type="table" coords="7,167.23,404.38,4.97,10.91" target="#tab_2">4</ref> for each subtask, respectively. shaar is a baseline submission (Elastic Search) of the competition organizers.</p><p>For the subtask A our system was ranked 2 nd . However, a large gap (MAP@5: 0.883 vs. 0.799) with the superior approach should be mentioned. The result reflects the performance of the pretrained language model used without task-specific fine-tuning. The submitted relevance scores are based on semantic similarity only, resulting from distances of the vector representations at paragraph level. As already mentioned in section 2.1, the comparison of the ranking to the given baseline seems problematic, since these are based on semantic similarity on the one hand and on lexical similarity on the other hand. Thus, this approach can potentially be used as a baseline for comparing other ranking methods based on semantic similarity.</p><p>The particularly poor results of the subtask B are astonishing, since the same procedure was followed. Our system was ranked last not even passing the given baseline on this task. The comparison of the input data resulting from tables 1 and 2 do yield any useful clues for explanation, since they are similar in scope and length. On the contrary, we expected the phrase structure in political debates should significantly improve semantic representation. For this reason, the problem of comparing semantic and lexical similarity is considered responsible for the poor performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion and Future work</head><p>We described our approach for the CLEF 2021 -CheckThat! Lab: Detecting Previously Fact-Checked Claims. We employed RoBERTa-based neural architectures to encode text sequences into a dense vector space. Similarity scores are being calculated using geometric distances between representation vectors at paragraph level. In future work, we will examine the impact task-specific fine-tuning on relevance ranking. Furthermore, we plan to investigate more recent neural architectures for language representation such as T5 <ref type="bibr" coords="8,355.90,179.03,17.89,10.91" target="#b17">[18]</ref> and GPT-3 <ref type="bibr" coords="8,426.23,179.03,16.22,10.91" target="#b18">[19]</ref>. Finally, from probing experiments, the morpho-syntactic and semantic features captured by the embedding models could be extracted to be used in an elaborated weighting scheme for relevance scores.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,265.22,396.50,51.90,10.35;4,454.13,217.87,13.92,6.90;4,265.11,203.97,44.20,10.35;4,265.11,253.38,44.20,10.35;4,265.11,302.80,44.20,10.35;4,113.85,429.99,347.19,6.90;4,123.43,349.29,27.98,6.90;4,174.51,349.29,22.12,6.90;4,212.04,349.29,41.40,6.90;4,273.98,349.29,25.01,6.90;4,406.84,349.29,41.30,6.90;4,265.22,303.49,44.20,10.35;4,265.22,254.25,44.20,10.35;4,265.22,203.64,44.20,10.35;4,458.64,206.23,47.80,6.90;4,223.76,115.28,136.56,10.35;4,279.23,84.20,13.92,6.90;4,469.92,115.21,13.92,6.90;4,341.72,335.26,29.87,25.88;4,341.72,214.89,29.87,25.88"><head>"</head><label></label><figDesc>This president went before the United Nations and castigated Israel for building settlements."</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,461.59,417.28,8.93"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: 12-layer transformer network -with the hidden layer representations highlighted in green.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,88.99,90.49,324.69,148.48"><head>Table 1</head><label>1</label><figDesc>Statistical summary of token counts on the collection of verified claims.</figDesc><table coords="5,170.70,122.10,242.98,116.86"><row><cell>Source</cell><cell>Tweets (A)</cell><cell>Debates/Speeches</cell></row><row><cell></cell><cell></cell><cell>(B)</cell></row><row><cell>count</cell><cell>13825</cell><cell>19250</cell></row><row><cell>mean</cell><cell>16.86</cell><cell>18.01</cell></row><row><cell>std</cell><cell>6.38</cell><cell>8.12</cell></row><row><cell>min</cell><cell>1</cell><cell>2</cell></row><row><cell>25%</cell><cell>13</cell><cell>12</cell></row><row><cell>50%</cell><cell>16</cell><cell>16</cell></row><row><cell>75%</cell><cell>20</cell><cell>22</cell></row><row><cell>max</cell><cell>110</cell><cell>79</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,88.99,90.49,324.69,148.48"><head>Table 2</head><label>2</label><figDesc>Statistical summary of token counts on the collection of input claims.</figDesc><table coords="6,170.70,122.10,242.98,116.86"><row><cell>Source</cell><cell>Tweets (A)</cell><cell>Debates/Speeches</cell></row><row><cell></cell><cell></cell><cell>(B)</cell></row><row><cell>count</cell><cell>1196</cell><cell>702</cell></row><row><cell>mean</cell><cell>32.19</cell><cell>20.25</cell></row><row><cell>std</cell><cell>12.97</cell><cell>13.94</cell></row><row><cell>min</cell><cell>11</cell><cell>1</cell></row><row><cell>25%</cell><cell>23</cell><cell>10</cell></row><row><cell>50%</cell><cell>29</cell><cell>17</cell></row><row><cell>75%</cell><cell>40</cell><cell>26</cell></row><row><cell>max</cell><cell>108</cell><cell>91</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="7,88.09,132.23,417.90,219.78"><head>Table 4</head><label>4</label><figDesc>Results on the test set on subtask B. 𝑐𝑜𝑠(𝑐 ˆ, 𝑣 ˆ). The submitted scores represent the multiplicative inverse of the 𝑑𝑖𝑠𝑡𝑎𝑛𝑐𝑒. In case of duplicate scores due to chunking of large documents, we only consider top scores.</figDesc><table coords="7,88.09,132.23,417.90,192.68"><row><cell>1</cell><cell></cell><cell>aschern</cell><cell>0.883</cell><cell>0.861</cell><cell>0.884</cell><cell>0.300</cell><cell>0.182</cell><cell></cell></row><row><cell>2</cell><cell></cell><cell>NLytics</cell><cell>0.799</cell><cell>0.738</cell><cell>0.807</cell><cell>0.289</cell><cell>0.179</cell><cell></cell></row><row><cell>3</cell><cell></cell><cell>DIPS</cell><cell>0.787</cell><cell>0.728</cell><cell>0.795</cell><cell>0.282</cell><cell>0.177</cell><cell></cell></row><row><cell>4</cell><cell></cell><cell>shaar</cell><cell>0.749</cell><cell>0.703</cell><cell>0.761</cell><cell>0.262</cell><cell>0.164</cell><cell></cell></row><row><cell>Rank</cell><cell>Team</cell><cell cols="5">MAP@5 MAP@1 MAP@3 MAP_AllRR</cell><cell>P@3</cell><cell>P@5</cell></row><row><cell>1</cell><cell cols="2">sshaar 0.346</cell><cell>0.304</cell><cell>0.339</cell><cell>0.355</cell><cell>0.350</cell><cell>0.143</cell><cell>0.091</cell></row><row><cell>2</cell><cell>DIPS</cell><cell>0.328</cell><cell>0.278</cell><cell>0.313</cell><cell>0.346</cell><cell>0.336</cell><cell>0.143</cell><cell>0.099</cell></row><row><cell>3</cell><cell cols="2">NLytics 0.215</cell><cell>0.171</cell><cell>0.210</cell><cell>0.223</cell><cell>0.216</cell><cell>0.101</cell><cell>0.068</cell></row><row><cell cols="9">Similarity metrics. We use Euclidean distance of normalized vectors, which for two vectors</cell></row><row><cell cols="3">𝑐 ⃗, 𝑣 ⃗ is equal to 𝑑𝑖𝑠𝑡𝑎𝑛𝑐𝑒(𝑐 ⃗, 𝑣 ⃗) =</cell><cell cols="2">√︀ 2 * (1 -</cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="6,108.93,670.97,290.74,8.97"><p>https://huggingface.co/sentence-transformers/paraphrase-distilroberta-base-v1</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,264.75,394.53,10.91;8,112.66,278.30,393.33,10.91;8,112.66,291.85,393.32,10.91;8,112.66,305.40,393.32,10.91;8,112.66,318.95,394.03,10.91;8,112.41,332.50,142.94,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,488.80,278.30,17.19,10.91;8,112.66,291.85,393.32,10.91;8,112.66,305.40,98.83,10.91">The CLEF-2021 CheckThat! Lab on Detecting Check-Worthy Claims, Previously Fact-Checked Claims, and Fake News</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Da San Martino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elsayed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Míguez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shaar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Alam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Haouari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hasanain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Babulkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Struß</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-72240-1{_}75</idno>
+		<ptr target="https://link.springer.com/chapter/10.1007/978-3-030-72240-1{_}75" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,235.28,305.40,270.70,10.91;8,112.66,318.95,80.02,10.91">Proceedings of the 43rd European Conference on Information Retrieval, ECIR˜&apos;21</title>
+		<meeting>the 43rd European Conference on Information Retrieval, ECIR˜&apos;21<address><addrLine>Lucca, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="639" to="649" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,346.05,394.53,10.91;8,112.66,359.59,395.01,10.91;8,112.66,373.14,393.64,10.91;8,112.66,386.69,394.53,10.91;8,112.66,400.24,393.33,10.91;8,112.28,413.79,394.91,10.91;8,112.66,427.34,153.66,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,332.72,373.14,173.58,10.91;8,112.66,386.69,389.19,10.91">Overview of the CLEF-2021 CheckThat! Lab on Detecting Check-Worthy Claims, Previously Fact-Checked Claims, and Fake News</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Da San Martino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elsayed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Míguez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shaar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Alam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Haouari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hasanain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Mansour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Hamdan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><forename type="middle">S</forename><surname>Ali</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Babulkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">K</forename><surname>Shahi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Struß</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kutlu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">S</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,126.92,400.24,379.07,10.91;8,112.28,413.79,389.99,10.91">Proceedings of the 12th International Conference of the CLEF Association: Information Access Evaluation Meets Multiliguality, Multimodality, and Visualization, CLEF˜&apos;2021</title>
+		<meeting>the 12th International Conference of the CLEF Association: Information Access Evaluation Meets Multiliguality, Multimodality, and Visualization, CLEF˜&apos;2021<address><addrLine>Bucharest, Romania (online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,440.89,394.53,10.91;8,112.33,454.44,393.65,10.91;8,112.66,467.99,393.33,10.91;8,112.66,481.54,394.53,10.91;8,112.66,495.09,104.26,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,216.46,454.44,289.52,10.91;8,112.66,467.99,295.08,10.91">Overview of the CLEF-2021 CheckThat! Lab Task 2 on Detect Previously Fact-Checked Claims in Tweets and Political Debates</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shaar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Haouari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Mansour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hasanain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Babulkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Alam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Da San Martino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elsayed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,436.42,467.99,69.57,10.91;8,112.66,481.54,338.24,10.91">Working Notes of CLEF 2021-Conference and Labs of the Evaluation Forum, CLEF˜&apos;2021</title>
+		<meeting><address><addrLine>Bucharest, Romania (online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,508.64,395.17,10.91;8,112.66,522.18,395.01,10.91;8,112.66,538.18,97.35,7.90" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1907.11692</idno>
+		<title level="m" coord="8,205.52,522.18,271.00,10.91">RoBERTa: A robustly optimized BERT pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,549.28,395.17,10.91;8,112.66,562.83,394.53,10.91;8,112.39,576.38,286.40,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,148.47,562.83,105.26,10.91">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ł</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.03762</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,276.42,562.83,226.02,10.91">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<publisher>Decem</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">2017</biblScope>
+			<biblScope unit="page" from="5999" to="6009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,589.93,395.01,10.91;8,112.66,603.48,264.57,10.91" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.14424</idno>
+		<ptr target="http://arxiv.org/abs/1910.14424" />
+		<title level="m" coord="8,279.72,589.93,195.53,10.91">Multi-Stage Document Ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,617.03,395.17,10.91;8,112.66,630.58,395.17,10.91;8,112.66,644.13,393.33,10.91;8,112.66,657.68,394.53,10.91;9,112.66,86.97,395.01,10.91;9,112.66,102.96,97.35,7.90" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,232.60,617.03,275.23,10.91;8,112.66,630.58,39.98,10.91">Sentence-BERT: Sentence embeddings using siamese BERTnetworks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/d19-1410</idno>
+		<idno type="arXiv">arXiv:1908.10084</idno>
+		<ptr target="http://arxiv.org/abs/1908.10084.doi:10.18653/v1/d19-1410" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,179.20,630.58,328.63,10.91;8,112.66,644.13,393.33,10.91;8,112.66,657.68,390.21,10.91">EMNLP-IJCNLP 2019 -2019 Conference on Empirical Methods in Natural Language Processing and 9th International Joint Conference on Natural Language Processing, Proceedings of the Conference, Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="3982" to="3992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,114.06,395.17,10.91;9,112.66,127.61,394.53,10.91;9,112.66,141.16,395.01,10.91;9,112.66,157.15,91.42,7.90" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,320.73,114.06,187.10,10.91;9,112.66,127.61,94.22,10.91">Efficient estimation of word representations in vector space</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<ptr target="http://ronan.collobert.com/senna/.arXiv:1301.3781" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,236.39,127.61,270.79,10.91;9,112.66,141.16,184.07,10.91">1st International Conference on Learning Representations, ICLR 2013 -Workshop Track Proceedings</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,168.26,395.17,10.91;9,112.66,181.81,395.17,10.91;9,112.66,195.36,395.01,10.91;9,112.66,208.91,143.58,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,176.97,168.26,170.76,10.91">Probabilistic latent semantic indexing</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Hofmann</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/312624.312649</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,375.63,168.26,132.20,10.91;9,112.66,181.81,395.17,10.91;9,112.66,195.36,114.90,10.91">Proceedings of the 22nd Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 1999</title>
+		<meeting>the 22nd Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 1999</meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery, Inc</publisher>
+			<date type="published" when="1999">1999</date>
+			<biblScope unit="page" from="50" to="57" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,394.52,10.91;9,112.66,236.01,394.53,10.91;9,112.66,249.56,367.07,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,297.64,222.46,205.02,10.91">GloVe: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<idno type="DOI">10.3115/v1/d14-1162</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,126.98,236.01,380.20,10.91;9,112.66,249.56,133.84,10.91">EMNLP 2014 -2014 Conference on Empirical Methods in Natural Language Processing, Proceedings of the Conference</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,263.11,393.32,10.91;9,112.66,276.66,395.01,10.91;9,112.66,292.65,97.35,7.90" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,199.82,263.11,155.91,10.91">Semi-supervised Sequence Learning</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1511.01432" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,364.29,263.11,141.70,10.91;9,112.66,276.66,141.59,10.91">Advances in Neural Information Processing Systems 2015-Janua</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="3079" to="3087" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,303.75,393.61,10.91;9,112.66,317.30,393.33,10.91;9,112.66,330.85,395.01,10.91;9,112.66,346.84,97.35,7.90" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,205.25,303.75,272.88,10.91">Universal Language Model Fine-tuning for Text Classification</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1801.06146" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,486.25,303.75,20.02,10.91;9,112.66,317.30,393.33,10.91;9,112.66,330.85,145.75,10.91">ACL 2018 -56th Annual Meeting of the Association for Computational Linguistics, Proceedings of the Conference (Long Papers)</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="328" to="339" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,357.95,393.33,10.91;9,112.66,371.50,394.53,10.91;9,112.66,385.05,331.67,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,482.39,357.95,23.60,10.91;9,112.66,371.50,166.30,10.91">Deep Contextualized Word Representations</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Neumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Iyyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gardner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/n18-1202</idno>
+		<idno type="arXiv">arXiv:1802.05365</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,287.53,371.50,214.88,10.91">Association for Computational Linguistics (ACL)</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="2227" to="2237" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,398.60,395.17,10.91;9,111.80,412.15,395.47,10.91;9,112.31,425.70,394.51,10.91;9,112.66,439.25,172.68,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,242.83,398.60,265.01,10.91;9,111.80,412.15,37.11,10.91">Improving Language Understanding by Generative Pre-Training</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<ptr target="https://gluebenchmark.com/leaderboardhttps://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language{_}understanding{_}paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,167.99,412.15,35.71,10.91">OpenAI</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="12" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,452.79,395.17,10.91;9,112.66,466.34,395.01,10.91;9,112.66,482.34,97.35,7.90" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="9,429.48,452.79,78.36,10.91;9,112.66,466.34,278.60,10.91">XLNet: Generalized Autoregressive Pretraining for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Carbonell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1906.08237</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,493.44,393.33,10.91;9,112.33,506.99,322.61,10.91" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="9,321.08,493.44,184.91,10.91;9,112.33,506.99,190.61,10.91">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,520.54,394.53,10.91;9,112.66,534.09,394.53,10.91;9,112.66,547.64,394.53,10.91;9,112.66,561.19,394.61,10.91;9,112.66,574.74,395.01,10.91" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Norouzi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Macherey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Krikun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Macherey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Klingner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Shah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ł</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gouws</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kudo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Kazawa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Stevens</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kurian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Patil</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Riesa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Rudnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hughes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1609.08144</idno>
+		<title level="m" coord="9,306.89,561.19,200.38,10.91;9,112.66,574.74,263.48,10.91">Google&apos;s Neural Machine Translation System: Bridging the Gap between Human and Machine Translation</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,588.29,394.53,10.91;9,112.66,601.84,393.59,10.91;9,112.66,615.39,166.07,10.91" xml:id="b17">
+	<monogr>
+		<title level="m" type="main" coord="9,112.66,601.84,360.66,10.91">Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.10683</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1" to="67" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,628.93,394.53,10.91;9,112.66,642.48,394.53,10.91;9,112.66,656.03,394.53,10.91;9,112.66,669.58,394.53,10.91;10,112.66,86.97,302.57,10.91" xml:id="b18">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">B</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Neelakantan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Shyam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Askell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Herbert-Voss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Henighan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ramesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">M</forename><surname>Ziegler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Winter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Hesse</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Sigler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Litwin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chess</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Berner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Mccandlish</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Amodei</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2005.14165</idno>
+		<title level="m" coord="10,112.66,86.97,172.82,10.91">Language models are few-shot learners</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

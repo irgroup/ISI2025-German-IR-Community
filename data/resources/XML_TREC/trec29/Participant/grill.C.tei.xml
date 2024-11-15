@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,78.88,71.79,439.78,12.90;1,182.71,87.73,232.14,12.90">Glasgow Representation and Information Learning Lab (GRILL) at the Conversational Assistance Track 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,159.01,131.76,83.34,10.75"><forename type="first">Carlos</forename><surname>Gemmell</surname></persName>
+							<email>carlos.gemmell@gla.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Glasgow</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,361.88,131.76,72.97,10.75"><forename type="first">Jeffrey</forename><surname>Dalton</surname></persName>
+							<email>jeff.dalton@glasgow.ac.uk</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Glasgow</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,78.88,71.79,439.78,12.90;1,182.71,87.73,232.14,12.90">Glasgow Representation and Information Learning Lab (GRILL) at the Conversational Assistance Track 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">91F1913D3324C75B7ADB7E6E6A2EC5ED</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper we present our methods, experimental setup and results for the Conversational Assistance Track (CAsT) at TREC 2020. We present a novel neural query re-writing objective for conversational disambiguation that maximises semantic and grammatical knowledge transfer by aligning pre-training and fine tuning objectives. When resolving queries, our model regenerates previous context staying true to original infilling objective. Our rewriter assimilates query and context to autoregressively resolve queries from previous utterances resulting performance approaching that of manual results. When used as part of a multi-stage retrieval pipeline leveraging pointwise and pair-wise scores, our system allows for robust conversational information seeking. We demonstrate our system by significantly outperforming median results in both manual and automatic runs from the track and show generalisation of our system with qualitative examples.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Conversation is the primary way we communicate with each other. However, this is not the case with our technology. Search engines, for instance, are still constrained to a single query that needs to contain all relevant information to be answered. Conversational search is a challenge for current systems since the information required to answer the question or retrieve relevant information is spread among multiple turns of interaction. This year, TREC CAsT formalises this challenge into an actionable environment to test systems.</p><p>In this work we present our proposed method bridging the gap between conversational modelling and multi-stage information retrieval. We introduce a new model to re-write unresolved queries based on previous context using deep bidirectional Seq2Seq networks, and show its effec-tiveness when compared to similar systems from CAsT 2020. We especially show the significance of aligning the training objectives used during fine tuning to maximise knowledge transfer form the original weights.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Task Description</head><p>Similar to traditional document retrieval, CAsT is framed as an information seeking task where the objective is to return a relevant document d * from a large corpus D given a query q. However, the conversational nature implies that at certain turns not all required information to satisfy the user's query will be contained in q. We formalise the sequence of raw turns as:</p><formula xml:id="formula_0" coords="1,375.33,446.28,41.44,10.63">Q n = q 1 ,</formula><p>q 2 , ..., q n Similar to human-human interaction, not all information is provided during a single utterance and is spread through the preceding turns of the conversation. This in turn leads to an information dependency for any q i to any number of preceding turns. We denote q * as a fully resolved query containing all information necessary to obtain d * without the need for additional context. We define an aggregation function f such that all information contained in the sequence Q n results in q * . We note that while there is much information in Q n , not all of which is relevant at turn n, the aggregation function f specifically condenses relevant information for the last turn q n .</p><formula xml:id="formula_1" coords="1,389.15,668.64,136.39,10.63">q * = f (Q n ) (1)</formula><p>This spread of information across queries leads to a breakdown of traditional search systems reliant on a concise query q * .</p><p>In comparison to CAsT 2019, the 2020 version of the task increases the information dependency on the corpus D by segmenting the information needs to obtain q * in the results of previous turns. Thus the previous results denoted as d * 1,...,n-1 are for part of the inputs for f q * = f (Q n , d * 1,...,n-1 )</p><p>(2)</p><p>This increases the fidelity of the task w.r.t real world conversations, and increases the difficulty significantly since a theoretical marginalisation over D is required, yet D is often many orders of magnitude larger than Q n .</p><p>Due to the low frequency of situations where q * is dependant on d * 1,...,n-1 we opt to model f as we describe in Equation <ref type="formula" coords="2,175.41,235.94,4.79,9.46">:</ref>1 by distilling all relevant information from Q n to approximate q * .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods</head><p>Challenges are divided into two categories: manual runs and automatic runs. Manual runs evaluate a system's performance and retrieving d * from D when q * is given, thus testing raw retrieval capacity. Automatic runs play out the full conversational scenario by providing a sequence of unresolved queries Q n . To achieve the best performance for the task we optimise every section of the conversational retrieval pipeline. Our final system consists of multiple stages of retrieval and re-ranking to compliment our initial re-writing strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Run Description</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Official runs</head><p>• grill duoBART: Automatic run with BART re-writer using full context (FC) decoding to generate the resolved query, then used in a BM25 first pass, monoBERT point-wise retanking, and duoBERT pairwise re-ranking without normalisation into the point-wise list.</p><p>• grill bmDuo: Manual run leveraging the same setup as grill duoBART without a the BART-FC re-writer.</p><p>• grill ctxDuo: Manual run with an SDM first pass retrieval, then sent to mono &amp; duoBERT without normalisation into the point-wise list.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Unofficial runs</head><p>• org manual bertbase: Manual baseline provided by the organisers. BM25 and BERT reranker similar to monoBERT.</p><p>• org auto bertbase: Baseline provided by the organisers using a GPT-2 <ref type="bibr" coords="2,223.10,755.86,67.17,9.46">(Radford et al.)</ref> decoder to generate only the resolved version of a query. BM25 and BERT re-ranker similar to monoBERT.</p><p>• GPT2 duo norm: GPT-2 re-writer with a BM25, mono &amp; duoBERT ranking pipeline. Pair-wise scores are normalised in the original list.</p><p>• grill BART LT bm duo norm: An automatic run with a BART-LT re-writer generating only the resolved query, BM25, mono &amp; duoBERT ranking pipeline.</p><p>• grill BART FC bm duo norm: An automatic run with a BART-FC re-writer, BM25, mono &amp; duoBERT ranking pipeline.</p><p>• grill BART FC SDM mono: An automatic run with a BART-FC re-writer, SDM, monoBERT ranking pipeline.</p><p>• grill SDM Duo norm: A manual run with (BM25/SDM), mono &amp; duoBERT ranking pipeline.</p><p>• grill fuseDuo: An automatic run using BART-FC, mono &amp; duo BERT. A bug was found in it as the source of the pair-wise normalisation and has been corrected.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Query Re-writing</head><p>In the following section we outline our proposed method f to aggregate information from Q n to approximate q * . Since we hope to obtain a new query q from Q n , an ordered set of unresolved queries, we opt for a Seq2Seq model as a re-writer. We use the Transformer <ref type="bibr" coords="2,366.51,539.08,102.45,9.46" target="#b6">(Vaswani et al., 2017)</ref> architecture to benefit from increased parallelism during training. CAsT is a challenging environment for these types of architectures given the limited dataset size. Pre-trained architectures <ref type="bibr" coords="2,438.97,593.27,86.57,9.46" target="#b0">(Devlin et al., 2018)</ref> have shown to remedy this to an extent by leveraging general text features, as such we initialise our re-writer with pre-trained weights from BART <ref type="bibr" coords="2,307.28,647.47,83.42,9.46" target="#b1">(Lewis et al., 2019)</ref> trained on text from Wikipedia and fine tuned on a summarisation task for CNN &amp; Daily Mail. While weights from Wiki BART could already encode meaningful features, the training is framed as a span infilling task. In order to increase the information extraction and synthesis capabilities of our model we use the summarisation weights. We keep the same vocabulary to ensure feature transfer and use conditional sequence modelling objective with cross entropy loss as gradient signal on 500 context and query samples from CAsT 2019 &amp; 2020.</p><p>We keep the reconstruction objective by tasking the model to reproduce the original sequence of context queries as well as the re-written final query. We use the name BART-FC (BART Full Context) to refer to this form of inference.</p><p>To evaluate the effectiveness of BART-FC against a more traditional Seq2Seq formulation we create BART-LT (BART Last Turn) where the only generated output is the target resolved query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">First Pass Retrieval</head><p>Given either a manual query q * or a re-written query q , the objective of the first pass of our multistage retrieval pipeline is to efficiently obtain a pool of potentially relevant documents, as such, the initial pass is crucial to perform well in later stages. We set a cutoff at 1000 documents meaning order among these is irrelevant, while all other documents will be ignored for the ranking.</p><p>Since our corpus D is large we investigate the use of a tuned BM25 model, and a Sequential Dependency Model (SDM) <ref type="bibr" coords="3,179.39,391.25,110.88,9.46" target="#b2">(Metzler and Croft, 2005)</ref> for efficient initial document recall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Second Pass Re-ranking</head><p>Given a pool of retrieved documents with respect to q we use multiple re-rankers to re-order documents according to relevance. In the following section we outline our approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.1">Mono BERT</head><p>In order to capture semantic relationships between a query and relevant documents we perform a point-wise re-ranking using monoBERT <ref type="bibr" coords="3,72.00,563.12,113.51,9.46" target="#b3">(Nogueira and Cho, 2020)</ref>. MonoBERT performs a bi-encoding of the query and document and uses a custom classification head on the [CLS] token to score s the relevance of the document to the query. Given the similarity of the training and target domain on MS Marco we do not perform any further fine-tuning to the model for CAsT.</p><formula xml:id="formula_2" coords="3,128.94,671.25,161.33,9.81">s = monoBERT (q, d)<label>(3)</label></formula><p>The new point-wise scores are then used to reorder the documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.2">Duo BERT</head><p>DuoBERT from Nogeira <ref type="bibr" coords="3,181.96,742.32,93.40,9.46" target="#b4">(Nogueira et al., 2019</ref>) is a pair-wise comparison model that evaluates the relevance of two documents d a &amp; d b against a query q. All three sequences form part of the input to BERT with a specific head on the [CLS] token indicating a weighting to either document. This process allows a grounded comparison rather than a floating score given by monoBERT.</p><p>Since duoBERT is a pairwise model, scores are only relative and thus scores for a document are obtained by summing it's given score when compared to all other documents.This is an expensive process with O(l 2 ) time complexity with respect to the pool length l and as such is only suited as the last stage of a re-ranking pipeline. In our experiments we find a good trade-of between pool length and time by taking the top 10 documents from the monoBERT scores.</p><p>These re-ranking stages ensure that the highest quality documents are pushed to the top of the ranking.</p><p>Since scores given by duoBERT are only relative umong documents, the overall computed document relevance score is not comparable to that of monoBERT directly. Reintegrating the un-normalised pair-wise ranked documents into the original list can have a negative effect since there is no guarantee the relative scores will be higher than the point-wise scores. Normalising is achieved by taking the maximum and minimum of the original top scores and linearly interpolating the pair-wise scores between them. We discuss the effects of normalisation in the results section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We observe significant improvements for our developed multi-stage pipeline over the median scores and baseline systems in all categories. Statistical significance is computed by a standard pared t-test and stated within a 95% confidence interval by '*'against the organisers baselines.</p><p>Table <ref type="table" coords="3,346.10,606.12,5.45,9.46" target="#tab_0">1</ref> indicates the need for re-writing from raw queries. Improvements in re-writing quality are highlighted with BART-LT significantly outperforming GPT-2 given the same training objective of generating solely the resolved query. Both models during fine tuning diverge from the original pre-training objective, however, BART-LT benefits from a bi-direrctional encoder allowing for more fine grained information flow.</p><p>However, remaining aligned with the original pre-training objective during fine tuning and inference yields best results as BART-FC shows both Model NDCG@3 NDCG@5 NDCG MAP R@500 R qualitative and empirical improvements when using the same re-ranking pipeline.</p><p>MonoBERT and duoBERT makeup our last stages of our conversational document retrieval pipeline. As we see in Table <ref type="table" coords="4,205.94,505.31,5.45,9.46" target="#tab_1">2</ref> MonoBERT provides a point-wise score and results in the most performance gain given an original ranking from either BM25 or an SDM. However, duoBERT is very effective at the top of the list with improvements of 3% absolute in NDCG@3 over the monoBERT runs. Given the quadratic cost of increasing the list for duoBERT, we investigate the optimal list size for ranking time and effectiveness and find 10 through validation on CAsT 2019 data to strike a good balance. Increasing further to 30 documents yields insignificant improvements.</p><p>Using un-normalised pair-wise scores in combination with an original ranking has the effect, in our experiments, to send the lowest ranking document from the pair-wise process to the bottom of the overall ranking since scores are often negative due to the relative nature of the comparison. This has a sharp effect on the top results and can be seen by the reduction in recall@500 while recall@1k remains constant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>In this work we present our submission to TREC CAsT 2020. We propose a multi-stage approach for effective conversational document retrieval leveraging fine tuned language models for both contextual query re-writing, point-wise and pairwise re-ranking. We introduce a novel fine tuning objective in BART-FC for query re-writing that maximises knowledge transfer from a pretrained language model by aligning the fine tuning task to the original reconstruction objective of BART. This ensures minimal loss in semantic knowledge and garmatical structure when applied to new tasks. The combination of our contextual re-writer with effective re-rankers significantly outperform median results for the track and strong baseline systems.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,72.00,79.54,453.55,317.10"><head>Table 1 :</head><label>1</label><figDesc>Performance comparison for CAsT 2020 automatic runs. Metrics without depth indication are taken at 1k. R indicates recall.</figDesc><table coords="4,85.66,79.54,426.22,317.10"><row><cell>best</cell><cell>0.733</cell><cell>0.687</cell><cell>0.710</cell><cell cols="2">0.492</cell><cell>-</cell><cell>-</cell></row><row><cell>median</cell><cell>0.280</cell><cell>0.274</cell><cell>0.375</cell><cell cols="2">0.180</cell><cell>-</cell><cell>-</cell></row><row><cell>Raw + BM25 + BERT</cell><cell>0.170</cell><cell>0.159</cell><cell>0.144</cell><cell cols="2">0.078</cell><cell>0.160</cell><cell>0.160</cell></row><row><cell>org auto bertbase</cell><cell>0.300</cell><cell>0.287</cell><cell>0.284</cell><cell cols="2">0.159</cell><cell>0.333</cell><cell>0.333</cell></row><row><cell>GPT2 duo norm</cell><cell>0.313</cell><cell>0.300*</cell><cell>0.289</cell><cell cols="2">0.164</cell><cell>0.333</cell><cell>0.333</cell></row><row><cell cols="2">grill BART LT bm duo norm 0.336*</cell><cell>0.324*</cell><cell cols="5">0.389* 0.219* 0.504* 0.516*</cell></row><row><cell>grill duoBART</cell><cell>0.398*</cell><cell>0.380*</cell><cell cols="5">0.403* 0.215* 0.476* 0.526*</cell></row><row><cell cols="2">grill BART FC bm duo norm 0.398*</cell><cell>0.379*</cell><cell cols="5">0.417* 0.239* 0.515* 0.526*</cell></row><row><cell>grill BART FC SDM mono</cell><cell>0.386*</cell><cell>0.368*</cell><cell cols="5">0.479* 0.262* 0.642* 0.688*</cell></row><row><cell>grill fuseDuo</cell><cell>0.416*</cell><cell>0.395*</cell><cell cols="5">0.486* 0.265* 0.642* 0.688*</cell></row><row><cell>Model</cell><cell cols="4">NDCG@3 NDCG@5 NDCG MAP</cell><cell cols="3">R@500 R</cell></row><row><cell>best</cell><cell>0.724</cell><cell>0.683</cell><cell>0.698</cell><cell>0.478</cell><cell>-</cell><cell></cell><cell>-</cell></row><row><cell>median</cell><cell>0.414</cell><cell>0.398</cell><cell>0.489</cell><cell>0.263</cell><cell>-</cell><cell></cell><cell>-</cell></row><row><cell>BM25</cell><cell>0.284</cell><cell>0.279</cell><cell>0.461</cell><cell>0.214</cell><cell cols="2">0.685</cell><cell>0.767</cell></row><row><cell>org manual bertbase</cell><cell>0.479</cell><cell>0.461</cell><cell>0.451</cell><cell>0.272</cell><cell cols="2">0.508</cell><cell>0.508</cell></row><row><cell cols="2">BM25 + mono BERT 0.503*</cell><cell>0.498*</cell><cell cols="5">0.591* 0.374* 0.755* 0.767*</cell></row><row><cell>grill bmDuo</cell><cell>0.530*</cell><cell>0.511*</cell><cell cols="5">0.571* 0.324* 0.689* 0.767*</cell></row><row><cell>grill bm Duo norm</cell><cell>0.531*</cell><cell>0.519*</cell><cell cols="5">0.598* 0.378* 0.755* 0.767*</cell></row><row><cell>grill ctxDuo</cell><cell>0.507*</cell><cell>0.500*</cell><cell cols="5">0.607* 0.383* 0.782* 0.799*</cell></row><row><cell cols="2">grill SDM Duo norm 0.531*</cell><cell>0.518*</cell><cell cols="5">0.614* 0.389* 0.782* 0.799*</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,81.50,410.59,434.54,8.64"><head>Table 2 :</head><label>2</label><figDesc>Performance comparison for CAsT 2020 manual runs. Metrics without depth indication are at 1000.</figDesc><table /></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,72.00,84.97,218.27,8.64;5,82.91,95.92,110.70,8.64;5,208.90,95.92,81.37,8.64;5,82.91,106.88,207.36,8.64;5,82.91,117.66,207.36,8.82;5,82.91,128.80,49.81,8.64" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,208.90,95.92,81.37,8.64;5,82.91,106.88,207.36,8.64;5,82.91,117.84,56.78,8.64">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805[cs].ArXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,148.73,218.27,8.64;5,82.91,159.69,207.36,8.64;5,82.91,170.64,207.36,8.64;5,82.91,181.60,207.36,8.64;5,82.91,192.56,207.36,8.64;5,82.91,203.34,207.36,8.82;5,82.91,214.30,105.22,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,82.91,181.60,207.36,8.64;5,82.91,192.56,166.93,8.64">BART: Denoising Sequence-to-Sequence Pretraining for Natural Language Generation</title>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marjan</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Abdelrahman</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ves</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.13461</idno>
+		<idno>ArXiv: 1910.13461</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,257.42,192.56,32.85,8.64;5,82.91,203.52,102.06,8.64">Translation, and Comprehension</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note>cs, stat</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,234.41,218.27,8.64;5,82.91,245.19,207.36,8.82;5,82.91,256.14,207.36,8.59;5,82.91,267.10,207.36,8.59;5,82.91,278.06,207.36,8.82;5,82.91,289.20,77.64,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,248.97,234.41,41.31,8.64;5,82.91,245.36,169.20,8.64">A Markov random field model for term dependencies</title>
+		<author>
+			<persName coords=""><forename type="first">Donald</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1076034.1076115</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,272.46,245.19,17.81,8.59;5,82.91,256.14,207.36,8.59;5,82.91,267.10,207.36,8.59;5,82.91,278.06,122.70,8.59">Proceedings of the 28th annual international ACM SI-GIR conference on Research and development in information retrieval -SIGIR &apos;05</title>
+		<meeting>the 28th annual international ACM SI-GIR conference on Research and development in information retrieval -SIGIR &apos;05<address><addrLine>Salvador, Brazil</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="volume">472</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,309.12,218.27,8.64;5,82.91,319.90,207.36,8.82;5,82.91,331.04,80.88,8.64" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085[cs].ArXiv:1901.04085</idno>
+		<title level="m" coord="5,258.88,309.12,31.39,8.64;5,82.91,320.08,94.27,8.64">Passage Re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,350.97,218.27,8.64;5,82.91,361.93,207.36,8.64;5,82.91,372.71,207.36,8.82;5,82.91,383.84,49.81,8.64" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.14424</idno>
+		<idno>ArXiv: 1910.14424</idno>
+		<title level="m" coord="5,167.81,361.93,122.46,8.64;5,82.91,372.89,60.64,8.64">Multi-Stage Document Ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,403.77,218.27,8.64;5,82.91,414.73,207.36,8.64;5,82.91,425.69,200.86,8.64" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="5,226.12,414.73,64.15,8.64;5,82.91,425.69,159.37,8.64">Language Models are Unsupervised Multitask Learners</title>
+		<author>
+			<persName coords=""><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<imprint>
+			<biblScope unit="page">24</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,445.61,218.27,8.64;5,82.91,456.57,207.36,8.64;5,82.91,467.53,207.36,8.64;5,82.91,478.31,207.36,8.82;5,82.91,489.45,49.81,8.64" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.03762[cs].ArXiv:1706.03762</idno>
+		<title level="m" coord="5,240.79,467.53,49.48,8.64;5,82.91,478.49,57.08,8.64">Attention Is All You Need</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

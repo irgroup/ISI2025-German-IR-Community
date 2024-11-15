@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,75.48,114.55,461.09,12.45">WaterlooClarke at the TREC 2019 Conversational Assistant Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,253.08,148.42,105.76,10.97"><forename type="first">Charles</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+							<email>claclark@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+								<address>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,75.48,114.55,461.09,12.45">WaterlooClarke at the TREC 2019 Conversational Assistant Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">3970556B63A4E4781B19E744955CAB50</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>For TREC 2019, I, the WaterlooClarke group, submitted four runs to the Conversational Assistant Track (CAsT), which in combination represent three experiments:</p><formula xml:id="formula_0" coords="1,88.32,293.98,166.17,55.91">• clacBase vs. clacBaseRerank • clacBase vs. clacMagic • clacMagic vs clacMagicRerank</formula><p>This report details the generation of each of these runs and the outcome of these experiments.</p><p>My overall approach can be explained as three steps: 1) query construction, 2) passage retrieval and ranking, and 3) passage re-ranking. The third step is optional and applies only to the clac*Rerank runs. Like everyone else participating this first year, my ability to explore alternatives for these steps was hampered by the lack of training data specific to this track, and so ultimately I adopted relatively simple methods for all steps.</p><p>During an exploratory phrase, while these methods were being selected and developed, I did a fair amount of seat-of-the-pants judging and side-by-side comparison of results on selected training topics. I never want to read about physician assistants, Plessy v. Ferguson, or water molecules ever again. On the other hand, I have lots of ideas for improving these methods, and I'm looking for to the continuation of the track in TREC 2020.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Details of Method</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Query construction</head><p>The starting point for query construction varied depending on the run: clacBase* evaluation topics v1.0.txt and test topics.query clacMagic*evaluation topics annotated resolved v1.0.tsv My understanding from the track website 1 is that test topics.query was generated from the questions in evaluation topics v1.0.txt without direct human input. ("AllenNLP coreference resolution to perform rewriting and stopwords are removed using the Indri stopword list.") If my understanding is correct, the clacBase* runs may be viewed as automatic runs in the traditional stopwords = { "a", "about", "an", "and", "any", "are", "as", "at", "be", "being", "by", "can", "defines", "describe", "description", "did", "do", "does", "for", "from", "give", "had", "has", "have", "his", "how", "i", "if", "in", "is", "isn", "it", "its", "like", "many", "may", "me", "much", "my", "of", "on", "once", "one", "ones", "or", "s", "should", "so", "some", "such", "t", "tell", "than", "that", "the", "their", "them", "there", "these", "they", "this", "to", "use", "using", "was", "we", "well", "were", "what", "when", "where", "which", "who", "why", "will", "with", "you", "your", } TREC sense. On the other hand, evaluation topics annotated resolved v1.0.tsv was created through "manual resolution of coreference as well as conversational ambiguity for topics," and so the clacMagic* runs should be viewed as manual runs in the traditional TREC sense.</p><p>Working with the equivalent training questions I explored various methods to improve on the coreference resolution, mostly using the Stanford NLP toolkit<ref type="foot" coords="2,363.00,314.98,4.23,5.47" target="#foot_1">2</ref> . Nothing I did appeared to improve noticeably on the track queries based on AllenNLP coreference resolution. Since other participants would also be using these track queries, I decided to stick with those.</p><p>However, my seat-of-the-pants evaluation methodology suggested that the Indri stopword list used to generate the track queries was overly aggressive, at least in the context of this track. As a result, I sat down with the training questions and hacked out my own track-specific stopword list based on nothing more than a vague and entirely personal sense of word importance. For the sake of completeness, I include this stopword list as Figure <ref type="figure" coords="2,359.40,410.86,4.21,10.91" target="#fig_0">1</ref>. To apply this stopword list for the clacBase* runs, I first joined the original questions in evaluation topics v1.0.txt with the queries in test topics.query and filtered the result against the list. For the clacMagic* runs, I simply filtered evaluation topics annotated resolved v1.0.tsv against the list.</p><p>Since tracking conversational context is essential, I also spent some time exploring various methods. Based on my seat-of-the-pants evaluation methodology nothing I tried appeared to work as well as just gluing the initial query in each conversation onto all of the following queries. This crude method was used for all runs. If more runs had been permitted, I would have submitted runs with and without this crude hack, since my guess is that it had substantial positive impact.</p><p>Again based on my seat-of-the-pants evaluation methodology, stemming appeared to do far more harm than good, so queries were executed without stemming.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Passage retrieval and ranking</head><p>Passage retrieval and ranking used standard BM25 ranking with pseudo-relevance feedback as described in Chapter 8 of Büttcher et al. <ref type="bibr" coords="2,270.60,609.70,10.82,10.91" target="#b0">[1]</ref>. BM25 retrieval used parameters of b = 0.25 and k = 0.75 for both initial retrieval and post-feedback retrieval. These parameters are based on previous tuning on ancient TREC collections. Since BM25 known to be highly sensitive to parameter tuning, these parameters are unlikely to be optimal for this collection and these queries. <ref type="bibr" coords="2,458.88,650.38,30.39,10.91">Pseudo</ref>  feedback expansion was based on an initial retrieval of the top-32 documents, adding up to 16 terms to the final query using a mixing parameter of (γ = 1/3).</p><p>During the exploratory phrase, I experimented with other retrieval methods, particularly with passage-oriented methods developed in the context of earlier TREC questions answering tasks. Perhaps because the collection for this task has already been split into passages, these methods provided little or no obvious benefit over BM25. In addition, I made some preliminary efforts to identify and take advantage of named entities in the queries, but ran out of time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Passage re-ranking</head><p>Passage re-ranking was used only for the clac*Rerank runs. Passage re-ranking was done essentially blind, since the training topics were used to generate training data for re-ranking. Apart from a couple of test questions I created myself, there was no real way to even guess if the re-ranking would do anything one way or the other.</p><p>Re-ranking was treated as a classification task with class probabilities used for re-ranking. To generate training data, I used three examples for each training question. The top passage retrieved using the query construction and passage ranking method above was treated as a positive example. The 500th passage retrieved using the query construction and passage ranking method above was treated as a negative example. A random passage retrieved by a query from a different topic was treated as a second negative example.</p><p>Each example used only the first 50 tokens of the retrieved passage. These passages were paired with the original question text, rather than the stopped queries. The text of the first turn was prefixed to the front of each question text after the first turn to maintain conversational context in a crude way. These examples were used to fine-tune BERT-Base<ref type="foot" coords="3,382.32,501.58,4.23,5.47" target="#foot_2">3</ref> using standard parameters and class probabilities were used for re-ranking the top-32 passages from the test runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>Figure <ref type="figure" coords="3,106.56,575.02,5.45,10.91" target="#fig_1">2</ref> provides basic results. P-values are based on a two-sided, paired t-test. As would be expected, the use of the manually resolved topics provided a significant and substantial improvement. Passage re-ranking provided no obvious benefit, perhaps due to the inadequacy of the training data.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,167.88,228.82,276.22,10.91"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Stopword list developed from training questions</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,235.68,162.46,140.62,10.91"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Summary of results</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,88.56,680.10,51.51,7.62"><p>treccast.ai</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,88.56,672.66,187.59,7.62"><p>stanfordnlp.github.io/CoreNLP/coref.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,88.56,624.42,145.71,7.62"><p>github.com/google-research/bert</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>The effort this year provides a reasonable starting point for next year. Improved methods for tracking and maintaining conversational context, and actually making re-ranking work, have the highest priority. Incorporating support for named entities, and better retrieval methods will be considered. Looking forward to TREC 2020 CAsT.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,88.92,198.46,451.01,10.91;4,88.92,212.02,279.50,10.91" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Büttcher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Cormack</surname></persName>
+		</author>
+		<title level="m" coord="4,397.92,198.95,142.01,9.93;4,88.92,212.51,187.79,9.93">Information Retrieval: Implementing and Evaluating Search Engines</title>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

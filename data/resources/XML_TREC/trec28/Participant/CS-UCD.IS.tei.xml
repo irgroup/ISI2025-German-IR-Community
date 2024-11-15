@@ -1,0 +1,963 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,66.35,93.30,479.31,18.51;1,103.19,117.21,404.55,18.51">Classification for Crisis-Related Tweets Leveraging Word Embeddings and Data Augmentation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,146.03,154.05,73.71,8.57"><forename type="first">Congcong</forename><surname>Wang</surname></persName>
+							<email>congcong.wang@ucdconnect.ie</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University College Dublin</orgName>
+								<address>
+									<settlement>Dublin</settlement>
+									<country key="IE">Ireland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,403.21,154.05,51.81,8.57"><forename type="first">David</forename><surname>Lillis</surname></persName>
+							<email>david.lillis@ucd.ie</email>
+							<affiliation key="aff1">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University College Dublin</orgName>
+								<address>
+									<settlement>Dublin</settlement>
+									<country key="IE">Ireland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,66.35,93.30,479.31,18.51;1,103.19,117.21,404.55,18.51">Classification for Crisis-Related Tweets Leveraging Word Embeddings and Data Augmentation</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">791FBD64482CB03A5354ADAFE62B7BD4</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Emergency response</term>
+					<term>text classification</term>
+					<term>deep learning</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper presents University College Dublin's (UCD) work at TREC 2019-B Incident Streams (IS) track. The purpose of the IS track is to find actionable messages and estimate their priority among a stream of crisis-related tweets. Based on the track's requirements, we break down the task into two sub-tasks. One is defined as a multi-label classification task that categorises upcoming tweets into different aid requests. The other is defined as a single-label classification task that estimates these tweets with four different levels of priority. For the track, we submitted four runs, each of which uses a different model for the tasks. Our baseline run trains classification models with hand-crafted features through machine learning methods, namely Logistic Regression and Naïve Bayes. Our other three runs train classification models with different deep learning methods. The deep methods include a vanilla bidirectional long short-term memory recurrent neural network (biLSTM), an adapted biLSTM, and a bi-attentive classification network (BCN) with pre-trained contextualised ELMo embedding. For all the runs, we apply different word embeddings (in-domain pre-trained, word-level pre-trained GloVe, character-level, or ELMo embeddings) and data augmentation strategies (SMOTE, loss weights, or GPT-2) to explore the influence they have on performance. Evaluation results show that our models perform better than the median for most situations.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>According to a 2016 report <ref type="bibr" coords="1,165.01,610.17,10.48,8.84" target="#b5">[6]</ref>, an average of 50,000 people worldwide die of natural disasters annually. This damage has greatly raised awareness of emergency response operators. Over the last few decades, a lot of work has been done for the purpose of emergency communication and coordination <ref type="bibr" coords="1,99.92,669.95,15.12,8.84" target="#b13">[14,</ref><ref type="bibr" coords="1,117.71,669.95,11.50,8.84" target="#b19">20,</ref><ref type="bibr" coords="1,131.87,669.95,11.34,8.84" target="#b21">22]</ref>. In the past, this kind of work went to using traditional online news wire to manage and track emergencies <ref type="bibr" coords="1,105.87,693.86,14.89,8.84" target="#b13">[14,</ref><ref type="bibr" coords="1,123.21,693.86,11.17,8.84" target="#b21">22]</ref>. More recently, with the mass adoption of social media, its importance in tracking emergencies has been recognised <ref type="bibr" coords="1,385.08,222.31,14.90,8.84" target="#b9">[10,</ref><ref type="bibr" coords="1,402.47,222.31,11.42,8.84" target="#b20">21,</ref><ref type="bibr" coords="1,416.37,222.31,11.42,8.84" target="#b25">26,</ref><ref type="bibr" coords="1,430.27,222.31,11.17,8.84" target="#b26">27]</ref>. Compared to traditional online centralised news wires, the user generated content on social media enables emergency aid requests to be responded to in near real-time fashion. It is reported that around 69% of people expect aid responses on social media 1 during a crisis. A recent study on Twitter also shows that around 10% of emergency-related tweets are actionable and around 1% are critical <ref type="bibr" coords="1,348.46,305.99,14.85,8.84" target="#b15">[16]</ref>. Despite these facts, many challenges still exist. One challenge is that messages are posted explosively on social media during crises, which makes it difficult and costly to find useful ones. Obviously, monitoring the emergencyrelated messages on social media manually is unrealistic. This motivates the development of mature computational techniques for automatically finding useful messages on social media during crises. However, little research has been undertaken for this specific problem to date.</p><p>The Incident Streams track (IS) 2 is a research initiative proposed as part of the Text REtrieval Conference (TREC) 3  aiming to mature social media-based emergency response technology. The IS track is a task originally proposed in 2018 with specific focus on categorising crisis-related tweets and estimating their priority. It provides a dataset that contains manually-annotated crisis-related tweets with respect to aid requests and priority levels. The aid requests refer to information types describing what type of aid a crisis-related tweet is requesting. Information types are broadly classified into two categories: actionable and non-actionable types (as presented in Table <ref type="table" coords="1,392.08,545.10,3.20,8.84" target="#tab_0">1</ref>). Actionable types are assigned to tweets with more urgent needs during a crisis, such as SearchAn-dRescue, GoodsServices, etc. Non-actionable tweets tend to be less urgent including Volunteer, FirstPartyObservation, etc. In the dataset, each tweet is assigned to one or more information types (multi-label). Apart from information types, tweets are also annotated with one of four different levels of priority -critical, high, medium, or low (single-label). With the dataset, participants are asked to develop systems that are capable of categorising the information types and estimating the priority of upcoming unseen crisis-related tweets. Based on the requirements, we break down the task into two sub-tasks: a multi-label classification task for information type categorisation and a single-label classification task for priority estimation. In 2019, the IS track was run twice, referring to 2019-A and 2019-B edition respectively. In the 2019-A edition, we submitted four runs, namely Run1, Run2, Run3 and Run4. All the runs firstly apply feature extraction by an in-domain pre-trained word embedding model <ref type="bibr" coords="2,276.40,502.58,14.99,8.84" target="#b10">[11]</ref>, and then ensemble techniques to predict the information types of a given crisis-related tweet. Finally, a linear combination is used to compute the importance score of the tweet. The four runs are designed in parallel based on the principle of one-variable-test in one experiment. The difference between Run1 and Run2 is whether an actionable-specific classifier is used in the hope of improving performance in categorising actionable tweets. The difference between Run3 and Run4 is whether 21 hand-crafted features are combined with the in-domain word embedding model in the hope of boosting performance in priority estimation. The evaluation results show that these runs are better performing in classifying information types than most participant runs, although they are somewhat conservative in discovering tweets for alerting purposes. In addition, the runs have a better distribution across classes that are needed for information type categorisation. Having not participated in the 2018 edition of the IS track, we used the 2019-A edition as an initial testing ground for evaluating potential approaches to the challenge.</p><p>Inspired by our work at the 2019-A edition, we submitted four new runs for the 2019-B edition. This paper focuses primarily on this edition. Our baseline run is based on Run3 from the 2019-A edition, and applies machine learning approaches with hand-crafted features. It trains models through Logistic Regression and Naïve Bayes. Our other three runs apply deep learning methods including a vanilla biLSTM, an adapted biLSTM and a BCN+ELMo <ref type="bibr" coords="2,477.95,203.70,15.11,8.84" target="#b14">[15,</ref><ref type="bibr" coords="2,495.56,203.70,12.88,8.84" target="#b23">24]</ref> network respectively. The evaluation results provided by the organisers show that our runs have an advantage over most participating groups, based on the median performance metrics.</p><p>The paper is organised as follows. Section 2 gives a brief review of related work, and then Section 3 presents an overview of our system's architecture. For the implementations of each run, Section 4 describes the variations between the models that we trained for the TREC-IS task. Finally, Section 5 reports the experimental setup and evaluation results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">RELATED WORK Word Embedding</head><p>Word embedding is an important component for deep learning models in natural language processing (NLP). It works by converting words in a vocabulary to vectors of real numbers with the objective of generating similar vector representations for semantically similar words <ref type="bibr" coords="2,472.34,418.89,10.49,8.84" target="#b0">[1,</ref><ref type="bibr" coords="2,485.93,418.89,11.50,8.84" target="#b16">17,</ref><ref type="bibr" coords="2,500.53,418.89,11.50,8.84" target="#b17">18,</ref><ref type="bibr" coords="2,515.13,418.89,11.34,8.84" target="#b22">23]</ref>. In the literature, neural networks and matrix factorisation are two common ways to learn word embeddings. Perhaps the most classic word embedding example is word2vec <ref type="bibr" coords="2,514.68,454.75,15.12,8.84" target="#b16">[17,</ref><ref type="bibr" coords="2,533.32,454.75,11.34,8.84" target="#b17">18]</ref>. It learns word representations by applying an efficient neural network prediction model. It has been demonstrated to be very effective for improving performance in language understanding tasks. Due to its effectiveness, word2vec has catalysed research in word embeddings and has sparked many extensions. An important follow-up work is fastText <ref type="bibr" coords="2,517.75,526.49,10.30,8.84" target="#b0">[1]</ref>, which extends word2vec to enrich word vectors with subword information. Namely, it treats each word as being composed of character n-grams instead of a word whole as is done in word2vec. This feature enables fastText not only to generate better word embeddings for rare words but also for out-ofvocabulary (OOV) words. As for word embeddings through matrix factorisation, the representative work is GloVe <ref type="bibr" coords="2,532.38,610.17,10.25,8.84" target="#b7">[8,</ref><ref type="bibr" coords="2,544.85,610.17,11.17,8.84" target="#b22">23]</ref>. This learns efficient word representations by performing training on aggregated global word-word co-occurrence statistics from a corpus. More recently, word embeddings have been extended to context-based learning for word representations. Unlike the word embedding approaches as described, context-based approaches can generate different vectors for the same word with different contexts. In the literature, ELMo (Embeddings from Language Models) <ref type="bibr" coords="2,468.63,705.81,16.22,8.84" target="#b23">[24]</ref> is a good example of context-based word embedding approaches. It learns contextualised word vectors based on a biLSTM language model and has achieved state-of-the-art performance in many language understanding tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Text Classification</head><p>Text classification as an important aspect of NLP has been widely studied for several decades <ref type="bibr" coords="3,196.09,179.79,15.05,8.84" target="#b12">[13,</ref><ref type="bibr" coords="3,213.63,179.79,11.48,8.84" target="#b14">15,</ref><ref type="bibr" coords="3,227.59,179.79,11.48,8.84" target="#b27">28,</ref><ref type="bibr" coords="3,241.54,179.79,11.29,8.84" target="#b29">30]</ref>. The task describes input as a text entity (sentence/document) and output as the category that the text entity belongs to. Given text consisting of a sequence of words, the task of text classification can be transferred to a task of sequence representation learning. With word embeddings providing vector representations for the words in a sequence, one straightforward way to generate the sequence's representation is so-called bag-of-means (BOM) <ref type="bibr" coords="3,185.09,275.43,14.99,8.84" target="#b11">[12]</ref>. BOM generates a sequence representation by simply averaging the vectors of all words in the sequence. Once the sequence representation has been obtained, it can be fed as features for subsequent classifiers such as Logistic Regression or Naïve Bayes. In the literature, most work nowadays in sequence representation learning for text classification has been using deep neural networks. For example, Kim <ref type="bibr" coords="3,158.27,359.11,16.44,8.84" target="#b12">[13]</ref> applies convolutional neural networks (CNN) for sentence classification. Zhou et al. <ref type="bibr" coords="3,277.72,371.07,16.33,8.84" target="#b29">[30]</ref> combine CNN with LSTM for text classification. Yang et al. <ref type="bibr" coords="3,65.60,394.98,16.32,8.84" target="#b27">[28]</ref> apply hierarchical attention networks for document classification. Zhou et al. <ref type="bibr" coords="3,156.74,406.93,16.32,8.84" target="#b30">[31]</ref> improve text classification by integrating bidirectional LSTM with two-dimensional max pooling. More recently, Peters et al. <ref type="bibr" coords="3,197.71,430.84,16.22,8.84" target="#b23">[24]</ref> apply a bi-attentive classification network (BCN) with pre-trained contextualised ELMo embedding, achieving state-of-the-art performance in text classification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">SYSTEM ARCHITECTURE</head><p>Figure <ref type="figure" coords="3,81.59,502.58,4.54,8.84" target="#fig_0">1</ref> shows the overall system structure that all our runs are based on. The process begins by preprocessing the tweets in the training set. The preprocessing mainly includes data cleaning and refining. For our baseline run, we convert all tweets to be lower-cased and removed stopwords, URLs, numbers, punctuation and special characters (like #, &amp;, @, etc.). In addition, we borrow an in-domain, out-of-vocabulary (OOV) dictionary <ref type="bibr" coords="3,128.30,586.26,16.49,8.84" target="#b10">[11]</ref> for correcting the misspelled words in tweets. For our neural network based runs, preprocessing only involves the removal of special characters and the application of OOV corrections.</p><p>We notice after analysing the dataset that its classes were severely imbalanced, given that it contains few tweets with more urgent information types and more critical priority levels. After preprocessing, due to the imbalanced actionable classes in the training set, for some runs we apply a data augmentation strategy for alleviating this problem. Our baseline run applies the oversampling strategy SMOTE <ref type="bibr" coords="3,247.59,705.81,11.85,8.84" target="#b1">[2]</ref> for data augmentation, which statistically generates new representations from existing feature representations. The adapted biLSTM run does not apply data augmentation. Vanilla biL-STM and BCN+ELMO runs apply the state-of-the-art text generation strategy GPT-2 <ref type="bibr" coords="3,429.23,143.92,16.45,8.84" target="#b24">[25]</ref> for data augmentation. For GPT-2, we extracted rarer tweet samples with respect to information types and priority in the training set and then use the extracted samples as conditional samples for GPT-2 to generate synthetic samples. Table <ref type="table" coords="3,460.79,191.74,4.73,8.84" target="#tab_1">2</ref> gives an example of a generated sample by GPT-2 given a raw critical tweet from training set as the conditional sample. After preprocessing and augmentation, the tweets are fed to train two models separately for information type detection and priority estimation purposes. The models trained at this step vary in our four different runs. Section 4 details the internals of the models that are trained for our runs. Once the models are trained, we use them to make predictions for the unlabeled tweets in the test set. At this stage, each test tweet is predicted with one or more information types and one priority label. As the submission requires the estimation of a tweet's priority with a score between 0 and 1, an extra step considered for better estimating the priority score is linear combination. The linear combination formula is defined as follows:</p><formula xml:id="formula_0" coords="3,380.69,499.53,177.51,10.65">s i = (1 -λ) × w i + λ × f (p i )<label>(1)</label></formula><p>where, given a tweet i, s i refers to its submitted priority score and w i refers to the averaged priority weight. Given the predicted information types predicted for tweet i, w i is the averaged weight by looking up an information-typeto-weight table as presented in Figure <ref type="figure" coords="3,475.91,562.35,3.45,8.84" target="#fig_0">1</ref>. The look-up table is constructed by quantitatively analysing all tweets in the training set (the weight for an information type T is calculated by averaging the priority scores of the tweets that belong to T in the training set). In the equation, f is the mapping function that maps the predicted priority label p i to the numeric priority score according to the mapping scenario: low=0.25, medium=0.5, high=0.75 and critical=1.0. In the formula, λ is a constant set up to be 0.5 by default, to give equal contribution to the predicted priority label and analysed priority weight. Through the linear combination process, priority is quantified to a score between 0 and 1 for each test tweet. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">MODELS</head><p>In this section, we describe four different model variations for our four runs, as in Table <ref type="table" coords="4,173.19,383.96,3.41,8.84" target="#tab_2">3</ref>. </p><formula xml:id="formula_1" coords="4,333.43,356.58,113.11,33.23">• URL count (numeric) • Digit count (int, numeric) • Retweet check (0 or 1)</formula><p>• Capital ratio (float, numeric) • Special characters count (@, ! and ?, normalised float numeric) • Named Entity count (numeric) Apart from the hand-crafted features, we also apply a pretrained in-domain 300-dimensional embedding <ref type="bibr" coords="4,505.64,454.80,16.22,8.84" target="#b10">[11]</ref> for word representations. To generate a tweet representation, we a apply the bag-of-means (BOM) strategy, which averages the vectors of all individual words in the tweet. Finally, the concatenation of the tweet's representation and its hand-crafted features are fit on a Logistic Regression classifier and a Naïve Bayes classifier. For priority classification, the two classifiers work together to vote for the priority label that is predicted for a tweet. For information type classification, OneVsRest solves the multi-label classification problem by decomposing it into multiple independent binary classification problems. The information types predicted for a tweet are also decided by the two classifiers with a combined probability thresh-old=0.51 to check whether an information type should be assigned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Vanilla biLSTM</head><p>Our second run trains models based on a vanilla biLSTM network. Although two models are trained separately for priority classification and information type classification, they follow a similar structure. The model's structure is straightforward. Given a tweet t consisting of a sequence of words: ⟨w 0 , w 1 , w 2 , ..., w t , ...w n ⟩, we embed the words using GloVe<ref type="foot" coords="5,290.33,94.24,3.38,6.45" target="#foot_0">4</ref> to word vectors ⟨x 0 , x 1 , x 2 , ..., x t , ...x n ⟩. Next, we use the standard LSTM <ref type="bibr" coords="5,103.41,120.01,10.49,8.84" target="#b6">[7,</ref><ref type="bibr" coords="5,116.95,120.01,12.88,8.84" target="#b30">31]</ref> to encode the word vectors to a single sequence representation. The standard LSTM is a memorybased unit in a recurrent neural network (RNN). It helps to summarise the state of the previous t tokens in a sequence given a token vector x t at time step t. The LSTM unit takes x t with previous hidden state h t -1 as input to output a new hidden state h t that summarises important information of the sequence so far (from time step 0 to t). It summarises important information by remembering or forgetting information through a set of transition functions (or so-called gates) in the unit. The LSTM transition functions are defined as follows <ref type="bibr" coords="5,96.87,251.52,14.97,8.84" target="#b30">[31]</ref>:</p><formula xml:id="formula_2" coords="5,112.66,271.78,181.39,86.14">i t = σ (W i • [h t -1 ; x t ] + b i ) f t = σ (W f • [h t -1 ; x t ] + b f ) q t = tanh(W q • [h t -1 ; x t ] + b q ) o t = σ (W o • [h t -1 ; x t ] + b o ) c t = f t ⊙ c t -1 + i t ⊙ q t h t = o t ⊙ tanh (c t )<label>(2)</label></formula><p>where σ and tanh stand for sigmoid and hyperbolic tangent activation functions respectively. Element-wise multiplication is denoted by ⊙ and ; refers to the concatenation of vectors. To better understand how the transition works, we can describe f t as the forget gate that controls what information from the old memory cell should be forgotten. We can also describe i t as an input gate to control what new information is to be stored in the current memory cell and o t as an output gate to control what to output based on the memory cell c t . In LSTM-based RNNs, the above process happens concurrently from time 0 to n. Hence, a LSTM encoder eventually outputs a single vector h n at the last time step that summarises a sequence.</p><p>Unlike a LSTM, which summarises information in one direction from left to right, biLSTM sees the context of a token at time step t in both left-to-right and right-to-left directions. In biLSTM, the transition functions in its leftto-right process are the same as described in Equation <ref type="formula" coords="5,288.62,566.77,3.48,8.84" target="#formula_2">2</ref>. The only difference in the right-to-left process is that h t is generated based on the next hidden state h t +1 and the token vector x t at time step t. To make the difference, we denote h → n as the last state in left-to-right process and h ← 0 as the last state in right-to-left process. We concatenate the two states to a single high-level representation h s for the sequence and then pass it through a feed-forward network.</p><p>In the feed-forward network, the output layer is different for the information type categorisation and priority estimation tasks. Because priority estimation is defined as a single label classification problem, cross entropy loss with soft-max over all classes is selected for the objective function. For the multi-label information type classification, we adapt the binary cross entropy loss <ref type="bibr" coords="5,421.74,131.97,16.31,8.84" target="#b18">[19]</ref> as the objective function that is given in Equation <ref type="formula" coords="5,400.51,143.92,3.36,8.84">3</ref>. For a training tweet, the loss is calculated between its feed-forward output logits x and its target information types y (i.e. ground-truth), as follows:</p><formula xml:id="formula_3" coords="5,322.48,198.71,235.72,21.02">loss(x, y) = - l ∈L w l • [y l • σ (x l ) + (1 -y l ) • (1 -σ (x l ))] (3)</formula><p>where σ is the logistic sigmoid function and L denotes the total number of information types. In the equation, w l denotes loss weight that is leveraged on the current label l for alleviating the label's imbalanced proportion in the training set. This loss weight is adjustable. In the vanilla biLSTM run, due to the use of GPT-2 for data augmentation, we do not put the loss weight in effect and thus is set to 1 for every label. The loss weight is included so that it can be used by later runs that do not include a data augmentation step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Adapted biLSTM</head><p>Our third run trains models with two main differences from Vanilla biLSTM. Firstly, GPT-2 is applied for data augmentation in the Vanilla biLSTM run. Considering that text generation by GPT-2 may introduce noisy data in the training set, we do not apply GTP-2 for data augmentation in the adapted biLSTM run. Instead, to address the imbalanced class problem, we apply loss weights in objective functions of both cross entropy and binary cross entropy. As in Equation 3, w l is set up according to the imbalanced proportions of classes instead of 1 as in the Vanilla biLSTM run. The leveraging of loss weights enables the training set to appear to be balanced for the objective functions.</p><p>Secondly, inspired by the work in <ref type="bibr" coords="5,472.52,501.85,10.49,8.84" target="#b0">[1,</ref><ref type="bibr" coords="5,486.07,501.85,11.34,8.84" target="#b28">29]</ref>, for word embedding we not only keep the GloVe embedding but also introduce a character-level embedding. The character-level embedding is generated through a CNN that encodes n-gram characters of a word to a single representation. The characterlevel embedding has an advantage over word-level embedding in that it can interpret misspelled words or rare words in the vocabulary. This is because two words are converted to similar vectors through this kind of embedding as long as they are similar in morphology. In this run, given the context of tweets that often contain misspellings or abbreviations, we combine the two kinds of embedding with the aim of improving classification performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>BCN+ELMo</head><p>In our last run, we use a neural network architecture that has been recently shown to perform well on text classification tasks <ref type="bibr" coords="5,359.00,705.81,14.88,8.84" target="#b14">[15,</ref><ref type="bibr" coords="5,376.35,705.81,11.17,8.84" target="#b23">24]</ref>. Bi-attentive classification (BCN) was first introduced in <ref type="bibr" coords="6,112.21,96.10,14.99,8.84" target="#b14">[15]</ref>. BCN takes two sequences as input and applies a biLSTM encoder to create task-specific representations of each input sequence. One noticeable feature of the network is the application of a biattention mechanism. The attention mechanism is used to pay attention of each input representation to the other (so that one is conditional on the other). After the biattention process, conditional information of one on the other is obtained. BCN then again applies a biLSTM to integrate the conditional information before going to the output layer. In the output layer of BCN, a maxout network uses pooled features to compute a distribution over possible classes. Peters et al. <ref type="bibr" coords="6,192.01,227.61,16.41,8.84" target="#b23">[24]</ref> combined BCN with ELMo to achieve state-of-the-art performance in sentiment classification. BCN+ELMo applies the contextualised ELMo word representations in the embedding layer of BCN. Based on the promising performance that BCN+ELMo achieved in similar tasks, we adapt it to our problem domain as the last run of our submissions.</p><p>In the embedding layer, we not only use ELMo but also combine it with GloVe. In the priority classification task, the objective function uses cross entropy loss as in the original BCN+ELMo. For the information type classification task, we still use the function in Equation 3 as the objective function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">EXPERIMENTAL SETUP AND EVALUATION</head><p>Based on the four model variations described in Section 4, we run four experiments for training. As in Table <ref type="table" coords="6,270.26,409.06,3.48,8.84" target="#tab_2">3</ref>, the four experimental runs are UCDbaseline, UCDbilstmalpha, UCDbilstmbeta and UCDbcnelmo. In UCDbaseline, the C parameter of Logistic Regression is set to 1 empirically and other parameters were given their default values as in scikitlearn <ref type="foot" coords="6,74.03,466.98,3.38,6.45" target="#foot_1">5</ref> .</p><p>For our three neural network based runs, the common hyperparameters are batch size = 64, number of epochs = 40 with patience = 5 for early stopping, adam as optimizer with learning rate=0.001. In particular, we empirically set a threshold 0.1 to decide if an information type is assigned to a tweet in the multi-label information type classification task. Experiments on these runs are supported by AllenNLP <ref type="bibr" coords="6,277.34,552.52,10.44,8.84" target="#b4">[5]</ref>.</p><p>In both the UCDbilstmalpha and UCDbilstmbeta runs, pretrained glove.6B.100d is set to be trainable in the embedding layer. In UCDbcnelmo, pre-trained glove.840B.300d combined with pre-trained original size ElMo are set to be trainable in the embedding layer. Regarding data augmentation, SMOTE is available in the scikit-learn library and aGPT-2 implementation is included in the transformers library <ref type="foot" coords="6,76.26,646.31,3.38,6.45" target="#foot_2">6</ref> . The code for reproducing our runs is open sourced at Github <ref type="foot" coords="6,92.22,658.26,3.38,6.45" target="#foot_3">7</ref> . With all necessary experiments set up, we make predictions on the tweets in the test set with the trained models. We finally submit the results of the four runs to the TREC organisers for evaluation. The evaluation process is straightforward. All participant groups submit their runs to TREC, and the track organisers employ human assessors to label all of the submitted tweets. Then, the evaluation results are returned to the participant groups so that they know the overall performance of their runs among different groups.</p><p>Here we report UCD's results at TREC IS 2019-B track.</p><p>Table <ref type="table" coords="6,351.71,215.65,4.54,8.84" target="#tab_3">4</ref> presents the returned evaluation results for UCD's four runs. As can be seen from this table, there are three main categories of evaluation metrics. The first category is "Alerting", whose accumulated alert worth (AAW, ranges from -1 to 1) is used to indicate how effectively a system identifies critical and actionable tweets for alerting. AAW also applies a penalty on a system that pushes too many false alerts even it is able to find many actionable tweets. AAW emphasises the importance of information type prioritisation. The second category "Information Feed" (ranges from 0 to 1) includes two main metrics: information type F1 and accuracy. Both are used to test how accurately a system classifies information types, The difference in performance between categorising actionable tweets and non-actionable tweets is important so actionable F1 and All F1 are both included. This evaluation category emphasises the performance of a system in information type categorisation. The last category "Prioritisation" applies root mean squared error (RMSE) to test how well a system estimates the importance score of tweets in terms of priority. For the three categories of metrics, only RMSE is the case that lower is the better (ranges from 0 to 1 because it is based on underlying prioritisation scores that themselves range from 0 to 1).</p><p>Apart from the scores that our four runs achieved in Table 4, the median scores for each metric are also included. Overall, our runs outperform the median for most situations. First, UCDbaseline achieves good performance in prioritisation. Its AAW score is also slightly above the median but its information type accuracy is somewhat distant from the median. We conclude that UCDbaseline has the ability to find actionable tweets but in a way that assigns too many information types to tweets.</p><p>Comparatively, UCDbilstmalpha is somewhat weak among the four runs. It hits an information type accuracy 0.86, which is marginally above the median of 0.8583. However, it does not do well in AAW, which indicates its weakness in correctly finding tweets for alerting. When it comes to UCDbilstmbeta, we see some improvements over UCDbilstmalpha. In particular, UCDbilstmbeta achieves good performance in AAW, whose scores (-0.6047 and -0.3332) are increased from the median (-0.9197 and -0.4609) to some extent. It also achieves better score in information type positive actionable F1 than UCDbilstmalpha. Its performance over UCDbilstmalpha implies that the use of character-level embedding and loss weights in UCDbilstmbeta helps improve the overall performance. Compared to the other three runs, it is shown that UCDbcnelmo obtains relatively even good performance across the metrics. It achieves better scores in almost every metric than the median to a good degree except that its information type accuracy is slightly lower than the median. We conclude that the BCN+ELMo achieves competitive performance in the IS track problem domain.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">CONCLUSION AND FUTURE WORK</head><p>We have described UCD's participation at TREC 2019-B IS track for which we submitted four runs. This paper presents the techniques we used for the four runs and reports evaluation results of the runs. Our baseline run trains models through machine learning methods including Logistic Regression and Naïve Bayes. Our focus on this run is to extract 21 hand-crafted features for model training. We also leverage a pre-trained in-domain embedding combined with the 21 features for performance boosting. In this run, SMOTE is used for data augmentation due to the imbalanced classes.</p><p>The evaluation shows it is able to find many actionable tweets but in a way that assigns too many information types to tweets.</p><p>Our other three runs train models through neural network based methods. In these runs, we introduced GPT-2 or loss weights for alleviating the imbalanced class problem in the training set. We also apply the commonly-practised GloVe or contextualised ELMo embedding to enrich representations for the three runs. The evaluation shows that UCDbilstmalpha is somewhat conservative in finding tweets for alerting, UCDbcnelmo achieves improvements over UCDbilstmalpha likely due to the use of character-level embedding and loss weights, and UCDbcnelmo obtains relatively even good performance across the metrics.</p><p>For future work, we expect to balance the trade-off between accuracy and other metrics for UCDbaseline. We aim to extract more informative features so as to improve its overall performance. In addition, regarding deep learning methods for the track, we have not yet explored whether applying recent advances in pre-trained language models like BERT <ref type="bibr" coords="7,362.54,257.10,11.86,8.84" target="#b3">[4]</ref> for fine-tuning on classification tasks could add further benefits. This is certainly another avenue that we will seek to explore in the future.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,247.03,329.75,117.94,7.71;4,110.64,103.23,295.45,193.00"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: System architecture</figDesc><graphic coords="4,110.64,103.23,295.45,193.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,57.45,94.68,232.93,295.25"><head>Table 1 :</head><label>1</label><figDesc>Actionable vs non-actionable information types</figDesc><table coords="2,57.45,117.82,232.93,272.12"><row><cell>Actionable</cell><cell>Non-actionable</cell></row><row><cell></cell><cell>ContextualInformation</cell></row><row><cell></cell><cell>Advice</cell></row><row><cell></cell><cell>CleanUp</cell></row><row><cell></cell><cell>News</cell></row><row><cell></cell><cell>Discussion</cell></row><row><cell></cell><cell>Donations</cell></row><row><cell>SearchAndRescue GoodsServices MovePeople EmergingThreats NewSubEvent ServiceAvailable</cell><cell>Factoid FirstPartyObservation ThirdPartyObservation Hashtags InformationWanted OriginalEvent Official</cell></row><row><cell></cell><cell>MultimediaShare</cell></row><row><cell></cell><cell>Location</cell></row><row><cell></cell><cell>Volunteer</cell></row><row><cell></cell><cell>Sentiment</cell></row><row><cell></cell><cell>Weather</cell></row><row><cell></cell><cell>Irrelevant</cell></row><row><cell cols="2">In the IS track, there are 25 information types, of which 6</cell></row><row><cell cols="2">are defined as "actionable" and the remaining 19 as</cell></row><row><cell cols="2">"non-actionable".</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,333.89,238.38,208.39,76.02"><head>Table 2 :</head><label>2</label><figDesc>Generation of a critical tweet by GPT-2</figDesc><table coords="3,333.89,264.71,208.39,49.70"><row><cell>Conditional raw sample</cell><cell>Generated sample</cell></row><row><cell>LANDSLIDE!... road blocked</cell><cell>1 car submerged on a</cell></row><row><cell>in Costa Rica after M7.6</cell><cell>hillside and one car in</cell></row><row><cell>earthquake</cell><cell>water</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,53.80,405.22,241.93,309.43"><head>Table 3 :</head><label>3</label><figDesc>UCD's runs with respect to model variations</figDesc><table coords="4,53.80,431.54,241.93,235.29"><row><cell>Runs</cell><cell>Models</cell></row><row><cell>UCDbaseline</cell><cell>Logistic Regression + Naïve Bayes</cell></row><row><cell>UCDbilstmalpha</cell><cell>Vanilla biLSTM</cell></row><row><cell>UCDbilstmbeta</cell><cell>Adapted biLSTM</cell></row><row><cell>UCDbcnelmo</cell><cell>BCN+ELMo</cell></row><row><cell cols="2">Logistic Regression and Naïve Bayes</cell></row><row><cell cols="2">For our baseline, we train two models for the multi-label</cell></row><row><cell cols="2">classification task (information type) and single-label classi-</cell></row><row><cell cols="2">fication task (priority) respectively. The training steps we use</cell></row><row><cell cols="2">for model training are almost the same except for the differ-</cell></row><row><cell cols="2">ent training objectives. First, we extract features for training</cell></row><row><cell cols="2">tweets before being fed to train models. For feature extrac-</cell></row><row><cell cols="2">tion, inspired by work that has been done in the literature</cell></row><row><cell cols="2">relevant to this problem [3, 9], eventually 21 hand-crafted</cell></row><row><cell cols="2">features are extracted for each raw tweet. The following list</cell></row><row><cell cols="2">summarises the 21 features:</cell></row><row><cell cols="2">• Number of hashtags (numeric)</cell></row></table><note coords="4,69.27,669.46,225.87,9.32;4,78.21,681.90,149.88,8.84;4,69.27,693.37,177.83,9.32;4,69.27,705.33,214.22,9.32"><p>• Number of "special" verbs, such as, trapped, stuck, move etc (dataset statistical analysis) • Sentiment polarity (categorical, -1, 0 or 1) • Tweet length (word_length, char_length, numeric)</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="7,74.04,94.68,463.93,118.45"><head>Table 4 :</head><label>4</label><figDesc>Evaluation results of UCD's four runs at TREC 2019-B Incident Streams track</figDesc><table coords="7,74.04,117.82,463.93,95.31"><row><cell></cell><cell></cell><cell>Alerting</cell><cell></cell><cell cols="2">Information Feed</cell><cell cols="2">Prioritisation</cell></row><row><cell></cell><cell cols="5">Accumulated Alert Worth Info. Type Postive F1 Info. Type Accuracy</cell><cell cols="2">Priority RMSE</cell></row><row><cell>Runs</cell><cell cols="2">High Priority All</cell><cell cols="2">Actionable All</cell><cell>All</cell><cell cols="2">Actionable All</cell></row><row><cell>Median</cell><cell>-0.9197</cell><cell>-0.4609</cell><cell>0.0386</cell><cell>0.1055</cell><cell>0.8583</cell><cell>0.1767</cell><cell>0.1028</cell></row><row><cell>UCDbaseline</cell><cell>-0.7856</cell><cell>-0.4131</cell><cell>0.1355</cell><cell cols="2">0.1343 0.7495</cell><cell>0.0859</cell><cell>0.0668</cell></row><row><cell cols="2">UCDbilstmalpha -0.9287</cell><cell>-0.4677</cell><cell>0.0614</cell><cell>0.1087</cell><cell>0.86</cell><cell>0.1521</cell><cell>0.0893</cell></row><row><cell>UCDbilstmbeta</cell><cell>-0.6047</cell><cell>-0.3332</cell><cell>0.1269</cell><cell>0.0607</cell><cell>0.8378</cell><cell>0.1004</cell><cell>0.0822</cell></row><row><cell>UCDbcnelmo</cell><cell>-0.6961</cell><cell>-0.3624</cell><cell>0.1099</cell><cell>0.1192</cell><cell>0.8452</cell><cell>0.1036</cell><cell>0.0769</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_0" coords="5,57.03,707.12,127.59,7.07"><p>https://nlp.stanford.edu/projects/glove/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_1" coords="6,57.17,687.19,75.62,7.07"><p>https://scikit-learn.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_2" coords="6,57.17,697.15,147.16,7.07"><p>https://github.com/huggingface/transformers</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_3" coords="6,57.03,707.12,177.21,7.07"><p>https://github.com/wangcongcong123/UCDTrecIS2019</p></note>
+		</body>
+		<back>
+
+			<div type="availability">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>1 https://mashable.com/2011/02/11/social-media-in-emergencies 2 http://dcs.gla.ac.uk/~richardm/TREC_IS/ 3 https://trec.nist.gov/</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,335.03,318.57,224.40,7.07;7,335.03,328.54,224.05,7.07;7,334.84,338.50,135.00,7.07" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="7,354.22,328.54,162.71,7.07">Enriching Word Vectors with Subword Information</title>
+		<author>
+			<persName coords=""><forename type="first">Piotr</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Edouard</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Armand</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/tacl_a_00051</idno>
+		<ptr target="https://doi.org/10.1162/tacl_a_00051" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="135" to="146" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,348.46,223.17,7.07;7,335.03,358.42,224.52,7.07;7,335.03,368.39,224.40,7.07;7,334.84,378.35,25.94,7.07" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Nitesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><forename type="middle">W</forename><surname>Chawla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lawrence</forename><forename type="middle">O</forename><surname>Bowyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">Philip</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Kegelmeyer</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=1622407.1622416" />
+		<title level="m" coord="7,396.51,358.42,163.04,7.07;7,335.03,368.39,16.96,7.07">SMOTE: Synthetic Minority Over-Sampling Technique</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="321" to="357" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,388.31,223.17,7.07;7,335.03,398.27,223.17,7.07;7,335.03,408.24,224.40,7.07;7,335.03,418.14,224.40,7.13;7,334.75,428.16,56.62,7.07" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,400.19,398.27,158.01,7.07;7,335.03,408.24,220.78,7.07">A linguistically-driven approach to cross-event damage assessment of natural disasters from social media messages</title>
+		<author>
+			<persName coords=""><forename type="first">Stefano</forename><surname>Cresci</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maurizio</forename><surname>Tesconi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrea</forename><surname>Cimino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Felice</forename><surname>Dell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">'</forename><surname>Orletta</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,343.60,418.14,212.03,7.13">Proceedings of the 24th International Conference on World Wide Web</title>
+		<meeting>the 24th International Conference on World Wide Web</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="1195" to="1200" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,438.12,224.40,7.07;7,335.03,448.09,224.52,7.07;7,335.03,457.99,223.17,7.13;7,335.03,467.96,223.97,7.13;7,335.03,477.92,224.40,7.13;7,334.75,487.94,224.33,7.07;7,334.84,497.90,161.24,7.07" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,354.29,448.09,205.26,7.07;7,335.03,458.05,70.01,7.07">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+		<ptr target="https://doi.org/10.18653/v1/N19-1423" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,421.25,457.99,136.95,7.13;7,335.03,467.96,223.97,7.13;7,335.03,477.92,111.03,7.13">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s" coord="7,485.75,477.92,67.47,7.13">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,507.86,223.17,7.07;7,335.03,517.83,223.17,7.07;7,335.03,527.79,223.17,7.07;7,335.03,537.70,223.17,7.13;7,335.03,547.66,224.40,7.13;7,335.03,557.68,122.63,7.07" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,400.99,527.79,157.21,7.07;7,335.03,537.75,63.70,7.07">AllenNLP: A Deep Semantic Natural Language Processing Platform</title>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Gardner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joel</forename><surname>Grus</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><surname>Neumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oyvind</forename><surname>Tafjord</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pradeep</forename><surname>Dasigi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nelson</forename><forename type="middle">F</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Schmitz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W18-2501</idno>
+		<ptr target="https://doi.org/10.18653/v1/W18-2501" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,412.75,537.70,145.45,7.13;7,335.03,547.66,62.06,7.13">Proceedings of Workshop for NLP Open Source Software (NLP-OSS)</title>
+		<meeting>Workshop for NLP Open Source Software (NLP-OSS)</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1" to="6" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,567.64,224.40,7.07;7,335.03,577.55,223.18,7.13;7,335.03,587.51,83.00,7.13" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="7,356.08,577.60,109.14,7.07">Annual disaster statistical review</title>
+		<author>
+			<persName coords=""><forename type="first">Debarati</forename><surname>Guha-Sapir</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Femke</forename><surname>Vos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Regina</forename><surname>Below</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sylvain</forename><surname>Ponserre</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+	<note>Centre for Research on the Epidemiology of Disasters</note>
+</biblStruct>
+
+<biblStruct coords="7,335.03,597.53,223.17,7.07;7,335.03,607.43,142.05,7.13" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,501.02,597.53,57.18,7.07;7,335.03,607.49,24.89,7.07">Long Short-Term Memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,366.93,607.43,64.91,7.13">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,617.45,223.41,7.07;7,335.03,627.42,223.17,7.07;7,335.03,637.32,223.18,7.13;7,335.03,647.28,224.40,7.13;7,334.75,657.30,169.62,7.07" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,371.63,627.42,186.56,7.07;7,335.03,637.38,82.44,7.07">Improving word representations via global context and multiple word prototypes</title>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><forename type="middle">H</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><forename type="middle">Y</forename><surname>Ng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,431.63,637.32,126.57,7.13;7,335.03,647.28,192.53,7.13">Proceedings of the 50th Annual Meeting of the Association for Computational Linguistics: Long Papers</title>
+		<meeting>the 50th Annual Meeting of the Association for Computational Linguistics: Long Papers</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="873" to="882" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,667.27,224.40,7.07;7,335.03,677.23,224.40,7.07;7,335.03,687.14,134.87,7.13" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,354.19,677.23,201.98,7.07">Processing social media messages in mass emergency: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">Muhammad</forename><surname>Imran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarah</forename><surname>Vieweg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,335.03,687.14,104.93,7.13">ACM Computing Surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">67</biblScope>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,335.03,697.15,223.18,7.07;7,334.76,707.12,223.44,7.07;8,70.87,97.35,224.40,7.13;8,70.59,107.37,49.21,7.07" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,383.76,707.12,162.03,7.07">AIDR: Artificial intelligence for disaster response</title>
+		<author>
+			<persName coords=""><forename type="first">Muhammad</forename><surname>Imran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ji</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrick</forename><surname>Meier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarah</forename><surname>Vieweg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,70.87,97.35,220.46,7.13">Proceedings of the 23rd International Conference on World Wide Web</title>
+		<meeting>the 23rd International Conference on World Wide Web</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="159" to="162" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,117.27,223.18,7.13;8,70.87,127.23,223.17,7.13;8,70.87,137.20,204.80,7.13" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,263.96,117.27,30.09,7.13;8,70.87,127.23,223.17,7.13;8,70.87,137.20,27.26,7.13">Twitter as a Lifeline: Human-Annotated Twitter Corpora for NLP of Crisis-Related Messages</title>
+		<author>
+			<persName coords=""><forename type="first">Muhammad</forename><surname>Imran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Prasenjit</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<ptr target="http://repositori.upf.edu/handle/10230/36883" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,104.41,137.25,16.18,7.07">LREC</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,147.22,224.40,7.07;8,70.87,157.12,223.18,7.13;8,70.87,167.09,223.17,7.13;8,70.87,177.05,224.52,7.13;8,70.87,187.07,223.70,7.07;8,70.87,197.03,29.87,7.07" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,92.22,157.18,149.50,7.07">Bag of Tricks for Efficient Text Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Armand</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Edouard</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Piotr</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/E17-2068" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,256.49,157.12,37.56,7.13;8,70.87,167.09,152.75,7.13">Proceedings of the 15th Conference of the European Chapter</title>
+		<title level="s" coord="8,186.71,177.05,108.68,7.13;8,70.87,187.07,69.25,7.07">Short Papers. Association for Computational Linguistics</title>
+		<meeting>the 15th Conference of the European Chapter</meeting>
+		<imprint>
+			<publisher>the Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="427" to="431" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,206.99,224.52,7.07;8,70.87,216.90,223.17,7.13;8,70.87,226.86,223.18,7.13;8,70.87,236.88,196.68,7.07" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,125.70,206.99,169.69,7.07;8,70.87,216.95,23.08,7.07">Convolutional Neural Networks for Sentence Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Yoon</forename><surname>Kim</surname></persName>
+		</author>
+		<idno type="DOI">10.3115/v1/D14-1181</idno>
+		<ptr target="https://doi.org/10.3115/v1/D14-1181" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,107.44,216.90,186.61,7.13;8,70.87,226.86,118.90,7.13">Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1746" to="1751" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,246.84,223.17,7.07;8,70.49,256.75,224.90,7.13;8,70.87,266.77,18.84,7.07" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Lambert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christos</forename><forename type="middle">Jp</forename><surname>Moschovitis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hilary</forename><forename type="middle">W</forename><surname>Poole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Woodford</surname></persName>
+		</author>
+		<title level="m" coord="8,127.61,256.75,120.50,7.13">The internet: a historical encyclopedia</title>
+		<imprint>
+			<publisher>ABC-CLIO</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,276.73,224.40,7.07;8,70.87,286.64,223.18,7.13;8,70.87,296.60,170.60,7.13" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="8,89.18,286.69,162.72,7.07">Learned in translation: Contextualized word vectors</title>
+		<author>
+			<persName coords=""><forename type="first">Bryan</forename><surname>Mccann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,264.66,286.64,29.39,7.13;8,70.87,296.60,129.48,7.13">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="6294" to="6305" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,306.62,223.17,7.07;8,70.87,316.58,223.18,7.07;8,70.87,326.49,223.17,7.13;8,70.87,336.45,121.12,7.13" xml:id="b15">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cody</forename><surname>Buntain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+		<title level="m" coord="8,274.64,306.62,19.41,7.07;8,70.87,316.58,210.96,7.07;8,70.87,326.49,223.17,7.13;8,70.87,336.45,87.04,7.13">16th International Conference on Information Systems for Crisis Response and Management (ISCRAM)</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="691" to="705" />
+		</imprint>
+	</monogr>
+	<note>TREC Incident Streams: Finding Actionable Information on Social Media</note>
+</biblStruct>
+
+<biblStruct coords="8,70.87,346.47,224.52,7.07;8,70.87,356.38,223.17,7.13;8,70.87,366.34,51.24,7.13" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1301.3781</idno>
+		<title level="m" coord="8,281.82,346.47,13.58,7.07;8,70.87,356.43,174.30,7.07">Efficient estimation of word representations in vector space</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,70.87,376.36,223.17,7.07;8,70.87,386.32,223.17,7.07;8,70.87,396.23,223.17,7.13;8,70.87,406.19,63.85,7.13" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="8,113.87,386.32,180.17,7.07;8,70.87,396.28,71.62,7.07">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,156.73,396.23,137.31,7.13;8,70.87,406.19,22.83,7.13">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,416.21,223.17,7.07;8,70.74,426.17,224.65,7.07;8,70.87,436.08,223.97,7.13;8,70.87,446.04,221.66,7.13" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="8,167.31,426.17,128.09,7.07;8,70.87,436.13,103.54,7.07">Large-scale multi-label text classification-revisiting neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">Jinseok</forename><surname>Nam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jungi</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eneldo</forename><surname>Loza Mencía</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Johannes</forename><surname>Fürnkranz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,188.68,436.08,106.16,7.13;8,70.87,446.04,159.04,7.13">Joint european conference on machine learning and knowledge discovery in databases</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="437" to="452" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,456.00,224.52,7.13;8,70.87,466.02,34.16,7.07" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="8,138.70,456.00,134.34,7.13">Methods for disaster mental health research</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Fran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Norris</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<publisher>Guilford Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,475.98,224.40,7.07;8,70.87,485.95,223.17,7.07;8,70.87,495.85,223.17,7.13;8,70.87,505.81,83.78,7.13" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="8,91.73,485.95,202.31,7.07;8,70.87,495.91,80.63,7.07">Crisislex: A lexicon for collecting and filtering microblogged communications in crises</title>
+		<author>
+			<persName coords=""><forename type="first">Alexandra</forename><surname>Olteanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarah</forename><surname>Vieweg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,164.91,495.85,129.13,7.13;8,70.87,505.81,80.22,7.13">Eighth International AAAI Conference on Weblogs and Social Media</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,70.87,515.83,223.17,7.07;8,70.87,525.80,223.18,7.07;8,70.87,535.70,223.17,7.13;8,335.03,97.35,77.29,7.13" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="8,202.94,515.83,91.10,7.07;8,70.87,525.80,211.29,7.07">Citizen communications in crisis: anticipating a future of ICT-supported public participation</title>
+		<author>
+			<persName coords=""><forename type="first">Leysia</forename><surname>Palen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sophia</forename><forename type="middle">B</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,70.87,535.70,223.17,7.13;8,335.03,97.35,22.83,7.13">Proceedings of the SIGCHI conference on Human factors in computing systems</title>
+		<meeting>the SIGCHI conference on Human factors in computing systems</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="727" to="736" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,107.37,224.40,7.07;8,335.03,117.27,223.18,7.13;8,335.03,127.23,223.17,7.13;8,334.54,137.20,68.47,7.13" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="8,335.03,117.33,150.92,7.07">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,500.29,117.27,57.91,7.13;8,335.03,127.23,223.17,7.13;8,334.54,137.20,26.87,7.13">Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP)</title>
+		<meeting>the 2014 conference on empirical methods in natural language processing (EMNLP)</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,147.22,224.52,7.07;8,335.03,157.18,224.52,7.07;8,335.03,167.09,223.97,7.13;8,335.03,177.05,223.97,7.13;8,335.03,187.01,223.17,7.13;8,335.03,196.97,224.12,7.13;8,334.77,206.99,102.17,7.07" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="8,522.82,157.18,36.73,7.07;8,335.03,167.14,112.08,7.07">Deep Contextualized Word Representations</title>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><surname>Neumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohit</forename><surname>Iyyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Gardner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N18-1202</idno>
+		<ptr target="https://doi.org/10.18653/v1/N18-1202" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,463.34,167.09,95.66,7.13;8,335.03,177.05,223.97,7.13;8,335.03,187.01,166.44,7.13">Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s" coord="8,543.45,187.01,14.74,7.13;8,335.03,196.97,18.40,7.13">Long Papers</title>
+		<meeting>the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="2227" to="2237" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,216.95,224.05,7.07;8,335.03,226.92,223.38,7.07;8,335.03,236.88,30.09,7.07" xml:id="b24">
+	<monogr>
+		<title level="m" type="main" coord="8,414.06,226.92,144.34,7.07;8,335.03,236.88,26.74,7.07">Language Models are Unsupervised Multitask Learners</title>
+		<author>
+			<persName coords=""><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,246.84,224.05,7.07;8,335.03,256.80,223.17,7.07;8,335.03,264.89,223.17,7.07;8,335.03,274.79,223.17,7.13;8,335.03,284.76,221.18,7.13" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="8,503.22,256.80,54.98,7.07;8,335.03,264.89,223.17,7.07;8,335.03,274.85,136.32,7.07">Beacons of hope in decentralized coordination: Learning from on-the-ground medical twitterers during the 2010 Haiti earthquake</title>
+		<author>
+			<persName coords=""><forename type="first">Aleksandra</forename><surname>Sarcevic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leysia</forename><surname>Palen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joanne</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kate</forename><surname>Starbird</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mossaab</forename><surname>Bagdouri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenneth</forename><surname>Anderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,485.00,274.79,73.19,7.13;8,335.03,284.76,174.47,7.13">Proceedings of the ACM 2012 conference on computer supported cooperative work</title>
+		<meeting>the ACM 2012 conference on computer supported cooperative work</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="47" to="56" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,294.77,224.40,7.07;8,335.03,304.74,223.17,7.07;8,335.03,314.64,223.18,7.13;8,335.03,324.61,182.08,7.13" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="8,335.03,304.74,223.17,7.07;8,335.03,314.70,83.46,7.07">Chatter on the red: what hazards threat reveals about the social life of microblogged information</title>
+		<author>
+			<persName coords=""><forename type="first">Kate</forename><surname>Starbird</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leysia</forename><surname>Palen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Amanda</forename><forename type="middle">L</forename><surname>Hughes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarah</forename><surname>Vieweg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,432.51,314.64,125.69,7.13;8,335.03,324.61,127.39,7.13">Proceedings of the 2010 ACM conference on Computer supported cooperative work</title>
+		<meeting>the 2010 ACM conference on Computer supported cooperative work</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="241" to="250" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,334.63,223.17,7.07;8,335.03,344.59,223.17,7.07;8,335.03,354.49,223.97,7.13;8,335.03,364.46,223.17,7.13;8,335.03,374.42,224.05,7.13;8,334.84,384.44,161.24,7.07" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="8,401.74,344.59,156.46,7.07;8,335.03,354.55,41.75,7.07">Hierarchical Attention Networks for Document Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Zichao</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Diyi</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Dyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alex</forename><surname>Smola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eduard</forename><surname>Hovy</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N16-1174</idno>
+		<ptr target="https://doi.org/10.18653/v1/N16-1174" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,390.32,354.49,168.68,7.13;8,335.03,364.46,40.79,7.13">Proceedings of the 2016 Conference of the North American Chapter</title>
+		<meeting>the 2016 Conference of the North American Chapter</meeting>
+		<imprint>
+			<publisher>Human Language Technologies. Association for Computational Linguistics</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="1480" to="1489" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,394.40,223.17,7.07;8,335.03,404.31,223.17,7.13;8,335.03,414.27,224.40,7.13;8,335.03,424.29,224.52,7.07;8,335.03,434.25,108.59,7.07;8,467.12,434.25,91.60,7.07;8,335.03,444.21,224.35,7.07;8,335.03,454.18,10.70,7.07" xml:id="b28">
+	<analytic>
+		<title level="a" type="main" coord="8,505.04,394.40,53.16,7.07;8,335.03,404.36,165.69,7.07">Character-Level Convolutional Networks for Text Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Xiang</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Junbo</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yann</forename><surname>Lecun</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/5782-character-level-convolutional-networks-for-text-classification.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,527.61,404.31,30.59,7.13;8,335.03,414.27,145.36,7.13">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">N</forename><forename type="middle">D</forename><surname>Cortes</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">D</forename><surname>Lawrence</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lee</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Sugiyama</surname></persName>
+		</editor>
+		<editor>
+			<persName><surname>Garnett</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page" from="649" to="657" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,464.14,224.40,7.07;8,335.03,474.05,223.17,7.13;8,335.03,484.06,50.12,7.07" xml:id="b29">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Chunting</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chonglin</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Francis</forename><forename type="middle">C M</forename><surname>Lau</surname></persName>
+		</author>
+		<idno>ArXiv abs/1511.08630</idno>
+		<title level="m" coord="8,358.54,474.10,170.85,7.07">A C-LSTM Neural Network for Text Classification</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.03,494.03,224.05,7.07;8,335.03,503.99,224.52,7.07;8,335.03,513.90,223.17,7.13;8,335.03,523.86,223.97,7.13;8,335.03,533.82,224.05,7.13;8,335.03,543.84,187.44,7.07" xml:id="b30">
+	<analytic>
+		<title level="a" type="main" coord="8,391.93,503.99,167.62,7.07;8,335.03,513.95,162.78,7.07">Text Classification Improved by Integrating Bidirectional LSTM with Two-Dimensional Max Pooling</title>
+		<author>
+			<persName coords=""><forename type="first">Peng</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenyu</forename><surname>Qi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Suncong</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiaming</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hongyun</forename><surname>Bao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bo</forename><surname>Xu</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/C16-1329" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,512.32,513.90,45.88,7.13;8,335.03,523.86,223.97,7.13;8,335.03,533.82,220.23,7.13">Proceedings of COLING 2016, the 26th International Conference on Computational Linguistics: Technical Papers. The COLING 2016 Organizing Committee</title>
+		<meeting>COLING 2016, the 26th International Conference on Computational Linguistics: Technical Papers. The COLING 2016 Organizing Committee</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="3485" to="3495" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,75.44,72.44,458.85,16.59">Lucene and Juru at Trec 2007: 1-Million Queries Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,193.65,118.01,68.01,11.06"><forename type="first">Doron</forename><surname>Cohen</surname></persName>
+							<email>doronc@il.ibm.com</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">IBM Haifa Research Lab Haifa 31905</orgName>
+								<address>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,271.40,118.01,63.40,11.06"><forename type="first">Einat</forename><surname>Amitay</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="laboratory">IBM Haifa Research Lab Haifa 31905</orgName>
+								<address>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,343.60,118.01,72.46,11.06"><forename type="first">David</forename><surname>Carmel</surname></persName>
+							<email>carmel@il.ibm.com</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">IBM Haifa Research Lab Haifa 31905</orgName>
+								<address>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,75.44,72.44,458.85,16.59">Lucene and Juru at Trec 2007: 1-Million Queries Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A23FDF3166265A0B34DD25B37ABC1D3E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:04+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Lucene is an increasingly popular open source search library. However, our experiments of search quality for TREC data and evaluations for out-of-the-box Lucene indicated inferior quality comparing to other systems participating in TREC.</p><p>In this work we investigate the differences in measured search quality between Lucene and Juru, our home-brewed search engine, and show how Lucene scoring can be modified to improve its measured search quality for TREC.</p><p>Our scoring modifications to Lucene were trained over the 150 topics of the tera-byte tracks. Evaluations of these modifications with the new -sample based -1-Million Queries Track measures -NEU-Map and -Map -indicate the robustness of the scoring modifications: modified Lucene performs well when compared to stock Lucene and when compared to other systems that participated in the 1-Million Queries Track this year, both for the training set of 150 queries and for the new measures. As such, this also supports the robustness of the new measures tested in this track.</p><p>This work reports our experiments and results and describes the modifications involved -namely normalizing term frequencies, different choice of document length normalization, phrase expansion and proximity scoring.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Our experiments this year for the TREC 1-Million Queries Track focused on the scoring function of Lucene, an Apache open-source search engine <ref type="bibr" coords="1,164.03,503.83,9.20,8.97" target="#b4">[4]</ref>. We used our home-brewed search engine, Juru <ref type="bibr" coords="1,133.87,514.28,9.20,8.97" target="#b2">[2]</ref>, to compare with Lucene on the 10K track's queries over the gov2 collection.</p><p>Lucene <ref type="foot" coords="1,91.05,533.64,3.65,5.98" target="#foot_0">1</ref> is an open-source library for full-text indexing and searching in Java. The default scoring function of Lucene implements the cosine similarity function, while search terms are weighted by the tf-idf weighting mechanism. Equation <ref type="formula" coords="1,288.26,566.59,4.61,8.97">1</ref>describes the default Lucene score for a document d with respect to a query q:</p><formula xml:id="formula_0" coords="1,97.04,615.64,195.87,38.53">Score(d, q) = t∈q tf (t, d) • idf (t) • (1) boost(t, d) • norm(d)</formula><p>where</p><p>• tf (t, d) is the term frequency factor for the term t in the document d, computed as f req(t, d).</p><p>• idf (t) is the inverse document frequency of the term, computed as 1 + log numDocs docF req(t)+1 .</p><p>• boost(t.f ield, d) is the boost of the field of t in d, as set during indexing.</p><p>• norm(d) is the normalization value, given the number of terms within the document.</p><p>For more details on Lucene scoring see the official Lucene scoring 2 document.</p><p>Our main goal in this work was to experiment with the scoring mechanism of Lucene in order to bring it to the same level as the state-of-the-art ranking formulas such as OKAPI <ref type="bibr" coords="1,352.06,387.31,9.72,8.97" target="#b5">[5]</ref> and the SMART scoring model <ref type="bibr" coords="1,501.59,387.31,9.20,8.97" target="#b1">[1]</ref>. In order to study the scoring model of Lucene in full details we ran Juru and Lucene over the 150 topics of the tera-byte tracks, and over the 10K queries of the 1-Million Queries Track of this year. We then modified Lucene's scoring function to include better document length normalization, and a better term-weight setting according to the SMART model. Equation 2 describes the term frequency (tf ) and the normalization scheme used by Juru, based on SMART scoring mechanism, that we followed to modify Lucene scoring model. As we later describe, we were able to get better results with a simpler length normalization function that is available within Lucene, though not as the default length normalization.</p><p>For both Juru and Lucene we used the same HTML parser to extract content of the Web documents of the gov2 collection. In addition, for both systems the same anchor text extraction process took place. Anchors data was used for two purposes: 1) Set a document static score according to the number of in-links pointing to it. 2) Enrich the document content with the anchor text associated with its in-links.</p><p>Last, for both Lucene and Juru we used a similar query parsing mechanism, which included stop-word removal, synonym expansion and phrase expansion.</p><p>In the following we describe these processes in full details and the results both for the 150 topics of the terabyte tracks, and for the 10K queries of the 1-Million Queries Track.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">ANCHOR TEXT EXTRACTION</head><p>Extracting anchor text is a necessary task for indexing Web collections: adding text surrounding a link to the indexed document representing the linked page. With inverted indexes it is often inefficient to update a document once it was indexed. In Lucene, for example, updating an indexed document involves removing that document from the index and then (re) adding the updated document. Therefore, anchor extraction is done prior to indexing, as a global computation step. Still, for large collections, this is a nontrivial task. While this is not a new problem, describing a timely extraction method may be useful for other researchers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Extraction method</head><p>Our gov2 input is a hierarchical directory structure of about 27,000 compressed files, each containing multiple documents (or pages), altogether about 25,000,000 documents. Our output is a similar directory structure, with one compressed anchors text file for each original pages text file. Within the file, anchors texts are ordered the same as pages texts, allowing indexing the entire collection in a single combined scan of the two directories. We now describe the extraction steps.</p><p>• (i) Hash by URL: Input pages are parsed, emitting two types of result lines: page lines and anchor lines.</p><p>Result lines are hashed into separate files by URL, and so for each page, all anchor lines referencing it are written to the same file as its single page line.</p><p>• (ii) Sort lines by URL: This groups together every page line with all anchors that reference that page. Note that sort complexity is relative to the files size, and hence can be controlled by the hash function used.</p><p>• (iii) Directory structure: Using the file path info of page lines, data is saved in new files, creating a directory structure identical to that of the input.</p><p>• (iv) Documents order: Sort each file by document numbers of page lines. This will allow to index pages with their anchors.</p><p>Note that the extraction speed relies on serial IO in the splitting steps (i), (iii), and on sorting files that are not too large in steps (ii), (iv).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Gov2 Anchors Statistics</head><p>Creating the anchors data for gov2 took about 17 hours on a 2-way Linux. Step (i) above ran in 4 parallel threads and took most of the time: 11 hours. The total size of the anchors data is about 2 GB.</p><p>We now list some interesting statistics on the anchors data:</p><p>• There are about 220 million anchors for about 25 million pages, an average of about 9 anchors per page.</p><p>• Maximum number of anchors of a single page is 1,275,245 -that many .gov pages are referencing the page www.usgs.gov.</p><p>• 17% of the pages have no anchors at all.</p><p>• 77% of the pages have 1 to 9 anchors.</p><p>• 5% of the pages have 10 to 99 anchors.</p><p>• 159 pages have more than 100,000 anchors.</p><p>Obviously, for pages with many anchors only part of the anchors data was indexed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Static scoring by link information</head><p>The links into a page may indicate how authoritative that page is. We employed a simplistic approach of only counting the number of such in-links, and using that counter to boost up candidate documents, so that if two candidate pages agree on all quality measures, the page with more incoming links would be ranked higher.</p><p>Static score (SS) values are linearly combined with textual scores. Equation <ref type="formula" coords="2,386.65,263.15,4.61,8.97" target="#formula_1">3</ref>shows the static score computation for a document d linked by in(d) other pages.</p><formula xml:id="formula_1" coords="2,376.66,303.44,179.26,20.45">SS(d) = min(1, in(d) 400 )<label>(3)</label></formula><p>It is interesting to note that our experiments showed conflicting effects of this static scoring: while SS greatly improves Juru's quality results, SS have no effect with Lucene. To this moment we do not understand the reason for this difference of behavior. Therefore, our submissions include static scoring by in-links count for Juru but not for Lucene.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">QUERY PARSING</head><p>We used a similar query parsing process for both search engines. The terms extracted from the query include single query words, stemmed by the Porter stemmer which pass the stop-word filtering process, lexical affinities, phrases and synonyms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Lexical affinities</head><p>Lexical affinities (LAs) represent the correlation between words co-occurring in a document. LAs are identified by looking at pairs of words found in close proximity to each other. It has been described elsewhere <ref type="bibr" coords="2,473.20,532.75,9.72,8.97" target="#b3">[3]</ref> how LAs improve precision of search by disambiguating terms.</p><p>During query evaluation, the query profile is constructed to include the query's lexical affinities in addition to its individual terms. This is achieved by identifying all pairs of words found close to each other in a window of some predefined small size (the sliding window is only defined within a sentence). For each LA=(t1,t2), Juru creates a pseudo posting list by finding all documents in which these terms appear close to each other. This is done by merging the posting lists of t1 and t2. If such a document is found, it is added to the posting list of the LA with all the relevant occurrence information. After creating the posting list, the new LA is treated by the retrieval algorithm as any other term in the query profile.</p><p>In order to add lexical affinities into Lucene scoring we used Lucene's SpanNearQuery which matches spans of the query terms which are within a given window in the text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Phrase expansion</head><p>The query is also expanded to include the query text as a phrase. For example, the query 'U.S. oil industry history' is expanded to 'U.S. oil industry history. "U.S. oil industry history" '. The idea is that documents containing the query as a phrase should be biased compared to other documents. The posting list of the query phrase is created by merging the postings of all terms, considering only documents containing the query terms in adjacent offsets and in the right order. Similarly to LA weight which specifies the relative weight between an LA term and simple keyword term, a phrase weight specifies the relative weight of a phrase term.</p><p>Phrases are simulated by Lucene using the PhraseQuery class.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Synonym Expansion</head><p>The 10K queries for the 1-Million Queries Track track are strongly related to the .gov domain hence many abbreviations are found in the query list. For example, the u.s. states are usually referred by abbreviations (e.g. "ny" for New-York, "ca" or "cal" for California). However, in many cases relevant documents refer to the full proper-name rather than its acronym. Thus, looking only for documents containing the original query terms will fail to retrieve those relevant documents.</p><p>We therefore used a synonym table for common abbreviations in the .gov domain to expand the query. Given a query term with an existing synonym in the table, expansion is done by adding the original query phrase while replacing the original term with its synonym. For example, the query "ca veterans" is expanded to "ca veterans. California veterans".</p><p>It is however interesting to note that the evaluations of our Lucene submissions indicated no measurable improvements due to this synonym expansion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Lucene query example</head><p>To demonstrate our choice of query parsing, for the original topic -"U.S. oil industry history", the following Lucene query was created:</p><formula xml:id="formula_2" coords="3,72.63,486.69,193.01,70.98">oil industri histori ( spanNear([oil, industri], 8, false) spanNear([oil, histori], 8, false) spanNear([industri, histori], 8, false) )^4.0 "oil industri histori"~1^0.75</formula><p>The result Lucene query illustrates some aspects of our choice of query parsing:</p><p>• "U.S." is considered a stop word and was removed from the query text.</p><p>• Only stemmed forms of words are used.</p><p>• Default query operator is OR.</p><p>• Words found in a document up to 7 positions apart form a lexical affinity. (8 in this example because of the stopped word.)</p><p>• Lexical affinity matches are boosted 4 times more than single word matches.</p><p>• Phrase matches are counted slightly less than single word matches.</p><p>• Phrases allow fuzziness when words were stopped.</p><p>For more information see the Lucene query syntax 3 document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">LUCENE SCORE MODIFICATION</head><p>Our TREC quality measures for the gov2 collection revealed that the default scoring 4 of Lucene is inferior to that of Juru. (Detailed run results are given in Section 6.)</p><p>We were able to improve Lucene's scoring by changing the scoring in two areas: document length normalization and term frequency (tf) normalization.</p><p>Lucene's default length normalization 5 is given in equation 4, where L is the number of words in the document.</p><formula xml:id="formula_3" coords="3,380.65,260.76,175.27,21.79">lengthN orm(L) = 1 √ L<label>(4)</label></formula><p>The rational behind this formula is to prevent very long documents from "taking over" just because they contain many terms, possibly many times. However a negative side effect of this normalization is that long documents are "punished" too much, while short documents are preferred too much. The first two modifications below remedy this further.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Sweet Spot Similarity</head><p>Here we used the document length normalization of "Sweet Spot Similarity" 6 . This alternative Similarity function is available as a Lucene's "contrib" package. Its normalization value is given in equation 5, where L is the number of document words. We used steepness = 0.5, min = 1000, and max = 15, 000. This computes to a constant norm for all lengths in the [min, max] range (the "sweet spot"), and smaller norm values for lengths out of this range. Documents shorter or longer than the sweet spot range are "punished".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Pivoted length normalization</head><p>Our pivoted document length normalization follows the approach of <ref type="bibr" coords="3,368.35,580.96,9.20,8.97" target="#b6">[6]</ref>, as depicted in equation 6, where U is the number of unique words in the document and pivot is the average of U over all documents.</p><formula xml:id="formula_4" coords="3,322.80,627.46,233.12,28.63">lengthN orm(L) = 1 (1 -slope) * pivot + slope * U<label>(6)</label></formula><p>For Lucene we used slope = 0.16.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Term Frequency (tf) normalization</head><p>The tf-idf formula used in Lucene computes tf (t in d) as f req(t, d) where f req(t, d) is the frequency of t in d, and avgF req(d) is the average of f req(t, d) over all terms t of document d. We modified this to take into account the average term frequency in d, similar to Juru, as shown in formula 7.</p><formula xml:id="formula_5" coords="4,102.10,146.98,190.81,20.86">tf (t, d) = log(1 + f req(t, d)) log(1 + avgF req(d))<label>(7)</label></formula><p>This distinguishes between terms that highly represent a document, to terms that are part of duplicated text. In addition, the logarithmic formula has much smaller variation than Lucene's original square root based formula, and hence the effect of f req(t, d) on the final score is smaller.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Query fewer fields</head><p>Throughout our experiments we saw that splitting the document text into separate fields, such as title, abstract, body, anchor, and then (OR) querying all these fields performs poorer than querying a single, combined field. We have not fully investigated the causes for this, but we suspect that this too is due to poor length normalization, especially in the presence of very short fields.</p><p>Our recommendation therefore is to refrain from splitting the document text into fields in those cases that all the fields are actually searched at the same time.</p><p>While splitting into fields allows easy boosting of certain fields at search time, a better alternative is to boost the terms themselves, either statically by duplicating them at indexing time, or perhaps even better dynamically at search time, e.g. by using term payload values, a new Lucene feature. In this work we took the first, more static approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">QUERY LOG ANALYSIS</head><p>This year's task resembled a real search environment mainly because it provided us with a substantial query log. The log itself provides a glimpse into what it is that users of the .gov domain actually want to find. This is important since log analysis has become one of the better ways to improve search quality and performance.</p><p>For example, for our index we created a stopword list from the most frequent terms appearing in the queries, crossed with their frequency in the collection. The most obvious characteristic of the flavor of the queries is the term state which is ranked as the 6th most frequent query term with 342 mentions, and similarly it is mentioned 10,476,458 times in the collection. This demonstrates the bias of both the collection and the queries to content pertaining to state affairs. Also in the queries are over 270 queries containing us, u.s, usa, or the phrase "united states" and nearly 150 queries containing the term federal. The fact is that the underlying assumption in most of the queries in the log is that the requested information describes US government content. This may sound obvious since it is after all the gov2 collection, however, it also means that queries that contain the terms US, federal, and state actually restrict the results much more than required in a collection dedicated to exactly that content. So removing those terms from the queries makes much sense. We experimented with the removal of those terms and found that the improvement over the test queries is substantial.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Term</head><p>Frequency The log information allowed us to stop general terms along with collection-specific terms such as US, state, United States, and federal.</p><p>Another problem that arose from using such a diverse log was that we were able to detect over 400 queries which contained abbreviations marked by a dot, such as fed., gov., dept., st. and so on. We have also found numbers such as in street addresses or date of birth that were sometimes provided in numbers and sometimes in words. Many of the queries also contained abbreviations for state names which is the acceptable written form for referring to states in the US.</p><p>For this purpose we prepared a list of synonyms to expand the queries to contain all the possible forms of the terms. For example for a query "Orange County CA" our system produced two queries "Orange County CA" and "Orange County California" which were submitted as a single query combined of both strings. Overall we used a list of about 250 such synonyms which consisted of state abbreviations (e.g. RI, Rhode Island), common federal authorities' abbreviations (e.g. FBI, FDA, etc.), and translation of numbers to words (e.g. 1, one, 2, two, etc.).</p><p>Although we are aware of the many queries in different languages appearing in the log, mainly in Spanish, we chose to ignore cross-language techniques and submit them as they are. Another aspect we did not cover and that could possible have made a difference is the processing of over 400 queries that appeared in a wh question format of some sort. We speculate that analyzing the syntax of those queries could have made a good filtering mechanism that may have improved our results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">RESULTS</head><p>Search quality results of our runs for the 1-Million Queries Track are given in Table <ref type="table" coords="5,155.26,80.45,3.58,8.97" target="#tab_1">2</ref>. For a description of the various options see Section 4. The top results in each column are emphasized. The MAP column refer to the 150 terabyte track queries that were part of the queries pool. We next analyze these results.  Runs 1 (Juru) and 9 (Lucene) -marked with '(*)' -are the only runs in this table that were submitted to the 1 Million Queries Track. Two more Lucene runs were submitted, with  variations of synonym expansion and spell correction, but their results were nearly identical to Run 9, and these two runs are therefore not discussed separately in this report. Also note that Lucene Run 10, which was not submitted, outperforms the submitted Lucene runs in all measures but NEU-Map.</p><p>Run 2 is the default -out-of-the-box Lucene. This run was used as a base line for improving Lucene quality measures. Comparing run 2 with run 1 shows that Lucene's default behavior does not perform very well, with MAP of 0.154 comparing to Juru's MAP of 0.313. Runs 3, 4, 5 add proximity (LA), phrase, and both proximity and phrase, on top of the default Lucene1. The results for Run 5 reveals that adding both proximity and phrase to the query evaluation is beneficial, and we therefore pick this configuration as the base for the rest of the evaluation, and name it as Lucene4. Note then that runs 6 to 9 are marked as Lucene4 as well, indicating proximity and phrase in all of them.</p><p>Lucene's sweet spot similarity run performs much better than the default Lucene behavior, bringing MAP from 0.214 in run 5 to 0.273 in run 7. Note that the only change here is a different document length normalization. Replacing the document length normalization with a pivoted length one in run 6 improves MAP further to 0.284.</p><p>Run 10 is definitely the best run: combining the document length normalization of Lucene's sweet spot similarity with normalizing the tf by the average term frequency in a document. This combination brings Lucene's MAP to 0.306, and even outperforms Juru for the P@5, P@10, and P@20 Run MAP -Map NEU-Map P@5 P@10 P@20 -Map sec/q Recomputed measures. The 1-Million Queries Track measures of -Map and NEU-Map introduced in the 1-Million Queries Track support the improvements to Lucene scoring: runs 9 and 10 are the best Lucene runs in these measures as well, with a slight disagreement in the NEU-Map measure that prefers run 9.</p><p>Figures <ref type="figure" coords="6,97.17,301.52,4.61,8.97" target="#fig_2">1</ref> and<ref type="figure" coords="6,126.15,301.52,4.61,8.97">2</ref> show that the improvements of stock Lucene are consistent for all three measures: MAP, -Map and NEU-Map. Figure <ref type="figure" coords="6,151.47,322.44,4.61,8.97">3</ref> demonstrates similar consistency for precision cut-offs at 5, 10 and 20.</p><p>Since most of the runs analyzed here were not submitted, we applied the supplied expert utility to generated a new expert.rels file, using all our runs. As result, the evaluate program that computes -Map was able to take into account any new documents retrieved by the new runs, however, this ignored any information provided by any other run. Note: it is not that new unjudged documents were treated as relevant, but the probabilities that a non-judged document retrieved by the new runs is relevant were computed more accurately this way.</p><p>Column -Map2 in Table <ref type="table" coords="6,169.89,447.97,4.61,8.97" target="#tab_1">2</ref> show this re-computation of -Map, and, together with Figure <ref type="figure" coords="6,198.56,458.43,3.58,8.97" target="#fig_4">4</ref>, we can see that the improvements to Lucene search quality are consistent with previous results, and run 10 is the best Lucene run.</p><p>Finally, we measured the search time penalty for the quality improvements. This is depicted in column sec/q of Table 2 as well as Figure <ref type="figure" coords="6,131.17,510.73,3.58,8.97" target="#fig_5">5</ref>. We can see that the search time grew by a factor of almost 6. This is a significant cost, that surely some applications would not be able to afford. However it should be noticed that in this work we focused on search quality and so better search time is left for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">SUMMARY</head><p>We started by measuring Lucene's out of the box search quality for TREC data and found that it is significantly inferior to other search engines that participate in TREC, and in particular comparing to our search engine Juru.</p><p>We were able to improve Lucene's search quality as measured for TREC data by (1) adding phrase expansion and proximity scoring to the query, (2) better choice of document length normalization, and (3) normalizing tf values by document's average term frequency. We also would like to note the high performance of improved Lucene over the new query set -Lucene three submitted runs were ranked first according to the NEU measure and in places 2-4 (after the Juru run) according to eMap.</p><p>The improvements that were trained on the 150 terabyte queries of previous years were shown consistent with the 1755 judged queries of the 1-Million Queries Track, and with the new sampling measures -Map and NEU-Map.</p><p>Application developers using Lucene can easily adopt the document length normalization part of our work, simply by a different similarity choice. Phrase expansion of the query as well as proximity scoring should be also relatively easy to add. However for applying the tf normalization some changes in Lucene code would be required.</p><p>Additional considerations that search application developers should take into account are the search time cost, and whether the improvements demonstrated here are also relevant for the domain of the specific search application.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="1,322.77,509.89,34.70,7.97;1,436.10,507.36,54.31,5.98;1,429.86,514.51,66.78,5.98;1,558.20,509.89,10.81,7.97;1,316.81,526.03,40.66,7.97;1,374.90,526.03,185.14,7.97"><head></head><label></label><figDesc>tf (t, d) = log(1+f req(t,d)) log(1+avg(f req(d))) (2) norm(d) =0.8 avg(#uniqueT erms) + 0.2 #uniqueT erms(d)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,340.02,458.20,74.59,8.97;3,544.14,458.20,11.78,8.97;3,434.54,470.21,3.65,5.98;3,350.18,470.73,7.68,15.31;3,357.86,479.22,164.67,5.43"><head>1 √</head><label>1</label><figDesc>steepness * (|L-min|+|L-max|-(max-min))+1)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,101.39,297.74,143.93,8.97;5,53.80,142.06,255.10,141.99"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: MAP and NEU-Map</figDesc><graphic coords="5,53.80,142.06,255.10,141.99" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="5,133.28,474.50,80.14,8.97;5,53.80,328.79,255.10,132.01"><head>Figure 2 Figure 3 :</head><label>23</label><figDesc>Figure 2: -MAP</figDesc><graphic coords="5,53.80,328.79,255.10,132.01" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="5,365.35,195.48,142.01,8.97;5,316.81,53.81,255.10,127.97"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: -MAP Recomputed</figDesc><graphic coords="5,316.81,53.81,255.10,127.97" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="5,346.37,373.87,179.97,8.97;5,316.81,218.14,255.10,142.04"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Search time (seconds/query)</figDesc><graphic coords="5,316.81,218.14,255.10,142.04" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,324.78,57.99,237.68,314.71"><head>Table 1 :</head><label>1</label><figDesc>Most frequent terms in the query log.</figDesc><table coords="4,426.48,57.99,135.99,8.97"><row><cell>in query log Frequency in index</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,61.77,79.31,509.35,138.77"><head>Table 2 :</head><label>2</label><figDesc>Search Quality Comparison.</figDesc><table coords="6,61.77,79.31,509.35,106.70"><row><cell>1. Juru (*)</cell><cell>0.313</cell><cell>0.1080</cell><cell>0.3199</cell><cell>0.592</cell><cell>0.560</cell><cell>0.529</cell><cell>0.2121</cell><cell></cell></row><row><cell>2. Lucene1 Base</cell><cell>0.154</cell><cell>0.0746</cell><cell>0.1809</cell><cell>0.313</cell><cell>0.303</cell><cell>0.289</cell><cell>0.0848</cell><cell>1.4</cell></row><row><cell>3. Lucene2 LA</cell><cell>0.208</cell><cell>0.0836</cell><cell>0.2247</cell><cell>0.409</cell><cell>0.382</cell><cell>0.368</cell><cell>0.1159</cell><cell>5.6</cell></row><row><cell>4. Lucene3 Phrase</cell><cell>0.191</cell><cell>0.0789</cell><cell>0.2018</cell><cell>0.358</cell><cell>0.347</cell><cell>0.341</cell><cell>0.1008</cell><cell>4.1</cell></row><row><cell>5. Lucene4 LA + Phrase</cell><cell>0.214</cell><cell>0.0846</cell><cell>0.2286</cell><cell>0.409</cell><cell>0.390</cell><cell>0.383</cell><cell>0.1193</cell><cell>6.7</cell></row><row><cell>6. Lucene4 Pivot Length Norm</cell><cell>0.284</cell><cell></cell><cell></cell><cell>0.572</cell><cell>0.540</cell><cell>0.503</cell><cell></cell><cell></cell></row><row><cell>7. Lucene4 Sweet Spot Similarity</cell><cell>0.273</cell><cell>0.1059</cell><cell>0.2553</cell><cell>0.593</cell><cell>0.565</cell><cell>0.527</cell><cell>0.1634</cell><cell>6.9</cell></row><row><cell>8. Lucene4 TF avg norm</cell><cell>0.194</cell><cell>0.0817</cell><cell>0.2116</cell><cell>0.404</cell><cell>0.373</cell><cell>0.370</cell><cell>0.1101</cell><cell>7.8</cell></row><row><cell>9. Lucene4 Pivot + TF avg norm (*)</cell><cell>0.294</cell><cell>0.1031</cell><cell>0.3255</cell><cell>0.587</cell><cell>0.542</cell><cell>0.512</cell><cell>0.1904</cell><cell></cell></row><row><cell cols="3">10. Lucene4 Sweet Spot + TF avg norm 0.306 0.1091</cell><cell>0.3171</cell><cell cols="3">0.627 0.589 0.543</cell><cell>0.2004</cell><cell>8.0</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,58.41,674.72,234.49,8.97;1,53.80,683.68,239.06,8.97;1,53.80,692.66,239.08,8.97;1,53.80,701.62,239.08,8.97;1,53.80,710.58,25.21,8.97"><p>We used Lucene Java: http://lucene.apache.org/java/docs, the first and main Lucene implementation. Lucene defines a file format, and so there are ports of Lucene to other languages. Throughout this work, "Lucene" refers to "Apache Lucene Java".</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="8.">ACKNOWLEDGMENTS</head><p>We would like to thank <rs type="person">Ian Soboroff</rs> and <rs type="person">Ben Carterette</rs> for sharing their insights in discussions about how the results -all the results and ours -can be interpreted for the writing of this report.</p><p>Also thanks to <rs type="person">Nadav Har'El</rs> for helpful discussions on anchor text extraction, and for his code to add proximity scoring to Lucene.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,321.29,505.27,96.82,10.76" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,517.31,211.06,8.97;6,331.02,527.77,196.58,8.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,488.29,517.31,53.78,8.97;6,331.02,527.77,125.64,8.97">New retrieval approaches using smart: Trec 4</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Singhal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mitra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,474.85,527.77,22.95,8.96">TREC</title>
+		<imprint>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,539.23,222.58,8.97;6,331.02,549.69,219.30,8.97;6,331.02,560.15,200.69,8.96;6,331.02,570.61,222.07,8.97;6,331.02,581.08,20.99,8.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,440.56,539.23,113.03,8.97;6,331.02,549.69,143.77,8.97">Juru at TREC 2006: TAAT versus DAAT in the Terabyte Track</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Amitay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,493.61,549.69,56.71,8.96;6,331.02,560.15,142.36,8.96">Proceedings of the 15th Text REtrieval Conference</title>
+		<meeting>the 15th Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2006">2006. 2006</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology. NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,592.53,210.71,8.97;6,331.02,602.99,198.74,8.97;6,331.02,613.45,202.80,8.97;6,331.02,623.92,222.78,8.97;6,331.02,634.37,208.48,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,452.06,602.99,77.70,8.97;6,331.02,613.45,130.86,8.97">Juru at TREC 10 -Experiments with Index Pruning</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Amitay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Herscovici</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">S</forename><surname>Maarek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Petruschka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Soffer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,480.87,613.45,52.95,8.96;6,331.02,623.92,175.37,8.96">Proceeding of Tenth Text REtrieval Conference (TREC-10</title>
+		<meeting>eeding of Tenth Text REtrieval Conference (TREC-10</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology. NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,645.83,205.02,8.97;6,331.02,656.29,131.99,8.97" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Gospodnetic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Hatcher</surname></persName>
+		</author>
+		<title level="m" coord="6,464.40,645.83,67.50,8.96">Lucene in Action</title>
+		<imprint>
+			<publisher>Manning Publications Co</publisher>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,667.75,202.90,8.97;6,331.02,678.21,218.87,8.97;6,331.02,688.67,20.99,8.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,442.82,678.21,60.10,8.97">Okapi at trec-4</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gatford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Payne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,521.20,678.21,22.95,8.96">TREC</title>
+		<imprint>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,331.01,700.13,188.11,8.97;6,331.02,710.59,215.13,8.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,488.29,700.13,30.83,8.97;6,331.02,710.59,124.38,8.97">Pivoted document length normalization</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Singhal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mitra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,474.15,710.59,72.00,8.96">Proceedings of the</title>
+		<meeting>the</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

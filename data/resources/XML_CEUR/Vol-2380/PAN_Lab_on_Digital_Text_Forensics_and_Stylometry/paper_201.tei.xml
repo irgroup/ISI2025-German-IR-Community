@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,176.94,115.90,261.47,12.90;1,223.43,135.75,168.50,10.75">Celebrity Profiling with Transfer Learning Notebook for PAN at CLEF 2019</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,282.64,172.15,50.08,8.64"><forename type="first">Björn</forename><surname>Pelzer</surname></persName>
+							<email>bjorn.pelzer@foi.se</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Swedish Defence Research Agency FOI Stockholm</orgName>
+								<address>
+									<country key="SE">Sweden</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,176.94,115.90,261.47,12.90;1,223.43,135.75,168.50,10.75">Celebrity Profiling with Transfer Learning Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">08BC43B162BCF5EA1E7FB9B5357D3F63</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:59+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this approach to the Celebrity Profiling task we implemented a system that evaluates each tweet of an incoming feed using four classifiers, one for each trait: fame, occupation, gender and birthyear. The overall result for the feed of one celebrity is then determined by the majority of the individual tweet results for each trait. The classifiers were trained using transfer learning on a language model, which itself had been created by unsupervised learning on the raw text of all the tweets in the training data.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This approach to the Celebrity Profiling task <ref type="bibr" coords="1,320.32,388.72,11.62,8.64" target="#b8">[9]</ref> of the PAN 2019 competition <ref type="bibr" coords="1,458.99,388.72,11.62,8.64" target="#b0">[1]</ref> is based on transfer learning: A large existing language model, trained on an extensive amount of raw text, is fine-tuned with labeled training samples for a specific task. By utilizing the word embeddings of the language model, the fine-tuning step can produce a classifier with state-of-the-art performance using relatively few labeled training samples.</p><p>The task organizers have provided the extensive Celebrity Profiling corpus <ref type="bibr" coords="1,454.33,460.46,11.62,8.64" target="#b7">[8]</ref> for training, comprising 48,335 anonymized Twitter user profiles from celebrities. Each such profile has been annotated with four traits: fame, occupation, gender and birthyear. Each profile also comes with on average 2,181 tweet texts (presumably) authored by the respective celebrity. Due to the special nature of the language used in tweets, we opted to first train a Twitter-specific language model from scratch. This model was then fine-tuned with the labeled training data provided by the competition, resulting in four classifiers, one for each trait to be detected. The system implemented for the competition then uses these four classifiers to evaluate each provided tweet, i.e. resulting in an estimated fame, occupation, gender and birthyear for every single tweet. When all tweets of one person have been evaluated, the overall result for each trait of the person is determined by the majority of the individual tweet results.</p><p>This approach is relatively fine-grained: one classifier for each trait, and each tweet evaluated individually. One might instead consider one combined classifier for all four traits, and one could evaluate the entire set of tweets of one person as one long text. There are several reasons for our choices. Working with individual tweets and classifiers allows better tailoring of the training data for the traits: E.g. a set of tweets balanced for gender might be imbalanced for birthyear, and our method allowed us to compose different training sets. Also, by splitting up the tweet sets of each person, we could ensure that each classifier was trained and validated on tweets from each person. Finally, beyond the competition we are interested in analysing individual tweets and texts in general, and getting an idea of the expected performance in such applications was important to us.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Classifying user attributes based on tweets has been a topic of research for approximately a decade at the time of this writing, with Rao et al. <ref type="bibr" coords="2,368.63,283.70,11.62,8.64" target="#b6">[7]</ref> being among the earliest in 2010. Machine learning has been employed for this objective since before its current resurgence in the form of deep learning, for example by Pennacchiotti and Popescu in 2011 <ref type="bibr" coords="2,158.13,319.56,10.58,8.64" target="#b4">[5]</ref>. Author profiling based on tweets has been a part of the PAN competitions since 2013 <ref type="bibr" coords="2,182.55,331.52,10.58,8.64" target="#b3">[4]</ref>. Yang et al. utilized transfer learning for tweet classification in 2017 <ref type="bibr" coords="2,134.77,343.47,15.27,8.64" target="#b9">[10]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Transfer Learning</head><p>Transfer learning on language models has become a highly successful approach for natural language processing (NLP) in the recent past. For example, Google BERT<ref type="foot" coords="2,462.34,410.54,3.49,6.05" target="#foot_0">1</ref>  <ref type="bibr" coords="2,468.98,412.21,11.62,8.64" target="#b1">[2]</ref> achieved new state-of-the-art results on eleven NLP tasks in 2018.</p><p>Another successful transfer learning approach is ULMFiT<ref type="foot" coords="2,384.58,434.55,3.49,6.05" target="#foot_1">2</ref>  <ref type="bibr" coords="2,391.65,436.22,11.62,8.64" target="#b2">[3]</ref> as implemented in the fast.ai-framework. <ref type="foot" coords="2,224.22,446.51,3.49,6.05" target="#foot_2">3</ref> ULMFiT set new standards earlier in 2018 before being surpassed by BERT.</p><p>Both BERT and ULMFiT have significant hardware requirements. In the case of BERT these are so severe that training a new language model from scratch is not feasible on the hardware commonly available in academia. Instead, BERT users need to rely on the pre-trained model available from Google. ULMFiT is more manageable: A new language model can be trained on a computer with 128 GB RAM and an Nvidia GTX 1080 Ti GPU in less than a week. This has led to the emergence of a rich community of ULMFiT users who create language models for different languages and share their experiences. For this reason we chose ULMFiT for our implementation.</p><p>Unfortunately our testing revealed that running the classifiers on the intended data still has fairly demanding hardware requirements, regularly consuming 40 GB of RAM, with a high-performance GPU being almost non-optional. As this exceeds the capabilities of the TIRA virtual machines <ref type="bibr" coords="2,282.37,603.80,11.62,8.64" target="#b5">[6]</ref> used for the competition, we did not expect good -if any -results. Indeed, these concerns were proven correct, and our system only handled a fraction of the data in the competition time, leading to extrapolated and non-representative results. Nevertheless we describe our approach, as we made useful experiences for the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Language Model</head><p>ULMFiT is provided with a pre-trained model for English, based on Wikipedia. As the almost entirely encyclopedic language of this corpus may not be a good match when dealing with other types of texts, the authors of ULMFiT recommend pre-training a language model from scratch when needed, and provide some tools for this. Twitter texts tend to contain large numbers of emoticons, links, abbreviations, colloquialisms, spelling mistakes and bad grammar -a stark contrast to the language in Wikipedia. Therefore we chose to train our own Twitter language model. The ULMFiT community recommends training on a corpus with approximately 100 million tokens. The tweets in the Celebrity Profiling training data are well above this amount with more than 1.6 billion tokens in total. The recommendation of 100 million is a decent compromise between training time, hardware requirements during training and desired performance, but in our experience from earlier experiments with other languages, a model gets better with a larger corpus. We therefore trained our language model on all the tweets in the training set. It should be noted that while the fast.ai-framework of ULMFiT comes with tools for training a language model, several of the preprocessing steps do not scale well to larger corpus sizes, requiring more than the 128 GB of RAM we had available for this. Thus we reimplemented most of the preprocessing, including tokenization and vocabulary building, and only used ULMFiT for the actual training, which required approximately five days.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Classifiers</head><p>Four copies of our language model were fine-tuned to become four separate classifiers, one for each trait used in the competition. The classifiers were trained on a per-tweet basis. In other words the provided Celebrity Corpus, which collects all tweets from one author into a single feed, was broken down into individual tweets before training, and each tweet was annotated with the four trait labels from its source feed/author. From this we selected and downsampled four training sets, one per classifier, ensuring approximately balanced data for the respective trait. The resulting balance was often far from perfect: Due to the sometimes extreme disproportions in the original data we made considerable trade-offs here to keep the training sets from becoming too small. All four classifiers were trained according to the same One-Cycle-policy recommended for ULMFiT classifier training by fast.ai. The accuracies achieved by the individual classifiers are stated in Table <ref type="table" coords="3,278.95,600.93,3.74,8.64" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Fame</head><p>The classifier for the fame trait is arguably the worst, as its accuracy of 0.39 is not much better than randomly guessing one of the three classes of this trait. This may not be all that surprising, considering that the link between a person's tweet writing style and the actual fame seems tenuous, especially given that most celebrities are still famous for activities outside of Twitter. Nevertheless, given a large number of tweets the current accuracy should let the system tend towards the correct decision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Occupation</head><p>With eight different occupation classes to choose from, this classifier does fairly well with an accuracy of 0.51. Celebrities are usually famous for the activities they perform in their given occupation, and it seems plausible that a celebrity would often be writing about such activities and use words that are clear indicators of the given field.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Gender</head><p>The class nonbinary in the gender trait occurs only in about 0.1 percent of the tweets, so downsampling to actual balance would have meant discarding a lot of useful training data for the two far more likely classes female and male. Instead we only ensured balance between the latter two. While the classifier was trained on nonbinary samples and it will try to recognize this class, the current accuracy of 0.68 thus only holds for data with a fairly realistic distribution, i.e. with hardly any nonbinary occurrences.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4">Birthyear</head><p>The birthyear trait has the highest number of possible classes, covering the years from 1940 to 2012, with a few gaps not represented by any author feeds. It seemed daunting to train a fine-granular classifier to distinguish between all these classes. The competition design also acknowledges this difficulty by accepting answers as correct as long as they fall inside a certain interval around the actually correct value. Following the interval computation formula in the competition evaluation script, we determined eight intervals to cover the entire range, and we then reclassified each training example to the "middle" year of the interval that contains the original year associated with that tweet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Overall System</head><p>All four classifiers achieved better accuracy than random chance given the respective number of classes. As we expected the competition test feeds to be of comparable size as the provided training feeds, i.e. many (hundreds of) tweets per author, we considered it viable to employ our classifiers in a majority-vote fashion: Each single tweet t a 1 , ..., t a n of an author feed a is classified individually by all four classifiers. This results in the four </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Evaluation</head><p>As expected after initial tests, our system was too demanding for the competition computers, and none of the competition test sets could be evaluated in time. The competition organizers generously provided us with the smaller competition test dataset 2, so that we could run an classification on our own computer. We then forwarded our resulting classification labels to the organizers, who in turn evaluated our data and gave us the results. Naturally, the results of this are not to be considered as actual competition results. We thus present them in Table <ref type="table" coords="5,262.07,442.42,4.98,8.64" target="#tab_1">2</ref> without any direct comparison to the official results from other competitors, to avoid any misunderstanding in the matter. The cRank as per the competition rules is the harmonic mean of the F1-scores.</p><p>We can see that the order of trait-based accuracies matches the one determined during the training of the individual classifiers as found in Table <ref type="table" coords="5,376.28,490.49,3.88,8.64" target="#tab_0">1</ref>: the overall performance for gender was best, followed by occupation, fame and finally birthyear. The competitors in the official results largely follow the same order, so it it seems plausible that this corresponds to an increasing difficulty among the four traits.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,154.69,115.83,306.94,47.53"><head>Table 1 .</head><label>1</label><figDesc>Classifier Accuracies</figDesc><table coords="4,154.69,138.60,306.94,24.76"><row><cell>classifier</cell><cell>fame</cell><cell>occupation</cell><cell>gender</cell><cell>birthyear</cell></row><row><cell>accuracy</cell><cell>0.39</cell><cell>0.51</cell><cell>0.68</cell><cell>0.32</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,134.77,115.83,345.83,205.15"><head>Table 2 .</head><label>2</label><figDesc>Overall Results (fame, occupation, gender and birthyear) for a given tweet t f i . The overall result for the whole author feed is then in each trait determined as the class occurring most often (i.e. relative majority) among the individual tweet estimates of the feed.</figDesc><table coords="5,134.77,138.75,257.51,146.89"><row><cell></cell><cell>F1</cell><cell>accuracy</cell></row><row><cell>cRank</cell><cell>0.499</cell><cell>n/a</cell></row><row><cell>mean</cell><cell>n/a</cell><cell>0.621</cell></row><row><cell>fame</cell><cell>0.46</cell><cell>0.556</cell></row><row><cell>occupation</cell><cell>0.48</cell><cell>0.704</cell></row><row><cell>gender</cell><cell>0.548</cell><cell>0.862</cell></row><row><cell>birthyear</cell><cell>0.518</cell><cell>0.364</cell></row><row><cell>estimates f (t a i ), o(t a i ), g(t a i ), b(t a i )</cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,144.73,623.68,335.87,7.72;2,144.73,635.63,108.10,6.31"><p>Bidirectional Encoder Representations from Transformers, https://github.com/ google-research/bert</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,144.73,645.78,142.53,7.72"><p>Universal Language Model Fine-tuning</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,144.73,657.93,102.22,6.31"><p>https://www.fast.ai</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="8">Conclusions and Future Work</head><p>We believe our approach to be promising, but it is too heavyweight to be competitive at this time. Systems based on language models tend to be demanding, and ours basically employs four language models simultaneously. Also, the fast.ai-framework is still somewhat experimental, and the version we were working with showed spotty support for non-GPU computations. As this situation stabilizes, a system like ours may become more competitive. More effort could also be spent on optimizing our implementation, and using multiprocessing.</p><p>For now we have learnt some important lessons, and aspects of the system (in particular the gender and birthyear classifiers) may become useful in studies of other areas, outside of celebrities.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.61,198.67,312.25,7.77;6,150.95,209.62,301.85,7.77;6,150.95,220.58,316.87,7.77;6,150.95,231.54,321.36,7.77;6,150.95,242.50,323.61,7.77;6,150.95,253.46,329.64,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,150.95,220.58,316.87,7.77;6,150.95,231.54,140.81,7.77">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,407.83,242.50,66.74,7.77;6,150.95,253.46,229.80,7.77">Proceedings of the Tenth International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">2019. Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,264.42,325.47,7.77;6,150.95,275.38,294.64,7.77" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,328.63,264.42,139.45,7.77;6,150.95,275.38,144.12,7.77">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,142.61,286.34,295.43,7.77;6,150.95,297.30,254.44,7.77" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="6,232.21,286.34,177.90,7.77">Fine-tuned language models for text classification</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<idno>CoRR abs/1801.06146</idno>
+		<ptr target="http://arxiv.org/abs/1801.06146" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,308.25,325.85,7.77;6,150.95,319.21,319.16,7.77;6,150.95,330.17,300.83,7.77;6,150.95,341.13,208.14,7.77;6,150.95,352.93,319.40,6.31" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,385.40,308.25,83.06,7.77;6,150.95,319.21,94.02,7.77">Overview of the author profiling task at PAN 2013</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">M R</forename><surname>Pardo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Inches</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1179/CLEF2013wn-PAN-RangelEt2013.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,438.95,319.21,31.16,7.77;6,150.95,330.17,121.52,7.77">Working Notes for CLEF 2013 Conference</title>
+		<title level="s" coord="6,427.87,330.17,23.91,7.77;6,150.95,341.13,81.11,7.77">CEUR Workshop Proceedings</title>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Forner</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Navigli</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Tufis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Valencia, Spain</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2013">September 23-26, 2013. 2013</date>
+			<biblScope unit="volume">1179</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,363.05,333.33,7.77;6,150.95,374.01,284.49,7.77;6,150.95,384.97,323.01,7.77;6,150.95,395.93,165.11,7.77;6,150.95,407.73,312.03,6.31" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,266.76,363.05,205.91,7.77">A machine learning approach to twitter user classification</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Pennacchiotti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Popescu</surname></persName>
+		</author>
+		<ptr target="http://www.aaai.org/ocs/index.php/ICWSM/ICWSM11/paper/view/2886" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,349.03,374.01,86.42,7.77;6,150.95,384.97,197.04,7.77">Proceedings of the Fifth International Conference on Weblogs and Social Media</title>
+		<editor>
+			<persName><forename type="first">L</forename><forename type="middle">A</forename><surname>Adamic</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><forename type="middle">A</forename><surname>Baeza-Yates</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Counts</surname></persName>
+		</editor>
+		<meeting>the Fifth International Conference on Weblogs and Social Media<address><addrLine>Barcelona, Catalonia, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>The AAAI Press</publisher>
+			<date type="published" when="2011">July 17-21, 2011. 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,417.84,335.03,7.77;6,150.95,428.80,309.15,7.77;6,150.95,439.76,209.02,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,333.86,417.84,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,259.53,428.80,200.58,7.77;6,150.95,439.76,144.92,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,450.72,337.98,7.77;6,150.95,461.68,322.07,7.77;6,150.95,472.64,248.82,7.77;6,150.95,484.44,225.95,6.31" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,328.68,450.72,148.76,7.77">Classifying latent user attributes in twitter</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Yarowsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Shreevats</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gupta</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1871985.1871993</idno>
+		<ptr target="http://doi.acm.org/10.1145/1871985.1871993" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,163.16,461.68,309.87,7.77;6,150.95,472.64,30.33,7.77;6,227.67,472.64,38.30,7.77">Proceedings of the 2Nd International Workshop on Search and Mining User-generated Contents</title>
+		<meeting>the 2Nd International Workshop on Search and Mining User-generated Contents<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="37" to="44" />
+		</imprint>
+	</monogr>
+	<note>SMUC &apos;10</note>
+</biblStruct>
+
+<biblStruct coords="6,142.61,494.56,327.54,7.77;6,150.95,505.51,65.23,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,292.93,494.56,65.88,7.77">Celebrity Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,376.62,494.56,93.53,7.77">Proceedings of ACL 2019</title>
+		<meeting>ACL 2019</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note>to appear</note>
+</biblStruct>
+
+<biblStruct coords="6,142.61,516.47,324.49,7.77;6,150.95,527.43,309.69,7.77;6,150.95,538.39,206.68,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,292.93,516.47,174.17,7.77;6,150.95,527.43,16.14,7.77">Overview of the Celebrity Profiling Task at PAN 2019</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,383.69,527.43,76.96,7.77;6,150.95,538.39,38.13,7.77">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="6,195.56,538.39,85.63,7.77">Notebook Papers. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,549.35,326.25,7.77;6,150.95,560.31,298.98,7.77;6,150.95,571.27,309.99,7.77;6,150.95,582.23,185.23,7.77;6,150.95,594.03,225.95,6.31" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,337.58,549.35,130.91,7.77;6,150.95,560.31,102.08,7.77">Transfer learning for multi-language twitter election classification</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3110025.3110059</idno>
+		<ptr target="http://doi.acm.org/10.1145/3110025.3110059" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,270.75,560.31,179.19,7.77;6,150.95,571.27,238.26,7.77;6,150.95,582.23,51.42,7.77">Proceedings of the 2017 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining</title>
+		<meeting>the 2017 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2017">2017. 2017</date>
+			<biblScope unit="page" from="341" to="348" />
+		</imprint>
+	</monogr>
+	<note>ASONAM &apos;17</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

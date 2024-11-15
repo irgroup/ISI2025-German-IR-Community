@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,134.77,115.90,345.83,12.90">Argument Retrieval Using Deep Neural Ranking Models</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,236.63,153.95,59.48,8.64"><forename type="first">Saeed</forename><surname>Entezari</surname></persName>
+							<email>saeed.entezari@uni-weimar.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Bauhaus Universität Weimar</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,315.47,153.95,63.26,8.64"><forename type="first">Michael</forename><surname>Völske</surname></persName>
+							<email>michael.voelske@uni-weimar.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Bauhaus Universität Weimar</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,134.77,115.90,345.83,12.90">Argument Retrieval Using Deep Neural Ranking Models</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">BB195CE94C4328AA631DC2FF3A7D76ED</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Conversational argument retrieval is the problem of ranking argumentative texts in a collection of focused arguments in order of their relevance to a textual query on different topics. In this notebook-paper for Touché by taking a distant supervision approach for constructing the query relevance information, we investigate seven different deep neural ranking models proposed in the literature with respect to their suitability to this task. In order to incorporate the insights from multiple models into an argument ranking, we further investigate a simple linear aggregation strategy. By retrieving relevant arguments using deep neural ranking models, it will be inspected to what extent the systems whose main concentration is on relevant documents, would be able to retrieve arguments which meet various quality dimensions of the arguments. Our test results suggest that the interaction-focused networks provide better performance compared to the representation-focused networks.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Arguments may have existed since humans first started communicating <ref type="bibr" coords="1,420.99,412.79,10.58,8.64" target="#b3">[4]</ref>. People use arguments in order to prove or contradict an opinion, in particular on controversial topics where opinions diverge widely. Rieke et al. define an argument as a unit composed of a claim (conclusion) and its supporting premises <ref type="bibr" coords="1,343.07,448.66,15.27,8.64" target="#b9">[10]</ref>. Generally, premises can support or attack a claim: the premises of one claim can be used to support or attack other claims. A conclusion could be a word, phrase or even a sentence. Typically the premises are texts composed of multiple sentences or paragraphs.</p><p>Due to the variety of opinion towards controversial topics, a corresponding query typically does not have a single correct answer, and getting an exhaustive overview can take considerable time <ref type="bibr" coords="1,244.07,520.39,15.27,8.64" target="#b13">[14]</ref>. In this situation, a ranking model which can neutrally retrieve the arguments on all sides of a controversial topic can provide users with a reasonable approach toward difficult questions. Such argument retrieval systems can benefit debate support and writing assistance systems, as well as automated decision making and opinion summarization.</p><p>This paper describes our contribution to the Touché 2020 shared task on conversational argument retrieval. By taking a distant supervision approach, our primary focus of investigation is on a variety of neural ranking models that have been proposed in the literature in recent years <ref type="bibr" coords="1,249.99,616.03,11.62,8.64" target="#b2">[3,</ref><ref type="bibr" coords="1,261.61,616.03,7.75,8.64" target="#b7">8,</ref><ref type="bibr" coords="1,269.36,616.03,11.62,8.64" target="#b14">15,</ref><ref type="bibr" coords="1,280.98,616.03,11.62,8.64" target="#b15">16]</ref>, and how they can apply to the conversational argument retrieval setting. In our experiments, a basis retrieval model such as BM25 produces an initial ranking which is then re-ranked by the deep neural model (except in the case of end-to-end models, which operate without an initial retrieval). We compare seven different neural ranking models overall. In addition to tackling this problem with individual neural rankers, we also explore a simple rank aggregation scheme based on a linear combination of the models' scores. Based on the test results, interaction-focused networks outperform significantly the representation-focused networks. Using the contextualized embedding representation, the convergence in the training phase happens faster and a certain level of performance could be achieved.</p><p>In what follows, we first review a selection of relevant related works on argumentation and argument retrieval, as well as the shared task setting. In Section 3, we briefly introduce the ranking models that comprise our study; we include recurrent siamese networks, kernel-based neural ranking models, different variants of contextualized embedding-based models, as well as stand-alone neural rankers. Section 4 explains our experimental setting including data preprocessing, training the various ranking models, as well as our aggregation setup, and Section 5 showcases our results. We conclude with a summary and discussion of our results in Section 6. . . .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Background and Related Work</head><p>Args.me, one of the first prototypes of an argument search engine <ref type="bibr" coords="2,413.75,379.15,16.60,8.64" target="#b13">[14]</ref> ranks arguments crawled from debate websites using the classical BM25F retrieval model. AR-GUMENTEX retrieves topic-related arguments from a large collection of web documents <ref type="bibr" coords="2,161.82,415.01,16.60,8.64" target="#b10">[11]</ref> in a three-stage approach: (1) retrieving relevant documents using BM25, (2) identifying arguments in those documents, and (3) classifying the arguments into pro and con. To evaluate an argument's convincingness, Habernal and Gurevych proposed the use neural networks <ref type="bibr" coords="2,261.44,450.88,10.79,8.64" target="#b5">[6]</ref>: using on annotator judgments on how convincing the arguments are, a bidirectional LSTM is trained to predict which of a given pair of arguments is more convincing.</p><p>Dumani proposed a two-stage system for argument retrieval <ref type="bibr" coords="2,386.76,487.90,10.58,8.64" target="#b3">[4]</ref>, which first retrieves the conclusions related to a given query, and then returns the premises associated with those conclusions. He suggested different similarity measures to semantically match conclusions to the query, such as plain language models with additional smoothing, and taking the textual context of the claim into account; these would be used to search through clusters of premises in the second stage.</p><p>The criteria for ranking arguments can be categorized into three main groups related to different argument quality aspects <ref type="bibr" coords="2,286.08,572.75,15.49,8.64" target="#b12">[13]</ref>: Logical aspects focus on the soundness of the arguments; logical arguments will have acceptable premises relevant to their conclusions. Rhetorical aspects pertain to the ability to persuade <ref type="bibr" coords="2,391.81,596.66,10.58,8.64" target="#b6">[7]</ref>, and evaluate how successful an argument is in persuading its target audience <ref type="bibr" coords="2,372.96,608.62,10.58,8.64" target="#b0">[1]</ref>. Dialectical aspects assess the degree to which an argument helps its recipients formulate their own stance on the topic-this may also be considered as the utility of the argument <ref type="bibr" coords="2,417.88,632.53,15.27,8.64" target="#b12">[13]</ref>. Our study focuses especially on retrieving arguments relevant to a given query, and as such we are mainly concerned with retrieving logical arguments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Touché task and Dataset</head><p>The Touché @ CLEF shared task on Conversational Argument Retrieval (Task 1) targets a retrieval scenario in a focused argument collection to support argumentative conversations <ref type="bibr" coords="3,178.85,165.71,10.58,8.64" target="#b1">[2]</ref>. The focused argument collection in this case is the args.me corpus, <ref type="foot" coords="3,476.61,164.04,3.49,6.05" target="#foot_0">1</ref>which forms the setting for our study in combination with a collection of argumentative queries. While the arguments in this dataset are annotated with a stance, our models do not consider this for the purpose of evaluating their relevance to the given queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Models</head><p>Four categories of deep neural ranking models have been used in this study. Each category may include one or multiple network variations. For the all networks the hinge loss function (a pairwise loss function) which is typical for ranking tasks is used to train the models. Optimizing this loss function will contribute the models to put related documents over the unrelated ones. Note that except SNRM which is trained using Ten-sorFlow 1.3, the rest of networks have been trained and validated in PyTorch 1.2. The models were trained on 7 different GPUs in parallel and took a day to get all models trained. The inference phase of all models can reproduced in the TIRA platform <ref type="bibr" coords="3,468.97,346.19,11.62,8.64" target="#b8">[9]</ref> and takes half an hour and 4 to 5 hours for the case of classical and contextualized embedding respectively. Due to the lack of GPU, reproducing the training results in TIRA would take a long time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Recurrent Based Siamese Model</head><p>For the purpose of investigating the representation-based networks in the task of argument retrieval we have used Siamese network which are typically used for producing similarity score. Gated Recurrent Units (GRU) are used to produce representation of query and documents. The concatenation of the query and the document representations are then fed to a linear layer to produce a similarity score <ref type="bibr" coords="3,385.34,484.82,15.27,8.64" target="#b11">[12]</ref>. Bidirectional units with a hidden size of 512 have been used for GRU units and the linear layer is a fully connected network with an input size of 4 × 512 to 1 (the concatenation of two bidirectional units produces an output with the dimensionality of 4 times of the hidden state).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Kernel Based Neural Ranking Models</head><p>The Kernel based Neural Ranking Models (KNRM) aims to produce a similarity score for a given query and document pair by focusing on modeling the interaction that they have using RBF kernels. This model is composed of three important parts: translation model, kernel pooling, and learning to rank model <ref type="bibr" coords="3,345.76,611.49,15.27,8.64" target="#b14">[15]</ref>. The similarity score is produced by a fully connected learning-to-rank layer. The input of this layer is the result of applying RBF kernels to each row of a translation matrix whose elements are the cosine similarities of the query and the document terms. The original implementation of the kernel based models and Siamese network is available <ref type="foot" coords="4,353.25,129.60,3.49,6.05" target="#foot_1">2</ref> .</p><p>Another variation of the kernel based neural ranking model used in this study is convolutional KNRM (Conv-KNRM). The most important difference between this network and KNRM is the use of a set of convolutional filters to form different n-gram embeddings. In the cross-matching layer, the similarity of the query and the document n-grams is calculated using cosine similarity <ref type="bibr" coords="4,317.74,191.04,10.58,8.64" target="#b2">[3]</ref>. Kernel pooling, the learning-to-rank layer, and the cost function are the same as for the previous network.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Contextualized Embedding for Ranking</head><p>The Contextualized Embeddings for Document Ranking (CEDR) model aims to improve ranking performance with the help of a deeper understanding of text semantics <ref type="bibr" coords="4,151.74,271.25,10.58,8.64" target="#b7">[8]</ref>. Unlike the traditional word embeddings such as word2vec or GloVe, contextualized language models consider the contexts of each word occurrence in order to assign it an embedding. For instance, the word bank may have different representations in different sentences depending on the context it occurs in.</p><p>Among the contextualized embedding techniques, BERT has proven to be one of the best performing in different NLP tasks. Through its ability to encode multiple text segments, BERT allows us to make informed judgments about the similarity of text pairs <ref type="bibr" coords="4,157.05,354.94,10.58,8.64" target="#b7">[8]</ref>. In this study we have used the BERT-base uncased model which produces a vector of 768 dimensions for the tokens. The original implementation of the networks which have used contextualized embedding can be found in GitHub <ref type="foot" coords="4,407.08,377.18,3.49,6.05" target="#foot_2">3</ref> .</p><p>Vanilla BERT Compared to the other deep neural ranking models using contextualized embedding, a relatively simple ranking model is obtained by the fine-tuning of the BERT model with a linear layer stacked at top <ref type="bibr" coords="4,330.35,429.91,10.58,8.64" target="#b7">[8]</ref>. During training, this linear layer requires a relatively larger learning rate than the pretrained BERT weights, which we only want to adjust slightly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>BERT and DRMM</head><p>The language model knowledge encoded in the contextualized embeddings can be combined with any existing neural ranking model simply by stacking it on top of the BERT model <ref type="bibr" coords="4,264.70,504.88,10.58,8.64" target="#b7">[8]</ref>. One of the deep ranking models that we have used in this role is the DRMM model to see how the performance will change <ref type="bibr" coords="4,436.75,516.83,10.58,8.64" target="#b4">[5]</ref>. As the DRMM on its own did not represent a convincing performance on the validation set, we have excluded its result from reporting.</p><p>BERT and KNRM As an alternative to DRMM, we also combine the aforementioned KNRM model with the contextualized embedding. In our study, we use KNRM with static embedding, i.e. the BERT weights are not adjusted at all during training in this case. As we have already trained KNRM with static embedding, this setting will give us a good illustration of how the pretrained contextualized embedding will effect the performance of the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Stand Alone Neural Ranking Models</head><p>All the networks that have been discussed up to now require a small set of candidate documents for re-ranking, which must be provided by a traditional retrieval model. As such, the performance of the model is limited by what the first-stage ranker (in our case BM25) can provide. By contrast, the stand-alone neural ranking model (SNRM) builds an inverted index from a latent sparse representation of the input document collection, which is searched directly with a corresponding representation of the query. This representation is achieved by an hour-glass shaped fully-connected network, and captures the semantic relationships between the query and documents <ref type="bibr" coords="5,362.91,224.66,15.27,8.64" target="#b15">[16]</ref>. During retrieval, SNRM finds those documents whose representations have non-zero in the same positions as the query; hence, the sparser the query representation, the faster the retrieval will be <ref type="bibr" coords="5,461.50,248.57,15.27,8.64" target="#b15">[16]</ref>. For this reason, the SNRM training procedure optimizes a traditional hinge loss term in combination with a sparsity objective. The original implementation of the network in TensorFlow can be found in GitHub<ref type="foot" coords="5,281.03,282.76,3.49,6.05" target="#foot_3">4</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiments</head><p>This section discusses the experiments of this study. In order to do an ad-hoc retrieval task we require the relevance information of the query and document pairs known as qrel file which can be derived from the click-through or query log information. In the provided dataset in Touché task however, we have just the annotation of the argument components. Thanks to the distant supervision that we have taken, we consider the annotated premise of each argument as a related document to the conclusion of the argument, which is considered as a query in the collection. For a typical ranking task, we still require unrelated documents to the queries. By using fuzzy similarity between the queries (conclusions), we assign the corresponding premise of the unrelated conclusions (conclusions with less fuzzy similarity score) to each argument. This way we form a binary version of qrel information for the dataset and prepare it to train ranking models for the task of ad-hoc retrieval argument task on it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Training and Validation Data</head><p>We believe that the arguments whose premise lengths are less than 15 tokens could not be considered as convincing and good arguments. As a result we set aside such arguments. We have split the dataset into training and validations set. After the preprocessing step we are left with 312248 training and 4885 validation arguments. We tried to keep the validation set small in order to incorporate more information in the training phase while still allowing a meaningful assessment of model performance during validation. Note that we have selected the arguments with exactly 5 premises to be in validation set. According to the distant super vision approach, these premises would be the related documents to the conclusion of the argument. For each argument we assigned 100 unrelated premises.</p><p>As the preprocessing phase of the contextualized embedding networks is a bit different (in contrast to the static embedding, in contextualized embedding the punctuation do not require to be tokenized) we formed two separate training and validation set for these networks. Note that the training and validation arguments are the same for these sets so that the results could be comparable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Model Training</head><p>We keep the batch size to 32 for different networks. For all the networks, in order to have 8 evaluations per epoch, after 1239 training batches we run the validation to evaluate the performance of the network and if the MAP@20 measure was better than the best result obtained so far, the saved model is replaced correspondingly. As the query relevance information that we have formed for the dataset is in a binary format, we believe that MAP@20 would be a better evaluation measure compared to nDCG@20 as it is designed mostly for the soft similarity score of relevance. We run the different networks for 10 epochs. For the models with contextualized embedding, as the curves suggest, there is no need to train for this many epochs. We have trained them for 5 epochs. This saves the time and avoids complex computations out of which we do not get noticeable improvement. The average error and validation curves for different networks are displayed for every evaluation that we have done on the validation set. Note that the validation points are displayed in percentage and the coordinates of the best MAP@20 achieved in the corresponding run (the step number and the MAP@20 value) have been written displayed on the MAP curve with a blue dot.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Recurrent Network</head><p>We keep the dimensionality for the input tokens to 100 and the learning rate to 0.001. The hidden size for the GRUs have been selected to be 512. For the linear layer we have the dropout layer with the rate of 0.5.</p><p>KNRM We decided to have 21 bins for this network as it was suggested by Xiong et al. <ref type="bibr" coords="6,146.80,478.06,15.27,8.64" target="#b14">[15]</ref>. Learning rate and word embedding dimensionality are as the same as recurrent network.</p><p>CKNRM The parameters for the network are the same as for KNRM model. Convolutional layers are 2D filters whose input is of dimension 1 and the output has the dimensionality of 128. The window sizes of the convolution layers are 1, 2, and 3 as suggested by Dai et al. <ref type="bibr" coords="6,226.13,555.29,10.58,8.64" target="#b2">[3]</ref>. The ReLu activation function has been applied on the output of the convolutional layers.</p><p>Vanilla BERT The learning rate for the BERT layers are much smaller than for the linear layer as we do not intend to make large changes to the pretrained contextualized embedding. We keep the learning rate of the BERT layers to be 2 * 10 -5 and for the linear layer the learning rate is 10 -3 . For the purpose of generalization we add a dropout layer with the probability of 0.1. The linear layer has the input size of 768 to 1. 768 is the embedding dimensionality for a token in BERT model. BERT and DRMM The learning rates for the BERT and non-BERT layers are the same as the Vanilla BERT. The number of bins is 11. For the feed-forward network we exploited 2 hidden layers of 256 and 5 units.</p><p>BERT and KNRM The Learning rate for the fine tuning of the BERT layers and training the KNRM layers are kept the same as for the Vanilla BERT model. The number of bins is 11 and the parameters for RBF functions are kept as what was suggested by the authors as the results on the sample data were acceptable.</p><p>SNRM For this model we did not use any hidden layer and it showed reasonable decrease of cost function on the training set. Learning rate is selected to be 10 -4 and no drop out was used.</p><p>We have trained all the models in parallel on 8 GPUs. Table <ref type="table" coords="7,392.62,462.51,4.98,8.64" target="#tab_0">1</ref> shows the best evaluation scores achieved by different models.</p><p>Aggregation Now that we have the retrieved documents from each model, we can aggregate the results by producing a score which is the result of linear aggregation of the model scores. As the first step of aggregation, we analyze how diverse the result of the networks are. This would give a hint how reliable the network results are. Figure <ref type="figure" coords="7,463.85,547.40,4.98,8.64" target="#fig_0">1</ref> illustrates two measures of ranking diversity namely Jaccard and Spearman. Considering the network results for the retrieved documents as vectors with the dimensionality of the retrieved documents and values of ranking score, we took the mean of the Jaccard and Searman measures over the 50 test queries for illustrating how diverse the result of the networks from each other are. We decided to exclude SNRM in the aggregation as its results are diverse from the rest of the models.</p><p>The linear regression is trained on the model results for the validation set. The trained model is then applied on the document scores for the test queries achieved from different models. All the model scores have been normalized to be in the same range. After training the models and getting the best one from the validation phase, it is time to give the models the test queries and see what documents would be ranked top. Except the SNRM model which has generated inverted index and can retrieve the documents on its own, other networks require to be provided with candidate documents (premises). To this end we make use of BM25.</p><p>We first group all the arguments based on the normalized conclusion column. Using BM25 we retrieve the most relevant normalized conclusions. We select the top 100 normalized conclusions. The premises corresponding to retrieved normalized conclusions are the candidate documents to be ranked by the neural networks. Note that each of the normalized conclusion may have a different number of premises. Consequently, the number of documents to be ranked may vary for different test queries. Figure <ref type="figure" coords="8,475.61,596.66,4.98,8.64" target="#fig_1">2</ref> shows how we provide the trained networks with the document-query pairs to rank in the test phase. After getting the document scores, we sort them based on the score in a descending way. We introduce the top 100 premises as the retrieved arguments for each test query. There are 50 test queries which results in 5000 retrieved arguments by each model.  <ref type="figure" coords="9,262.32,411.63,12.45,8.64" target="#fig_3">3d,</ref><ref type="figure" coords="9,277.31,411.63,7.93,8.64" target="#fig_3">3e</ref>, and 3f) converge faster, and achieve better validation performance than the other models (Figure <ref type="figure" coords="9,334.11,423.59,7.93,8.64" target="#fig_3">3a</ref>, 3b, and 3c) that don't incorporate contextual-embedding information.</p><p>Test Results Table <ref type="table" coords="9,216.47,465.15,4.98,8.64" target="#tab_1">2</ref> shows the performance of the different models in the test phase provided by Touché committee. We assume that the models whose test results are not provided did not achieve better score than the displayed scores. The nDCG@5 has been reported as the test results. Evaluation of the retrieved arguments is done by human annotators based on the argument quality dimensions discussed by Wachsmus et.al in <ref type="bibr" coords="9,134.77,524.93,15.27,8.64" target="#b12">[13]</ref>. Devising the strategies for mapping the interaction of the input pairs may result in more promising models in the ad-hoc tasks. Represent-focused networks cannot have a good performance in retrieving relative arguments as they overlook the interaction of the input pairs. KNRM achieved the best score and ranked fourth among the competitors of the shared task. Exploiting the contextualized embedding contributes to achieve a certain level of test score which can be improved by devising more intuitive structures on the BERT weights. The best models with the best validation scores are not the best ones in the test phase. This may due to some facts: in the validation we focused on the top 20 retrieved documents while in the test phase, top 5 hits are targeted for each model. Furthermore, in the validation phase the models had to rank 105 premises. For the re-ranking in the test phase, however, this number is much larger ranging from 150 to 1200 arguments. Consequently, it is not surprising that the test scores would be of   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Discussion</head><p>In this study, thanks to taking a distant supervision technique, we used the deep neural ranking models to retrieve the most relevant arguments to the given queries provided in the Touché shared task. Test results suggest that focusing on the interaction of the inputpairs would contribute to more promising results in the ad-hoc retrieval task. KNRM achieved the best test results and ranked fourth among the competitors. Exploiting the contextualized embedding will result in achieving a certain level of score, a more intuitive structure is still required for better results. A mathematical expression of the argument quality dimensions to be included in the cost function of the models seems to be a primary step that should be taken for the task of argument retrieval. As the relevant arguments are not necessarily the ones which meet the other argument quality measures, developing a dataset including the information regarding to the different argument quality dimensions along side the relevance information is mandatory for developing the models with good retrieved arguments. A long way for devising an end-to-end neural ranking model for retrieving acceptable arguments exists to get a reliable results for the task of argument retrieval.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="8,134.77,382.08,345.82,8.64;8,134.77,394.04,108.18,8.64;8,134.77,115.84,345.84,259.38"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The heat map of the Jaccard (upper) and Spearman (lower) correlation coefficient for the 50 test queries</figDesc><graphic coords="8,134.77,115.84,345.84,259.38" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="9,181.14,256.40,253.08,8.64;9,169.35,115.84,276.66,123.74"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Candidate documents to be re-ranked in the test phase</figDesc><graphic coords="9,169.35,115.84,276.66,123.74" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="10,227.41,612.87,160.55,8.64;10,134.77,466.57,165.99,124.50"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Training and Validation curves</figDesc><graphic coords="10,134.77,466.57,165.99,124.50" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="7,198.96,127.68,217.44,120.74"><head>Table 1 :</head><label>1</label><figDesc>Best achieved evaluation scores of the models</figDesc><table coords="7,244.11,143.17,127.14,105.25"><row><cell></cell><cell>Metrics @20</cell></row><row><cell>Model</cell><cell>MRR MAP nDCG</cell></row><row><cell>GRU</cell><cell>28.4 24.1 38.05</cell></row><row><cell>KNRM</cell><cell>84.35 72.64 80.24</cell></row><row><cell cols="2">Conv-KNRM 86.72 73.32 82.08</cell></row><row><cell>SNRM</cell><cell>82.41 70.14 78.97</cell></row><row><cell cols="2">Vanilla BERT 95.12 88.5 91.00</cell></row><row><cell cols="2">KNRM BERT 94.57 90.18 89.80</cell></row><row><cell cols="2">DRMM BERT 95.97 88.09 91.34</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="11,240.08,241.06,135.19,126.70"><head>Table 2 :</head><label>2</label><figDesc>Test scores of the models</figDesc><table coords="11,253.75,256.55,107.85,111.21"><row><cell>Model</cell><cell>nDCG@5 (%)</cell></row><row><cell>GRU</cell><cell>x</cell></row><row><cell>DRMM</cell><cell>x</cell></row><row><cell>KNRM</cell><cell>68.4</cell></row><row><cell>CKNRM</cell><cell>x</cell></row><row><cell>SNRM</cell><cell>x</cell></row><row><cell>Vanilla BERT</cell><cell>40.4</cell></row><row><cell>KNRM BERT</cell><cell>31.9</cell></row><row><cell>DRMM BERT</cell><cell>37.1</cell></row><row><cell>Aggregation</cell><cell>37.2</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,144.73,657.93,183.42,6.31"><p>https://webis.de/data/args-me.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,144.73,645.94,288.05,7.77"><p>https://github.com/thunlp/Kernel-Based-Neural-Ranking-Models/tree/master/src</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="4,144.73,657.08,158.39,7.77"><p>https://github.com/Georgetown-IR-Lab/cedr</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="5,144.73,657.08,140.86,7.77"><p>https://github.com/hamed-zamani/snrm</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="12,142.61,140.71,337.98,7.77;12,150.95,151.67,184.86,7.77" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="12,191.81,140.71,225.84,7.77">Groundwork in the theory of argumentation: Selected papers of</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">A</forename><surname>Blair</surname></persName>
+		</author>
+		<editor>J. Anthony Blair</editor>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+			<publisher>Springer Science &amp; Business Media</publisher>
+			<biblScope unit="volume">21</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,162.20,337.98,7.77;12,150.95,173.15,329.64,7.77;12,150.95,184.11,299.06,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="12,347.48,173.15,133.12,7.77;12,150.95,184.11,31.20,7.77">Overview of Touché 2020: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,200.06,184.11,208.12,7.77">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<imprint>
+			<date type="published" when="2020-09">Sep 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,194.64,337.98,7.77;12,150.95,205.60,329.64,7.77;12,150.95,216.56,175.56,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="12,292.61,194.64,187.98,7.77;12,150.95,205.60,83.66,7.77">Convolutional neural networks for soft-matching ngrams in ad-hoc search</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,254.05,205.60,226.55,7.77;12,150.95,216.56,98.39,7.77">Proceedings of the eleventh ACM international conference on web search and data mining</title>
+		<meeting>the eleventh ACM international conference on web search and data mining</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="126" to="134" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,227.08,337.98,7.77;12,150.95,238.04,135.45,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="12,196.84,227.08,232.77,7.77">Good premises retrieval via a two-stage argument retrieval model</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Dumani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,448.22,227.08,32.37,7.77;12,150.95,238.04,76.04,7.77">Grundlagen von Datenbanken</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3" to="8" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,248.57,337.98,7.77;12,150.95,259.53,329.64,7.77;12,150.95,270.49,132.48,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="12,284.60,248.57,192.82,7.77">A deep relevance matching model for ad-hoc retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Ai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,163.70,259.53,316.90,7.77;12,150.95,270.49,63.77,7.77">Proceedings of the 25th ACM International on Conference on Information and Knowledge Management</title>
+		<meeting>the 25th ACM International on Conference on Information and Knowledge Management</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="55" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,281.01,337.98,7.77;12,150.95,291.97,329.64,7.77;12,150.95,302.93,329.64,7.77;12,150.95,313.89,66.49,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="12,250.37,281.01,230.22,7.77;12,150.95,291.97,208.71,7.77">Which argument is more convincing? analyzing and predicting convincingness of web arguments using bidirectional lstm</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Habernal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,378.26,291.97,102.33,7.77;12,150.95,302.93,223.18,7.77">Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 54th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1589" to="1599" />
+		</imprint>
+	</monogr>
+	<note>Long Papers</note>
+</biblStruct>
+
+<biblStruct coords="12,142.61,324.41,337.98,7.77;12,150.95,335.37,260.12,7.77" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">A</forename><surname>Kennedy</surname></persName>
+		</author>
+		<title level="m" coord="12,209.50,324.41,271.09,7.77;12,150.95,335.37,110.25,7.77">Aristotle, on Rhetoric: A Theory of Civic Discourse, Translated with Introduction, Notes and Appendices</title>
+		<meeting><address><addrLine>Oxford</addrLine></address></meeting>
+		<imprint>
+			<publisher>Oxford University Press</publisher>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,345.90,337.98,7.77;12,150.95,356.86,329.64,7.77;12,150.95,367.82,271.63,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="12,344.08,345.90,136.51,7.77;12,150.95,356.86,64.47,7.77">Cedr: Contextualized embeddings for document ranking</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Cohan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goharian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,235.44,356.86,245.16,7.77;12,150.95,367.82,185.98,7.77">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1101" to="1104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,378.34,337.98,7.77;12,150.95,389.30,329.64,7.77;12,150.95,400.26,178.85,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="12,336.02,378.34,140.96,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,262.89,389.30,217.70,7.77;12,150.95,400.26,100.44,7.77">Information Retrieval Evaluation in a Changing World. The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,410.79,338.35,7.77;12,150.95,421.75,99.14,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="12,313.92,410.79,162.50,7.77">Argumentation and critical decision making</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">D</forename><surname>Rieke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">O</forename><surname>Sillars</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">R</forename><surname>Peterson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+			<publisher>Longman</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,432.27,338.35,7.77;12,150.95,443.23,329.64,7.77;12,150.95,454.19,329.64,7.77;12,150.95,465.15,185.56,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="12,200.40,443.23,230.36,7.77">Argumentext: Searching for arguments in heterogeneous sources</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Stab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Daxenberger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Stahlhut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Schiller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Tauchmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Eger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,448.73,443.23,31.87,7.77;12,150.95,454.19,329.64,7.77;12,150.95,465.15,117.50,7.77">Proceedings of the 2018 conference of the North American chapter of the association for computational linguistics: demonstrations</title>
+		<meeting>the 2018 conference of the North American chapter of the association for computational linguistics: demonstrations</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="21" to="25" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,475.68,338.35,7.77;12,150.95,486.63,329.64,7.77;12,150.95,497.59,57.03,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="12,322.64,475.68,157.95,7.77;12,150.95,486.63,112.06,7.77">A siamese long short-term memory architecture for human re-identification</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">R</forename><surname>Varior</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Shuai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,280.98,486.63,146.63,7.77">European conference on computer vision</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="135" to="153" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,508.12,338.35,7.77;12,150.95,519.08,329.64,7.77;12,150.95,530.04,329.64,7.77;12,150.95,541.00,176.53,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="12,163.82,519.08,245.22,7.77">Computational argumentation quality assessment in natural language</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Naderi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bilu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Prabhakaran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">A</forename><surname>Thijm</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hirst</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,427.15,519.08,53.45,7.77;12,150.95,530.04,329.64,7.77;12,150.95,541.00,11.96,7.77">Proceedings of the 15th Conference of the European Chapter of the Association for Computational Linguistics</title>
+		<title level="s" coord="12,207.08,541.00,43.47,7.77">Long Papers</title>
+		<meeting>the 15th Conference of the European Chapter of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="176" to="187" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,551.52,338.35,7.77;12,150.95,562.48,329.64,7.77;12,150.95,573.44,264.10,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="12,287.87,562.48,175.54,7.77">Building an argument search engine for the web</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Al Khatib</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Puschmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dorsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Morari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,150.95,573.44,195.76,7.77">Proceedings of the 4th Workshop on Argument Mining</title>
+		<meeting>the 4th Workshop on Argument Mining</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="49" to="59" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,583.97,338.35,7.77;12,150.95,594.92,329.64,7.77;12,150.95,605.88,213.11,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="12,337.16,583.97,143.43,7.77;12,150.95,594.92,50.09,7.77">End-to-end neural ad-hoc ranking with kernel pooling</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Power</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,218.39,594.92,262.20,7.77;12,150.95,605.88,145.69,7.77">Proceedings of the 40th International ACM SIGIR conference on research and development in information retrieval</title>
+		<meeting>the 40th International ACM SIGIR conference on research and development in information retrieval</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="55" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,616.41,338.35,7.77;12,150.95,627.37,329.64,7.77;12,150.95,638.33,329.64,7.77;12,150.95,649.29,105.84,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="12,421.52,616.41,59.07,7.77;12,150.95,627.37,294.65,7.77">From neural reranking to neural ranking: Learning a sparse representation for inverted indexing</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zamani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Learned-Miller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,465.15,627.37,15.44,7.77;12,150.95,638.33,329.64,7.77;12,150.95,649.29,28.54,7.77">Proceedings of the 27th ACM International Conference on Information and Knowledge Management</title>
+		<meeting>the 27th ACM International Conference on Information and Knowledge Management</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="497" to="506" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

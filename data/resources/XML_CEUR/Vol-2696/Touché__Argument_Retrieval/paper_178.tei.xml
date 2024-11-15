@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,175.30,115.90,264.76,12.90;1,241.88,133.83,131.60,12.90;1,135.25,155.14,344.86,10.75">Development of a Search Engine to Answer Comparative Queries Notebook for the Touché Lab on Argument Retrieval at CLEF 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,275.15,193.00,60.59,8.64"><forename type="first">Johannes</forename><surname>Huck</surname></persName>
+							<email>johannes.huck@student.uni-halle.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Martin-Luther Universität Halle-Wittenberg</orgName>
+								<address>
+									<settlement>Halle</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,175.30,115.90,264.76,12.90;1,241.88,133.83,131.60,12.90;1,135.25,155.14,344.86,10.75">Development of a Search Engine to Answer Comparative Queries Notebook for the Touché Lab on Argument Retrieval at CLEF 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A88458FB7E5A724D0EC81CC2EF4FD63E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Comparative search queries are often used to express the information need that demands argumentation for and against compared options, e.g. whether X is better than Y or Z. For example a user could ask: Is Windows better than Linux or Mac? With this query, the user is telling implicitly that they want to know reasoned arguments about the aforementioned operating systems rather than biased opinions. Current search engines will retrieve web pages with information about one of the operating systems, or there will be the manufacturer's sites that are heavily biased. Ideally, we want to retrieve web pages which contain a comparison between the arguments X, Y and Z.</p><p>During the winter semester 2019/2020 I have participated in the Shared Task 2 of the Touché Lab on Argument Retrieval at CLEF 2020 <ref type="bibr" coords="1,351.81,418.61,10.58,8.64" target="#b1">[2]</ref>. Therefore, I have developed a search engine to answer comparative queries. The task was to retrieve ranked documents from the web crawl ClueWeb12 to answer the user's comparative questions. A collection of 50 topics, that represent a user information need, has been provided. I used ChatNoir <ref type="bibr" coords="1,197.10,466.43,11.62,8.64" target="#b0">[1]</ref> to retrieve and rank document candidates for futher re-ranking. To extract arguments from the documents, I used a library TARGER <ref type="bibr" coords="1,396.30,478.38,11.62,8.64" target="#b4">[5]</ref> that provides machine learning based-algorithms for arguments mining. After mining arguments, I am able to create one document per web page based on the arguments found on this particular web page. The extracted arguments are then used to construct a search index. In the search scenario, the question will be searched on the index. The developed search engine comprises three components and a XML parser, which reads the XML file, the file contains the aforementioned 50 topics. The first component retrieves web pages via ChatNoir and extracts the arguments found on the web pages. Then the second component constructs the search index for my search engine. For this task I decided to use the library whoosh <ref type="bibr" coords="1,212.05,585.98,11.62,8.64" target="#b3">[4]</ref> written in Python. The third component searches on the created index. The mentioned components will be discussed in chapter 2. I decided to code the entire search engine with Python.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Argument Extraction</head><p>The first component mines the arguments from web pages. I am sending the found questions to ChatNoir. This results in a response from ChatNoir which contains the first 20 web pages returned by ChatNoir. Then I am using the content extraction tool BoilerPipe to extract the plain text from the web pages. Because there is a lot of unnecessary text on the web pages, I need BoilerPipe to only extract the main body instead of the whole web page. So each web page returned by ChatNoir will be then cleaned by BoilerPipe and transmitted to TARGER. The response of TARGER contains information about the arguments found in the extracted main body of the web page. This information is encoded using the IOB format. IOB is short for inside, outside, beginning. It is a common format for tagging tokens. For argument mining this means: The B tag indicates that the associated token is the beginning of a new argument. The I tag indicates that the token is within an argument, and the O tag indicates that this token does not belong to an argument. Additionally, a C for a found claim or a P for a found premise will be used. An example would look like this:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>{</head><p>" l a b e l " : "C-B" , " p r o b " : " 0 . 7 4 9 7 2 5 4 " , " t o k e n " : " Quebecan " } ,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>{</head><p>" l a b e l " : "P-B" , " p r o b " : " 0 . 9 9 9 9 9 7 7 4 " , " t o k e n " : " I n " } , { " l a b e l " : "P-I " , " p r o b " : " 0 . 9 9 9 9 9 4 3 " , " t o k e n " : " t h e " } , With this I am able to extract the arguments from the web page. Each block within the response of TARGER is one argument, so I can generate a list of arguments for each web page. Then I am creating one document per web page, and I am writing one argument per line into these documents. For the question What is the difference between sex and love? some extracted arguments are: D i f f e r e n c e s Between Love &amp; Sex , Love and s e x a r e NOT t h e same t h i n g , Love i s an e m o t i o n o r a f e e l i n g , Sex may o r may n o t i n c l u d e p e n e t r a t i o n , Love i n v o l v e s f e e l i n g s o f romance and / o r a t t r a c t i o n , Sex : Sex i s an e v e n t o r a c t ( p h y s i c a l ) ,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Constructing the Index</head><p>After processing all the results from ChatNoir, my second component will construct the index. The index will only contain the arguments from the documents created in the first component and the title of the document which is in the form Question ClueWeb12ID. I am using the Stemming-Analyzer provided by whoosh <ref type="bibr" coords="3,367.27,175.55,10.58,8.64" target="#b3">[4]</ref>. This means that I use a Tokenizer, a Porter-Stemmer, a Stop-Word-Filter and a Lower-Case-Filter to extend the index. In addition to my arguments there are tokens and word stems, stop words have been removed and all words have been converted to a lower case version. With this index, I am able to search efficiently and my system can retrieve relevant documents based on the extracted arguments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Searching and Ranking</head><p>I have chosen the Okapi BM25 ranking function because it is a common and wellknown ranking function and is sufficient for my approach. For each topic, the approach retrieves the top 20 documents using the index. The question will be tokenized into their words. Each word will be linked with a logical OR. Additionally, documents that contain more words from the question will be ranked higher. A document is ranked higher the more frequent the question's words appear in it. Because we want documents that answer a comparative question, documents that only contain arguments for one important term are not as relevant as documents that contain arguments for more terms or all terms from the question. As the last step, a result file will be created with the standard TREC format.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation</head><p>The system has been successfully deployed on the evaluation platform Tira <ref type="bibr" coords="3,433.78,450.31,10.58,8.64" target="#b5">[6]</ref>. The described approach can be found under the user name ir-lab-mlu-gruppe-2, the evaluation can be found under the name Inigo Montoya. Tira is a site that is being used to evaluate the results of the participants of the Shared Task, and it enables the option to reproduce the results with the described approach. The reported nDCG@5 of my approach on Tira is 0.567 while the nDCG@5 of the baseline is 0.568 <ref type="bibr" coords="3,343.21,510.09,10.58,8.64" target="#b2">[3]</ref>. Additionally, the approach has been evaluated manually with the top 5 answers of 5 chosen topics, to see why my approach is slightly worse than the baseline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">First Topic</head><p>The first topic we will look at is What is the difference between sex and love? The first thing I encountered while looking at the results was that the first 10 results for this question were the same web pages, but with 10 different Clue Web12 IDs. After those 10 results, there are different web pages. While comparing the results, I realized that the web page from rank 1 to 10 does not answer the question in a way someone would hope. It is rather about the difference between rape and love. The second result after those results is way better than the former result. It has a good and quick overview of love and sex with some bullet points about the two terms. The third best result is just a block of text, which explains the difference between the two terms. So manually I would rank the second result as rank 1, the third as rank 2 and as rank 3 the first 10 results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Second Topic</head><p>The next topic we will look at is Which browser is better Internet Explorer or Firefox?. The first result gives a brief overview of the two browsers. The second one is a lot more in-depth about the two browsers and even covers more browsers than the user wanted. Sometimes the user does not know there are more alternatives, and this would help to show the user those alternatives. The third result is way more biased than the first two results. It is more an opinion, and it is not based on reasoned arguments, opposite to the user's expectation of evidence-based arguments. The fourth and fifth results are very similar pages with statistics about the usage of the Internet Explorer. Firefox is completely missing on those pages. There are some change notes about different versions of the Internet Explorer. The fourth result is a slightly newer version of the fifth result. I would only swap rank one with two if I would rank it per hand. The other results are correctly ranked.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Third Topic</head><p>The next topic will be Which is better, Canon or Nikon?. The first result is a very indepth review about the Nikon J1, but there are comparisons between this Nikon model and a similar Canon model. The next four results are comparisons between Nikon and Canon models. While the third result is the comment section of a review page which contains heavily biased opinions rather than facts, the second, fourth and fifth results are written by the same author who belongs to the technology information site Lifewire. This seems trustworthy and the reviews are written shortly and informatively. I would rank the second, fourth and fifth results as rank one, two and three and the first and third results should be ranked lower because they are not as helpful as the other results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Fourth Topic</head><p>The fourth topic will be Which is better, laptop or desktop?. The first result is a review about the Dell Vostro laptop, but there is also a link to the review page about the Dell Vostro desktop. The second result is a page about different laptop manufacturers with pros and cons of their products. The third result is a comparison between consumer and business laptops, and answers the question which of them is better. The fourth result is a comparison between desktop and laptops, and there are information about which group of people should rather buy a laptop or a desktop. The fifth result is about the advantages of MacBooks in comparison to other laptop manufacturers. I would rank the fourth result as rank one and then result one, two, three and then finally five.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Fifth Topic</head><p>The last topic we are looking at is Which is a better vehicle: BMW or Audi?. The first result is a review of the 2010 BMW X6 and gives information about the specific car model. The second result is a comparison between a BMW, an Audi and a Mercedes-Benz model. This page gives a detailed overview of the models and compares them in different categories. The third and fourth results are reviews of two different BMW models. Those results are from the same site as the first one. The fifth one is a review page about an Audi model, also from the same site as the aforementioned results. I would swap rank one with two if I would rank it manually. The other results are correctly ranked.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>The evaluation has shown that the ranking of my system is not perfect. For the topics we have looked at, there are some ranks I would rank differently when ranking it manually. The first results seem never to be the most relevant document. We have also seen that there are some duplicates that need to be found and eliminated because the user needs a good variety of facts rather than the same page over and over again. Topics including the question which brand is better than another brand are quite challenging because there are different models of products which are having their pros and cons and we will never be able to find an in-depth comparison of all relevant products. This is even worse when companies are producing different kinds of products and the question is therefore ambiguous. Better performance can be probably achieved by optimizing the parameters of BM25. Boilerpipe seems to produce some noisy content, there are a lot of pages that contain boilerplate or other unnecessary content like ads or links to other irrelevant pages. That unnecessary content is not filtered enough. The noisy content produced by Boilerpipe is then negatively affecting subsequent steps like argument mining. So the extracted arguments contain a lot of useless strings which need to be filtered out.</p><p>To conclude, the proposed system shows promising results, but requires improvements in terms of content extraction and tuning the retrieval model.</p></div>		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,138.13,142.87,342.46,7.77;6,146.47,153.83,176.94,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,337.45,142.87,143.14,7.77;6,146.47,153.83,112.26,7.77">Elastic chatnoir: Search engine for the clueweb and the common crawl</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,276.84,153.83,20.43,7.77">ECIR</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.13,164.79,342.46,7.77;6,146.47,175.75,334.12,7.77;6,146.47,186.71,299.06,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,346.10,175.75,134.50,7.77;6,146.47,186.71,31.20,7.77">Overview of Touché 2020: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,195.58,186.71,208.12,7.77">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<imprint>
+			<date type="published" when="2020-09">Sep 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.13,197.67,342.46,7.77;6,146.47,208.63,334.12,7.77;6,146.47,219.59,95.88,7.77" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<ptr target="https://events.webis.de/touche-20/shared-task-2.html#results" />
+		<title level="m" coord="6,454.42,197.67,26.17,7.77;6,146.47,208.63,178.21,7.77">Touché task 2: Comparative argument retrieval -results</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.13,230.55,314.19,7.77" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chaput</surname></persName>
+		</author>
+		<ptr target="https://whoosh.readthedocs.io/en/latest/intro.html" />
+		<title level="m" coord="6,191.80,230.55,27.54,7.77">Whoosh</title>
+		<imprint>
+			<date type="published" when="2007">2007-2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.13,241.50,342.46,7.77;6,146.47,252.46,296.72,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,203.52,252.46,178.21,7.77">Targer: Neural argument mining at your fingertips</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Chernodub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Oliynyk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Heidenreich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,399.47,252.46,17.57,7.77">ACL</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.13,263.42,342.46,7.77;6,146.47,274.38,334.12,7.77;6,146.47,285.34,334.12,7.77;6,146.47,296.30,4.48,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,334.79,263.42,142.18,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-22948-1" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,260.48,274.38,220.12,7.77;6,146.47,285.34,100.61,7.77">Information Retrieval Evaluation in a Changing World. The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

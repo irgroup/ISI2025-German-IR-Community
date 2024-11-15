@@ -1,0 +1,1016 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,86.64,79.85,422.32,12.90;1,182.65,95.79,229.97,12.90">Combining Deep Neural Reranking and Unsupervised Extraction for Multi-Query Focused Summarization</title>
+				<funder ref="#_FedGaxS">
+					<orgName type="full">Federal Ministry of Education and Research of Germany</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,177.47,133.82,91.21,10.75"><forename type="first">Philipp</forename><surname>Seeberger</surname></persName>
+							<email>philipp.seeberger@th-nuernberg.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Technische Hochschule Nürnberg Georg Simon Ohm</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,297.89,133.82,122.91,10.75"><forename type="first">Korbinian</forename><surname>Riedhammer</surname></persName>
+							<email>korbinian.riedhammer@th-nuernberg.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Technische Hochschule Nürnberg Georg Simon Ohm</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,86.64,79.85,422.32,12.90;1,182.65,95.79,229.97,12.90">Combining Deep Neural Reranking and Unsupervised Extraction for Multi-Query Focused Summarization</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">4A52888E2DD782C5E481FF20452DB05D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The CrisisFACTS Track aims to tackle challenges such as multi-stream fact-finding in the domain of event tracking; participants' systems extract important facts from several disasterrelated events while incorporating the temporal order. We propose a combination of retrieval, reranking, and the well-known Integer Linear Programming (ILP) and Maximal Marginal Relevance (MMR) frameworks. In the former two modules, we explore various methods including an entity-based baseline, pre-trained and fine-tuned Question Answering systems, and ColBERT. We then use the latter module as an extractive summarization component by taking diversity and novelty criteria into account. The automatic scoring runs show strong results across the evaluation setups but also reveal shortcomings and challenges.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Natural and human-made disasters can result in significant loss of life, property, and environment if situational awareness is insufficient due to a lack of critical information in an ongoing emergency event. Today's information ecosystem offers new opportunities and directions for emergency response by integrating various online information sources <ref type="bibr" coords="1,265.62,574.23,20.26,9.46;1,70.87,587.78,72.46,9.46" target="#b4">(Buntain et al., 2021;</ref><ref type="bibr" coords="1,146.25,587.78,86.50,9.46" target="#b11">Kruspe et al., 2021)</ref>. Additional information sources such as social media and microblogging platforms can immediately provide details about current developments <ref type="bibr" coords="1,229.10,628.43,61.40,9.46;1,70.87,641.98,25.35,9.46" target="#b24">(Sakaki et al., 2010;</ref><ref type="bibr" coords="1,99.49,641.98,85.08,9.46" target="#b21">Reuter et al., 2018)</ref>. This leads to a multistream setting in which traditional sources are complemented with a variety of recently emerged online sources. Previous research efforts acknowledged this setting as a promising venue, as shown by the evolving tasks over several decades <ref type="bibr" coords="1,260.76,709.73,28.37,9.46;1,70.87,723.27,54.99,9.46" target="#b1">(Allan et al., 1998;</ref><ref type="bibr" coords="1,129.86,723.27,88.05,9.46" target="#b3">Aslam et al., 2015;</ref><ref type="bibr" coords="1,221.92,723.27,68.58,9.46;1,70.87,736.82,24.85,9.46" target="#b27">Sequiera et al., 2018;</ref><ref type="bibr" coords="1,98.44,736.82,87.42,9.46" target="#b4">Buntain et al., 2021)</ref>.</p><p>However, the high-velocity nature of content generation and the inherent properties of different information sources <ref type="bibr" coords="1,397.59,216.46,77.23,9.46" target="#b9">(Kaufhold, 2021)</ref> and events <ref type="bibr" coords="1,305.78,230.01,160.96,9.46" target="#b26">(Seeberger and Riedhammer, 2022)</ref> face present models with new challenges. Those provide relevant event-related results to the user but are still ill-suited to multi-stream fact-finding and summarization needs. The novel CrisisFACTS Track aims to tackle these issues and challenges the community to develop systems more suited for factoid extraction over time. Overall the task asks participants' systems to extract a query-focused list of facts from crisis-related datasets, including Twitter, Reddit, Web News, and Facebook as data sources. Each of these extracted lists of facts is based on an event-day pair and shipped with importance scores which serve as a basis for downstream summarization. In fact, this can be considered as an extension of previous tasks in the area of Information Retrieval (IR) and summarization.</p><p>The recent incorporation of pre-trained language models such as BERT <ref type="bibr" coords="1,412.01,479.39,93.50,9.46" target="#b6">(Devlin et al., 2019)</ref> has significantly improved ad-hoc ranking <ref type="bibr" coords="1,479.24,492.94,46.53,9.46;1,306.14,506.49,25.32,9.46" target="#b12">(Lin et al., 2022)</ref> and summarization <ref type="bibr" coords="1,419.84,506.49,72.69,9.46" target="#b13">(Ma et al., 2022)</ref> results. In particular, BERT-based cross-encoders achieve notable improvements over classical retrieval and dual-encoder approaches but have infeasible computational costs <ref type="bibr" coords="1,378.98,560.68,124.83,9.46" target="#b10">(Khattab and Zaharia, 2020)</ref>. To mitigate this issue, deep neural ranking models are typically deployed as second stage rerankers, whereby the first stage often represents an efficient retriever to create a subset of candidate documents <ref type="bibr" coords="1,334.09,628.43,105.56,9.46" target="#b14">(MacAvaney et al., 2022)</ref>. Similarly, modern summarization methods rely on cross-encoders to fetch relevant documents, paragraphs, or sentences for both extractive summarization <ref type="bibr" coords="1,455.58,669.08,70.19,9.46;1,306.14,682.63,25.35,9.46" target="#b31">(Xu and Lapata, 2020;</ref><ref type="bibr" coords="1,334.43,682.63,83.62,9.46" target="#b0">Ahuja et al., 2022)</ref> or as preliminary selection for abstractive summarization <ref type="bibr" coords="1,456.20,696.18,69.57,9.46;1,306.14,709.73,23.95,9.46" target="#b32">(Xu and Lapata, 2021)</ref>. Finally, the resulting pool of ranked documents can be further refined through approaches such as MMR <ref type="bibr" coords="1,375.16,736.82,145.82,9.46" target="#b5">(Carbonell and Goldstein, 1998)</ref>, <ref type="bibr" coords="1,306.14,750.37,100.55,9.46">ILP (McDonald, 2007)</ref>, and TextRank <ref type="bibr" coords="1,479.30,750.37,45.11,9.46;1,306.14,763.92,71.98,9.46" target="#b18">(Mihalcea and Tarau, 2004)</ref>. top 𝑘 (#)  top 𝑘 (%) In this work, we explore various information retrieval and reranking pipelines ranging from pretrained to fine-tuned state-of-the-art models. Complementary, we propose to subsequently process the list of facts in an extractive summarization setup by leveraging a combination of the well-known ILP and MMR frameworks. In this way, we aim to overcome issues related to diversity and redundancy.</p><formula xml:id="formula_0" coords="2,128.07,75.14,393.08,171.97">𝑆 &amp;'(! 𝑆 ()* 𝐿 𝐶 (, ! ) 𝐶 (, " ) 𝐶 (, # ) concat 𝑄 𝑄 𝑆 !-#</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>As illustrated in Figure <ref type="figure" coords="2,183.24,477.35,4.17,9.46" target="#fig_1">1</ref>, our proposed framework first retrieves and reranks a set of documents D = {d 1 , . . . , d N } based on an information request Q = {q 1 , . . . , q M } where each query q i typically consists of a short text or list of indicative terms. The number of documents<ref type="foot" coords="2,285.25,543.05,3.99,6.91" target="#foot_0">1</ref> and queries are given as N and M , respectively. Let C = {C (q 1 ) , . . . , C (q M ) } denote the resulting set of query-related clusters with C (q i ) = {d</p><formula xml:id="formula_1" coords="2,82.00,596.74,57.48,15.86">(q i ) 1 , . . . , d (q i )</formula><p>k } consisting of the top k candidates ranked by relevance. Then, a summarization component further selects L candidates from the cluster pool M i=1 C (q i ) to create a summary S. Following the track design, each summary S t is created w.r.t. a time period p t ∈ {p 1 , . . . , p T } with T as the number of time periods. Within the scope of CrisisFACTS, the time period p i corresponds to one day. In the following, we detail each individual component used for our submissions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Stage 1: Retrieve</head><p>In the first stage, we employ lexical retrieval approaches to mitigate the infeasible computational costs of deep neural models such as BERT-based cross-encoders. Hence, we first retrieve the top k (1) candidates for each query q ∈ Q from a set of documents D using a list of indicative terms. For each query q, the reduced set of k (1) candidates is then subsequently processed by the given reranking stage. For retrieval, we adopt the well-known BM25 model <ref type="bibr" coords="2,366.76,475.82,141.19,9.46" target="#b23">(Robertson and Zaragoza, 2009)</ref> but one can easily replace it with more sophisticated methods. We empirically found at preliminary experiments that the number of candidates is relatively low, limiting the subsequent reranking components. To address this problem, one can implement query expansion <ref type="bibr" coords="2,404.66,557.11,121.12,9.46;2,306.14,570.66,23.01,9.46" target="#b2">(Amati and Van Rijsbergen, 2002)</ref>, document expansion <ref type="bibr" coords="2,426.60,570.66,94.58,9.46" target="#b19">(Nogueira et al., 2019)</ref>, or adaptive reranking <ref type="bibr" coords="2,408.01,584.21,117.13,9.46" target="#b14">(MacAvaney et al., 2022)</ref> methods. In this work, we integrate query expansion in order to grow the candidates pool for overcoming the recall limitation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Stage 2: Rerank</head><p>Classical retrieval approaches may not be sufficient to capture the semantics expressed in the query and its relation to the text contents. Therefore, each query-related cluster C (q) of the previous retrieval stage is reranked and the top k (<ref type="foot" coords="2,440.02,720.97,3.61,6.99" target="#foot_1">2</ref>) candidates are selected, resulting in a new set C ′(q) . Here, we exploit supervision signals from other existing datasets by using pre-trained deep neural models. Furthermore, we include an entity and keyword-based baseline in order to assess the performance gain due to the models pre-trained on large text corpora. In the following, we detail the considered reranking models:</p><p>BoE As baseline we adopt the Bag-of-Entities representation for document ranking introduced by <ref type="bibr" coords="3,86.84,164.25,90.86,9.46" target="#b30">Xiong et al. (2016)</ref> which relies on the semantic information achieved by entity linking systems. We implement a simplified version by constructing Bag-of-Entities vectors for each document based on entity-types and extend them with Bag-of-Keywords vectors. The final model scores a document by summing over the frequency of expected query entity-types and keywords present.</p><p>QA Similar to Xu and Lapata (2020), we employ Question Answering (QA) systems to leverage distant supervision signals related to best answer selection. While QA approaches support both sentence and span selection, we rely only on sentence level selection which suits more to the queries and stream items provided by the organizers. That is, we concatenate the query q and a candidate document d into a sequence [CLS] q [SEP] d and predict the relevance score with a BERT-based crossencoder. In this work, we consider a pre-trained and fine-tuned QA version whereby the fine-tuned system is adapted to the crisis domain.</p><p>ColBERT This model follows a contextualized late interaction approach which makes use of both a first-stage approximate nearest neighbor search and a reranking stage to calculate ranking scores (Khattab and Zaharia, 2020). In particular, ColBERT supports the reranking mechanism to produce more precise scores based on a candidate pool but can also be used for end-to-end retrieval. We follow the end-to-end retrieval approach. In this way, we consider an approach without the limitations related to classical retrieval models such as BM25. Note that this alternative skips the first retrieval stage by directly retrieving the set of documents D to obtain the top k (2) candidates for each query q.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Stage 3: Summarize</head><p>Selection Finding a diverse set of facts with less redundancy is crucial for summarization tasks. However, without any post-processing, reranked candidates still suffer in terms of diversity and redundancy. To tackle this problem, we use an additional selection step formalized as ILP. We follow the concept-based model <ref type="bibr" coords="3,181.08,763.92,108.95,9.46" target="#b8">(Gillick and Favre, 2009;</ref><ref type="bibr" coords="3,306.14,74.72,114.13,9.46" target="#b22">Riedhammer et al., 2010)</ref> where concepts can be facts, events, or information units. In this problem setup, the objective function is maximized over the weighted sum of the concepts present in the selection, subject to a length constraint. Finally, we obtain an extractive summary S t = {d 1 , . . . , d l } where |S t | is limited by l ≤ L with L as the maximum number of documents.</p><p>Scoring The well-known MMR algorithm greedily selects documents by trading off query-based relevancy and redundancy to the previously selected documents, until a summary length constraint is met. However, this constraint can be relaxed to rerank a summary S t in order to increase the diversity in the top documents. Formally, we define the final score of a document i as</p><formula xml:id="formula_2" coords="3,333.10,316.25,192.04,17.28">λ • Rel i -(1 -λ) • max j∈S sel ∪Spast Red ij (1)</formula><p>where Rel i is the relevance score of document i and Red ij is the redundancy penalty for having both documents i and j in the summary S sel as well as past summaries S past = t-1 i=1 S i . However, a single retrieved document might contain multiple scores due to multiple matched queries. We argue that a document that covers multiple queries expresses more relevant information content for the summary. Formally, we denote the relevance score as Rel i = |Q (i) | • score i where score i is the mean score of document i weighted by the number of matched queries Q (i) ⊆ Q.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiments</head><p>In this section, we detail the experimental setup and discuss the results for our submitted runs. Throughout all experiments, we mainly consider the sources Twitter, Reddit, Web News and ignore Facebook due to the limited access to the post contents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Preprocessing</head><p>We normalize all tweets in order to represent the text content similar to the other online sources. Specifically, all retweet-indicating prefixes, user mentions, emoticons, emojis, and URLs are removed. Furthermore, we remove any hashtag symbols and split the text into their corresponding words using WordSegment. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Crisis-QA</head><p>Since the first CrisisFACTS Track does not provide any annotations w.r.t. the task, we decided to create a synthetic version that reflects the query-focused sentence selection. We leverage the DocEE dataset <ref type="bibr" coords="4,70.51,544.24,76.31,9.46" target="#b28">(Tong et al., 2022)</ref>, a recently published benchmark for document-level event extraction. We extract a subset of 6818 documents which only covers crisisrelated events and their corresponding event arguments. <ref type="foot" coords="4,100.23,596.39,3.99,6.91" target="#foot_2">3</ref> First, we manually create coarse-grained questions for each event argument. Second, the dataset is augmented with a T5 BASE question generation model<ref type="foot" coords="4,123.27,637.04,3.99,6.91" target="#foot_3">4</ref> for obtaining fine-grained questions.</p><p>Last, we synthesize question-sentence pairs based on the argument position and label this pairs as binary relevance classification task. For model validation, we use the published dataset splits.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Experimental Setup</head><p>Retrieve For the first stage, we use the BM25 model with default settings of the PyTerrier library <ref type="bibr" coords="4,305.78,301.98,150.28,9.46" target="#b15">(Macdonald and Tonellotto, 2020</ref>) and extend it with the Bo1 query expansion <ref type="bibr" coords="4,439.98,315.53,81.56,9.46;4,306.14,329.08,69.79,9.46" target="#b2">(Amati and Van Rijsbergen, 2002)</ref> component. For each query, we concatenate the query text and indicative terms, retrieve the top k (1) = 100 candidates, and drop exact duplicates. The majority of duplicates appear in the tweet documents which is mostly related to retweets.</p><p>Rerank The BoE model is based on a manually curated set of entity-types that mostly fits the expected information needs w.r.t. each query. For example, queries about missing peoples typically cover numbers and locations, respectively. The indicative terms provided by the organizers are used for the keywords. The QA ASNQ system is based on RoBERTa BASE pre-trained on the ASNQ dataset <ref type="bibr" coords="4,339.71,533.59,81.38,9.46" target="#b7">(Garg et al., 2020)</ref> without any further adjustments. Similarly, we employ the ColBERT v2 version <ref type="bibr" coords="4,341.28,560.68,109.18,9.46" target="#b25">(Santhanam et al., 2022)</ref> which is trained on the MS MARCO Passage Ranking task. In terms of QA Crisis , we follow the adaptation step of <ref type="bibr" coords="4,318.74,601.33,80.54,9.46" target="#b7">Garg et al. (2020)</ref> by fine-tuning the QA ASNQ model on the domain-specific Crisis-QA dataset. This results in an adapted version of the QA system.</p><p>Although the synthesized dataset relies on a broad range of labeled event arguments, we still observe a significant proportion of false negatives within the question-sentence pairs. Hence, we use the model QA Crisis-0 in a first step to denoise the dataset with an upper threshold of 0.1 and then train a new model QA Crisis-1 in a second step, which is in line with previous work such as RocketQA <ref type="bibr" coords="4,481.00,736.82,44.77,9.46;4,306.14,750.37,23.01,9.46" target="#b20">(Qu et al., 2021)</ref>. We use the Transformers library <ref type="bibr" coords="4,475.67,750.37,50.11,9.46;4,306.14,763.92,25.96,9.46" target="#b29">(Wolf et al., 2020)</ref> for the QA models, the official implemen-tation of ColBERT, and select the top k (2) = 25 candidates for each query.</p><p>Summarize To enable a fair comparison among the different retrieval and reranking components, we re-use the selection and scoring procedure for each run. Specifically, inspired by information extraction <ref type="bibr" coords="5,118.50,166.08,149.42,9.46" target="#b16">(Martinez-Rodriguez et al., 2020)</ref>, we extract entities 5 as concepts, entity-frequency as weights, and set L = 150 for the ILP formulation.</p><p>For MMR, we select λ = 0.8 and calculate the redundancy Red ij based on TF-IDF features and cosine similarity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Results</head><p>In Table <ref type="table" coords="5,109.98,277.94,4.16,9.46" target="#tab_0">1</ref>, we present the overall performance of our pipeline setups. Since this is the first installment of the CrisisFACTS Track, we mainly limit the analysis across our submission runs. However, we provide the reader a comparison of our models to the medians and top results for the summarization task (Table <ref type="table" coords="5,141.20,359.24,3.94,9.46" target="#tab_1">2</ref>).</p><p>Overall The QA models outperform the baseline BoE and ColBERT in almost all evaluation settings. These results reflect the findings of previous text retrieval work which report higher performance for cross-encoder architectures. Interestingly, the finetuned QA model decreases the performance in two summarization setups and in terms of comprehensiveness. We assume that the adapted QA is biased towards the entities of the Crisis-QA dataset. This might result into higher scores for only a subset of facts. Furthermore, we are aware of concerns about potential data overlap due to the time intersection between the CrisisFACTS and Crisis-QA events. However, the performance increase appears only for the NIST reference summaries and we therefore leave the analysis for future work.</p><p>Summarization In depth analysis in Table <ref type="table" coords="5,283.57,609.71,5.56,9.46" target="#tab_1">2</ref> found that the pre-trained QA model achieves top results for a variety of events and reference summaries. When compared to the BoE baseline, the performance increase differs among the events, metrics, and reference summaries. However, only three performance measures are below the TREC medians which suggests strong results for the overall pipeline. Nevertheless, in contrast to automatic summarization evaluation, manual matching re- Figure <ref type="figure" coords="5,334.83,278.93,3.91,8.64">2</ref>: Comprehensiveness trend for all events. The QA ASNQ system is displayed in bold, while the min-max region of all models is highlighted.</p><p>veals high variance for different days within the same event.</p><p>Matching If we plot the comprehensiveness evolution along the number of days (Figure <ref type="figure" coords="5,495.04,389.19,4.02,9.46">2</ref>), we see that the performance decreases by large extent across a variety of events. Since this trend holds for all models, we hypothesize that this is due to at least two factors. First, the retrieval and reranking stages of the pipeline setup does not consider diversity for each query and might cut off rare facts in favor of facts with higher relevance, spread along the timeline of the event. Second, the diversification in the selection stage w.r.t. past summaries still displays a challenging task. For example, specific sentences only differ by a single number (e.g. burned acres) and might unintentionally penalize new facts by unsophisticated similarity measures.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>In this work, we have investigated the combination of deep neural reranking and global unsupervised extraction for a multi-query focused summarization task. Our experiments demonstrated the strength of cross-encoders with QA based on distant supervision. However, we identified shortcomings and challenges in the face of temporal aspects which underlines the downstream summarization as a critical component. We believe there is much room for improvement, especially by integrating more sophisticated extractive approaches, abstractive summarization techniques, or even joint optimization.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="2,70.87,265.09,453.54,8.64;2,70.87,277.05,453.55,8.64;2,70.87,288.68,453.54,9.65;2,70.87,300.64,290.52,9.65"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Overview of our proposed framework. All queries and documents for each event and time period are separately processed by the following three major components: (1) Retrieve, (2) Rerank, and (3) Summarize. The symbols E1 to E4 represent the concepts w.r.t. the ILP formulation. For final scoring, the selected S sel and past summary S past documents are used in terms of redundancy penalization.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,423.48,728.54,3.99,6.91"><head>Table 1 :</head><label>1</label><figDesc>Overall results of our automatic submission runs. We report the Rouge-2/BERTScore for summarization and comprehensiveness and redundancy ratio for matching as defined in Appendix A. The top results across our proposed systems are in bold.</figDesc><table coords="3,423.48,728.54,3.99,6.91"><row><cell>2</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,70.51,390.14,218.63,56.46"><head>Table 2 :</head><label>2</label><figDesc>Rouge-2/BERTScore results for each event w.r.t. the QA ASNQ system. The TREC best results across all submissions are in bold. Results below the TREC median are in grey, while results below our baseline BoE are marked with ⋆ .</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,86.73,745.26,203.89,7.77;2,70.87,755.22,218.27,7.77;2,70.87,765.19,218.26,7.77"><p>Throughout this work, we use the term document interchangeably with the CrisisFACTS stream items. These stream items are rather sentences or short posts than long documents.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,322.28,756.07,150.63,6.31;3,305.87,766.03,59.18,6.31"><p>https://grantjenks.com/docs/ wordsegment</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="4,86.58,714.49,204.04,7.77;4,70.87,724.45,218.27,7.77;4,70.87,734.41,219.76,7.77;4,70.87,744.37,108.85,7.77"><p>We checked for an overlap between the DocEE and Cri-sisFACTS events. In fact, some of the events are part of the DocEE dataset and thus we removed the corresponding documents prior to our experiments</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="4,179.72,744.37,3.83,7.77;4,83.52,753.36,170.26,9.02;4,70.87,766.03,217.69,6.31"><p>.4  https://huggingface.co/mrm8488/ t5-base-finetuned-question-generation-ap</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>The authors acknowledge the financial support by the <rs type="funder">Federal Ministry of Education and Research of Germany</rs> in the project <rs type="projectName">ISAKI</rs> (project number <rs type="grantNumber">13N15572</rs>).</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funded-project" xml:id="_FedGaxS">
+					<idno type="grant-number">13N15572</idno>
+					<orgName type="project" subtype="full">ISAKI</orgName>
+				</org>
+			</listOrg>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A Matching Metrics</head><p>The submitted stream items for a system and eventday pair are ordered by the importance scores and formed to a summary S by a rank cut-off k. Based on a manual matching of the stream items against a fact list F , the comprehensiveness is calculated as</p><p>where f ∈ F is a unique fact, M (f, S) is the set of stream items matching fact f , and R(f ) is the gain assigned to the fact f . Similarly, the redundancy ratio is measured for a system and event-day pair as</p><p>All runs are macro-averaged across days within an event, and then across the eight events.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,70.87,190.33,218.27,8.64;6,81.78,201.29,208.75,8.64;6,81.42,212.24,209.46,8.64;6,81.78,223.03,209.02,8.81;6,81.78,233.99,209.01,8.58;6,81.50,244.95,209.29,8.81;6,81.78,256.08,161.06,8.64" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,221.35,201.29,69.17,8.64;6,81.42,212.24,204.77,8.64">ASPECTNEWS: Aspect-Oriented Summarization of News Documents</title>
+		<author>
+			<persName coords=""><forename type="first">Ojas</forename><surname>Ahuja</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiacheng</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Akshay</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Horecka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Durrett</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2022.acl-long.449</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,92.43,223.03,198.37,8.58;6,81.78,233.99,162.22,8.58;6,81.50,244.95,50.86,8.58">Proceedings of the 60th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 60th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Dublin, Ireland</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="6494" to="6506" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct coords="6,70.87,275.49,219.51,8.64;6,81.59,286.45,209.20,8.64;6,81.78,297.41,209.01,8.64;6,81.78,308.36,141.08,8.64" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,252.04,286.45,38.74,8.64;6,81.78,297.41,182.08,8.64">Topic Detection and Tracking Pilot Study Final Report</title>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jaime</forename><forename type="middle">G</forename><surname>Carbonell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">George</forename><surname>Doddington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jonathan</forename><surname>Yamron</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yiming</forename><surname>Yang</surname></persName>
+		</author>
+		<idno type="DOI">10.1184/R1/6626252.V1</idno>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+		<respStmt>
+			<orgName>Carnegie Mellon University</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,327.77,220.01,8.64;6,81.78,338.73,207.36,8.64;6,81.78,349.52,207.35,8.81;6,81.22,360.48,209.41,8.81;6,81.78,371.61,17.43,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,81.78,338.73,207.36,8.64;6,81.78,349.69,178.94,8.64">Probabilistic models of information retrieval based on measuring the divergence from randomness</title>
+		<author>
+			<persName coords=""><forename type="first">Gianni</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cornelis Joost</forename><surname>Van Rijsbergen</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/582415.582416</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,268.82,349.52,20.31,8.58;6,81.22,360.48,154.93,8.58">ACM Transactions on Information Systems</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="357" to="389" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,391.02,219.92,8.64;6,81.42,401.98,209.37,8.64;6,81.78,412.93,209.01,8.64;6,81.78,423.72,207.36,8.81;6,81.22,434.68,207.91,8.58;6,81.53,445.64,209.26,8.58;6,81.53,456.60,209.26,8.81;6,81.78,467.56,207.71,8.81;6,81.45,478.69,31.26,8.64" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,161.27,412.93,129.51,8.64;6,81.78,423.89,100.01,8.64">TREC 2015 Temporal Summarization Track Overview</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Javed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Aslam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Ekstrand-Abueg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Virgil</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tetsuya</forename><surname>Pavlu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Sakai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,207.54,423.72,81.59,8.58;6,81.22,434.68,173.24,8.58">Proceedings of The Twenty-Fourth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fourth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-11-17">2015. 2015. November 17-20, 2015</date>
+			<biblScope unit="volume">500</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>NIST Special Publication. National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,498.10,219.92,8.64;6,81.78,509.05,207.36,8.64;6,81.47,519.84,209.32,8.81;6,81.78,530.80,207.36,8.58;6,81.47,541.76,111.86,8.58" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,128.22,509.05,160.91,8.64;6,81.47,520.01,74.50,8.64">Incident Streams 2020: TREC-IS in the Time of COVID-19</title>
+		<author>
+			<persName coords=""><forename type="first">Cody</forename><forename type="middle">L</forename><surname>Buntain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,175.34,519.84,115.45,8.58;6,81.78,530.80,207.36,8.58;6,81.47,541.76,106.92,8.58">ISCRAM 2021: 18th International Conference on Information Systems for Crisis Response and Management</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,561.34,218.27,8.64;6,81.78,572.30,209.01,8.64;6,81.78,583.09,207.36,8.81;6,81.78,594.05,209.02,8.58;6,81.78,605.01,207.36,8.58;6,81.78,615.96,208.60,8.81;6,81.42,627.09,66.29,8.64" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,246.72,561.34,42.41,8.64;6,81.78,572.30,209.01,8.64;6,81.78,583.26,135.95,8.64">The use of MMR, diversity-based reranking for reordering documents and producing summaries</title>
+		<author>
+			<persName coords=""><forename type="first">Jaime</forename><surname>Carbonell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jade</forename><surname>Goldstein</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/290941.291025</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,238.78,583.09,50.35,8.58;6,81.78,594.05,209.02,8.58;6,81.78,605.01,207.36,8.58;6,81.78,615.96,85.53,8.58">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;98</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;98<address><addrLine>Melbourne, Australia</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="335" to="336" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,646.50,218.27,8.64;6,81.78,657.46,207.36,8.64;6,81.78,668.42,209.01,8.64;6,81.78,679.21,207.36,8.81;6,81.78,690.17,209.01,8.81;6,81.78,701.29,202.57,8.64" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,196.66,657.46,92.47,8.64;6,81.78,668.42,209.01,8.64;6,81.78,679.38,44.72,8.64">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,144.93,679.21,144.21,8.58;6,81.78,690.17,47.90,8.58">Proceedings of the 2019 Conference of the North</title>
+		<meeting>the 2019 Conference of the North<address><addrLine>Minneapolis</addrLine></address></meeting>
+		<imprint>
+			<publisher>Minnesota. Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,70.87,720.70,220.01,8.64;6,81.78,731.66,207.36,8.64;6,81.47,742.62,209.41,8.64;6,81.47,753.41,207.67,8.58;6,81.61,764.37,128.57,8.81" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,113.61,731.66,175.53,8.64;6,81.47,742.62,205.47,8.64">TANDA: Transfer and Adapt Pre-Trained Transformer Models for Answer Sentence Selection</title>
+		<author>
+			<persName coords=""><forename type="first">Siddhant</forename><surname>Garg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thuy</forename><surname>Vu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alessandro</forename><surname>Moschitti</surname></persName>
+		</author>
+		<idno type="DOI">10.1609/aaai.v34i05.6282</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,81.47,753.41,207.67,8.58;6,81.61,764.37,45.62,8.58">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="7780" to="7788" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,75.34,218.27,8.64;6,317.05,86.13,207.36,8.81;6,316.22,97.09,209.84,8.58;6,317.05,108.05,208.61,8.81;6,317.05,119.18,209.10,8.64;6,317.05,130.13,129.54,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,452.47,75.34,71.94,8.64;6,317.05,86.30,105.62,8.64">A Scalable Global Model for Summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Gillick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benoit</forename><surname>Favre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,446.52,86.13,77.89,8.58;6,316.22,97.09,209.84,8.58;6,317.05,108.05,146.17,8.81">Proceedings of the Workshop on Integer Linear Programming for Natural Language Processing, ILP &apos;09</title>
+		<meeting>the Workshop on Integer Linear Programming for Natural Language Processing, ILP &apos;09<address><addrLine>Boulder, Colorado</addrLine></address></meeting>
+		<imprint>
+			<publisher>USA. Association for Computational Linguistics</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="10" to="18" />
+		</imprint>
+	</monogr>
+	<note>Event-place</note>
+</biblStruct>
+
+<biblStruct coords="6,306.14,149.57,218.26,8.81;6,316.49,160.53,209.57,8.58;6,317.05,171.49,209.01,8.58;6,317.05,182.45,209.01,8.81;6,317.05,193.57,26.28,8.64" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="6,428.43,149.57,95.97,8.58;6,316.49,160.53,209.57,8.58;6,317.05,171.49,209.01,8.58;6,317.05,182.45,36.25,8.58">Information Refinement Technologies for Crisis Informatics: User Expectations and Design Principles for Social Media and Mobile Apps</title>
+		<author>
+			<persName coords=""><forename type="first">Marc-André</forename><surname>Kaufhold</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-658-33341-6</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<publisher>Springer</publisher>
+			<pubPlace>Fachmedien Wiesbaden, Wiesbaden</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,213.18,219.65,8.64;6,317.05,224.14,209.01,8.64;6,317.05,234.93,207.36,8.81;6,317.05,245.89,207.36,8.58;6,316.74,256.85,208.91,8.58;6,317.05,267.97,164.33,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,483.41,213.18,42.39,8.64;6,317.05,224.14,209.01,8.64;6,317.05,235.10,136.63,8.64">ColBERT: Efficient and Effective Passage Search via Contextualized Late Interaction over BERT</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3397271.3401075</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,474.06,234.93,50.35,8.58;6,317.05,245.89,207.36,8.58;6,316.74,256.85,205.06,8.58">Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,287.58,219.66,8.64;6,317.05,298.37,209.01,8.81;6,317.05,309.33,208.85,8.81;6,316.30,320.46,22.42,8.64" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,467.37,287.58,58.42,8.64;6,317.05,298.54,179.06,8.64">Review article: Detection of actionable tweets in crisis events</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Kruspe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kersten</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Klan</surname></persName>
+		</author>
+		<idno type="DOI">10.5194/nhess-21-1825-2021</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,503.60,298.37,22.47,8.58;6,317.05,309.33,153.65,8.58">Natural Hazards and Earth System Sciences</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1825" to="1845" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,340.06,220.01,8.64;6,316.74,350.85,207.67,8.58;6,317.05,361.81,209.01,8.81;6,317.05,372.94,209.01,8.64;6,317.05,383.90,44.00,8.64" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="6,316.74,350.85,207.67,8.58;6,317.05,361.81,209.01,8.81;6,317.05,372.94,78.01,8.64">Pretrained Transformers for Text Ranking: BERT and Beyond. Synthesis Lectures on Human Language Technologies</title>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Yates</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-031-02181-7</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<publisher>Springer International Publishing</publisher>
+			<pubPlace>Cham</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,403.50,219.51,8.64;6,317.05,414.46,209.01,8.64;6,317.05,425.42,209.10,8.64;6,316.44,436.21,108.82,8.81" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,435.93,414.46,90.13,8.64;6,317.05,425.42,204.91,8.64">Multi-document summarization via deep learning techniques: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">Congbo</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><forename type="middle">Emma</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mingyu</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hu</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quan</forename><forename type="middle">Z</forename><surname>Sheng</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3529754</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,316.44,436.21,78.51,8.58">ACM Comput. Surv</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,455.98,219.92,8.64;6,317.05,466.94,207.36,8.64;6,317.05,477.73,207.36,8.81;6,316.72,488.69,208.93,8.58;6,317.05,499.82,209.10,8.64;6,316.69,510.78,24.79,8.64" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,381.01,466.94,143.40,8.64;6,317.05,477.90,20.56,8.64">Adaptive re-ranking with a corpus graph</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3511808.3557231</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,355.94,477.73,168.47,8.58;6,316.72,488.69,208.93,8.58;6,317.05,499.82,41.29,8.64">Proceedings of the 31st ACM International Conference on Information Knowledge Management, CIKM &apos;22</title>
+		<meeting>the 31st ACM International Conference on Information Knowledge Management, CIKM &apos;22<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="1491" to="1500" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,530.38,219.92,8.64;6,317.05,541.34,207.35,8.64;6,317.05,552.13,207.36,8.81;6,316.88,563.09,207.52,8.58;6,316.74,574.05,208.91,8.81;6,317.05,585.18,198.59,8.64" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,492.42,530.38,33.64,8.64;6,317.05,541.34,207.35,8.64;6,317.05,552.30,35.24,8.64">Declarative Experimentation in Information Retrieval Using PyTerrier</title>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3409256.3409829</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,370.07,552.13,154.34,8.58;6,316.88,563.09,207.52,8.58;6,316.74,574.05,79.79,8.81">Proceedings of the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval, ICTIR &apos;20</title>
+		<meeting>the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval, ICTIR &apos;20<address><addrLine>New York, NY, USA; Norway</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="161" to="168" />
+		</imprint>
+	</monogr>
+	<note>Event-place: Virtual Event</note>
+</biblStruct>
+
+<biblStruct coords="6,306.14,604.78,218.27,8.64;6,317.05,615.74,207.36,8.64;6,317.05,626.53,208.60,8.81;6,316.30,637.66,150.85,8.64" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,408.32,615.74,116.08,8.64;6,317.05,626.70,129.11,8.64">Information extraction meets the Semantic Web: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jose</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><surname>Martinez-Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ivan</forename><surname>Hogan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Lopez-Arevalo</surname></persName>
+		</author>
+		<idno type="DOI">10.3233/SW-180333</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,463.30,626.53,57.43,8.58">Semantic Web</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="255" to="335" />
+			<date type="published" when="2020">2020</date>
+			<publisher>Publisher: IOS Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,657.26,218.27,8.64;6,316.69,668.22,207.72,8.64;6,316.74,679.01,207.66,8.58;6,316.74,689.97,209.32,8.81;6,317.05,701.10,194.19,8.64" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,407.22,657.26,117.19,8.64;6,316.69,668.22,190.51,8.64">A Study of Global Inference Algorithms in Multi-Document Summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Ryan</forename><surname>Mcdonald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,316.74,679.01,207.66,8.58;6,316.74,689.97,75.94,8.81">Proceedings of the 29th European Conference on IR Research, ECIR&apos;07</title>
+		<meeting>the 29th European Conference on IR Research, ECIR&apos;07<address><addrLine>Berlin, Heidelberg; Rome, Italy</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer-Verlag</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="557" to="564" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,306.14,720.70,219.92,8.64;6,317.05,731.49,207.36,8.81;6,316.72,742.45,209.34,8.58;6,317.05,753.41,209.10,8.81;6,316.69,764.54,172.13,8.64" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,456.84,720.70,69.23,8.64;6,317.05,731.66,80.36,8.64">TextRank: Bringing Order into Text</title>
+		<author>
+			<persName coords=""><forename type="first">Rada</forename><surname>Mihalcea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Tarau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,421.81,731.49,102.60,8.58;6,316.72,742.45,209.34,8.58;6,317.05,753.41,68.09,8.58">Proceedings of the 2004 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2004 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="404" to="411" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,75.34,218.27,8.64;7,81.78,86.30,207.71,8.64;7,81.78,97.26,208.74,8.64;7,81.78,108.22,7.47,8.64" xml:id="b19">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.1904.08375</idno>
+		<title level="m" coord="7,186.68,86.30,102.81,8.64;7,81.78,97.26,203.74,8.64">Document Expansion by Query Prediction. Publisher: arXiv Version Number</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,130.00,218.27,8.64;7,81.78,140.96,207.36,8.64;7,81.78,151.92,207.36,8.64;7,81.47,162.88,207.84,8.64;7,81.78,173.67,207.36,8.81;7,81.78,184.63,209.01,8.58;7,81.78,195.58,209.02,8.58;7,81.42,206.54,208.96,8.81;7,81.78,217.67,204.23,8.64" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="7,179.67,151.92,109.46,8.64;7,81.47,162.88,207.84,8.64;7,81.78,173.84,139.15,8.64">RocketQA: An Optimized Training Approach to Dense Passage Retrieval for Open-Domain Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Yingqi</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuchen</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jing</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruiyang</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wayne</forename><forename type="middle">Xin</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daxiang</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hua</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Haifeng</forename><surname>Wang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.naacl-main.466</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,239.93,173.67,49.21,8.58;7,81.78,184.63,209.01,8.58;7,81.78,195.58,209.02,8.58;7,81.42,206.54,127.42,8.58">Proceedings of the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2021 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="5835" to="5847" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,239.45,218.27,8.64;7,81.78,250.41,208.74,8.64;7,81.42,261.37,209.37,8.64;7,81.78,272.16,207.36,8.81;7,81.61,283.12,110.81,8.81" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="7,148.79,250.41,141.72,8.64;7,81.42,261.37,209.37,8.64;7,81.78,272.33,24.33,8.64">Social Media in Crisis Management: An Evaluation and Analysis of Crisis Informatics Research</title>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Reuter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Amanda</forename><forename type="middle">Lee</forename><surname>Hughes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marc-André</forename><surname>Kaufhold</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/10447318.2018.1427832</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,113.76,272.16,175.37,8.58;7,81.61,283.12,42.73,8.58">International Journal of Human-Computer Interaction</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="280" to="294" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,305.07,218.52,8.64;7,81.78,316.03,209.01,8.64;7,81.78,326.99,209.01,8.64;7,81.78,337.78,202.39,8.81" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="7,163.50,316.03,127.29,8.64;7,81.78,326.99,209.01,8.64;7,81.78,337.95,29.27,8.64">Long story short -Global unsupervised models for keyphrase based meeting summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Korbinian</forename><surname>Riedhammer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dilek</forename><surname>Benoit Favre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Hakkani-Tür</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.specom.2010.06.002</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,118.29,337.78,91.97,8.58">Speech Communication</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="801" to="815" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,359.73,218.27,8.64;7,81.78,370.69,209.01,8.64;7,81.53,381.48,208.99,8.81;7,81.78,392.61,206.35,8.64" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="7,273.33,359.73,15.80,8.64;7,81.78,370.69,209.01,8.64;7,81.53,381.65,17.90,8.64">The Probabilistic Relevance Framework: BM25 and Beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><surname>Hanover</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">A</forename><surname>Publisher</surname></persName>
+		</author>
+		<idno type="DOI">10.1561/1500000019</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,107.51,381.48,92.47,8.58">Found. Trends Inf. Retr</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009</date>
+			<publisher>Now Publishers Inc</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,414.39,220.01,8.64;7,81.78,425.35,207.36,8.64;7,81.78,436.14,207.36,8.81;7,81.78,447.10,207.35,8.58;7,80.12,458.06,210.76,8.81;7,81.42,469.19,24.79,8.64" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="7,111.21,425.35,177.92,8.64;7,81.78,436.31,129.15,8.64">Earthquake shakes Twitter users: real-time event detection by social sensors</title>
+		<author>
+			<persName coords=""><forename type="first">Takeshi</forename><surname>Sakaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Makoto</forename><surname>Okazaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yutaka</forename><surname>Matsuo</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1772690.1772777</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,229.32,436.14,59.81,8.58;7,81.78,447.10,207.35,8.58;7,80.12,458.06,43.83,8.58">Proceedings of the 19th international conference on World wide web -WWW &apos;10</title>
+		<meeting>the 19th international conference on World wide web -WWW &apos;10<address><addrLine>Raleigh, North Carolina, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="volume">851</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,490.97,219.52,8.64;7,81.78,501.93,209.01,8.64;7,81.78,512.89,207.36,8.64;7,81.78,523.85,208.60,8.64;7,81.78,534.81,207.35,8.64;7,81.78,545.76,46.77,8.64" xml:id="b25">
+	<monogr>
+		<title level="m" type="main" coord="7,272.72,501.93,18.07,8.64;7,81.78,512.89,207.36,8.64;7,81.78,523.85,119.22,8.64">Col-BERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction</title>
+		<author>
+			<persName coords=""><forename type="first">Keshav</forename><surname>Santhanam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jon</forename><surname>Saad-Falcon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Potts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2022.naacl-main.272</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<publisher>Association for Computational Linguistics</publisher>
+			<biblScope unit="page" from="3715" to="3734" />
+			<pubPlace>Seattle, United States</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,567.55,220.01,8.64;7,81.78,578.51,207.36,8.64;7,81.78,589.47,207.61,8.64;7,81.78,600.42,186.05,8.64" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="7,81.78,578.51,207.36,8.64;7,81.78,589.47,207.61,8.64;7,81.78,600.42,31.23,8.64">Enhancing crisis-related tweet classification with entity-masked language modeling and multi-task learning</title>
+		<author>
+			<persName coords=""><forename type="first">Philipp</forename><surname>Seeberger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Korbinian</forename><surname>Riedhammer</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.2211.11468</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,120.50,600.42,143.59,8.64">Publisher: arXiv Version Number: 1</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,622.21,220.01,8.64;7,81.78,633.17,209.01,8.64;7,81.78,643.96,207.36,8.81;7,81.22,654.92,209.57,8.58;7,81.78,665.87,209.01,8.81;7,81.78,676.83,207.35,8.81;7,81.78,687.96,185.24,8.64" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="7,81.78,633.17,209.01,8.64;7,81.78,644.13,40.73,8.64">Overview of the TREC 2018 Real-Time Summarization Track</title>
+		<author>
+			<persName coords=""><forename type="first">Royal</forename><surname>Sequiera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luchen</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,144.96,643.96,144.18,8.58;7,81.22,654.92,106.99,8.58">Proceedings of the Twenty-Seventh Text REtrieval Conference</title>
+		<meeting>the Twenty-Seventh Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-11-14">2018. November 14-16, 2018</date>
+			<biblScope unit="volume">2018</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>NIST Special Publication. National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,70.87,709.74,219.52,8.64;7,81.20,720.70,207.93,8.64;7,81.59,731.66,209.20,8.64;7,81.78,742.62,209.01,8.64;7,81.78,753.41,207.36,8.81;7,81.78,764.37,207.36,8.58;7,316.72,75.17,209.34,8.58;7,317.05,86.13,209.10,8.81;7,316.69,97.26,172.13,8.64" xml:id="b28">
+	<analytic>
+		<title level="a" type="main" coord="7,153.79,731.66,137.00,8.64;7,81.78,742.62,209.01,8.64;7,81.78,753.58,29.85,8.64">DocEE: A Large-Scale and Finegrained Benchmark for Document-level Event Extraction</title>
+		<author>
+			<persName coords=""><forename type="first">Meihan</forename><surname>Tong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bin</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shuai</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Meihuan</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yixin</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiangqi</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Siyu</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lei</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Juanzi</forename><surname>Li</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2022.naacl-main.291</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,130.54,753.41,158.60,8.58;7,81.78,764.37,207.36,8.58;7,316.72,75.17,209.34,8.58;7,317.05,86.13,32.78,8.58">Proceedings of the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2022 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Seattle, United States</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="3970" to="3982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,306.14,117.18,218.27,8.64;7,317.05,128.14,209.02,8.64;7,317.05,139.10,209.01,8.64;7,317.05,150.06,208.60,8.64;7,317.05,161.02,208.60,8.64;7,316.74,171.98,208.91,8.64;7,317.05,182.94,209.01,8.64;7,317.05,193.90,209.10,8.64;7,317.05,204.69,207.36,8.81;7,316.63,215.64,207.78,8.58;7,316.69,226.60,207.72,8.81;7,317.05,237.73,122.60,8.64" xml:id="b29">
+	<analytic>
+		<title level="a" type="main" coord="7,499.89,182.94,26.17,8.64;7,317.05,193.90,205.08,8.64">Transformers: State-of-the-art natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lysandre</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Clement</forename><surname>Delangue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anthony</forename><surname>Moi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierric</forename><surname>Cistac</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Rault</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Remi</forename><surname>Louf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Morgan</forename><surname>Funtowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joe</forename><surname>Davison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sam</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Clara</forename><surname>Patrick Von Platen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yacine</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Jernite</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Canwen</forename><surname>Plu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Teven</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sylvain</forename><surname>Le Scao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mariama</forename><surname>Gugger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quentin</forename><surname>Drame</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><surname>Lhoest</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Rush</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-demos.6</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,327.71,204.69,196.70,8.58;7,316.63,215.64,207.78,8.58;7,316.69,226.60,62.83,8.58">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="38" to="45" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,306.14,257.66,220.01,8.64;7,317.05,268.45,209.01,8.81;7,317.05,279.40,207.35,8.58;7,317.05,290.36,208.85,8.81;7,316.30,301.49,143.70,8.64" xml:id="b30">
+	<analytic>
+		<title level="a" type="main" coord="7,317.05,268.61,172.21,8.64">Bag-of-Entities Representation for Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tie-Yan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2970398.2970423</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,508.23,268.45,17.83,8.58;7,317.05,279.40,207.35,8.58;7,317.05,290.36,156.29,8.58">Proceedings of the 2016 ACM International Conference on the Theory of Information Retrieval</title>
+		<meeting>the 2016 ACM International Conference on the Theory of Information Retrieval<address><addrLine>Newark Delaware USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="181" to="184" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,306.14,321.42,218.27,8.64;7,317.05,332.38,207.36,8.64;7,316.74,343.17,207.67,8.58;7,316.63,354.12,209.02,8.58;7,317.05,365.25,209.01,8.64;7,317.05,376.21,71.96,8.64" xml:id="b31">
+	<analytic>
+		<title level="a" type="main" coord="7,463.45,321.42,60.96,8.64;7,317.05,332.38,190.96,8.64">Coarse-to-Fine Query Focused Multi-Document Summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Yumo</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.296</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,316.74,343.17,207.67,8.58;7,316.63,354.12,203.84,8.58">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="3632" to="3645" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,306.14,396.14,218.62,8.64;7,317.05,407.10,207.36,8.64;7,316.74,417.89,209.33,8.58;7,317.05,428.84,207.36,8.58;7,316.88,439.80,207.52,8.58;7,316.74,450.76,209.16,8.81;7,317.05,461.89,209.01,8.64;7,317.05,472.85,32.94,8.64" xml:id="b32">
+	<analytic>
+		<title level="a" type="main" coord="7,453.39,396.14,71.38,8.64;7,317.05,407.10,191.17,8.64">Generating Query Focused Summaries from Query-Free Resources</title>
+		<author>
+			<persName coords=""><forename type="first">Yumo</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.acl-long.475</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,316.74,417.89,209.33,8.58;7,317.05,428.84,207.36,8.58;7,316.88,439.80,207.52,8.58;7,316.74,450.76,44.71,8.58;7,413.44,450.76,53.51,8.58">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Online. Association for Computational Linguistics</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="6096" to="6109" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,127.98,57.91,356.07,19.66">On Duplicate Results in a Search Session</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,202.44,80.21,57.66,12.49"><forename type="first">Jiepu</forename><surname>Jiang</surname></persName>
+							<email>jiepu.jiang@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Information Sciences</orgName>
+								<orgName type="institution">University of Pittsburgh</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,268.50,80.21,52.92,12.49"><forename type="first">Daqing</forename><surname>He</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Information Sciences</orgName>
+								<orgName type="institution">University of Pittsburgh</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,330.72,80.21,78.91,12.49"><forename type="first">Shuguang</forename><surname>Han</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Information Sciences</orgName>
+								<orgName type="institution">University of Pittsburgh</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,127.98,57.91,356.07,19.66">On Duplicate Results in a Search Session</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E78C3A5E5E65088C7228840792A757B3</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Search session</term>
+					<term>novelty</term>
+					<term>duplication</term>
+					<term>query reformulation</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we introduce the PITT group's methods and findings in TREC 2012 session track. After analyzing the search logs in session track 2011 and 2012 datasets, we find that users' reformulated queries are very different from their previous ones, probably indicating their expectations to find not only relevant but also novel results. However, as indicated from our results, a major approach adopted by the session track participants, i.e. using relevance feedback information extracted from previous queries for search, will sacrifice the novelty of results for improving ad hoc search performance (e.g. nDCG@10). Such issues were not disclosed in previous years' session tracks because TREC did not consider the effects of duplicate results in evaluation. Therefore, we proposed a method to properly penalize the duplicate results in ranking by simulating users' browsing behaviors in a search session. A duplicate result in current search will be penalized to a greater extent if it was ranked in higher positions in previous searches or it was returned by more previous queries. The method can effectively improve the novelty of search results and lead to only slight and insignificant drop in ad hoc search performance.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">DUPLICATE RESULTS IN A SEARCH SESSION: WHERE LIES THE ISSUE?</head><p>In TREC 2010 -2012, the goal of the session track was to investigate whether search performance of the current query in a search session can be improved by using previous user interaction data in the session, including: previous search queries, results, and click through data. The primary evaluation metric adopted by the track guidelines 123 and overview papers <ref type="bibr" coords="1,205.57,504.58,8.00,8.72" target="#b8">[8]</ref><ref type="bibr" coords="1,213.57,504.58,4.00,8.72" target="#b9">[9]</ref><ref type="bibr" coords="1,217.57,504.58,12.00,8.72" target="#b10">[10]</ref> is nDCG@10 of the systems' results for the current queries.</p><p>In a multi-query search session, one document can be returned in the results of many queries. However, there were debates on whether the duplicate results should be removed. Table <ref type="table" coords="1,263.82,549.94,4.50,8.72">1</ref> shows an example of three different systems' results for q 2 subsequent to the same results for q 1 . We assume D 1 -D 4 have the same level of relevance. Among the three systems' results for q 2 , one can easily agree that S1's are almost useless (only returning duplicate results) and S2's are beneficial (returning a new relevant result D 3 as well as all those found by q 1 ). However, it is difficult to come to an agreement on whether S3's results are bound to be more/less beneficial than S2's. Compared with S2, S3 returned more new relevant results but less total relevant ones. 1 http://ir.cis.udel.edu/sessions/guidelines10.html 2 http://ir.cis.udel.edu/sessions/guidelines11.html 3 http://ir.cis.udel.edu/sessions/guidelines12.html Table <ref type="table" coords="1,351.84,170.80,3.38,8.72">1</ref>. Examples of duplicate results in a search session.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Reformulation:</head><p>q 1 → q 2 q 1 's results (S1, S2, S3) q 2 's results</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>S1 S2 S3</head><p>Relevant documents returned</p><formula xml:id="formula_0" coords="1,438.23,204.66,108.70,26.25">D 1 D 2 D 1 D 2 D 1 D 2 D 3 D 3 D 4</formula><p>Järvelin et al. <ref type="bibr" coords="1,384.73,236.98,10.43,8.72">[6]</ref> maintained that duplicate results should not be removed in search because users may overlook relevant results and thus the duplicate ones may still be informative. Therefore, they <ref type="bibr" coords="1,337.69,268.06,10.49,8.72">[6]</ref> did not penalize duplicate results at all in evaluation. Kanoulas et al. <ref type="bibr" coords="1,376.14,278.38,10.44,8.72" target="#b7">[7]</ref> also argued that removing duplicate results in search may "lead to systems that are less transparent to their users". In evaluation, Kanoulas et al. <ref type="bibr" coords="1,466.74,299.08,10.49,8.72" target="#b7">[7]</ref> simply removed the duplicate results from the result list and pushed the subsequent ones up to higher positions, so that they can neither penalize nor take into account the duplicates ones.</p><p>However, there are at least three reasons supporting removal of the duplicate results or penalization of their rankings in search:</p><p>(1) We find that users' reformulated queries are usually very different from the previous queries in the same session, indicating that finding new relevant results may be partly the expectation of the users for query reformulation. We extracted 128 and 101 query reformulation pairs from the search session logs of the 2011 and 2012 datasets (excluding the current query of each session), respectively. For each query reformulation pair, we calculated the change of search performance (measured by nDCG@10) and the similarity of results (measured by the Jaccard similarity for the pair of queries' top 10 results). As shown in Table <ref type="table" coords="1,506.46,462.34,3.34,8.72" target="#tab_0">2</ref>, on average, we did not find significant change of nDCG@10 on users' reformulated queries, although the sets of results retrieved did change a lot, with relatively low Jaccard similarity with the results of the previous queries. Table <ref type="table" coords="1,355.77,518.08,4.50,8.72" target="#tab_2">3</ref> further shows the changes of nDCG@10 and results' similarities for sessions of different task types in 2012 dataset (the task types are manually classified by the Rutgers team <ref type="bibr" coords="1,520.95,538.78,13.46,8.72" target="#b14">[14]</ref>). The finding seems consistent among sessions of different task types.  (2) We noticed that one major approach being adopted by the participants in session track <ref type="bibr" coords="2,156.18,172.85,9.75,8.72" target="#b1">[1,</ref><ref type="bibr" coords="2,168.24,172.85,6.69,8.72" target="#b4">4,</ref><ref type="bibr" coords="2,177.24,172.85,6.74,8.72" target="#b5">5,</ref><ref type="bibr" coords="2,186.30,172.85,10.64,8.72" target="#b11">11]</ref>, i.e. using previous search queries as relevance feedback information, may make the search results of the current query more similar to the results of previous searches. Therefore, although the approach improved nDCG@10, it is unclear whether the improvements come from returning new relevant results or the duplicate ones found in previous searches.</p><p>Figure <ref type="figure" coords="2,96.15,238.97,4.50,8.72" target="#fig_0">1</ref> shows the average Jaccard similarity between the current query's results and each of the previous query's results for our run "PITTSHQM", which used the mentioned approach in RL2-4. It is indicated that the results of RL2-4 are more similar to previous queries' results than those of RL1 (in which only the current queries were used for search). Note that the seemingly low Jaccard similarity values in Figure <ref type="figure" coords="2,184.94,301.07,4.50,8.72" target="#fig_0">1</ref> may be underestimated due to the difference between our system and the system used for collecting search logs. (3) Even though sometimes users may not want the duplicate results to be removed or penalized, it does not constitute a reason for against removing or penalizing the duplicate results. In fact, in a real system, we can provide both results with and without removing the duplicates and let the users decide which one to use. Moreover, we also believe that the question whether we should remove the duplicate results can be modeled based on users' previous behaviors.</p><p>Therefore, in TREC session track 2012, we focus on how to develop appropriate methods to penalize the rankings of duplicate results based on users' previous behaviors in the session. The rest of the paper is organized as follows: section 2 introduces our methods for TREC 2012; section 3 introduces the experiment settings; section 4 evaluates our results and draws conclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">METHODS</head><p>We use a language modeling approach for retrieval. A document d will be ranked by P(d|q, s): q is the current query for search in the ongoing session; s is the user's past search behaviors in the session. As in Eq(1), applying Bayes' theorem, we can equivalently rank documents by the product of P(q|d, s) and P(d|s). We further model P(q|d, s) as d's topical relevance to the query q in the session context s, and P(d|s) as the novelty of d to the user when browsing the current query's results.</p><formula xml:id="formula_1" coords="2,376.04,81.90,181.96,11.10">      | , | , | P d q s P q d s P d s   (1)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Topical Relevance</head><p>Literally, P(q|d, s) suggests a query generation process that q is generated from not only the document d but also the session context s. We can also explain P(q|d, s) as the likelihood that the user issues a query q in the specific session context s for retrieving the document d. Apparently, this suggests an extension to the query likelihood language model (LM) framework <ref type="bibr" coords="2,502.33,169.13,14.25,8.72" target="#b18">[18,</ref><ref type="bibr" coords="2,518.82,169.13,10.65,8.72" target="#b20">20]</ref>.</p><p>Similarly, we can give out an extension to the KL-Divergence LM framework <ref type="bibr" coords="2,375.42,193.79,14.19,8.72" target="#b12">[12,</ref><ref type="bibr" coords="2,391.91,193.79,12.00,8.72" target="#b21">21]</ref> in multi-query search session. As in Eq(2), P(q|d, s) is proportional to P(q, s|d, s). Thus, we can estimate two language models θ q,s and θ d,s , the session contextual query model and document model, and rank documents by the KL-Divergence between θ q,s and θ d,s . We finally calculate the relevance scores by</p><formula xml:id="formula_2" coords="2,319.65,246.49,88.88,26.32">    , , | , | q s q s P t d s t P t     </formula><p>, which is equivalent to KLD(θ q,s ||θ d,s ) in ranking and can be easily implemented using indri query language.</p><formula xml:id="formula_3" coords="2,351.97,291.62,206.02,38.98">          , , | , , , | , , | , | q s q s rank rank P t d s q s d s t P q d s P q s d s P t KLD           <label>(2)</label></formula><p>Although θ q,s and θ d,s provide us with interesting opportunities for modeling, this year we only adopt very simple methods for θ q,s and θ d,s , so that we can focus on our research question, i.e. how to consider duplicate results in a session. We simply estimate θ d,s as θ d , the plain document language model with Dirichlet smoothing <ref type="bibr" coords="2,317.88,390.11,13.75,8.72" target="#b20">[20]</ref>, as in Eq <ref type="bibr" coords="2,367.90,390.11,11.32,8.72" target="#b3">(3)</ref>. As in Eq(4), we estimate θ q,s by interpolating different query models: P MLE (t|q) and P MLE (t|q s ), respectively, are models estimated from the latest query q and the past queries q s by maximum likelihood estimation (MLE); P fb (t|θ q,s ) is a relevance feedback query model.</p><formula xml:id="formula_4" coords="2,320.63,446.11,237.37,66.94">      , ( , ) | | | ( , ) i d s d i t d c t d P t C P t P t c t d            (3)               , , ˆ| 1 1 | | | q s fb prev MLE prev MLE s fb fb q s P t P t q P t q P t               <label>(4)</label></formula><p>Specifically, we estimate different query models for RL1-4 runs. RL1 runs only use P ML (t|q). RL2 runs combine P ML (t|q) with P ML (t|q s ). RL3 and RL4 runs interpolate RL2 runs' models with different relevance feedback query models: for RL3 runs, P fb (t|θ q,s ) is estimated based on RL2 runs' top ranked results using RM1 relevance model <ref type="bibr" coords="2,380.96,573.94,14.25,8.72" target="#b13">[13,</ref><ref type="bibr" coords="2,398.24,573.94,10.82,8.72" target="#b15">15]</ref>; for RL4 runs, we estimate P fb (t|θ q,s ) as the mixture model of all clicked documents' MLE document models (we assign each clicked document the same weight).</p><p>Technically, the topical relevance scores are calculated using exactly the same methods we adopted last year <ref type="bibr" coords="2,490.80,619.36,9.48,8.72" target="#b4">[4]</ref>. Here we show the methods in <ref type="bibr" coords="2,373.38,629.68,10.44,8.72" target="#b4">[4]</ref> suggests an extension to the language modeling methods for ad hoc search <ref type="bibr" coords="2,417.22,640.06,14.19,8.72" target="#b20">[20,</ref><ref type="bibr" coords="2,434.14,640.06,12.00,8.72" target="#b21">21]</ref> in multi-query search session. Similar methods were also adopted by many other TREC session participants <ref type="bibr" coords="2,362.52,660.76,9.69,8.72" target="#b1">[1,</ref><ref type="bibr" coords="2,374.82,660.76,12.00,8.72" target="#b11">11]</ref> and can be at least traced back to Shen et al.'s models in <ref type="bibr" coords="2,355.44,671.08,14.99,8.72" target="#b19">[19]</ref> (the FixInt method). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Browsing Novelty</head><p>We model the user's browsing novelty in a multi-query session by P(d|s), which can be explained as: the probability that the user, after several rounds of searches and interactions (s), will still be interested in examining d.</p><p>A document may lose its attractiveness for at least two reasons: first, it was examined by the user in past searches; second, other documents examined previously contain the same or very similar information. We focus on the first type of novelty due to the lack of information for studying and evaluating the second type (e.g. mapping between documents and subtopics).</p><p>We assume the following models for the user's behaviors prior to the current query q: M1: The user examines results in a list by sequence. The user will always examine the first result in a list. After examine each result, the user has probability p to continue examining the next one, and probability 1 -p to stop (either to reformulate a new query for search or to terminate the current session).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>M2:</head><p>For each time the user examines a result, it has probability β that the result will lose its attractiveness to the user in the rest of the search session.</p><p>Here, M1 models user's browsing behaviors in a search session. We adopt the same browsing model used in rank-biased precision (RBP) <ref type="bibr" coords="3,115.01,321.69,13.75,8.72" target="#b17">[17]</ref>. A similar model has been adopted in <ref type="bibr" coords="3,270.71,321.69,10.49,8.72" target="#b7">[7]</ref> for evaluating a whole search session's performance. However, M1 differs from the model in <ref type="bibr" coords="3,162.08,342.39,10.49,8.72" target="#b7">[7]</ref> in that we do not count any probability for the case that the user terminates the session prior to q (as modeled by p reform in <ref type="bibr" coords="3,152.04,363.10,9.41,8.72" target="#b7">[7]</ref>). This is because, in a static session dataset such as those in TREC session track, we can only observe the static session data based on the fact that the user had chosen to reformulate queries in M1. Thus, it seems inconsistent for <ref type="bibr" coords="3,273.43,394.13,10.49,8.72" target="#b7">[7]</ref> to consider p reform in such datasets. If the user terminated the session prior to q, we will not be able to observe the static session data. M2 is not an actual "model" on the process that a document loses its attractiveness. But M2 can roughly model the effects that the attractiveness of a document is lost due to many complex user factors in interactive search, for example: Users' browsing styles and efforts: some users may quickly scan results, while some others may carefully examine one by one. Users of different styles may have different chances of missing important information in a document.</p><p>Users' background knowledge and familiarity with the topic: a user's background knowledge and familiarity with the topic may influence whether, after examining a result, the user can understand the major information in the result.</p><p>Here we simply set up a value for β intuitively and left the modeling of user factors in β for future works. According to M1 and M2, as in Eq(5), a document d can keep its attractiveness if and only if it did not lose attractiveness in any of the previous searches. In Eq(5): R (i) refers to the results for the ith query in the session (assuming q is the nth query); P examine (d|R (i) ) is the probability that d will be examined when the user browses results R (i) , as calculated in Eq(6); rank(d, i) is the rank of d in R (i) .</p><p>( )</p><formula xml:id="formula_5" coords="3,93.56,652.18,200.55,56.97">1 ( ) examine 1 ( | ) 1 1 ( | ) n i i P d s P d R β - = = - -⋅ ∏ (5) ( , ) 1 ( ) ( ) examine ( ) ( | ) 0 rank d i i i i p d R P d R d R -  ∈ =  ∉  (6)</formula><p>According to Eq <ref type="bibr" coords="3,392.06,56.20,12.27,8.72" target="#b5">(5)</ref> and Eq <ref type="bibr" coords="3,431.48,56.20,11.38,8.72">(6)</ref>, a duplicate document will be discounted to a greater extent if: the document appeared in more previous queries' results; the document was at higher positions in previous results; a greater value of either p or β is assigned. Let S{d 1 , d 2 , … , d 10 } be a result list of 10 documents. Figure <ref type="figure" coords="3,528.57,97.60,4.50,8.72" target="#fig_2">2</ref> shows P(d i |s) for the same 10 documents after the user viewed S once. We used a similar model in <ref type="bibr" coords="3,430.13,118.30,10.43,8.72" target="#b3">[3]</ref> for evaluating performance of query reformulations in a search session. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">EXPERIMENTS</head><p>We submitted 4 runs, as summarized in Table <ref type="table" coords="3,531.06,291.64,3.38,8.72" target="#tab_3">4</ref>. The parameter settings are summarized in Table <ref type="table" coords="3,491.21,302.02,3.32,8.72" target="#tab_4">5</ref>. We implement Eq(2) using Indri's query language. We build index and search on a subset of Clueweb09b dataset for only those documents that have Waterloo spam rank scores ≥ 70.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PITTSHQM: only considered topical relevance; used unigram language model.</head><p>PITTSHQMsdm: only considered topical relevance; used sequential dependence model <ref type="bibr" coords="3,426.16,382.42,13.71,8.72" target="#b16">[16]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PITTSHQMnov: considered both topical relevance and browsing novelty; used unigram language model</head><p>PITTSHQMsnov: considered both topical relevance and browsing novelty; used sequential dependence model. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">EVALUATION</head><p>Table <ref type="table" coords="3,356.52,687.64,4.50,8.72" target="#tab_5">6</ref> shows nDCG@10 for the submitted runs (using all qrels for evaluation without considering duplicate results). We find very similar results to what we found last year: nDCG@10 can be improved substantially by combining the past search queries with the current query, but further applying relevance feedback query models to RL2 runs seems not helpful.</p><p>We focus on the effectiveness of the browsing novelty model (PITTSHQM vs. PITTSHQMnov, and PITTSHQMsdm vs. PITTSHQMsnov). As indicated in Table <ref type="table" coords="4,206.56,111.94,3.38,8.72" target="#tab_5">6</ref>, there are slight drops in nDCG@10 (about 2%, not significant) after applying browsing novelty model. Table <ref type="table" coords="4,135.47,132.64,4.50,8.72" target="#tab_6">7</ref> shows nDCG@10 for the submitted runs using qrels that consider the relevance of duplicate results as zero (we refer to the nDCG@10 using this qrels as nDCG@10-nov). As shown in Table <ref type="table" coords="4,126.27,163.72,3.38,8.72" target="#tab_6">7</ref>, after applying the browsing novelty model, nDCG@10-nov improved significantly in most of the cases (by about 8% -10%). Table <ref type="table" coords="4,149.73,184.36,4.50,8.72" target="#tab_7">8</ref> shows the average Jaccard similarity between the current query's results and previous queries' results for the submitted runs. After applying the browsing novelty model, the similarity between current query's results and previous queries' results also dropped greatly.</p><p>Results in Table <ref type="table" coords="4,132.17,240.16,3.38,8.72" target="#tab_5">6</ref>, 7, and 8 indicate the effectiveness of the browsing novelty model in finding new relevant results. In general, it seems worthwhile to apply the browsing novelty model, as it significantly improved nDCG@10-nov while led to only slight and insignificant drop in nDCG@10.</p><p>We further calculate the rank correlation between the top 10 results of PITTSHQM.RL1 and PITTSHQMnov.RL1. Figure <ref type="figure" coords="4,289.61,306.22,4.50,8.72" target="#fig_2">2</ref> shows the results. In 55 out of 98 sessions, the top 10 results' rankings were affected by the browsing novelty model (with average tau = 0.71), but their nDCG@10 did not change much (with only -0.007 change in nDCG@10). After analyzing the results, we find: the browsing model will not only penalize the relevant documents ranked at high positions in previous searches, but also shuffle some new relevant results to higher positions so that the nDCG@10 scores will not be affected much. For example, Table <ref type="table" coords="4,340.74,56.20,4.50,8.72" target="#tab_3">4</ref> shows the shuffling of search results for session No. 47. A relevant document "clueweb09-enwp01-63-10556" was ranked at the top position by the first query in the session. The document will be discounted to very low positions so that other relevant documents can be shuffled to higher positions.     </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSION AND FUTURE WORKS</head><p>In TREC 2012 session track, we mainly focus on studying the proposed browsing novelty model. The evaluation results indicate that it is beneficial and worthwhile to apply the browsing novelty model to penalize duplicate results.</p><p>It should be noted that the influence of the duplicate results may be underestimated in TREC session track mainly because the participants' systems are usually very different from those used for collecting search logs. Thus, the overlap between the systems' results and previous queries' results should be higher than what are shown in Table <ref type="table" coords="5,127.43,171.16,3.34,8.72" target="#tab_7">8</ref>. Therefore, it is still unclear to what degree the duplicate results can influence search systems in a session and how effective the browsing novelty model can solve the issues.</p><p>Besides, it may be problematic to simply consider duplicate results' relevance as zero in the evaluation (i.e. nDCG@10-nov).</p><p>Here we suggest two alternative evaluation methods:</p><p>(1) A model-free approach. Enlightened by the interactive search and judge method for collecting qrels <ref type="bibr" coords="5,222.67,251.56,9.54,8.72" target="#b2">[2]</ref>, we can ask the users to freely search in an interactive search system, saving each relevant document if and only if the user believes the document is relevant and should not be presented again in search results. Using this approach, we can collect the user's whole search history as a static search session (similar to the current search logs in session track), along with the time-sensitive qrels for the session: each relevant result is associated with the time in the session it was recognized by the user as relevant and obsolete. When evaluating a query's search performance, we only use the relevant results saved later than the query as qrels. However, this approach also requires extensive endeavors in developing new datasets.</p><p>(2) Using existing datasets and qrels but modeling on novelty in evaluation metrics, such as the irel-series metrics we proposed in <ref type="bibr" coords="5,64.24,400.47,9.52,8.72" target="#b3">[3]</ref>. However, it is very likely that the evaluation metrics will be biased to the search systems that applied a similar model (for example, the evaluation metrics in <ref type="bibr" coords="5,181.65,421.17,10.49,8.72" target="#b3">[3]</ref> will be biased to the search methods proposed in this paper, because they use the same browsing model).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,64.04,451.25,219.97,8.72;2,59.78,461.63,228.51,8.72"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Average Jaccard similarity between the current query's results and previous results for run "PITTSHQM".</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,326.22,259.66,223.42,8.72"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Discounting of results' attractiveness to the user.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="4,100.03,533.68,411.99,8.72"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Correlation of top 10 results between PITTSHQM.RL1 and PITTSHQMnov.RL1 (Kendall's tau).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,324.63,565.60,227.80,129.25"><head>Table 2 . Changes of nDCG@10 and results' similarities for query reformulation pairs in TREC 2011 and 2012. Reformulation: q 1 → q 2</head><label>2</label><figDesc></figDesc><table coords="1,325.56,590.64,226.87,104.21"><row><cell></cell><cell></cell><cell cols="2">TREC 2011</cell><cell cols="2">TREC 2012</cell></row><row><cell></cell><cell></cell><cell cols="2">(128 query pairs)</cell><cell cols="2">(101 query pairs)</cell></row><row><cell></cell><cell></cell><cell>mean</cell><cell>SD</cell><cell>mean</cell><cell>SD</cell></row><row><cell></cell><cell>q 1</cell><cell>0.363</cell><cell>0.26</cell><cell>0.227</cell><cell>0.22</cell></row><row><cell>nDCG@10</cell><cell>q 2</cell><cell>0.337</cell><cell>0.25</cell><cell>0.195</cell><cell>0.22</cell></row><row><cell>all subtopics</cell><cell>q 2 -q 1</cell><cell>-0.026</cell><cell>0.26</cell><cell>-0.031</cell><cell>0.20</cell></row><row><cell></cell><cell>P(q 1 ≠q 2 )</cell><cell>0.254</cell><cell></cell><cell>0.121</cell><cell></cell></row><row><cell></cell><cell>q 1</cell><cell>0.147</cell><cell>0.18</cell><cell></cell><cell></cell></row><row><cell>nDCG@10 current only</cell><cell>q 2 q 2 -q 1</cell><cell>0.133 -0.015</cell><cell>0.16 0.18</cell><cell>-</cell><cell></cell></row><row><cell></cell><cell>P</cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="1,345.18,686.94,203.97,17.73"><head>(q 1 ≠q 2 ) 0.355 Jaccard(q 1 , q 2 )</head><label></label><figDesc></figDesc><table coords="1,431.22,696.66,117.93,7.73"><row><cell>0.109</cell><cell>0.23</cell><cell>0.162</cell><cell>0.21</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="2,57.72,56.38,232.11,100.09"><head>Table 3 . Changes of nDCG@10 and results' similarities for query reformulation pairs in sessions of different task types. Know-Subject N = 13 Know-Item N = 46 Exploratory N = 32 Interpretive N = 10 mean SD mean SD mean SD mean SD q 1</head><label>3</label><figDesc></figDesc><table coords="2,57.72,109.80,232.11,46.67"><row><cell></cell><cell>0.131</cell><cell cols="3">0.20 0.204 0.23 0.296 0.21 0.235 0.24</cell></row><row><cell>q 2</cell><cell>0.100</cell><cell cols="3">0.18 0.180 0.23 0.259 0.22 0.186 0.23</cell></row><row><cell>q 2 -q 1</cell><cell cols="4">-0.031 0.26 -0.024 0.15 -0.037 0.21 -0.049 0.31</cell></row><row><cell>P(q 1 ≠q 2 )</cell><cell>0.681</cell><cell>0.295</cell><cell>0.319</cell><cell>0.632</cell></row><row><cell cols="2">Jaccard 0.142</cell><cell cols="3">0.22 0.141 0.18 0.209 0.24 0.135 0.22</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="3,326.94,446.36,215.55,70.35"><head>Table 4 . Summarization of runs.</head><label>4</label><figDesc></figDesc><table coords="3,326.94,460.98,215.55,55.73"><row><cell>Runs/Methods</cell><cell>Topical Relevance</cell><cell>Browsing Novelty</cell><cell>SDM</cell></row><row><cell>PITTSHQM</cell><cell>Y</cell><cell>N</cell><cell>N</cell></row><row><cell>PITTSHQMsdm</cell><cell>Y</cell><cell>N</cell><cell>Y</cell></row><row><cell>PITTSHQMnov</cell><cell>Y</cell><cell>Y</cell><cell>N</cell></row><row><cell>PITTSHQMsnov</cell><cell>Y</cell><cell>Y</cell><cell>Y</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="3,334.44,524.92,207.46,136.69"><head>Table 5 . Summarization of parameters.</head><label>5</label><figDesc></figDesc><table coords="3,334.44,543.48,207.46,118.13"><row><cell>Related Models</cell><cell>Parameter Settings</cell></row><row><cell>Document Model</cell><cell>µ = 3,500</cell></row><row><cell>Session History Query Model</cell><cell>λ prev = 0.4</cell></row><row><cell></cell><cell>λ fb = 0.2</cell></row><row><cell>Relevance Feedback Query Model</cell><cell># fb docs = 10</cell></row><row><cell></cell><cell># fb terms = 20</cell></row><row><cell></cell><cell>w term = 0.85</cell></row><row><cell>Sequential Dependence Model</cell><cell>w #ow2 = 0.09</cell></row><row><cell></cell><cell>w #uw8 = 0.06</cell></row><row><cell>Browsing Novelty</cell><cell>p = 0.8 β = 0.8</cell></row><row><cell>Waterloo Spam Rank Scores</cell><cell>≥ 70</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="4,317.88,114.10,237.63,69.44"><head>Table 6 . nDCG@10 of the submitted runs.</head><label>6</label><figDesc></figDesc><table coords="4,317.88,128.76,237.63,54.78"><row><cell></cell><cell cols="4">TP Nov SDM RL1</cell><cell>RL2</cell><cell>RL3</cell><cell>RL4</cell></row><row><cell>PITTSHQM</cell><cell>Y</cell><cell>N</cell><cell>N</cell><cell cols="2">0.256 0.310 ↑ 0.322 ↑ 0.315 ↑</cell></row><row><cell cols="2">PITTSHQMnov Y</cell><cell>Y</cell><cell>N</cell><cell cols="2">0.252 0.301 ↑ 0.315 ↑ 0.307 ↑</cell></row><row><cell cols="2">PITTSHQMsdm Y</cell><cell>N</cell><cell>Y</cell><cell cols="2">0.262 0.307 ↑ 0.310 ↑ 0.310 ↑</cell></row><row><cell cols="2">PITTSHQMsnov Y</cell><cell>Y</cell><cell>Y</cell><cell cols="2">0.254 0.297 ↑ 0.301 ↑ 0.302 ↑</cell></row><row><cell cols="6">↑: RL2-4's results are significantly better than RL1's (p&lt;0.05) by 2 tail paired t-test.</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="4,317.88,191.50,240.09,106.21"><head>Table 7 . nDCG@10-nov of the submitted runs (shown documents in previous queries of the session are considered duplicates and their relevance are downgraded to zero).</head><label>7</label><figDesc></figDesc><table coords="4,317.88,226.86,240.09,70.86"><row><cell></cell><cell cols="4">TP Nov SDM RL1</cell><cell>RL2</cell><cell>RL3</cell><cell>RL4</cell></row><row><cell>PITTSHQM</cell><cell>Y</cell><cell>N</cell><cell>N</cell><cell cols="2">0.231 0.275 ↑ 0.288 ↑ 0.278 ↑</cell></row><row><cell>PITTSHQMnov</cell><cell>Y</cell><cell>Y</cell><cell>N</cell><cell cols="2">0.250 * 0.300 ↑* 0.315 ↑* 0.306 ↑*</cell></row><row><cell cols="2">PITTSHQMsdm Y</cell><cell>N</cell><cell>Y</cell><cell cols="2">0.234 0.265 ↑ 0.270 ↑ 0.270 ↑</cell></row><row><cell cols="2">PITTSHQMsnov Y</cell><cell>Y</cell><cell>Y</cell><cell cols="2">0.250 0.292 ↑* 0.296 ↑* 0.296 ↑*</cell></row><row><cell cols="6">↑: RL2-4's results are significantly better than RL1's (p&lt;0.05) by 2-tail paired t-test;</cell></row><row><cell cols="6">*: differences between PITTSHQM vs. PITTSHQMnov and PITTSHQMsdm vs.</cell></row><row><cell cols="6">PITTSHQMsnov are significant (p&lt;0.05) by 2-tail paired t-test.</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" coords="4,317.88,305.68,236.74,71.53"><head>Table 8 . Average Jaccard similarity between the current query's results and previous results for submitted run.</head><label>8</label><figDesc></figDesc><table coords="4,317.88,330.66,236.74,46.55"><row><cell></cell><cell cols="4">TP Nov SDM RL1</cell><cell>RL2</cell><cell>RL3</cell><cell>RL4</cell></row><row><cell>PITTSHQM</cell><cell>Y</cell><cell>N</cell><cell>N</cell><cell>0.035</cell><cell>0.046</cell><cell>0.045</cell><cell>0.048</cell></row><row><cell cols="2">PITTSHQMnov Y</cell><cell>Y</cell><cell>N</cell><cell>0.003</cell><cell>0.004</cell><cell>0.002</cell><cell>0.002</cell></row><row><cell cols="2">PITTSHQMsdm Y</cell><cell>N</cell><cell>Y</cell><cell>0.030</cell><cell>0.041</cell><cell>0.041</cell><cell>0.041</cell></row><row><cell cols="2">PITTSHQMsnov Y</cell><cell>Y</cell><cell>Y</cell><cell>0.004</cell><cell>0.006</cell><cell>0.005</cell><cell>0.006</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" coords="4,63.69,404.26,484.10,307.63"><head>Table 9 . Shuffling of results in session #47 after applying browsing novelty model.</head><label>9</label><figDesc></figDesc><table coords="4,63.69,404.26,484.10,307.63"><row><cell>1.00</cell><cell></cell><cell></cell><cell></cell><cell>tau</cell><cell></cell><cell></cell><cell></cell></row><row><cell>0.80</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>0.60</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>0.40</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>0.20</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>0.00</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="9">32 47 48 65 78 46 6 13 16 91 22 84 35 43 61 1 51 69 79 25 83 64 80 8 38 11 75 9 42 57 10 14 85 86 39 74 19 20 50 26 27 70 88 89 15 24 34 40 53 62 63 67 72 97 31</cell></row><row><cell>-0.20</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>session id</cell></row><row><cell>-0.40</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">q 1 = " pseudocyesis "</cell><cell cols="2">q 2 = " pseudocyesis epidemiology "</cell><cell cols="5">q = "pseudocyesis history" PITTSHQM.RL1 PITTSHQMnov.RL1</cell></row><row><cell>rank</cell><cell>docno</cell><cell>rank</cell><cell>docno</cell><cell>rank</cell><cell>docno</cell><cell cols="2">rank change</cell><cell>docno</cell></row><row><cell>1</cell><cell>enwp01-63-10556</cell><cell>1</cell><cell>enwp01-23-15772</cell><cell>1</cell><cell cols="2">enwp01-63-10556 ↓</cell><cell>2→1</cell><cell>enwp00-68-14496</cell></row><row><cell>2</cell><cell>en0038-44-08898</cell><cell>2</cell><cell>enwp00-88-14910</cell><cell>2</cell><cell cols="2">enwp00-68-14496 ↑</cell><cell>3→2</cell><cell>enwp02-13-04273</cell></row><row><cell>3</cell><cell>en0013-47-24913</cell><cell>3</cell><cell>en0060-14-21952</cell><cell>3</cell><cell cols="2">enwp02-13-04273 ↑</cell><cell>4→3</cell><cell>enwp01-83-08322</cell></row><row><cell>4</cell><cell>en0121-70-04288</cell><cell>4</cell><cell>en0006-59-10549</cell><cell>4</cell><cell cols="2">enwp01-83-08322 ↑</cell><cell>8→4</cell><cell>enwp00-86-21481</cell></row><row><cell>5</cell><cell>en0047-21-02636</cell><cell>5</cell><cell>en0009-11-14983</cell><cell>5</cell><cell cols="2">enwp01-56-06800 ↓</cell><cell cols="2">10→5 enwp00-94-21656</cell></row><row><cell>6</cell><cell>enwp01-80-10554</cell><cell>6</cell><cell>en0011-66-21877</cell><cell>6</cell><cell cols="2">enwp01-66-10938 ↓</cell><cell>9→6</cell><cell>enwp00-98-19091</cell></row><row><cell>7</cell><cell>en0123-83-35172</cell><cell>7</cell><cell>en0074-17-31531</cell><cell>7</cell><cell cols="2">enwp01-51-08462 =</cell><cell>7→7</cell><cell>enwp01-51-08462</cell></row><row><cell>8</cell><cell>en0063-23-33834</cell><cell>8</cell><cell>en0005-88-05908</cell><cell>8</cell><cell cols="2">enwp00-86-21481 ↑</cell><cell>5→8</cell><cell>enwp01-56-06800</cell></row><row><cell>9</cell><cell>en0065-33-00328</cell><cell>9</cell><cell>en0004-33-02114</cell><cell>9</cell><cell cols="2">enwp00-98-19091 ↑</cell><cell>6→9</cell><cell>enwp01-66-10938</cell></row><row><cell cols="2">10 en0092-76-41724</cell><cell>10</cell><cell>en0013-29-10622</cell><cell cols="5">10 enwp00-94-21656 ↑ 12→10 enwp02-21-21481</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>…</cell><cell></cell><cell></cell><cell>…</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="3">12 enwp02-21-21481 ↑</cell><cell cols="2">1→36 enwp01-63-10556</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,58.50,459.28,92.35,11.63" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,472.00,197.95,8.72;5,72.00,482.38,195.21,8.72;5,72.00,492.70,179.17,8.72" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,176.98,472.00,92.97,8.72;5,72.00,482.38,94.67,8.72">University of Essex at the TREC 2010 Session Track</title>
+		<author>
+			<persName coords=""><forename type="first">M.-D</forename><surname>Albakour</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,182.52,482.38,84.69,8.72;5,72.00,492.70,175.31,8.72">the 19th Text REtrieval Conference Notebook Proceedings (TREC 2010)</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,507.04,207.72,8.72;5,72.00,517.42,178.53,8.72;5,72.00,527.74,197.44,8.72;5,72.00,538.12,178.67,8.72" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,171.52,507.04,108.20,8.72;5,72.00,517.42,52.59,8.72">Efficient construction of large test collections</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,140.04,517.42,110.49,8.72;5,72.00,527.74,197.44,8.72;5,72.00,538.12,174.70,8.72">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;98)</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;98)</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,552.45,185.39,8.72;5,72.00,562.78,202.64,8.72;5,72.00,573.15,207.69,8.72;5,72.00,583.48,194.18,8.72" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,145.79,552.45,111.60,8.72;5,72.00,562.78,189.24,8.72">Contextual evaluation of query reformulations in a search session by user simulation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,72.00,573.15,207.69,8.72;5,72.00,583.48,189.81,8.72">Proceedings of the 21st ACM international conference on Information and knowledge management (CIKM&apos;12)</title>
+		<meeting>the 21st ACM international conference on Information and knowledge management (CIKM&apos;12)</meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,597.88,201.03,8.72;5,72.00,608.20,214.99,8.72;5,72.00,618.58,23.25,8.72" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,145.79,597.88,114.07,8.72">Pitt at TREC 2011 session track</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,72.00,608.20,182.79,8.72">Proceedings of the 20th Text REtrieval Conference</title>
+		<meeting>the 20th Text REtrieval Conference</meeting>
+		<imprint>
+			<publisher>TREC</publisher>
+			<date type="published" when="2011">2011. 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,632.91,202.46,8.72;5,72.00,643.24,221.50,8.72;5,72.00,653.61,215.95,8.72" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,145.79,632.91,128.67,8.72;5,72.00,643.24,171.99,8.72">PITT at TREC 2012 Session Track: Adaptive Browsing Novelty in a Search Session</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,259.74,643.24,33.76,8.72;5,72.00,653.61,162.25,8.72">21st Text REtrieval Conference Notebook Proceedings</title>
+		<imprint>
+			<date type="published" when="2012">2012. 2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,667.95,212.99,8.72;5,72.00,678.27,212.02,8.72;5,72.00,688.65,176.97,8.72;5,72.00,698.97,121.21,8.72" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,158.26,667.95,126.73,8.72;5,72.00,678.27,150.54,8.72">Discounted Cumulated Gain Based Evaluation of Multiple-Query IR Sessions</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Järvelin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,238.26,678.27,45.76,8.72;5,72.00,688.65,176.97,8.72;5,72.00,698.97,117.14,8.72">LNCS 4956: Proceedings of the 30th European Conference on Information Retrieval (ECIR&apos;08)</title>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,56.19,218.20,8.72;5,335.88,66.52,181.50,8.72;5,335.88,76.89,204.45,8.72;5,335.88,87.22,78.97,8.72" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,426.61,56.19,114.15,8.72">Evaluating multi-query sessions</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,335.88,66.52,181.50,8.72;5,335.88,76.89,204.45,8.72;5,335.88,87.22,75.00,8.72">Proceedings of the 34th international ACM SIGIR conference on Research and development in Information Retrieval (SIGIR&apos;11)</title>
+		<meeting>the 34th international ACM SIGIR conference on Research and development in Information Retrieval (SIGIR&apos;11)</meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,101.62,194.68,8.72;5,335.88,111.94,205.95,8.72;5,335.87,122.32,200.15,8.72;5,335.87,132.64,97.77,8.72" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,426.65,101.62,103.91,8.72;5,335.88,111.94,205.95,8.72;5,335.87,122.32,32.97,8.72">Overview of the TREC 2012 Session Track DRAFT Notebook Version -please do not distribute</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,384.17,122.32,151.84,8.72;5,335.87,132.64,44.06,8.72">21st Text REtrieval Conference Notebook Proceedings</title>
+		<imprint>
+			<date type="published" when="2012">2012. 2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.87,146.98,211.50,8.72;5,335.87,157.35,199.21,8.72;5,335.87,167.68,51.51,8.72" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,426.64,146.98,106.77,8.72">Session Track 2011 Overview</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,335.87,157.35,199.21,8.72;5,335.87,167.68,47.65,8.72">20th Text REtrieval Conference Notebook Proceedings (TREC 2011)</title>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.87,182.01,204.48,8.72;5,335.87,192.39,209.21,8.72;5,335.87,202.71,23.25,8.72" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,426.64,182.01,81.73,8.72">Session track overview</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,524.33,182.01,16.02,8.72;5,335.87,192.39,209.21,8.72;5,335.87,202.71,19.37,8.72">19th Text REtrieval Conference Notebook Proceedings (TREC 2010)</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.87,217.05,211.23,8.72;5,335.87,227.43,217.97,8.72;5,335.86,237.75,97.76,8.72" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="5,427.60,217.05,119.50,8.72;5,335.87,227.43,49.14,8.72">RMIT University at TREC 2010: Session Track</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kharazmi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,400.91,227.43,152.93,8.72;5,335.86,237.75,93.88,8.72">19th Text REtrieval Conference Notebook Proceedings (TREC 2010)</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.86,252.15,213.96,8.72;5,335.86,262.47,224.33,8.72;5,335.86,272.85,217.35,8.72;5,335.86,283.17,203.91,8.72;5,335.86,293.55,75.97,8.72" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="5,447.14,252.15,102.68,8.72;5,335.86,262.47,221.11,8.72">Document language models, query models, and risk minimization for information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,345.65,272.85,207.57,8.72;5,335.86,283.17,203.91,8.72;5,335.86,293.55,30.04,8.72">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+	<note>SIGIR&apos;01</note>
+</biblStruct>
+
+<biblStruct coords="5,335.88,307.90,192.70,8.72;5,335.88,318.23,176.73,8.72;5,335.88,328.60,197.44,8.72;5,335.88,338.93,178.67,8.72" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="5,468.40,307.90,60.18,8.72;5,335.88,318.23,58.94,8.72">Relevance based language models</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lavrenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,401.15,318.23,111.45,8.72;5,335.88,328.60,197.44,8.72;5,335.88,338.93,132.68,8.72">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+	<note>SIGIR&apos;01</note>
+</biblStruct>
+
+<biblStruct coords="5,335.88,353.26,220.51,8.72;5,335.88,363.64,208.02,8.72;5,335.88,373.96,51.51,8.72" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="5,405.65,353.26,146.86,8.72">Rutgers at the TREC 2012 Session Track</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,345.66,363.64,198.24,8.72">21st Text REtrieval Conference Notebook Proceedings</title>
+		<imprint>
+			<publisher>TREC</publisher>
+			<date type="published" when="2012">2012. 2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,388.30,212.24,8.72;5,335.88,398.68,218.94,8.72;5,335.88,409.00,221.48,8.72;5,335.88,419.38,133.70,8.72" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,430.67,388.30,117.45,8.72;5,335.88,398.68,215.08,8.72">A comparative study of methods for estimating query language models with pseudo feedback</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lv</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,335.88,409.00,221.48,8.72;5,335.88,419.38,129.33,8.72">Proceedings of the 18th ACM conference on Information and knowledge management (CIKM&apos;09)</title>
+		<meeting>the 18th ACM conference on Information and knowledge management (CIKM&apos;09)</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,433.71,211.77,8.72;5,335.88,444.09,220.65,8.72;5,335.88,454.41,197.44,8.72;5,335.88,464.74,178.67,8.72" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="5,461.92,433.71,85.72,8.72;5,335.88,444.09,103.04,8.72">A Markov random field model for term dependencies</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,445.12,444.09,111.41,8.72;5,335.88,454.41,197.44,8.72;5,335.88,464.74,174.70,8.72">Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;05)</title>
+		<meeting>the 28th annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;05)</meeting>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,479.14,204.68,8.72;5,335.88,489.46,224.35,8.72;5,335.88,499.84,21.74,8.72" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="5,447.70,479.14,92.87,8.72;5,335.88,489.46,137.99,8.72">Rank-biased precision for measurement of retrieval effectiveness</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moffat</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,479.69,489.46,80.53,8.72">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,514.17,203.27,8.72;5,335.88,524.50,217.71,8.72;5,335.88,534.87,208.47,8.72;5,335.88,545.20,193.91,8.72" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="5,461.69,514.17,77.46,8.72;5,335.88,524.50,118.23,8.72">A language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Ponte</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,469.38,524.50,84.21,8.72;5,335.88,534.87,208.47,8.72;5,335.88,545.20,189.94,8.72">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;98)</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;98)</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.88,559.53,215.74,8.72;5,335.89,569.91,210.20,8.72;5,335.89,580.23,197.43,8.72;5,335.89,590.61,178.67,8.72" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="5,411.64,559.53,139.98,8.72;5,335.89,569.91,82.87,8.72">Context-sensitive information retrieval using implicit feedback</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Shen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,434.65,569.91,111.45,8.72;5,335.89,580.23,197.43,8.72;5,335.89,590.61,174.70,8.72">Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;05)</title>
+		<meeting>the 28th annual international ACM SIGIR conference on Research and development in information retrieval (SIGIR&apos;05)</meeting>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.89,604.95,189.39,8.72;5,335.89,615.27,224.37,8.72;5,335.89,625.65,104.49,8.72" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="5,447.11,604.95,78.17,8.72;5,335.89,615.27,221.15,8.72">A study of smoothing methods for language models applied to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,335.89,625.65,80.48,8.72">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,335.89,639.98,215.43,8.72;5,335.89,650.36,202.11,8.72;5,335.89,660.68,187.90,8.72;5,335.89,671.06,194.19,8.72" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="5,447.11,639.98,104.21,8.72;5,335.89,650.36,189.15,8.72">Model-based feedback in the language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,335.89,660.68,187.90,8.72;5,335.89,671.06,148.19,8.72">Proceedings of the tenth international conference on Information and knowledge management</title>
+		<meeting>the tenth international conference on Information and knowledge management</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+	<note>SIGIR&apos;01</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

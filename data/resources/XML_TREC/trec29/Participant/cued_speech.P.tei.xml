@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,189.02,99.57,233.96,14.93;1,176.96,119.50,258.61,14.93">CUED_SPEECH AT TREC 2020 PODCAST SUMMARISATION TRACK</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,169.31,184.45,80.33,8.96"><forename type="first">Potsawee</forename><surname>Manakul</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Engineering Department</orgName>
+								<orgName type="institution">University of Cambridge</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,377.21,184.45,50.64,8.96"><forename type="first">Mark</forename><surname>Gales</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Engineering Department</orgName>
+								<orgName type="institution">University of Cambridge</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,189.02,99.57,233.96,14.93;1,176.96,119.50,258.61,14.93">CUED_SPEECH AT TREC 2020 PODCAST SUMMARISATION TRACK</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">248595D4353C21156C9114F98B739E85</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Podcast Summarisation</term>
+					<term>Abstractive Summarisation</term>
+					<term>Sentence Filtering</term>
+					<term>Transfer Learning</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we describe our approach for the Podcast Summarisation challenge in TREC 2020. Given a podcast episode with its transcription, the goal is to generate a summary that captures the most important information in the content. Our approach consists of two steps: (1) Filtering redundant or less informative sentences in the transcription using the attention of a hierarchical model; (2) Applying a state-of-the-art text summarisation system (BART) fine-tuned on the Podcast data using a sequence-level reward function. Furthermore, we perform ensembles of three and nine models for our submission runs. We also fine-tune the BART model on the Podcast data as our baseline. The human evaluation by NIST 1 shows that our best submission achieves 1.777 in the EGFB scale, while the score of creator-provided description is 1.291. Our system won the Spotify Podcast Summarisation Challenge in the TREC2020 Podcast Track in both human and automatic evaluation.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This paper describes our submissions to the TREC 2020 Podcast Track shared tasks <ref type="bibr" coords="1,416.72,462.34,10.72,8.64" target="#b0">[1]</ref>. There are two tasks in the podcast track: ad-hoc segment retrieval (search), and summarisation. Both tasks use the Spotify Podcast dataset <ref type="foot" coords="1,512.91,471.58,3.49,6.05" target="#foot_1">2</ref> . This work focuses on the summarisation task. The summarisation task involves generating a short text summary containing the most salient information for a given podcast episode with its audio and automatic transcription.</p><p>There are two main types of summarisation: extractive methods which select and reorder words or sentences in the source; and abstractive methods which can generate words and phrases that do not appear in the source. Due to the complex nature of abstractive methods, previous work on spoken document summarisation applied traditional machine learning or extractive methods <ref type="bibr" coords="1,200.56,544.18,10.91,8.64" target="#b1">[2,</ref><ref type="bibr" coords="1,214.67,544.18,7.52,8.64" target="#b2">3,</ref><ref type="bibr" coords="1,225.40,544.18,7.27,8.64" target="#b3">4]</ref>. Recently, deep learning methods have shown much success and become the standard approach for various natural language processing (NLP) tasks, including abstractive text summarisation <ref type="bibr" coords="1,72.00,566.00,10.72,8.64" target="#b4">[5]</ref>. In general, deep learning solves text summarisation by applying the encoder-decoder architecture <ref type="bibr" coords="1,489.56,566.00,11.75,8.64" target="#b5">[6]</ref> based on recurrent neural networks (e.g. LSTM, GRU) <ref type="bibr" coords="1,258.08,576.91,10.87,8.64" target="#b6">[7,</ref><ref type="bibr" coords="1,271.45,576.91,7.25,8.64" target="#b7">8]</ref>, or self-attention networks <ref type="bibr" coords="1,391.05,576.91,10.69,8.64" target="#b8">[9]</ref>. More recently, pre-training large transformer-based language model before fine-tuning the model on the target task has made a considerable improvement and achieved state-of-to-art results on various NLP tasks <ref type="bibr" coords="1,305.83,598.73,15.42,8.64" target="#b9">[10]</ref>. Based on this success, we propose that our simplest approach is to fine-tuning state-of-the-art abstractive text summarisation such as BART <ref type="bibr" coords="1,421.64,609.64,16.60,8.64" target="#b10">[11]</ref> on the podcast data.</p><p>The limitation of pre-trained models is that they are trained on written text corpora, which generally have different characteristics from transcriptions of spoken documents. For instance, a transcription of 30-minute audio contains about 5,000 words <ref type="foot" coords="1,146.08,646.18,3.49,6.05" target="#foot_2">3</ref> , which is much longer than typical written text documents that are used during pre-training. As a result, commonly used pre-trained models such as BERT and BART can only take up to 512 or 1024 token due to their fixed maximum positional embedding. Another characteristic of spoken documents is that they contain redundancies in speech (e.g. false start, repetition) and some of the spoken utterances do not convey much information. We consider these issues as the long input sequence problem, and we will discuss it as well as proposing methods to handle in more details in Section 3.1 and Section 3.2. Furthermore, for this challenge, we explore the use of sequence-level training objectives described in Section 3.3, and ensemble of models described in Section 3.4. In Section 4, we present and discuss the official evaluation of our submissions. Lastly, in Section 5, we conclude our experiments as well as suggesting possible future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Data</head><p>More details about the Podcast dataset can be found in <ref type="bibr" coords="2,287.98,187.59,10.45,8.64" target="#b0">[1]</ref>. This section presents the statistics of the podcast data that is useful in our design decisions. The dataset contains around 105,360 episodes from different podcast shows on Spotify. Google Cloud Platform's Cloud Speech-to-text API (GCP-ASR) was used to generate transcriptions. In this work, we do not make use of the audio data. We treat creator-provided descriptions as the summaries, so it should be noted that the quality of our target summaries varies from Bad (B) to Excellent (E). Some statistics are (mean ± standard deviation):</p><p>• The number of words in a transcription: 5,727 ± 4,153</p><p>• The number of words in a summary: 61.1 ± 63.2</p><p>In our development stage, we use the brass subset of all the data (see <ref type="bibr" coords="2,342.59,298.43,11.49,8.64" target="#b0">[1]</ref> for more details about processing steps done to obtain the brass set), resulting in 66,242 episodes in total. We further filtered out episodes with descriptions shorter than 5 tokens, and we process creator-provided descriptions by removing URL links and @name. Then, we split the data into train/dev sets of 60,415/2,189 episodes. In addition, 150 episodes were selected with 6 set of summaries for each episode (900 document-summary-grade triplets), and they were graded are on the Bad/Fair/Good/Excellent scale (0-3). We use this subset to train our grader.</p><p>In the evaluation stage, the evaluation (test) set consists of 1,027 episodes, and we will test some models and ensembles of models that are trained on the train set of the development stage on this evaluation dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methodology</head><p>In this section, we describe our methods using the following notation: θ is the summarisation model parameter, {(x (1) , y (1) ), (x (2) , y (2) ), ..., (x (J) , y (J) )} is J transcription-summary pairs. For simplicity of notation, we will express losses and probability distributions for one pair of data (x, y).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Baseline: Fine-tuning BART Model</head><p>The BART model was proposed in <ref type="bibr" coords="2,219.47,500.22,15.42,8.64" target="#b10">[11]</ref>. It has a standard sequence-to-sequence architecture with a bidirectional encoder (similar to BERT <ref type="bibr" coords="2,179.13,511.13,16.09,8.64" target="#b9">[10]</ref>) and a causal decoder (i.e. left-to-right) decoder (similar to GPT-2 <ref type="bibr" coords="2,469.34,511.13,15.10,8.64" target="#b11">[12]</ref>). Because of the bidirectional nature of the encoder, and the causal nature of the decoder, BART is suitable for conditional text generation tasks. BART is pre-trained using an unsupervised criterion by randomly shuffling the order in the original text as well as filling masked tokens. In this work, we use bart-large<ref type="foot" coords="2,352.70,542.19,3.49,6.05" target="#foot_3">4</ref> consisting of token embedding (shared among encoder, decoder, and language model head), positional embedding, 12-layer encoder, 12-layer decoder, hidden size of 1024, 16 heads (406M parameters in total). Each token to the encoder or decoder is embedded by its token_id and position. The BART model is firstly tuned on a news summarisation corpus such as CNN/DailyMail <ref type="bibr" coords="2,469.84,576.59,11.54,8.64" target="#b6">[7]</ref> or XSum <ref type="bibr" coords="2,522.26,576.59,15.19,8.64" target="#b12">[13]</ref>, before being fine-tuned on the podcast data. Training (or fine-tuning) is done by minimising the negative log-likelihood of target sequence as follows:</p><formula xml:id="formula_0" coords="2,194.54,618.97,345.46,19.64">L ml = -log P (y|x; θ) = - t log P (y t |y 1:t-1 , x; θ)<label>(1)</label></formula><p>The positional embedding uses the absolute position, limiting the length of the input sequence to 1,024 tokens. However, Section 2 shows that the average number of tokens in a podcast transcription is 5,727; thus, a considerable amount of information is lost when truncating the transcription to be within 1,024 tokens. Thus, firstly we propose to expand the positional embedding of the BART model to accommodate sequences longer than 1,024, and we compare it to the vanilla BART model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Positional embedding expansion</head><p>We create a new positional embedding matrix of a size larger than 1,024 tokens; we copy the learned positional embedding weight of the 1st to the 1,024th positions and randomly initialised those beyond 1,024th position. Then, we can train the BART model end-to-end on the podcast data without or with less aggressive truncation.</p><p>In this experiment, due to the limited amount of GPU memory (11 GB), we expand the maximum number of tokens to 3,954; we freeze parts of the BART model and fine-tune the last layers of the encoder and decoder as well as the language model head (81M parameters in total). In the first two blocks of Table <ref type="table" coords="3,400.60,154.14,3.81,8.64" target="#tab_0">1</ref>, we show that the non-expanded BART performs better than the expanded BART, and the reasons are likely due to that: (1) since BART uses a learned positional embedding, instead of sinusoidal function in the original Transformer, simply expanding it does not yield a good performance; (2) learning very long sequences could be inefficient. Lastly, we show in the final block of Table <ref type="table" coords="3,535.77,186.87,4.98,8.64" target="#tab_0">1</ref> that training all parameters of BART but keeping the maximum positional embedding at 1,024 tokens yields the highest ROUGE scores. Therefore, we conclude that expanding positional embedding is inefficient, and we will use the vanilla BART model.  <ref type="formula" coords="3,102.76,316.26,3.80,8.64" target="#formula_2">2</ref>) Non-expanded BART with original maximum positional embedding of 1,024 but parts of the model is frozen the same way as Expanded-BART, (3) Vanilla BART. All systems are trained on the train split of the brass set, and evaluated on the dev split of the brass set.</p><formula xml:id="formula_1" coords="3,186.10,242.62,237.17,36.05">BART Configuration ROUGE F 1 MaxLen Part frozen #Param R-1 R-2 R-L<label>3954</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Sentence Filtering</head><p>The memory and time required for full self-attention models grow quadratically with the input sequence length O(n 2 ), preventing us from fine-tuning the model end-to-end on the entire input transcriptions. Also, in Section 3.1, we show that expanding positional embedding does not improve the performance. Thus, we investigate alternative methods by filtering out redundant or less informative sentences in the input transcriptions.</p><p>1. Random: Randomly select input sentences such that the length does not exceed the maximum length. Note that we keep the same sentence order. 2. Truncation: The simplest method is to select the first n tokens in the input transcription. 3. TextRank <ref type="bibr" coords="3,147.63,493.02,15.61,8.64" target="#b13">[14]</ref>: The algorithm ranks sentences based on their similarity to other sentences. In this work, we represent each sentence by averaging word2vec embedding. We select top sentences such that in total there are less than n tokens, and we keep the same sentence order. 4. Hierarchical Attention (HIER): We train the hierarchical encoder decoder model used in <ref type="bibr" coords="3,459.38,529.75,16.55,8.64" target="#b14">[15]</ref> on podcast data without truncation. At test time, we sum the sentence-level attention score over all time instances to obtain a measure of the importance of sentence i:</p><formula xml:id="formula_2" coords="3,292.03,569.19,247.97,30.20">v i = 1 T T t=1 α s t,i<label>(2)</label></formula><p>where α s t,i is the sentence-level attention score of the hierarchical model, and t is the decoder time instance. Note that if the target sequence is available (e.g. in training data), we can use teacher forcing decoding to obtain the importance score. However, if the target sequence is not available, we have to rely on a decoding method such as beam search.</p><p>Sentence filtering can be applied on the input transcriptions at the training time and/or the test time, so we will look at the following scenarios:</p><p>• Test-time only: Comparing different filtering methods</p><p>During training, the podcast transcription is truncated to be within the maximum length of 1,024 tokens. We compare the filtering methods described above at test time: Random, Truncate, TextRank, and HIER. The hierarchical model (HIER) is trained on CNN/DailyMail and fine-tuned on the podcast data. Results in Table <ref type="table" coords="4,535.12,75.48,4.88,8.64" target="#tab_1">2</ref> show that using the attention of the hierarchical model yields the highest ROUGE scores; truncation is better than random selection; however, the TextRank algorithm yields the worst results. We have shown the effectiveness of sentence filtering at both training time and test time using the hierarchical model. Note that sentence filtering can be thought of as a less aggressive extractive summarisation method. Typically, extractive summarisation aims to select most N (e.g. N = 3) salient sentences by creating pseudo labels <ref type="bibr" coords="4,452.23,482.27,10.63,8.64" target="#b8">[9]</ref>. From now on, we will make use of the hierarchical model to filter input transcriptions at both training and test time.</p><formula xml:id="formula_3" coords="4,218.06,121.60,173.25,36.05">Filtering Method ROUGE F 1 Test-time R-1 R-2 R-L<label>Random</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Sequence-level Loss Training</head><p>During training, we maximise the likelihood at the token level, while during test time, we use automatic metrics such as ROUGE or we evaluate manually. Both automatic and manual evaluations at test time operate at the sequence level. Thus, optimising at the token level only as done in maximum likelihood training is not expected to yield the best result. We follow <ref type="bibr" coords="4,115.31,569.99,15.27,8.64" target="#b15">[16]</ref>, which uses reinforcement learning inspired loss:</p><formula xml:id="formula_4" coords="4,185.02,588.32,351.11,19.64">L rl = (Reward(ỹ) -Reward(ŷ)) t log P (ŷ t |ŷ 1:t-1 , x; θ) (<label>3</label></formula><formula xml:id="formula_5" coords="4,536.13,588.67,3.87,8.64">)</formula><p>where ŷ is the sequence obtained by sampling ŷt ∼ P (y|ŷ 1:t-1 , x; θ) at each time step, and ỹ is the sequence obtained by greedy search. In <ref type="bibr" coords="4,155.25,631.04,15.21,8.64" target="#b15">[16]</ref>, training on the sequence-level loss directly is not stable, so we initialise the model using the model weights trained on maximum likelihood. We train the model on the sequence-level loss function in combination with maximum likelihood loss:</p><formula xml:id="formula_6" coords="4,258.49,663.45,281.51,9.81">L = γL rl + (1 -γ)L ml (4)</formula><p>We experiment two types of the reward function to compute L rl :</p><p>1. ROUGE-L: we follow the ROUGE-L reward training as proposed in <ref type="bibr" coords="4,387.97,702.61,15.41,8.64" target="#b15">[16]</ref>. The ROUGE score is computed against the target summary y: Reward(ỹ) = ROUGE-L(ỹ, y), and Reward(ŷ) = ROUGE-L(ŷ, y).</p><p>2. Automatic Grader: we train a neural grader model φ that predicts the grade given a pair of document and summary: Reward(ỹ) = f φ (x, ỹ), and Reward(ŷ) = f φ (x, ŷ), where f φ (.) gives the grade predicted by model φ.</p><p>The grader is a convolutional neural network (CNN) model that takes a similarity matrix between input transcription and summary as the input. Each cell (i, j) in the similarity matrix is computed by cosine similarity between the vector representing sentence i in the input, and the vector representing sentence j in the summary. We use Sentence-BERT <ref type="bibr" coords="5,72.00,149.64,16.73,8.64" target="#b16">[17]</ref> for the sentence representation. We can use multiple variants of Sentence-BERT models for M -dimensional similarity matrices. In this experiment, we try M = 1 using bert-large-nli-mean-tokens, and M = 10 using nine additional variants. We train the grader model on the part of the podcast data that are annotated with grade information (900 examples from 150 episodes, each episode contains 6 sets of summaries).</p><p>As illustrated in Figure <ref type="figure" coords="5,166.07,198.75,3.72,8.64" target="#fig_0">1</ref>, we perform 9-fold cross-validation on the subset of podcast data that has grade information, and we achieve Pearson Correlation Coefficient (PCC) of 0.421 for 1-channel input, and that of 0.517 for 10-channel input. Subsequently, we train our CNN model on all the data (900 graded episodes) using 1-channel input due to limited computational resource when using the model for reward optimisation.  In Table <ref type="table" coords="5,106.23,413.17,3.66,8.64">4</ref>, we show that using ROUGE-L as the reward is more effective, and there is an improvement over the baseline. When using our automatic grader; however, the summarisation model achieves higher ROUGE-2 and ROUGE-L scores than the baseline, but this model does not outperform the model trained using ROUGE-L. We believe that the outputs of the automatic-grader-reward model may be better than those of the ROUGE-L-reward model, but further human analysis is required to make a conclusion. Hence, we decided to use the ROUGE-L-reward model to our final ensemble, which is described in the next section.  <ref type="table" coords="5,95.60,579.72,3.80,8.64">4</ref>: The training data is filtered using HIER model, and the baseline is the model trained on filtered data using only L ml criterion. Note that to fit the training on one 11GB GPU, the first three layers of the encoder and decoder are frozen.</p><formula xml:id="formula_7" coords="5,203.84,489.97,201.69,36.05">ROUGE F 1 System Reward R-1 R-2 R-L ML-</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Ensemble of models</head><p>We obtain different set of model's weights from different data shuffles, and checkpoints. Given M systems {θ 1 , ..., θ M }, we combine the predictive distribution on the input x at token-level as follows:</p><formula xml:id="formula_8" coords="5,164.25,677.22,375.75,30.20">P (y * |x) = T t=1 P (y * t |y * 1:t-1 , x) = T t=1 1 M M m=1 P (y * t |y * 1:t-1 , x; θ m )<label>(5)</label></formula><p>where y * denotes the hypothesis sequence.</p><p>Having investigated various approaches on our own development set, in this part we evaluate their performance on the evaluation (test) set of 1,027 episodes. We also build ensembles of models by using different data shuffles, and parameters at different checkpoints. During the evaluation stage, we found that fining-tuning the BART summarisation model tuned on the XSum dataset yields a better result than fine-tuning the same model tuned on the CNN/DailyMail as shown in Table <ref type="table" coords="6,134.87,119.11,3.74,8.64">5</ref>.  <ref type="table" coords="6,95.85,269.81,3.84,8.64">5</ref>: ROUGE F 1 scores on the evaluation set (1,027 episodes). We use our processed creator-provided descriptions as described in Section 2 as the reference for computing ROUGE scores. We split the summaries into sentences to compute longest n-grams only within sentences; hence the first ROUGE-L numbers, and the ROUGE-L numbers in ( †) are obtained when the summary is treated as one sequence. We compare our ROUGE-L scores against NIST-evaluated scores in Table <ref type="table" coords="6,134.01,313.45,3.74,8.64">7</ref>. *The summaries of these systems were submitted.</p><formula xml:id="formula_9" coords="6,129.81,142.13,339.51,19.87">Filtering ROUGE F 1 System Train Test R-1 R-2 R-L( †)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">NIST Evaluation Results</head><p>We submitted four set of summaries from the following systems:</p><p>1. CUED-baseline: run_id=cued_speechUniv3 -BART model fine-tuned on truncated podcast data. 2. CUED-filtered: run_id=cued_speechUniv4 -BART model fine-tuned on the transcriptions filtered using the hierarchical model. 3. CUED-ensemble3: run_id=cued_speechUniv2 -Ensemble of 3 BART models (3 random seeds × 1 checkpoints), each trained on filtered transcription (using hierarchical model) data + L rl criterion 4. CUED-ensemble9: run_id=cued_speechUniv1 -Ensemble of 9 BART models (3 random seeds × 3 checkpoints), each trained on filtered transcription (using hierarchical model) data + L rl criterion</p><p>We are also provided with results of two baselines from Spotify:</p><p>1. SPFT-desc: creator-provided descriptions as summaries 2. SPFT-filt: filtered creator-provided descriptions as summaries 179 episodes were selected randomly, and NIST annotators evaluated them on the Bad/Fair/Good/Excellent scale, and answered eight yes/no question (Q1-Q8 in Table <ref type="table" coords="6,266.15,571.77,3.71,8.64" target="#tab_4">6</ref>. For example, Q1 is "Does the summary include names of the main people (hosts, guests, characters) involved or mentioned in the podcast?".</p><p>Table <ref type="table" coords="6,95.94,599.06,4.95,8.64" target="#tab_4">6</ref> shows that our CUED-ensemble3 submission receives the highest human rating at 1.777 in average, compared to our CUED-baseline at 1.564 and SPFT-desc at 1.291. When using an automatic evaluation, CUED-ensemble3 also achieves the highest score shown in Table <ref type="table" coords="6,264.70,620.88,5.08,8.64">7</ref> (note that our ROUGE scores, computed using processed episode descriptions, suggest the performance of CUED-ensemble3 and CUED-ensemble9 are similar). Furthermore, the per episode analysis (in Figure <ref type="figure" coords="6,181.13,642.70,4.13,8.64">2</ref>) shows that CUED-ensemble3 performs better than an average model <ref type="foot" coords="6,465.19,641.03,3.49,6.05" target="#foot_4">5</ref>   <ref type="table" coords="7,96.20,297.20,3.90,8.64">7</ref>: Automatic Evaluation Results using the ROUGE-L (F 1 ) metric. *Our reference for computing ROUGE-L is based on our processed version of episode descriptions (after remove URL links, etc), and we believe that the processed version should better reflect what the models are trained as it is less noisy. Figure <ref type="figure" coords="7,100.73,544.20,3.91,8.64">2</ref>: Per summary analysis of our submissions. There are in total 27+2 sets of summaries. X-axis is the average score of all submissions, and Y-axis is the system score. The number in brackets is the number of times that the system achieves a higher score than the average score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion and Future Work</head><p>Our best system consists of (1) using the hierarchical model to filter transcriptions at both training time and test time, (2) fine-tuning the BART model initialised on XSum without expanding its positional embedding, (3) optimising the sequence-level loss L rl after optimising the token-level maximum likelihood, (4) ensemble of models. Both automatic and human evaluations show that this approach outperforms our baseline. Our system-generated summaries obtain higher human ratings than the target summaries (episode descriptions), suggesting training the model using episode descriptions as target summaries can be improved. For instance, an automatic grader can be used to select if an episode description is appropriate as the target or not, allowing one to use semi-supervised learning approaches. Furthermore, the long sequence problem can be better addressed by either improving sentence filtering or using other neural architectures without full self-attention mechanism. Lastly, there is additional information in audio that are not utilised in this work.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,129.07,373.00,114.89,7.77;5,365.26,373.00,119.87,7.77"><head>(a) 1 -</head><label>1</label><figDesc>channel input, PCC=0.421 (b) 10-channel input, PCC=0.517</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,104.46,389.95,403.08,8.64;5,72.00,251.32,229.33,114.56"><head>Figure 1 : 9 -</head><label>19</label><figDesc>Figure 1: 9-fold cross validation experiment on the subset of podcast data that has grade information.</figDesc><graphic coords="5,72.00,251.32,229.33,114.56" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="7,131.96,527.25,113.79,7.77;7,380.76,527.25,84.18,7.77"><head></head><label></label><figDesc>(a) CUED-ensemble3 (84.36%) (b) SPTF-filt, (60.34%)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,71.69,270.04,468.31,54.86"><head>Table 1 :</head><label>1</label><figDesc>Variants of BART Model Comparison. (1) Expanded BART: BART with maximum positional embedding of 3,954, (</figDesc><table coords="3,194.13,270.04,231.77,30.46"><row><cell></cell><cell>81M</cell><cell>26.72 7.70 22.87</cell></row><row><cell>1024</cell><cell>81M</cell><cell>27.61 8.88 23.99</cell></row><row><cell>1024</cell><cell>406M</cell><cell>29.09 9.92 25.37</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,71.69,149.01,470.05,269.48"><head>Table 2 :</head><label>2</label><figDesc>Comparison of filtering methods at test time. We use the vanilla BART system with maximum positional embedding of 1,024. At training time, the input transcription is truncated and all model parameters are fine-tuned, but at test time the input transcription is filtered.• Training-time and Test-time filteringHere, we investigate another option which is to filter the data at the training time in addition to the test time.We select the hierarchical model (HIER) as our filtering method, and at training time we could either use filtered data to train BART from scratch (Train) or fine-tune it on BART trained on truncated data (Fine-tune). Table3shows that the best summarisation performance is achieved when we perform filtering by both training and test times. Another observation is that with the filtered data training a model from scratch is better than continue the training from a model trained on truncated data, and this could be due to a local optimum in training.</figDesc><table coords="4,193.45,149.01,225.09,269.48"><row><cell></cell><cell cols="3">25.65 6.89 22.10</cell><cell></cell></row><row><cell>Truncate</cell><cell cols="3">29.09 9.92 25.37</cell><cell></cell></row><row><cell>TextRank</cell><cell cols="3">24.97 6.40 21.47</cell><cell></cell></row><row><cell>HIER</cell><cell cols="3">29.37 10.02 25.51</cell><cell></cell></row><row><cell cols="2">Filtering Method</cell><cell></cell><cell>ROUGE F 1</cell><cell></cell></row><row><cell>Training-time</cell><cell>Test-time</cell><cell>R-1</cell><cell>R-2</cell><cell>R-L</cell></row><row><cell>Truncate</cell><cell>Truncate</cell><cell cols="3">29.09 9.92 25.37</cell></row><row><cell>Truncate</cell><cell>HIER</cell><cell cols="3">29.37 10.02 25.51</cell></row><row><cell cols="2">HIER (Fine-tune) HIER</cell><cell cols="3">29.38 10.04 25.69</cell></row><row><cell>HIER (Train)</cell><cell>HIER</cell><cell cols="3">29.74 10.25 25.71</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,161.28,423.36,289.13,8.64"><head>Table 3 :</head><label>3</label><figDesc>Effectiveness of sentence filtering at training time and test time.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="6,72.00,642.70,468.00,19.55"><head>Table 6 :</head><label>6</label><figDesc>Human Evaluation Results. Avg = average of E=3, G=2, F=1, B=0. %E is the percentage of episodes graded excellent, %EG is the percentage of episodes graded excellent or good, %EGF is the percentage of episodes graded excellent, good, or fair. Q1-Q8 are the percentage of yes answers.</figDesc><table coords="6,471.66,642.70,68.35,8.64"><row><cell>on 84.36% of the</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,88.14,692.46,213.78,7.77"><p>The National Institute of Standards and Technology (NIST)</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,88.14,703.67,178.84,7.47"><p>https://podcastsdataset.byspotify.com/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="1,88.14,714.00,243.87,7.93"><p>In this report, we will use the terms word and token interchangeably</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="2,88.14,714.52,108.24,7.47"><p>https://huggingface.co/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="6,88.14,714.16,311.47,7.77"><p>We obtain the score of an average model by computing the mean score of each episode</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>This paper reports on research supported by <rs type="institution">ALTA institute, Cambridge Assessment English, University of Cambridge</rs>. Thanks to <rs type="person">Yiting Lu</rs> for evaluating our system-generated summaries before submission.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,93.58,158.56,446.42,8.64;8,93.58,169.29,446.42,8.82;8,92.91,180.19,146.20,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,208.01,169.46,173.78,8.64">Overview of the TREC 2020 Podcasts Track</title>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gareth</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,400.31,169.29,139.68,8.59">The 29th Text Retrieval Conference</title>
+		<imprint/>
+	</monogr>
+	<note>TREC 2020) notebook. NIST, 2020</note>
+</biblStruct>
+
+<biblStruct coords="8,93.58,194.36,446.42,8.64;8,93.58,205.09,446.42,8.82;8,93.41,216.00,370.39,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,273.07,194.36,266.93,8.64;8,93.58,205.27,261.46,8.64">Supervised spoken document summarization based on structured support vector machine with utterance clusters as hidden variables</title>
+		<author>
+			<persName coords=""><forename type="first">Sz-Rung</forename><surname>Shiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H.-Y</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L.-S</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,362.41,205.09,177.60,8.59;8,93.41,216.00,196.67,8.59">Proceedings of the Annual Conference of the International Speech Communication Association</title>
+		<meeting>the Annual Conference of the International Speech Communication Association</meeting>
+		<imprint>
+			<publisher>INTERSPEECH</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="2728" to="2732" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,230.16,446.42,8.64;8,93.58,240.89,447.92,8.82;8,92.83,251.98,47.32,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,166.19,230.16,373.81,8.64;8,93.58,241.07,131.62,8.64">Towards abstractive speech summarization: Exploring unsupervised and supervised approaches for spoken utterance compression</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,233.15,240.89,252.61,8.59">IEEE Transactions on Audio, Speech, and Language Processing</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1469" to="1480" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,265.97,446.42,8.64;8,93.39,276.88,446.61,8.64;8,93.58,287.61,446.42,8.82;8,93.30,298.52,71.13,8.82" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,165.70,276.88,374.31,8.64;8,93.58,287.79,104.81,8.64">Unsupervised abstractive meeting summarization with multi-sentence compression and budgeted submodular maximization</title>
+		<author>
+			<persName coords=""><forename type="first">Guokan</forename><surname>Shang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wensi</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zekun</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Antoine</forename><surname>Tixier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Polykarpos</forename><surname>Meladianos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michalis</forename><surname>Vazirgiannis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jean-Pierre</forename><surname>Lorré</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,219.11,287.61,320.89,8.59;8,93.30,298.52,42.37,8.59">Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 56th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,312.50,449.72,8.82;8,93.58,324.60,96.61,7.47" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="8,334.18,312.50,60.97,8.59">Deep Learning</title>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aaron</forename><surname>Courville</surname></persName>
+		</author>
+		<ptr target="http://www.deeplearningbook.org" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,337.40,446.42,8.82;8,93.58,348.31,266.17,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,278.85,337.58,204.89,8.64">Sequence to sequence learning with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oriol</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc V</forename><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,502.28,337.40,37.72,8.59;8,93.58,348.31,162.16,8.59">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="3104" to="3112" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,363.67,446.42,8.64;8,93.58,374.40,446.42,8.82;8,93.58,385.31,420.04,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,315.75,363.67,224.26,8.64;8,93.58,374.58,246.81,8.64">Abstractive text summarization using sequence-to-sequence RNNs and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Ramesh</forename><surname>Nallapati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bowen</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Cicero Dos Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,359.24,374.40,180.76,8.59;8,93.58,385.31,184.90,8.59">Proceedings of The 20th SIGNLL Conference on Computational Natural Language Learning</title>
+		<meeting>The 20th SIGNLL Conference on Computational Natural Language Learning</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2016-08">August 2016</date>
+		</imprint>
+	</monogr>
+	<note>Çaglar GuÌ ‡lçehre, and Bing Xiang</note>
+</biblStruct>
+
+<biblStruct coords="8,93.58,399.47,446.59,8.64;8,93.58,410.20,448.16,8.82" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,318.02,399.47,222.15,8.64;8,93.58,410.38,33.90,8.64">Get to the point: Summarization with pointer-generator networks</title>
+		<author>
+			<persName coords=""><forename type="first">Abigail</forename><surname>See</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,145.80,410.20,349.01,8.59">Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 55th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2017-07">July 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,424.19,446.42,8.82;8,93.58,435.10,446.42,8.59;8,93.30,446.01,191.12,8.82" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,209.83,424.37,173.14,8.64">Text summarization with pretrained encoders</title>
+		<author>
+			<persName coords=""><forename type="first">Yang</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,399.84,424.19,140.16,8.59;8,93.58,435.10,446.42,8.59;8,93.30,446.01,161.03,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,460.17,446.42,8.64;8,93.58,470.90,287.48,8.82" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="8,377.22,460.17,162.78,8.64;8,93.58,471.08,160.13,8.64">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>CoRR, abs/1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,485.07,446.42,8.64;8,93.58,495.98,446.42,8.64;8,93.58,506.71,446.42,8.82;8,93.25,517.62,434.22,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,236.21,495.98,303.79,8.64;8,93.58,506.89,173.21,8.64">BART: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marjan</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Abdelrahman</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,286.14,506.71,253.85,8.59;8,93.25,517.62,104.65,8.59">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020-07">July 2020</date>
+			<biblScope unit="page" from="7871" to="7880" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,531.78,446.42,8.64;8,93.58,542.51,241.17,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,454.25,531.78,85.75,8.64;8,93.58,542.69,124.89,8.64">Language models are unsupervised multitask learners</title>
+		<author>
+			<persName coords=""><forename type="first">Alec</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rewon</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dario</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,225.83,542.51,50.44,8.59">OpenAI Blog</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,556.68,448.08,8.64;8,93.58,567.41,446.42,8.82;8,93.27,578.32,446.90,8.82;8,93.58,589.40,197.04,8.64" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,323.52,556.68,218.13,8.64;8,93.58,567.59,262.68,8.64">Don&apos;t give me the details, just the summary! topicaware convolutional neural networks for extreme summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Shashi</forename><surname>Narayan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shay</forename><forename type="middle">B</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mirella</forename><surname>Lapata</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,377.40,567.41,162.60,8.59;8,93.27,578.32,208.46,8.59">Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2018 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Brussels, Belgium</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018-11">October-November 2018</date>
+			<biblScope unit="page" from="1797" to="1807" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,603.21,446.42,8.82;8,93.58,614.12,292.81,8.82" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="8,225.04,603.39,137.54,8.64">Textrank: Bringing order into text</title>
+		<author>
+			<persName coords=""><forename type="first">Rada</forename><surname>Mihalcea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Tarau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,381.35,603.21,158.65,8.59;8,93.58,614.12,198.77,8.59">Proceedings of the 2004 conference on empirical methods in natural language processing</title>
+		<meeting>the 2004 conference on empirical methods in natural language processing</meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="404" to="411" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,628.29,446.42,8.64;8,93.58,639.02,447.91,8.82;8,93.23,650.10,47.32,8.64" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="8,322.89,628.29,217.11,8.64;8,93.58,639.19,281.36,8.64">Abstractive Spoken Document Summarization Using Hierarchical Model with Multi-Stage Attention Diversity Optimization</title>
+		<author>
+			<persName coords=""><forename type="first">Potsawee</forename><surname>Manakul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">F</forename><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Linlin</forename><surname>Gales</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,393.54,639.02,90.77,8.59">Proc. Interspeech 2020</title>
+		<meeting>Interspeech 2020</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="4248" to="4252" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,93.58,664.09,448.17,8.64;8,93.58,674.82,159.58,8.82" xml:id="b15">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Romain</forename><surname>Paulus</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Caiming</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.04304</idno>
+		<title level="m" coord="8,314.36,664.09,222.90,8.64">A deep reinforced model for abstractive summarization</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,93.58,688.98,446.42,8.64;8,93.27,699.71,446.90,8.82;8,93.58,710.80,145.85,8.64" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="8,245.60,688.98,274.06,8.64">Sentence-bert: Sentence embeddings using siamese bert-networks</title>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,93.27,699.71,377.12,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page">2019</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

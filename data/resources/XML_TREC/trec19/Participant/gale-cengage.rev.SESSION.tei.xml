@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,104.07,76.17,403.93,16.88">Cengage Learning at TREC 2010 Session Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,139.23,98.78,76.25,11.26"><forename type="first">Benjamin</forename><surname>King</surname></persName>
+							<email>benjaminking@umich.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Michigan</orgName>
+								<address>
+									<addrLine>2260 Hayward Street Ann Arbor</addrLine>
+									<postCode>48109</postCode>
+									<region>MI</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,399.13,98.77,71.27,11.26"><forename type="first">Ivan</forename><surname>Provalov</surname></persName>
+							<email>ivan.provalov@cengage.com</email>
+							<affiliation key="aff1">
+								<orgName type="department">Cengage Learning</orgName>
+								<address>
+									<addrLine>27500 Drake Road Farmington Hills MI</addrLine>
+									<postCode>48331</postCode>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,104.07,76.17,403.93,16.88">Cengage Learning at TREC 2010 Session Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">85D25F9F57354F4DB05481D733EEE476</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper details Cengage Leaning's TREC 2010 Session track submission and our efforts to improve retrieval performance over a user's session. We use a number of different techniques to achieve this goal including query term weighting, query expansion and re-ranking. In this paper we detail these techniques and the results of our submission. Using our query term weighting technique combined with our corpus term collocation query expansion we were able to achieve 0.2375 for the nsDCG@10.RL13 metric.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Our goals were to further research relevance improvements and to work on developing session techniques that might be applicable in Cengage Learning's products. We focused our efforts on two aspects of the problem: 1) creating a strong ad-hoc retrieval system to serve as the framework for our session efforts and 2) implementing a number of various techniques for improving retrieval performance over a session of queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">TASK DESCRIPTION</head><p>The goals of the TREC 2010 Session Track are "to test whether systems can improve their performance for a given query by using information about a previous query, and … to evaluate system performance over an entire query session instead of a single query." <ref type="bibr" coords="1,160.72,517.25,11.72,8.88" target="#b6">[7]</ref> Because this is the first year of this track, the task involves a simple session of only two queries, an original query and a reformulation of it. The participants are to submit three runs for each user session, two of which are simply retrievals for the individual queries without considering the session (RL1 and RL2), and the third is a retrieval of the reformulation using the combined evidence from both queries (RL3).</p><p>The primary evaluation measure for this task is mean nDCG@10 on RL3. This measure rewards systems with a high-baseline retrieval performance that effectively leverages the evidence of both queries in the session. For this reason, we worked to create a strong ad-hoc retrieval system over the ClueWeb09 collection, evaluating its performance on the 2009 TREC Web Track queries. We optimized our techniques for both ad-hoc retrieval and session techniques to maximize nDCG@10.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">COLLECTION INDEXING</head><p>For this task, we indexed the Category B subset of the ClueWeb09 collection using Lucene 1 , a freely available open source information retrieval API. In addition the ClueWeb09 collection itself, in creating an index, we also utilized publically available spam <ref type="bibr" coords="1,455.44,371.11,11.72,8.88" target="#b1">[2]</ref> and PageRank 2 scores for the collection. The spam scores were used prior to indexing in order to filter documents that were likely to be spam. Documents whose spam score fell below a fixed threshold were excluded from the index altogether. Among documents that were indexed, we used a combination of the spam score and the PageRank score to endow with an inherent retrieval preference documents that had a high PageRank or were unlikely to be spam.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>The index contains four fields:</head><p>• Document Text (after parsing HTML)</p><p>• Document Title (extracted from the title tag)</p><p>• URL</p><p>• Anchor Text <ref type="bibr" coords="1,407.05,556.73,11.72,8.88" target="#b5">[6]</ref> Prior to indexing a document, we used the Jericho HTML parser 3 to extract the plain text from each document. The Jericho parser is a very robust HTML parser that can correctly handle nearly any type of malformed HTML, though it does, in extreme cases, leave behind some markup in the extracted text. We also performed stemming, 1 http://lucene.apache.org/ 2 http://boston.lti.cs.cmu.edu/clueweb09/wiki/tiki-index.php? page=PageRank 3 http://jericho.htmlparser.net/docs/index.html Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. lowercasing, special character removal, and stop word removal on each document field.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">AD-HOC RETRIEVAL METHODS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Retrieval Formula</head><p>Our retrieval formula on this collection is a fusion of two other formulas, a modified version of the default Lucene retrieval formula, and BM25F. Using the TREC 2009 Web Track queries and judgments, we have tuned both formulas to achieve their best performance on this collection. To combine the two formulas, we use the expCombSUM fusion procedure, which gave the best performance among all the methods attempted. <ref type="bibr" coords="2,163.97,222.80,11.72,8.88" target="#b7">[8]</ref> The fusion retrieval method performed better than either of the individual formulas.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Query Expansion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">Proximity Query Expansion</head><p>We augment the queries submitted to the Lucene retrieval formula with Lucene phrase queries and span queries. Phrase queries behave exactly like standard quoted phrases. Because each query potentially contains a number of different phrases, we search for all possible two word phrases in the query (queries much longer than three words tend to be rare, so we believe this is sufficient) For example, given the query "gmat prep classes," the query is augmented with the following phrase queries: "gmat prep," "gmat classes," and "prep classes." <ref type="bibr" coords="2,211.96,387.31,16.76,8.88" target="#b9">[10]</ref> Span queries attempt to exploit similar proximity properties. A Lucene span query matches only documents in which the specified search terms (not necessarily in order) are separated by no more than n tokens, where n is user-specified (we use n=5). We augment the query with a span query that attempts to find all the query terms separated by no more than five tokens.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.2">Pseudo-Relevance Query Expansion</head><p>Unlike the other expansion methods listed in section 6, pseudo-relevance feedback expansion showed no improvements when gathering expansion terms for the two queries separately, so we ran this method only after we had applied all the other methods. The query was expanded using the most common terms from the top five retrieved documents. Although this method produced considerable improvements in MAP, it actually hurt nDCG@10 in most cases we tested. For this reason, we only used this method in one of our runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">EXPERIMENTAL SETUP</head><p>In the absence of any data from prior years with which to test our methods for the Session track, we constructed our own test data set based on the TREC-3 corpus, queries, and judgments. Table <ref type="table" coords="2,133.72,677.32,4.98,8.88" target="#tab_0">1</ref> demonstrates how additional queries were constructed. For each of fifty TREC-3 queries, we constructed three additional queries, such that there were three query pairs, representing each of the Session track reformulation types (generalization, specialization, and drift). The additional queries were themselves designed to imperfectly represent the information need described in the topic's description, but in combination with the topic titles, to more accurately specify the information need than either query alone. By reflecting the topic's same information need, we were able to reuse the topic's existing qrels for evaluation. Unfortunately, there are some significant differences between our modified TREC-3 environment and the 2010 Session track. The most notable among these are the lengths of the queries and the format of the content. The Session track queries have 2.8 terms on average, while the queries in our test-set contain nearly twice as many, with 5.0 terms on average. The TREC-3 corpus is composed entirely of newspaper articles. The ClueWeb09 collection, being comprised entirely of web pages, contains large quantities of irrelevant text, such as navigational links, copyrights, meta-data, and leftover markup. Nevertheless, experimentation on this test set has proven to be useful, despite the differences between the collections.</p><p>Table <ref type="table" coords="2,348.02,473.10,4.98,8.88" target="#tab_1">2</ref> shows how each of the methods performed compared to the baseline RL1 and RL2 runs. Note that all of the MAP measures are computed against the same set of qrels, so the RL1 numbers may be somewhat inaccurate since the RL1 queries do not always represent the information need well (see above). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">SESSION METHODS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1">Query Term Weighting</head><p>In our experimentation, we found that a surprisingly effective technique for improving retrieval performance was to simply apply a new weight to a query term depending upon which query it occurs in. We divided query terms into three different categories: 1) terms that appear only in the first query, 2) terms that appear only in the second query, and 3) terms that appear in both queries.</p><p>Through experimentation, we found that the best weights for these three groups were dependent upon what the type of reformulation was (generalization, specialization, or drift). Table <ref type="table" coords="3,117.64,232.52,4.98,8.88" target="#tab_2">3</ref> shows how the optimal weights differ according to reformulation type. These weights also seem to make sense intuitively, considering the user's intent in each type of reformulation. For example, in the case of generalization, it is more important to remember the first query's terms, whether they are repeated or not, since the second query contains less information.</p><p>Of course the requirement to change these weights depending on the reformulation type necessitates the ability to automatically categorize query pairs. Section 7 describes these techniques.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2">Category Re-ranking</head><p>Category-based (or ontology-based) re-ranking has been explored in literature by a number of different researchers, usually in the context of constructing user profiles for a web retrieval service from user actions, such as issuing queries and clicking on documents. <ref type="bibr" coords="3,175.00,579.41,11.72,8.88" target="#b2">[3]</ref> [4] <ref type="bibr" coords="3,207.88,579.41,16.76,8.88" target="#b10">[11]</ref> In the Session track, the only pieces of information available for use in constructing such a user profile are the original query and its reformulation. This helps to simplify much of the problem of constructing a user profile, as there is no need to determine session boundaries. However the major drawback is that there is very little information from which to construct such a profile.</p><p>Like much of the prior work, we chose to use the Open Directory Project<ref type="foot" coords="3,388.45,84.17,3.24,5.78" target="#foot_0">4</ref> (ODP) as our ontology. The ODP is a massive volunteer effort to manually classify web pages in order to present a comprehensive directory of the World Wide Web. It is freely available to download and is comprised of a large number of categories, each containing a number of web pages that were classified under that category. Each categorized web page has a title, a URL, and a short description.</p><p>Our approach here differs from previous work in how we chose the best categories for a query or document. Rather than training classifiers or calculating the cosine similarity between term vectors, we built and searched against an index of all the categories in the ODP ontology. Every category in the ODP was indexed against its title and the descriptions of all the pages categorized under it.</p><p>To categorize a query or document, the text of that query or document was submitted to the ODP index and a list of search results was returned with a retrieval score for each result. The top ten results were selected as the best category matches for the query and were given a weight proportional to the retrieval score returned by Lucene.</p><p>As this was a re-ranking approach, we were concerned only with modifying the order of the set of documents already retrieved by the previous processes. For each document in the result set, we computed a category match score: where</p><p>• sim(q,d) is the similarity between a document d and a query q</p><p>• C q is the set of top ten categories for the query q</p><p>• score(x, c) is the score returned for the category c when searching the ODP index for the text in x.</p><p>To compute the score between a document and the categories, we submitted the full text of the document to the search engine and retrieved a similarity score between the document and each of the top ten category matches for the query.</p><p>The approach for re-ranking with respect to two queries was quite similar. Rather than using a single set C q , we create two sets of categories C q1 and C q2 which are the top ten categories for each of q 1 and q 2 respectively. The similarity score between a document and a pair of queries then became where</p><p>• q 1 is the original query</p><p>• q 2 is the reformulated query</p><p>• α is the weight applied to the original query. We used a value of 0.5</p><p>• β is the weight applied to the reformulated query.</p><p>We used a value of 1.0</p><p>To actually apply the re-ranking, we first ranked all the documents in the retrieved set according to their category score. Then using the reciprocal rank fusion method <ref type="bibr" coords="4,277.34,237.44,16.76,8.88" target="#b12">[13]</ref> with the original retrieval scores, we computed a final aggregate ranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3">Query Expansion</head><p>While query expansion is a popular technique for improving average precision on a single query, we've found that by using query history to select expansion terms, retrieval performance could be improved beyond that of single-query expansion.</p><p>We used several different methods for selecting expansion terms: usage logs, corpus-based collocation, and WordNet relation expansion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.1">Usage Log Query Expansion</head><p>In mining the usage logs from Cengage Learning products, we have produced lists of related search terms. Terms t 1 and t 2 are said to co-occur if 1) they were both searched by the same user in the same session or 2) there was some document d such that searches for t 1 and t 2 both resulted in the user choosing d. <ref type="bibr" coords="4,150.15,478.74,11.72,8.88" target="#b8">[9]</ref> Each related term was also weighted according to where</p><formula xml:id="formula_0" coords="4,72.03,565.73,52.63,9.70">• rel(t 1 , t 2 )</formula><p>is the weight given to the term t 2 as an expansion candidate for t 1 .</p><p>• co(t 1 , t 2 ) is the number of times t 1 and t 2 co-occur.</p><p>• T is the set of all pairs of related terms.</p><p>• T t1 is the set of all terms related to t 1 .</p><p>This formula is similar in concept to the tf-idf weighting scheme, in that it rewards frequently co-occurring terms, but minimizes the impact of the most common search terms.</p><p>Expansion terms were sought for all possible sub-queries, with expansion terms for longer phrases receiving a bonus based on that length. For example, given the query "French Lick Resort and Casino," the entire query itself was unlikely to be found in the usage logs. Shorter sub-queries however, such as "French Lick" or "Resort and Casino" may have had associated expansion terms. Expansion terms for longer sub-queries were given exponentially greater weights based on the number of words in the sub-query. Terms that appeared in the expansions for multiple different sub-queries were given greater weights based on the number of times they appear.</p><p>In the combined RL3 run, expansion terms for both individual queries were added. This provided a measurable improvement over expansion on individual queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.2">Corpus Collocation Query Expansion</head><p>Corpus-based collocation expansion was done very similarly to log-based collocation expansion. The major difference is in how the expansion terms are collected. Cengage Learning maintains a collocation database used for our Search Assist tool. This database was compiled against large portions of Cengage Learning's digital material and can return a list of the fifty most common words and phrases that appear near a given term. Although the corpus has major differences in content and style from the ClueWeb09 collection, expansion using this database has nonetheless proven to be very effective.</p><p>We use the same techniques as above of breaking a multiword query into shorter queries to search for expansion terms and of weighting terms according to how frequently they appeared in expansions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.3">WordNet Expansion</head><p>WordNet is a database of word forms and definitions developed at Princeton University <ref type="bibr" coords="4,459.74,449.70,10.69,8.88" target="#b4">[5]</ref>. It is organized into sets of synonyms called synsets. Each synset can have a number of different types of relationships to other synsets.</p><p>Before we could choose any words for expansion, the words in the query needed to be resolved as to which sense of the word they referred by determining which sense of the word is most similar to the other words in the query. This of course makes the assumption that words with similar senses are more likely to occur in the same query. We believe that this is a reasonable assumption to make. To best resolve the sense of each query term, we use a number of different similarity measures:</p><p>• Wu and Palmer <ref type="bibr" coords="4,418.45,599.33,16.76,8.88" target="#b11">[12]</ref> • Extended gloss overlaps <ref type="bibr" coords="4,453.37,615.65,11.72,8.88" target="#b0">[1]</ref> • Tag count frequency</p><p>• Part-of-speech matching</p><p>The first two methods have been well covered in literature, but the second set of methods, while greatly improving the sense disambiguation performance, do not seem to have been treated thoroughly before.</p><p>In our experiments with word sense disambiguation, we found that the senses selected by the well-known similarity measures were often obscure usages that were unlikely to occur in everyday speech or writing. For this reason, we created a measure which incorporated WordNet's tag count, a measure of how often each sense was encountered in the tagging of corpora.</p><p>Our frequency-based similarity measure does not truly measure the similarity between two senses, but rewards senses that appear with a high frequency. This is also very helpful for single word queries, which have no context with which to resolve the sense. In these cases, we found that the sense with the highest frequency often had the best expansion candidates.</p><p>We also found in our experiments that when word forms were ambiguous with respect to their parts of speech, the similarity measures would often select a sense with the wrong part of speech. Using the labels from the OpenNLP<ref type="foot" coords="5,290.90,264.51,3.24,5.78" target="#foot_1">5</ref> part-of-speech tagger, we gave a bonus to senses whose part of speech matched the tagged part-of-speech.</p><p>After grouping noun phrases and resolving the senses of all the query terms, we added to the expanded query any words with the following relationships to the query words, weighted according to their tag count:</p><p>• Synonym -if a word A has a meaning that is identical to word B, then A is a synonym of B and vice-versa. Example: gregarious and friendly are synonyms.</p><p>• Hypernym -if word A is a hypernym of word B, then B is a type or instance of A. Example: fruit is a hypernym of apple.</p><p>• Hypernym of a hypernym -if word A has this relationship with word C, then there is some word B such that word A is a hypernym of word B and word B is a hypernym of word C.</p><p>• Meronym -if word A is a meronym of word B, then B is composed of or contains A. Example: finger is a meronym of hand.</p><p>In empirical testing, expanding the query with these word types led to the greatest increase in MAP.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">OBSERVED DOCUMENT DISCOUNT</head><p>In one of the runs we tried to give the documents that appeared in the first query's top results a discount if they appeared in RL3. This may have been the factor of the improvement for the results for this run when duplicate documents discount metric was used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">QUERY CATEGORIZATION</head><p>Although it is not required by TREC to identify query pairs as to their reformulation type, we find it useful to produce these labels automatically in order to improve the performance of term weighting, which has different optimal weights depending on the type of reformulation.</p><p>We utilized a number of different techniques to attempt to categorize the queries according to their reformulation types. A test on the session track queries, manually classified prior to TREC's official release, indicated that the system correctly classified about 72% of the query pairs.</p><p>Each of the following techniques contributes some quantity to a categorization score, which ultimately determines which label the system applies. If the final score is positive enough, the query is judged to be a specialization, negative enough and it is judged a generalization, and too close to zero, a drift.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.1">Query Term Techniques</head><p>A simple and very effective technique for categorizing reformulations is based on observing query lengths and which words appear in both queries. We make the observation that queries with more terms tend to be more specific. If the reformulated query had more query terms than the original, then the categorization score was shifted in favor of specialization by a factor proportional to the difference in query length. (The converse is obviously also true.)</p><p>In addition, we also observe that when one query contains all the terms in another query, the first query is nearly always the more specific of the two. When such a case occurred, we added to the categorization score a quantity so large that it was unlikely to be changed unless nearly all the other evidence disagreed with the assessment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2">WordNet Techniques</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2.1">WordNet Relationships</head><p>Some WordNet relationships correlate strongly with the concepts of generalization and specification. We used the following types of relationships to aid categorization:</p><p>• Hypernym -if word A is a hypernym of word B, then B is a type or instance of A. Example: fruit is a hypernym of apple.</p><p>• Holonym -if word A is a holonym of word B, then A is composed of or contains word B. Example: car is a holonym of wheel. (Holonymy is the opposite of meronymy.)</p><p>• Topic -if word A is a topic of word B, then B has its specific meaning only in the context of A. Example: baseball is the topic of pitcher (when referring to an athlete).</p><p>From these relationships, we constructed the analog of a hypernym tree (a tree with links for all of the above relationships) for each query term. In order to capture the ideas of generalization and specialization, we attempted to determine when one query term is "above" another in the tree. We settled on this definition: term A is above term B if the two have a common ancestor C such that the distance from A to C is less than half of the distance between B and C. This seemed to identify nodes that have ancestordescendent relationships while allowing for variations and inconsistencies in WordNet.</p><p>Scores were computed for every pair of words in the two queries according to the following equation:</p><p>where relscore(u,v) is 1 when u is an ancestor of v, -1 when v is an ancestor of u, and 0 otherwise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2.2">WordNet Definitions</head><p>Here we leverage the idea that a word is usually defined in terms of other more general words. If a word from the reformulated query was defined in terms of a word in the earlier query (that is to say, a word from the earlier query appears in the definition of that word), then the categorization score was increased on the specification side.</p><p>Like the previous technique, we compared all pairs of words in the two queries:</p><p>where defscore(u,v) is defined as the number of times a synonym of u occurs in the definition of v.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3">Result Set Techniques</head><p>Using the intuition that general queries return more results than specific queries, we compared the size of the result sets that the two queries fetched. The original query and its reformulation were submitted to both the Bing<ref type="foot" coords="6,259.58,510.13,3.24,5.78" target="#foot_2">6</ref> search engine and the Lucene ClueWeb09 index. Depending on the ratio of the sizes of the result sets for the two queries, the categorization was made more specific, more general, or left unchanged (if the result sets were too similar in size).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.4">Query Categorization Performance</head><p>When we measured the performance of the query categorization performed manually vs. our system against the prepared queries we found the following. Our manual category assignment agreed 85% of a time with the judges, where our system's categorization agreed 70% of a time.</p><p>The system performed better in the automatic query categorization for the specialization cases (85%), then for generalization (76%), and fairly poorly for the drifting (49%).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.">RESULTS</head><p>We have submitted three different runs, each using a different combination of the methods described in this section. Table <ref type="table" coords="6,379.46,145.76,4.98,8.88" target="#tab_3">4</ref> shows the methods that were used for each run. CengageS10R1 had the best performance among the three runs according to the nsDCG@10.RL13 metric.    </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="10.">CONCLUSIONS</head><p>In summary, we used a number of different techniques to attempt to improve performance over a user session. The most effective of these were a combination of query term weighting and corpus-based collocation expansion.</p><p>None of the improvements were statistically significant. However, comparing nsDCG@10.RL12 and .RL13, we saw some improvement in the CengageS10R1 (less than 1%) with respect to the first goal of using the knowledge of the previous query to improve the results for a given query. The main metric for the second track's goal of evaluating the performance over the entire session (nsDCG@10.RL13) was 0.2375.</p><p>We believe that several of these methods may be promising directions for further research. One of our most effective techniques was query term weighting. Our approach was rather simple, dividing the query terms into only three categories and applying weights. There are a number of other similar techniques that may also be effective, such as applying weights based on part of speech, inverse document frequency, or word specificity (perhaps using WordNet).</p><p>Another technique which performed well was corpus-based term collocation expansion. The term collocation dictionary was built from our digital content and we are actively researching ways to further improve it.</p><p>We also believe that category-based re-ranking could be made to be more effective. This method performed well on our TREC-3 testing set, but we were never able to replicate that performance on the ClueWeb09 collection. We hypothesize that this is because the ClueWeb09 collection is much more diverse than the TREC-3 collection, and is therefore much more difficult to correctly categorize.</p><p>Both the CengageS10R1 and CengageS10R2 runs had similar performance as we used similar techniques for both. We attribute the poorer performance of CengageS10R2 to the use of pseudo relevance feedback, which can improve retrieval performance over a large number of documents (e.g. n = 1000), but is actually detrimental to the quality of the top documents. Since the DCG measures for this task are evaluated at the 10 th result, we hypothesize that pseudorelevance feedback was primarily responsible for the decrease.</p><p>Of the three reformulation types, the specialization reformulation type had the lowest performance when evaluated against the nsDCG@10.RL12 and nsDCG@10.RL13 metrics. Upon further analysis, we found that these two metrics are affected by the lower nDCG@10.RL1 scores. This data shift may be explained by the nature of the specialization reformulation type -the first query is much less relevant to the user's information need than the second one.</p><p>Finally, upon a comparison of nDCG@10.RL2 and nDCG@10.RL3, CengageS10R3 shows improvement in overall system performance. CengageS10R3 was least affected by the discounting of duplicate documents because documents that appeared in the first query's result list were discounted in RL3.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,317.89,184.52,231.32,108.71"><head>Table 1 . Example of query pair construction.</head><label>1</label><figDesc></figDesc><table coords="2,317.89,200.48,231.32,92.76"><row><cell>TREC-3</cell><cell>dog maulings</cell></row><row><cell>Query Title</cell><cell></cell></row><row><cell>Generalization</cell><cell>(pitbull attacks in the US, dog maulings)</cell></row><row><cell>Pair</cell><cell></cell></row><row><cell>Specialization</cell><cell>(animal attacks, dog maulings)</cell></row><row><cell>Pair</cell><cell></cell></row><row><cell>Drift Pair</cell><cell>(dog bites, dog maulings)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,317.89,547.73,244.02,156.71"><head>Table 2 . Performance of various methods on TREC-3 test set.</head><label>2</label><figDesc></figDesc><table coords="2,317.89,575.33,244.02,112.91"><row><cell>Method</cell><cell>RL1</cell><cell>RL2</cell><cell>RL3</cell></row><row><cell></cell><cell>MAP</cell><cell>MAP</cell><cell>MAP</cell></row><row><cell>Term Weighting (Section 6.1)</cell><cell cols="3">0.115 0.212 0.241</cell></row><row><cell>Category Re-ranking (6.2)</cell><cell cols="3">0.152 0.229 0.232</cell></row><row><cell>Usage Log Query Expansion</cell><cell cols="3">0.127 0.219 0.220</cell></row><row><cell>(6.3.1)</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Corpus Collocation Query</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Expansion (6.3.2)</cell><cell></cell><cell></cell><cell></cell></row></table><note coords="2,467.28,667.60,94.61,8.88;2,317.89,695.56,244.01,8.88"><p>0.198 0.238 0.249 WordNet Query Expansion (6.3.3) 0.145 0.236 0.235</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,54.04,262.16,219.02,93.36"><head>Table 3 . Weights for types of query terms.</head><label>3</label><figDesc></figDesc><table coords="3,54.04,277.95,219.02,77.56"><row><cell>Reformulation</cell><cell>1 st</cell><cell>query</cell><cell>2 nd</cell><cell>query</cell><cell>Both</cell></row><row><cell>type</cell><cell>only</cell><cell></cell><cell>only</cell><cell></cell><cell>queries</cell></row><row><cell cols="2">Generalization 0.5</cell><cell></cell><cell>1.0</cell><cell></cell><cell>2.5</cell></row><row><cell cols="2">Specialization 0.2</cell><cell></cell><cell>1.0</cell><cell></cell><cell>1.5</cell></row><row><cell>Drift</cell><cell>0.3</cell><cell></cell><cell>1.0</cell><cell></cell><cell>0.5</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="6,317.89,175.40,228.91,128.63"><head>Table 4 : Methods used in submitted runs.</head><label>4</label><figDesc></figDesc><table coords="6,317.89,193.40,228.91,110.64"><row><cell>Run ID</cell><cell>Methods</cell></row><row><cell cols="2">CengageS10R1 Term weighting, Corpus collocation</cell></row><row><cell></cell><cell>expansion</cell></row><row><cell cols="2">CengageS10R2 Term weighting, Usage-log expansion,</cell></row><row><cell></cell><cell>Corpus collocation expansion, Pseudo-</cell></row><row><cell></cell><cell>relevance expansion</cell></row><row><cell cols="2">CengageS10R3 WordNet expansion, Category re-</cell></row><row><cell></cell><cell>ranking, Observed Document Discount</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="6,317.89,331.15,240.09,8.88"><head>Table 5</head><label>5</label><figDesc>below shows the results of all three runs.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="6,317.89,372.55,240.11,141.83"><head>Table 5 : nsDCG@10 performance for RL12 and RL13</head><label>5</label><figDesc></figDesc><table coords="6,317.89,402.78,240.11,111.59"><row><cell>Run</cell><cell>nsDCG@1 0.RL12</cell><cell>nsDCG@ 10.RL13</cell><cell>Difference</cell></row><row><cell>R1</cell><cell>0.2354</cell><cell>0.2375</cell><cell>0.89%</cell></row><row><cell>R2</cell><cell>0.2328</cell><cell>0.2347</cell><cell>0.82%</cell></row><row><cell>R3</cell><cell>0.2289</cell><cell>0.2294</cell><cell>0.22%</cell></row><row><cell cols="4">Table 6 shows the metrics that discount duplicate</cell></row><row><cell cols="3">documents between RL2 and RL3.</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="6,317.89,523.37,236.20,141.71"><head>Table 6 : nsDCG@10 performance for RL12 and RL13 considering duplicate documents discount</head><label>6</label><figDesc></figDesc><table coords="6,317.89,565.25,233.16,99.84"><row><cell>Run</cell><cell>nsDCG_dupe s@10.RL12</cell><cell>nsDCG_dupe s@10.RL13</cell><cell>Difference</cell></row><row><cell>R1</cell><cell>0.2290</cell><cell>0.2225</cell><cell>-2.84%</cell></row><row><cell>R2</cell><cell>0.2260</cell><cell>0.2192</cell><cell>-3.01%</cell></row><row><cell>R3</cell><cell>0.2232</cell><cell>0.2227</cell><cell>-0.22%</cell></row><row><cell>From the</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" coords="6,317.89,656.20,240.06,20.64"><head>Table 7 ,</head><label>7</label><figDesc>CengageS10R3 did better than the other two runs. This table uses nDCG@10 metric.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" coords="7,54.03,74.73,240.18,187.19"><head>Table 7 : nsDCG@10 performance for RL1, RL2 and RL3</head><label>7</label><figDesc></figDesc><table coords="7,54.03,116.13,240.18,145.79"><row><cell>Run</cell><cell>nDCG @10.R L1</cell><cell>nDCG @10.R L2</cell><cell>nDCG @10.R L3</cell><cell>Difference (RL2 and RL3)</cell></row><row><cell>R1</cell><cell cols="2">0.2176 0.2612</cell><cell>0.2602</cell><cell>-0.38%</cell></row><row><cell>R2</cell><cell cols="2">0.2146 0.2596</cell><cell>0.2572</cell><cell>-0.92%</cell></row><row><cell>R3</cell><cell cols="2">0.2094 0.2572</cell><cell>0.2579</cell><cell>0.27%</cell></row><row><cell cols="5">Finally, Table 8 shows the nDCG and nsDCG for each run</cell></row><row><cell cols="5">by reformulation type. In all three runs the specialization</cell></row><row><cell cols="5">reformulation type's DCG metrics are lower than those of</cell></row><row><cell cols="4">the drift or generalization types.</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_9" coords="7,54.04,270.91,236.55,306.58"><head>Table 8 : Mean nDCG@10 and nsDCG@10 metrics by reformulation type by each run</head><label>8</label><figDesc></figDesc><table coords="7,54.04,301.75,219.52,275.74"><row><cell>Reformulation Type</cell><cell>R1</cell><cell>R2</cell><cell>R3</cell></row><row><cell>Drift</cell><cell cols="3">0.2679 0.2628 0.2693</cell></row><row><cell>Generalization</cell><cell cols="3">0.2658 0.2592 0.2588</cell></row><row><cell>Specialization</cell><cell cols="3">0.1756 0.1793 0.1619</cell></row><row><cell>Mean</cell><cell></cell><cell></cell><cell></cell></row><row><cell>nsDCG@10.RL12</cell><cell>0.2354</cell><cell cols="2">0.2328 0.2289</cell></row><row><cell>Drift</cell><cell cols="3">0.2716 0.2661 0.2704</cell></row><row><cell>Generalization</cell><cell cols="3">0.2606 0.2529 0.2577</cell></row><row><cell>Specialization</cell><cell cols="3">0.1827 0.1870 0.1631</cell></row><row><cell>Mean</cell><cell></cell><cell></cell><cell></cell></row><row><cell>nsDCG@10.RL13</cell><cell>0.2375</cell><cell cols="2">0.2347 0.2294</cell></row><row><cell>Drift</cell><cell cols="3">0.2531 0.2475 0.2584</cell></row><row><cell>Generalization</cell><cell cols="3">0.2524 0.2454 0.2418</cell></row><row><cell>Specialization</cell><cell cols="3">0.1508 0.1542 0.1316</cell></row><row><cell>Mean nDCG@10.RL1</cell><cell cols="3">0.2176 0.2146 0.2094</cell></row><row><cell>Drift</cell><cell cols="3">0.2524 0.2445 0.2416</cell></row><row><cell>Generalization</cell><cell cols="3">0.2936 0.2937 0.2950</cell></row><row><cell>Specialization</cell><cell cols="3">0.2412 0.2441 0.2392</cell></row><row><cell>Mean nDCG@10.RL2</cell><cell cols="3">0.2612 0.2596 0.2572</cell></row><row><cell>Drift</cell><cell cols="3">0.2473 0.2412 0.2446</cell></row><row><cell>Generalization</cell><cell cols="3">0.2798 0.2748 0.2890</cell></row><row><cell>Specialization</cell><cell cols="3">0.2557 0.2574 0.2433</cell></row><row><cell>Mean nDCG@10.RL3</cell><cell cols="3">0.2602 0.2572 0.2579</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_0" coords="3,323.17,707.73,77.34,8.03"><p>http://www.dmoz.org</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_1" coords="5,59.32,707.73,108.95,8.03"><p>http://opennlp.sourceforge.net</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_2" coords="6,59.32,707.73,76.96,8.03"><p>http://www.bing.com</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="11.">ACKNOWLEDGEMENTS</head><p>We thank <rs type="person">Michael Corral</rs>, <rs type="person">Qiaozhu Mei</rs>, <rs type="person">Drew Koszewnik</rs>, <rs type="person">Duane May</rs>, <rs type="person">Eugene Kiel</rs>, <rs type="person">Paul Tunney</rs>, <rs type="person">Rohit Laungani</rs>, <rs type="person">Pete Pfeiffer</rs>, <rs type="person">Craig Schroeder</rs>, <rs type="person">Michael Cafarella</rs>, <rs type="person">John Nader</rs> for their ideas and support.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,72.03,161.96,206.43,8.88;8,72.03,173.72,195.79,8.88;8,72.03,185.48,199.11,8.88;8,72.03,197.24,193.52,8.88;8,72.03,209.00,100.05,8.88" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,217.83,161.96,60.64,8.88;8,72.03,173.72,181.00,8.88">Extended gloss overlaps as a measure of semantic relatedness</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Banerjee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Pedersen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,72.03,185.48,199.11,8.88;8,72.03,197.24,147.00,8.88">Proceedings of the Eighteenth International Joint Conference on Artificial Intelligence</title>
+		<meeting>the Eighteenth International Joint Conference on Artificial Intelligence<address><addrLine>Acapulco, Mexico</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="805" to="810" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,72.03,224.72,217.99,8.88;8,72.03,236.48,202.53,8.88;8,72.03,248.24,178.73,8.88;8,72.03,259.99,47.85,8.88;8,72.03,271.75,218.62,8.88;8,72.03,283.51,13.40,8.88" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="8,97.23,236.48,177.34,8.88;8,72.03,248.24,121.45,8.88">Efficient and effective spam filtering and reranking for large web datasets</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+		<ptr target="http://durum0.uwaterloo.ca/clueweb09spam/spamhunt.pdf" />
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+	<note>Unpublished Manuscript</note>
+</biblStruct>
+
+<biblStruct coords="8,72.03,299.23,210.81,8.88;8,72.03,310.99,213.79,8.88;8,72.03,322.75,214.12,8.88;8,72.03,334.51,74.47,8.88" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,72.03,310.99,210.13,8.88">Contextual search using ontology-based user profiles</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Challam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gauch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Chandramouli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,82.83,322.75,108.30,8.88">Proceedings of RIAO 2007</title>
+		<meeting>RIAO 2007<address><addrLine>Pittsburgh, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2007-05-30">2007. May 30 -June 1, 2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,72.03,350.23,213.45,8.88;8,72.03,361.99,190.62,8.88;8,72.03,373.75,203.46,8.88;8,72.03,385.50,221.33,8.88;8,72.03,397.26,205.76,8.88;8,72.03,409.02,203.00,8.88;8,72.03,420.78,212.59,8.88;8,72.03,432.54,219.79,8.88;8,72.03,444.30,182.70,8.88" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,97.23,361.99,165.42,8.88;8,72.03,373.75,76.99,8.88">Leaning user interests for a session-based personalized search</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Daoud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Tamine-Lechani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Boughanem</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1414694.1414708</idno>
+		<ptr target="http://doi.acm.org/10.1145/1414694.1414708" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,168.86,373.75,106.63,8.88;8,72.03,385.50,221.33,8.88;8,72.03,397.26,31.09,8.88">Proceedings of the Second International Symposium on Information Interaction in Context</title>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Borlund</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><forename type="middle">W</forename><surname>Schneider</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lalmas</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Tobros</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Feather</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Kelly</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><forename type="middle">P</forename><surname>De Vries</surname></persName>
+		</editor>
+		<meeting>the Second International Symposium on Information Interaction in Context<address><addrLine>London, United Kingdom; New York, NY</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2008-10-14">2008. October 14-17, 2008</date>
+			<biblScope unit="volume">348</biblScope>
+			<biblScope unit="page" from="57" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,72.03,460.02,201.97,8.88;8,72.03,471.78,85.88,8.88" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="8,151.35,460.02,122.66,8.88;8,72.03,471.78,34.42,8.88">WordNet, an electronic lexical database</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Fellbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,72.03,487.50,219.21,8.88;8,72.03,499.26,211.53,8.88;8,72.03,511.01,87.33,8.88;8,72.03,522.77,159.69,8.88" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="8,207.50,487.50,83.75,8.88;8,72.03,499.26,133.13,8.88">MIREX: MapReduce information retrieval experiments</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Hauff</surname></persName>
+		</author>
+		<ptr target="http://doc.utwente.nl/71078/1/mirex.pdf" />
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Twente</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="8,335.89,74.61,176.70,8.88;8,335.89,86.37,214.85,8.88;8,335.89,98.13,195.70,8.88;8,335.89,109.89,207.01,8.88;8,335.89,121.65,211.65,8.88;8,335.89,133.41,209.09,8.88;8,335.89,145.16,212.25,8.88" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,421.56,86.37,111.24,8.88">Session track at TREC 2010</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Clough</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sanderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,335.89,98.13,195.70,8.88;8,335.89,109.89,207.01,8.88;8,335.89,121.65,53.83,8.88">Proceedings of the SIGIR 2010 Workshop on the Simulation of Interaction: Automated Evaluation of Interactive IR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Järvelin</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Smucker Eds</surname></persName>
+		</editor>
+		<meeting>the SIGIR 2010 Workshop on the Simulation of Interaction: Automated Evaluation of Interactive IR<address><addrLine>Geneva, Switzerland; Amsterdam</addrLine></address></meeting>
+		<imprint>
+			<publisher>IR Publications</publisher>
+			<date type="published" when="2010-07-23">2010. July 23, 2010. 2010</date>
+			<biblScope unit="page" from="13" to="14" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.89,160.88,184.75,8.88;8,335.89,172.64,199.27,8.88;8,335.89,184.40,174.90,8.88;8,510.84,182.20,5.04,5.78;8,518.39,184.40,21.02,8.88;8,335.89,196.16,182.10,8.88;8,335.89,207.92,209.72,8.88;8,335.89,219.68,175.16,8.88" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,478.92,160.88,41.71,8.88;8,335.89,172.64,199.27,8.88;8,335.89,184.40,70.20,8.88">Voting for candidates: adapting data fusion techniques for an expert search task</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,423.12,184.40,87.67,8.88;8,510.84,182.20,5.04,5.78;8,518.39,184.40,21.02,8.88;8,335.89,196.16,182.10,8.88;8,335.89,207.92,99.85,8.88">Proceedings of the 15 th ACM International Conference on Information and Knowledge Management</title>
+		<meeting>the 15 th ACM International Conference on Information and Knowledge Management<address><addrLine>Arlington, Virginia, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2006-11-06">2006. November 6-11, 2006</date>
+			<biblScope unit="page" from="387" to="396" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.89,235.40,217.84,8.88;8,335.89,247.16,173.22,8.88;8,509.16,244.95,5.04,5.78;8,516.71,247.16,21.02,8.88;8,335.89,258.91,174.22,8.88;8,335.89,270.67,217.86,8.88;8,335.89,282.43,35.97,8.88" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,484.08,235.40,69.65,8.88;8,335.89,247.16,68.21,8.88">Query suggestion using hitting time</title>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Mei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Church</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,421.44,247.16,87.67,8.88;8,509.16,244.95,5.04,5.78;8,516.71,247.16,21.02,8.88;8,335.89,258.91,174.22,8.88;8,335.89,270.67,52.33,8.88">Proceedings of the 17 th ACM Conference on Information and Knowledge Management</title>
+		<meeting>the 17 th ACM Conference on Information and Knowledge Management<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2008">2008. 2008</date>
+			<biblScope unit="page" from="469" to="478" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.89,298.15,196.61,8.88;8,335.89,309.91,212.03,8.88;8,335.89,321.67,24.78,8.88;8,360.73,319.47,5.04,5.78;8,368.29,321.67,151.14,8.88;8,335.89,333.43,175.16,8.88" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,477.61,298.15,54.89,8.88;8,335.89,309.91,134.32,8.88">Boosting web retrieval through query operations</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mishne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,487.56,309.91,60.37,8.88;8,335.89,321.67,24.78,8.88;8,360.73,319.47,5.04,5.78;8,368.29,321.67,151.14,8.88;8,335.89,333.43,82.42,8.88">Proceedings of the 27 th European Conference on Information Retrieval (ECIR &apos;05)</title>
+		<meeting>the 27 th European Conference on Information Retrieval (ECIR &apos;05)</meeting>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+			<biblScope unit="page" from="502" to="516" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.89,349.15,201.29,8.88;8,335.89,360.91,188.84,8.88" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="8,420.37,349.15,116.82,8.88;8,335.89,360.91,24.97,8.88">Ontology based personalized search</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Pretschner</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Kansas</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Master&apos;s Thesis</note>
+</biblStruct>
+
+<biblStruct coords="8,335.89,376.63,198.18,8.88;8,335.89,388.38,107.81,8.88;8,443.76,386.18,6.48,5.78;8,452.76,388.38,89.39,8.88;8,335.89,400.14,189.99,8.88;8,335.89,411.90,203.68,8.88" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,455.65,376.63,78.42,8.88;8,335.89,388.38,63.15,8.88">Verb semantics and lexical selection</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Palmer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,416.17,388.38,27.54,8.88;8,443.76,386.18,6.48,5.78;8,452.76,388.38,89.39,8.88;8,335.89,400.14,169.83,8.88">The 32 nd Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting><address><addrLine>Las Cruces, New Mexico, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="133" to="138" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,335.89,427.62,218.35,8.88;8,335.89,439.38,182.58,8.88;8,335.89,451.14,213.95,8.88;8,335.89,462.90,198.06,8.88;8,335.89,474.66,213.92,8.88;8,335.89,486.42,48.31,8.88" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,450.49,439.38,67.98,8.88;8,335.89,451.14,213.95,8.88;8,335.89,462.90,182.79,8.88">Expansion-based technologies in finding relevant and new information: THU TREC2002: Novelty Track Experiments</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,335.89,474.66,109.86,8.88">Proceedings of TREC 2002</title>
+		<meeting>TREC 2002<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2002">2002. 2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,132.05,98.41,347.90,18.08;1,212.40,118.34,187.20,18.08">NiCT at TREC 2009: Employing Three Models for Entity Ranking Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,233.17,180.27,55.67,10.46"><forename type="first">Youzheng</forename><surname>Wu</surname></persName>
+							<email>youzheng.wu@nict.go.jp</email>
+						</author>
+						<author>
+							<persName coords="1,309.61,180.27,71.70,10.46"><forename type="first">Hideki</forename><surname>Kashioka</surname></persName>
+							<email>hideki.kashioka@nict.go.jp</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="laboratory">Spoken Language Communication Group</orgName>
+								<orgName type="institution">MASTAR Project National Institute of Information and Communications Technology</orgName>
+								<address>
+									<addrLine>NiCT) 2-2-2 Hikaridai</addrLine>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="institution">Keihanna Science City</orgName>
+								<address>
+									<postCode>619-0288</postCode>
+									<settlement>Kyoto</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,132.05,98.41,347.90,18.08;1,212.40,118.34,187.20,18.08">NiCT at TREC 2009: Employing Three Models for Entity Ranking Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">565CA00457EDFC2641C5A47215B9C3AA</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes experiments carried out at NiCT for the TREC 2009 Entity Ranking track. Our main study is to develop an effective approach to rank entities via measuring the "similarities" between supporting snippets of entities and input query. Three models are implemented to this end. 1) The DLM regards entity ranking as a task of calculating the probabilities of generating input query given supporting snippets of entities via language model. 2) The RSVM ranks entities via a supervised Ranking SVM. 3) The CSVM, an unsupervised model, ranks entities according to the probabilities of input query belonging to topics represented by entities and their supporting snippets via SVM classifier. The evaluation shows that the DLM is the best on P@10, while the RSVM outperforms the others on nDCG.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The first year of the TREC 2009 Entity Ranking track aims to investigate the problem of related entity finding, which is defined as follows:</p><p>Given an input entity, by its name and homepage, the type of the target entity, as well as the nature of their relation, described in free text, find related entities that are of target type, standing in the required relation to the input entity.</p><p>About the detail of the task, please refer to the overview paper of the track. An example of the input entities is shown in Figure <ref type="figure" coords="1,281.87,563.88,3.74,10.46" target="#fig_0">1</ref>. For convenience of the writing, we rename input entity to input query labeled as Q, use Q t to denote the entity name and Q n to denote the narrative field.</p><p>Inspired by the approaches used in TREC Expert Search track (in that person names are required to return, http://www.ins.cwi.nl/projects/trec-ent/wiki/ index.php/Main_Page), we regard entity ranking as a task of calculating the "similarities" between input query and supporting snippets of entities. In this guiding idea, our study mainly focuses on investigating how effectively using supporting snippets of entities to rank them. To this end, three models are employed in this year's participation.</p><formula xml:id="formula_0" coords="2,126.48,117.28,333.51,37.57">Q e 1 d e</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Input Query</head><p>Web page e 2 … d j e entity_name Michael Schumacher entity_name entity_URL http www michael schumacher de entity_URL target_entity person target_entity narrative Michael's teammates while he was racing in Formula 1 narrative Q t Q n &lt;e i ,(h i,1 ,h i,2 ,h i,3 ,)&gt; &lt;e k ,(h k,1 ,h k,2 ,h k,3 )&gt; …</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Output</head><p>An example of Q The architecture of NiCT's participant system, demonstrated in Figure <ref type="figure" coords="2,415.27,340.00,3.74,10.46" target="#fig_0">1</ref>, is a cascade of the following five components.</p><p>The Web Page Retrieval extracts keywords from Q t and Q n to retrieve some related Web pages or documents. We compare two retrieval strategies: INDRI search engine (http://www.lemurproject.org/) retrieving documents from the ClueWeb09 English 1 corpus and Google search engine retrieving web pages from the Internet.</p><p>The Entity Extraction &amp; Filtering extracts the related entities from the retrieved pages that match the type of the target entity. The extraction is supported by a named entity recognition tool developed by the Cognitive Computation Group at UIUC (http: //l2r.cs.uiuc.edu/ ˜cogcomp). For example, phrases/words tagged with PER, ORG and MISC are extracted when target entities are person, organization, and product, respectively.</p><p>To filter out noises in the extracted entities, we rank the entities according to the scores π 3 (e) calculated by,</p><formula xml:id="formula_1" coords="2,150.76,523.09,79.02,61.27">π 3 (e) =            2 if</formula><p>the We has a hyperlink to and a hyperlink from the WQ t , 1 else if the We has either a hyperlink to or a hyperlink from the WQ t , 0.5 else if the We has a hyperlink to or a hyperlink from the Wx that contains some words of Qt, 0 otherwise <ref type="bibr" coords="2,474.38,555.47,11.62,10.46" target="#b0">(1)</ref> where, W e and W Qt denote the Wikipedia page of entity e and Q t , respectively. W x denotes any Wikipedia page.</p><p>At last, we select some of the extracted entities as the input of the following components using the criterion: If the number of the entities which scores are larger than 0 is less than 100, the top 100 entities are selected; otherwise, all of the entities which scores are larger than 0 are selected. To simplify the writing, we use e and e (or e i ) to represent the set of the related entities, and one of entities in e, respectively.</p><p>Foreachentitye, the Search Supporting Snippets creates a query by combining entity e and the keywords from Q t and Q n , submits the query to a search engine, and retains the snippets returned by search engine as the supporting snippets of entities e. Similarly, we compare the supporting snippets retrieved by INDRI from the ClueWeb09 English 1 corpus and that retrieved by Google from the Web.</p><p>The Entity Ranking is the kernel of the system, which ranks related entities by calculating "similarities" between input query Q and supporting snippets of related entities. In our participation, we employ three models, i.e., Document Language Model (abbreviated to DLM, as described in Section 3), Supervised Ranking Support Vector Machine Model (abbreviated to RSVM, as described in Section 4), and Unsupervised Classification SVM (abbreviated to CSVM, as described in Section 5).</p><p>The Homepage Finding first submits the entity e i to Google, and then the first three pages that can be found in the ClueWeb09 English 1 corpus are regarded as its homepages h (i,1) , h (i,2) , h (i,3) . Note that we have no module of identifying homepages for entities currently, therefore, Google is applied. In future work, we will work on it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">DLM</head><p>The DLM regards the TREC 2009 Entity Ranking track as a problem of estimating the probability p(e|Q) of generating a related entity e given input query Q. In implementation, we estimate this probability by using supporting snippets of entity e to connect e and input query Q, which is expressed using,  </p><formula xml:id="formula_2" coords="3,177.39,362.70,308.61,23.42">p(e|Q) = d e p(e, d e |Q)<label>(2)</label></formula><p>where, d e is a supporting snippet of entity e, p(Q|d e ) denotes the probability that input query is generated by a supporting snippet, p(e|d e ) allows us to model the probability that a supporting snippet mentions entity e. Both p(Q|d e ) and p(e|d e ) can be estimated by any state-of-the-art IR formulas. Note that Equation ( <ref type="formula" coords="3,329.32,477.75,3.87,10.46" target="#formula_3">3</ref>) is obtained by assuming that Q and e are independent given supporting snippet d e , Equation ( <ref type="formula" coords="3,360.06,488.71,3.87,10.46" target="#formula_4">4</ref>) is obtained by assuming that probability p(d e ) is uniform.</p><p>Actually, the above DLM has been widely used in the TREC expert search tracks <ref type="bibr" coords="3,471.91,516.60,10.58,10.46" target="#b0">[1]</ref>. However, the independence between Q and e is a very strong assumption, which ignores the relationship between Q and e.</p><p>Inspired by the proximity measure for IR <ref type="bibr" coords="3,297.62,555.46,11.62,10.46" target="#b1">[2]</ref> and the Wikipedia link information for the INEX Entity Ranking task <ref type="bibr" coords="3,236.77,566.41,10.58,10.46" target="#b2">[3]</ref>, we incorporate the proximity measure and the Wikipedia link information among entities into the above DLM. Our proposed DLM can be expressed by Equation <ref type="bibr" coords="3,176.92,588.33,10.58,10.46" target="#b4">(5)</ref>.</p><formula xml:id="formula_5" coords="3,209.27,604.67,276.73,23.42">p(e|Q) ∝ π 3 (e) × d e p(d e |Q) × p(e|d e , Q)<label>(5)</label></formula><p>where, π 3 means the Wikipedia link information, which is calculated using Equation (1), p(e|d e , Q) is calculated by, </p><formula xml:id="formula_6" coords="3,191.01,655.96,294.99,12.93">p(e|d e , Q) = p(e|d e ) + π 1 (e, Q t ; d e ) + π 2 (e, Q n ; d e )<label>(6)</label></formula><p>where, Dis(e, q; d e ) is the minimum number of words between entity e and keyword q of Q t in d e . The minimum distance is used because <ref type="bibr" coords="4,334.91,402.64,11.62,10.46" target="#b1">[2]</ref> proved that the minimum outperformed the maximum and average distances.</p><p>In summary, the main idea of Equation (6) lies in: small distance between entity e and Q t , as well as small distance between e and Q n , imply their strong semantic relation, thus we reward cases where they are really close to each other, the distance contribution becomes nearly constant as the distance becomes larger.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RSVM</head><p>Learning to rank is a new area in statistical learning, in parallel with learning for classification, regression, etc. Ranking SVM, a hot research topic in IR <ref type="bibr" coords="4,383.39,527.23,10.58,10.46" target="#b3">[4]</ref>, is a typical method of learning to rank, which is different from SVM in terms that the training data in ranking is relative ordering or partial orders.</p><p>Our RSVM is concerned with applying Ranking SVM for the TREC Entity Ranking task. About the theory of the Ranking SVM, please refer to <ref type="bibr" coords="4,344.90,577.04,10.58,10.46" target="#b3">[4]</ref>. The features of entities used in the RSVM are extracted from their corresponding supporting snippets, as shown in Table <ref type="table" coords="4,126.00,598.96,3.74,10.46" target="#tab_0">1</ref>.</p><p>In </p><formula xml:id="formula_8" coords="5,218.78,473.56,263.07,26.60">mismatch(d e , Q) = q∈ 1 -δ(q, d e ) |Q| (<label>11</label></formula><formula xml:id="formula_9" coords="5,481.85,482.86,4.15,10.46">)</formula><p>In implementation, the development data is used to train an RSVM. The ranking SVM tool is provided by http://svmlight.joachims.org/.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CSVM</head><p>Either the DLM or the RSVM is trying to measure the "simlarity" between the input query Q and a related entity e via the supporting snippets of e. Their difference lies in the approaches of using supporting snippets. In this section, we present a novel algorithm of using supporting snippets and illustrate the proposed algorithm named to the CSVM with an example.</p><p>Suppose that we are asked to rank two related entities, i.e., Rubens Barrichello, Jacques Villeneuve, to the input query Q shown in Figure <ref type="figure" coords="5,311.42,646.57,3.74,10.46" target="#fig_0">1</ref>. Table <ref type="table" coords="5,346.23,646.57,4.98,10.46" target="#tab_2">2</ref> shows a sample of the supporting snippets for each entity.</p><p>From Table <ref type="table" coords="6,176.04,73.49,3.74,10.46" target="#tab_2">2</ref>, we find that most of the supporting snippets of entity Rubens Barrichello express the meaning of Rubens Barrichello is Michael Schumacher's teammate, while most of the supporting snippets of entity Jacques Villeneuve roughly include the meaning of Jacques Villeneuve is Michael Schumacher's competitor. Therefore, it is reasonable to assume that each entity together with its supporting snippets consist of a topic. Entities represent the topic signatures, while the supporting snippets are regarded as the instances of the topics.</p><p>Consequently, the CSVM regards the entity ranking task as a kind of classification task, which can be formalized by,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Usingtopicsrepresentedbyentitiesandtheirsupportingsnippetsastraininginstances</head><p>to train an SVM classifier; For the example in Table <ref type="table" coords="6,351.66,197.20,3.74,10.46" target="#tab_2">2</ref>, the topic represented by entity Jacques Villeneuve and the topic represented by entity Rubens Barrichello have 93 and 96 training instances, respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>UsingthetrainedSVMclassifiertoestimatetheprobabilitiesofinputqueryQbelong-</head><p>ing to the topics. For the same example, the probabilities of the input query belonging to the topic represented by Jacques Villeneuve and the topic represented by Rubens Barrichello are 0.427384 and 0.572616, respectively.</p><p>Outputting the entities according to the probabilities in descending order. For the example, the output is, &lt; Rubens Barrichello, 0.572616 &gt; &lt; Jacques Villeneuve, 0.427384 &gt; In summary, the schematic diagram of the Entity Ranking module in the CSVM is shown in Figure <ref type="figure" coords="6,164.74,363.91,3.74,10.46" target="#fig_3">2</ref>. In implementation, the LIBSVM tool (http://www.csie.ntu.edu.tw/ ˜cjlin/ libsvm) is employed. Usually, SVM just predicts class label but not probability information. To extend SVM for probability estimates, the approach proposed in <ref type="bibr" coords="6,420.46,585.80,11.62,10.46" target="#b4">[5]</ref> is adopted in the LIBSVM.</p><p>The MATCH, MISMATCH, COS, DIST1, DIST2, ILINK, OLINK features in the RSVM are also used in the CSVM. However, the values of the first five features in the CSVM are overlap(d e , Q), mismatch(d e , Q), cosine(Q, d e ), π 1 (e, Qt; d e ), and π 2 (e, Qn; d e ), respectively. Note that the values of these features are different from those in the RSVM because the values in the RSVM are sum of these values. The values of the ILINK and OLINK features are 1 or 0 that are same as the RSVM. Besides these features, each word q in input query Q is also extracted as classification features, which values are set to T F (q)× IDF (q). Therefore, the number of the features is |Q| + 7, |Q| denotes the number of unique words in the input query Q.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Comparison</head><p>The common ground among the three models lies in: ranking entities via measuring "similarity" between supporting snippets of entities and input query. Table <ref type="table" coords="7,417.75,186.04,4.98,10.46" target="#tab_3">3</ref>  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Experiments</head><p>This section lists our submitted runs and the configuration used for each, and reports on the results of our submissions. The metrics used for measuring performance are nDCG and P@10.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1">Submitted Runs</head><p>Four runs are submitted for the TREC official evaluation.</p><p>• RUN-1, RUN-2 and RUN-3: are the CSVM, the DLM and the RSVM, respectively. They use the same configurations: Google is used in the Web Page Retrieval and Search Supporting Snippets components. • RUN-4: is the DLM that uses INDRI search engine in the Web Page Retrieval and Search Supporting Snippets components.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.2">Finding Supporting ClueWeb09 English 1 Documents</head><p>The RUN-1, RUN-2 and RUN-3 just use the Web as their source of information. However, the TREC requires us to return not only answers but also supporting documents of answers from the ClueWeb09 English 1 corpus. Hence, we have to map answers found on the Web to a ClueWeb09 English 1 document. To realize this, the following two steps are conducted for each answer.</p><p>• Creating a query that consists keywords from the answer and the input query.</p><p>• Employing INDRI engine to search the ClueWeb09 English 1 corpus, the first three documents that contain the exact answer and Q t are retained as the supporting documents. This table indicates that: 1). In terms of nDCG measurement, the ranking of the implemented models is: the RSVM (RUN-3) &gt; the DLM (RUN-2) &gt; the CSVM (RUN-1). However, the improvements among them are not statistically significant. 2). The improvement of the RUN-1 over the RUN-4 is significant, which means that the Web Page Retrieval and the Search Supporting Snippets modules play very improvement roles in overall performance. 3). The differences of our runs against the Best and Median are statistically significant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.3">Results</head><p>The P@10 scores of the runs are reported in Table <ref type="table" coords="8,336.11,635.61,3.74,10.46" target="#tab_6">5</ref>. This table shows that the DLM is slightly better than the others in terms of P@10 measurement. Similarly, the differences are not significant. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Conclusion</head><p>In this paper, we describe NiCT's participant system for the first year of TREC Entity Ranking track. Given entities and their supporting snippets, we mainly focus on developing an effective framework to model entity ranking task. The official evaluation results indicate that our implemented ranking approaches just achieve the above average performance. We must point out that: 1). The experiments are conducted on a small set of testing data, specifically, 20 test queries. 2). Direct comparison among the ranking methods (like the comparison among the RUN-1, RUN-2, and RUN-3) may be better than the comparison among systems (like the comparison between our runs and the Best). This is because the Entity Extraction &amp; Filtering modules used in systems to extract entities are different, which play very important roles. In future study, we aim at: improving recall of entity extraction in the Entity Extraction &amp; Filtering; improving precision of entities that match types of target entities in the Entity Extraction &amp; Filtering; and entity homepage finding in the Homepage Finding.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,199.58,285.16,212.85,10.46"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Architecture of Our Entity Ranking System</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,215.40,391.70,7.75,10.46;3,236.29,405.92,7.52,7.62;3,249.16,391.70,14.07,10.46;3,263.23,390.13,3.78,7.32;3,267.51,391.70,45.40,10.46;3,312.91,390.13,3.78,7.32;3,317.19,391.70,26.69,10.46;3,349.84,405.92,7.52,7.62;3,362.70,391.70,14.07,10.46;3,376.78,390.13,3.78,7.32;3,381.05,391.70,45.40,10.46;3,426.46,390.13,3.78,7.32;3,430.74,391.70,3.88,10.46"><head></head><label></label><figDesc>e |Q) * p(e|d e , Q) = d e p(d e |Q) * p(e|d e )</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,215.40,419.12,7.75,10.46;3,236.29,433.35,7.52,7.62;3,249.16,419.12,24.71,10.46;3,273.87,417.55,3.78,7.32;3,278.15,419.12,34.76,10.46;3,312.91,417.55,3.78,7.32;3,317.19,419.12,3.88,10.46"><head></head><label></label><figDesc>e ) * p(e|d e )</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,202.25,541.34,206.76,10.61"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Schematic Diagram of the Entity Ranking</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,126.00,76.23,360.00,308.70"><head>Table 1 :</head><label>1</label><figDesc>We has or does not have an income link from WQ tOLINKWhether the We has or does not have an outcome link from WQ t Features used in the RSVM.where, π 1 and π 2 denote the proximity-based similarity between e and Q t in the supporting snippet d e , and the proximity-based similarity between e and Q n in d e , respectively. π 1 and π 2 are calculated using Equation (6) and (7).</figDesc><table coords="4,140.95,76.23,330.09,120.46"><row><cell>feature</cell><cell>value</cell><cell>description</cell></row><row><cell>MATCH</cell><cell>d e overlap(d e , Q)</cell><cell>Word overlap between supporting snippets and input query</cell></row><row><cell>MISMATCH</cell><cell cols="2">d e mismatch(d e , Q) Word mismatch</cell></row><row><cell>COS</cell><cell>d e cosine(Q, d e )</cell><cell>Cosine similarity</cell></row><row><cell>DIST1</cell><cell>d e π1(e, Qt; d e )</cell><cell>Proximity similarity between e and entity name</cell></row><row><cell>DIST2</cell><cell>d e π2(e, Qn; d e )</cell><cell>Proximity similarity between e and narrative</cell></row><row><cell>FREQ</cell><cell>cnt(d e )/ e cnt(d e )</cell><cell>Normalized frequency</cell></row><row><cell>ILINK</cell><cell>Whether the</cell><cell></cell></row></table><note coords="4,222.71,293.66,5.68,10.46;4,228.38,297.70,3.97,7.32;4,232.85,293.66,20.82,10.46;4,253.67,297.70,3.01,7.32;4,257.18,293.66,9.61,10.46;4,266.79,292.09,3.78,7.32;4,271.07,293.66,71.87,10.46;4,342.93,290.78,42.32,8.64;4,385.76,293.66,3.88,10.46;4,474.38,293.66,11.62,10.46;4,220.79,309.48,5.68,10.46;4,226.47,313.52,3.97,7.32;4,230.94,309.48,20.82,10.46;4,251.76,313.52,4.92,7.32;4,257.18,309.48,9.61,10.46;4,266.79,307.91,3.78,7.32;4,271.07,309.48,71.87,10.46;4,342.93,306.60,43.90,8.64;4,387.34,309.48,3.88,10.46;4,474.38,309.48,11.62,10.46;4,126.00,333.56,257.27,10.46;4,383.27,337.60,3.01,7.32;4,386.77,333.56,9.61,10.46;4,396.39,332.49,3.78,7.32;4,400.67,333.56,48.50,10.46;4,449.16,337.60,4.92,7.32;4,454.58,333.56,9.61,10.46;4,464.20,332.49,3.78,7.32;4,468.47,333.56,17.52,10.46;4,126.00,344.52,141.14,10.46;4,267.14,348.55,3.01,7.32;4,272.57,344.52,21.42,10.46;4,293.99,348.55,4.92,7.32;4,299.42,344.52,20.10,10.46;4,319.52,343.44,3.78,7.32;4,323.80,344.52,162.20,10.46;4,126.00,355.48,227.68,10.46;4,217.20,373.58,25.63,10.46;4,242.82,377.62,3.01,7.32;4,246.33,373.58,9.61,10.46;4,255.94,372.01,3.78,7.32;4,260.22,373.58,49.71,10.46;4,309.93,373.58,76.72,11.36;4,386.65,372.01,3.78,7.32;4,390.93,373.58,3.88,10.46"><p>π 1 (e, Q t ; d e ) = log(ϕ + e -δ(e,Qt;d e ) ) (7) π 2 (e, Q n ; d e ) = log(ϕ + e -δ(e,Qn;d e ) ) (8) where, ϕ is a parameter to allow for certain variations, δ(e, Q t ; d e ) (or δ(e, Q n ; d e )) is minimum distance between e and Q t (or Q n ) in d e , which is defined as the smallest distance value of all pairs of unique matched words. For example, δ(e, Q t ; d e ) = min q∈Qt∩d e Dis(e, q; d e )</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,126.00,614.82,360.00,55.66"><head>Table 1 ,</head><label>1</label><figDesc>overlap(d e , Q) and mismatch(d e , Q) are calculated by Equation (10) and (11), respectively. cnt(d e ) is the number of supporting snippets of entity e. Sample of the supporting snippets Rubens Barrichello Michael Schumacher -Wikipedia, the free encyclopedia -In 2007, in recognition of his contribution to Formula One racing, .... At the 2002 Austrian Grand Prix, Schumacher's teammate, Rubens Barrichello, ... Rubens Barrichello -Wikipedia, the free encyclopedia ... Barrichello drove for Ferrari from 2000 to 2005, as Michael Schumacher's teammate, .... In the 2006 Formula One season, his new teammate Jenson Button gave Barrichello the ... Rubens Barrichello Profile -Honda Formula 1 Driver Rubens Barrichello Photo (c) Honda Racing F1 Team ... Joining Ferrari as Michael Schumacher's teammate in 2000, he finally had a car capable of winning. ... Rubens Barrichello Memorabilia With 11 victories and a podium finish in every race Michael Schumacher and Ferrari ... Rubens Barrichello Formula 1 Motor Racing Print -Sport ... He regularly outpaced his more experienced teammates. ... Rubens Barrichello -Formula One Drivers -All Time -F1 Pulse Compare Rubens Barrichello's performance in F1 to other drivers and get all the ... early stages of his racing career before taking a step towards Formula One, ... classifying second behind race winner and teammate Michael Schumacher. ... Jacques Villeneuve Michael Schumacher and Jacques Villeneuve vied for the title in 1997. ..... In 2007, in recognition of his contribution to Formula One racing, the Nrburgring racing track .... At the 2002 Austrian Grand Prix, Schumacher's teammate, ... 5.1 Racing record; 5.2 Complete Champ Car results; 5.3 Complete Formula One results.... Jacques Villeneuve driving for the Williams Formula One team at the 1996... despite coming under pressure from the Ferrari of Michael Schumacher. ... Button would prove to become the second of Villeneuve's teammates to ... jacques villeneuve F1 Blog A website by people with an incurable obsession with Formula One Racing ... Rubens Barrichello -if he hadn't become Michael Schumacher's teammate, ... Michael Schumacher was soon making a name for himself and in 1984 he won the ... when Jordan's Formula One driver Bertrand Gachot found himself in jail and Schumacher ... where he qualified 7th ahead of his more experienced teammate. ... poor start to 1997 Schumacher clawed back Jacques Villeneuve's advantage until ... Jacques Villeneuve BMW Sauber formula 1 profile and photo gallery ... +Michael Schumacher F1 +Michael Schumacher ... He moved swiftly to Indy Car racing, and was Rookie of the Year in 1994. ... almost winning his first race, after qualifying in pole, but teammate Damon Hill took the victory. ...</figDesc><table coords="4,230.42,643.88,255.58,26.60"><row><cell>overlap(d e , Q) =</cell><cell>q∈Q δ(q, d e ) |Q|</cell><cell>(10)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,215.34,446.02,181.33,10.46"><head>Table 2 :</head><label>2</label><figDesc>A sample of the supporting snippets.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="7,126.00,186.04,360.01,231.64"><head>Table 3 :</head><label>3</label><figDesc>Differences among the Models.</figDesc><table coords="7,426.15,186.04,59.87,10.46"><row><cell>compares their</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="8,126.00,209.65,360.00,307.21"><head>Table 4</head><label>4</label><figDesc>lists the nDCG scores, Best and Median mean the best and the median scores among all participants' systems, respectively, and p value implies significant level of the RUN-1 against the RUN-4 obtained through a two-tailed paired t-test.</figDesc><table coords="8,163.13,264.94,282.49,251.92"><row><cell>Topic</cell><cell>RUN-1</cell><cell cols="5">RUN-2 RUN-3 RUN-4 Best Median</cell></row><row><cell>1</cell><cell>.1349</cell><cell>.1398</cell><cell>.1592</cell><cell>.0576</cell><cell>.2992</cell><cell>.0597</cell></row><row><cell>2</cell><cell>.308</cell><cell>.2723</cell><cell>.3079</cell><cell>.0326</cell><cell>.4262</cell><cell>.1012</cell></row><row><cell>3</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>.6388</cell><cell>0</cell></row><row><cell>4</cell><cell>.2336</cell><cell>.2417</cell><cell>.25</cell><cell>.0417</cell><cell>.2982</cell><cell>.0417</cell></row><row><cell>5</cell><cell>.1022</cell><cell>.0645</cell><cell>.0645</cell><cell>.1457</cell><cell>.3697</cell><cell>.1119</cell></row><row><cell>6</cell><cell>.1792</cell><cell>.1357</cell><cell>.1527</cell><cell>.2138</cell><cell>.2844</cell><cell>.1168</cell></row><row><cell>7</cell><cell>.288</cell><cell>.2955</cell><cell>.2943</cell><cell>.2722</cell><cell>.2955</cell><cell>.0661</cell></row><row><cell>8</cell><cell>.0216</cell><cell>.0352</cell><cell>.0279</cell><cell>.0279</cell><cell>.4838</cell><cell>.0559</cell></row><row><cell>9</cell><cell>.1742</cell><cell>.1569</cell><cell>.1674</cell><cell>.1428</cell><cell>.3728</cell><cell>.1602</cell></row><row><cell>10</cell><cell>.253</cell><cell>.2356</cell><cell>.2518</cell><cell>.1328</cell><cell>.4596</cell><cell>.0598</cell></row><row><cell>11</cell><cell>.1898</cell><cell>.1898</cell><cell>.1898</cell><cell>.0572</cell><cell>.3668</cell><cell>.0499</cell></row><row><cell>12</cell><cell>.3207</cell><cell>.3417</cell><cell>.3663</cell><cell>.2197</cell><cell>.3663</cell><cell>.0469</cell></row><row><cell>13</cell><cell>.0884</cell><cell>.0884</cell><cell>.0884</cell><cell>.0884</cell><cell>.2815</cell><cell>.0884</cell></row><row><cell>14</cell><cell>.217</cell><cell>.4355</cell><cell>.404</cell><cell>.185</cell><cell>.6842</cell><cell>.0772</cell></row><row><cell>15</cell><cell>.3402</cell><cell>.3096</cell><cell>.3097</cell><cell>.2794</cell><cell>.5796</cell><cell>.0714</cell></row><row><cell>16</cell><cell>.0479</cell><cell>.0494</cell><cell>.0479</cell><cell>.0559</cell><cell>.4319</cell><cell>0</cell></row><row><cell>17</cell><cell>.233</cell><cell>.2425</cell><cell>.2373</cell><cell>.2284</cell><cell>.3379</cell><cell>.0816</cell></row><row><cell>18</cell><cell>.1987</cell><cell>.2002</cell><cell>.1987</cell><cell>.1323</cell><cell>.4312</cell><cell>.1414</cell></row><row><cell>19</cell><cell>.2081</cell><cell>.1824</cell><cell>.1669</cell><cell>.0559</cell><cell>.3647</cell><cell>0</cell></row><row><cell>20</cell><cell>.1225</cell><cell>.1076</cell><cell>.1288</cell><cell>.1911</cell><cell>.4243</cell><cell>.1725</cell></row><row><cell cols="2">ave. .183 p=(0.01)</cell><cell>.1862</cell><cell>.1907</cell><cell>.128</cell><cell>-</cell><cell>-</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="8,261.69,529.01,88.61,10.46"><head>Table 4 :</head><label>4</label><figDesc>nDCG scores</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="9,178.02,80.29,253.46,267.97"><head>Table 5</head><label>5</label><figDesc></figDesc><table coords="9,178.02,80.29,253.46,267.97"><row><cell></cell><cell></cell><cell></cell><cell cols="2">: P@10 scores</cell><cell></cell><cell></cell></row><row><cell></cell><cell cols="6">RUN-1 RUN-2 RUN-3 RUN-4 Best Median</cell></row><row><cell>1</cell><cell>0.2</cell><cell>0.2</cell><cell>0.2</cell><cell>0.1</cell><cell>0.2</cell><cell>0</cell></row><row><cell>2</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0</cell><cell>0.1</cell><cell>0</cell></row><row><cell>3</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0.1</cell><cell>0</cell></row><row><cell>4</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0</cell><cell>0.3</cell><cell>0</cell></row><row><cell>5</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.4</cell><cell>0.1</cell></row><row><cell>6</cell><cell>0.1</cell><cell>0.1</cell><cell>0.2</cell><cell>0.1</cell><cell>0.2</cell><cell>0</cell></row><row><cell>7</cell><cell>0.5</cell><cell>0.8</cell><cell>0.5</cell><cell>0.3</cell><cell>0.8</cell><cell>0</cell></row><row><cell>8</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0.5</cell><cell>0</cell></row><row><cell>9</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.2</cell><cell>0</cell></row><row><cell>10</cell><cell>0.5</cell><cell>0.5</cell><cell>0.5</cell><cell>0.1</cell><cell>0.8</cell><cell>0</cell></row><row><cell>11</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.3</cell><cell>0</cell></row><row><cell>12</cell><cell>0.2</cell><cell>0.2</cell><cell>0.2</cell><cell>0.2</cell><cell>0.3</cell><cell>0</cell></row><row><cell>13</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0.1</cell><cell>0</cell></row><row><cell>14</cell><cell>0.1</cell><cell>0.3</cell><cell>0.3</cell><cell>0</cell><cell>0.4</cell><cell>0</cell></row><row><cell>15</cell><cell>0.3</cell><cell>0.2</cell><cell>0.1</cell><cell>0.2</cell><cell>0.6</cell><cell>0</cell></row><row><cell>16</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0.6</cell><cell>0</cell></row><row><cell>17</cell><cell>0.3</cell><cell>0.5</cell><cell>0.4</cell><cell>0.4</cell><cell>0.5</cell><cell>0</cell></row><row><cell>18</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0</cell><cell>0.1</cell><cell>0</cell></row><row><cell>19</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0</cell><cell>0.2</cell><cell>0</cell></row><row><cell>20</cell><cell>0.1</cell><cell>0.1</cell><cell>0.1</cell><cell>0.2</cell><cell>0.3</cell><cell>0</cell></row><row><cell>ave.</cell><cell>0.145</cell><cell>0.175</cell><cell>0.155</cell><cell>0.095</cell><cell>-</cell><cell>-</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="9,139.40,570.71,346.58,9.41;9,126.00,580.67,246.95,9.41" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Krisztian</forename><surname>Balog</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leif</forename><surname>Azzopardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maarten</forename><surname>De Rijke</surname></persName>
+		</author>
+		<title level="m" coord="9,349.30,570.71,136.69,9.41;9,126.00,580.67,150.87,9.41">Formal Models for Expert Finding in Enterprise CorporaIn Proc. of SIGIR-2006</title>
+		<meeting><address><addrLine>Washington, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,138.59,596.61,347.41,9.41;9,126.00,606.57,219.27,9.41" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="9,255.55,596.61,226.98,9.41">An Exploration of Proximity Measures in Information Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Tao</forename><surname>Tao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,135.71,606.57,72.69,9.41">Proc. of SIGIR-2007</title>
+		<meeting>of SIGIR-2007<address><addrLine>Amsterdam, The Netherlands</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,138.63,622.51,347.36,9.41;9,126.00,632.48,175.51,9.41" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="9,367.24,622.51,118.75,9.41;9,126.00,632.48,84.59,9.41">Exploiting Locality of Wikipedia Links in Entity Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Jovan</forename><surname>Pehcevski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anne-Marie</forename><surname>Vercoustre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><forename type="middle">A</forename><surname>Thom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,227.17,632.48,70.04,9.41">Proc. of ECIR-2008</title>
+		<meeting>of ECIR-2008</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,138.49,648.42,347.50,9.41;9,126.00,658.38,86.54,9.41" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="9,313.62,648.42,168.90,9.41">Adapting Ranking SVM to Document Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Yunbo</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tie-Yan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hang</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,135.71,658.38,72.69,9.41">Proc. of SIGIR-2006</title>
+		<meeting>of SIGIR-2006</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,138.86,74.34,347.13,9.41;10,126.00,84.30,304.66,9.41" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="10,302.00,74.34,183.98,9.41;10,126.00,84.30,75.86,9.41">Probability Estimates for Multi-class Classification by Pairwise Coupling</title>
+		<author>
+			<persName coords=""><surname>Ting-Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chih-Jen</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruby</forename><forename type="middle">C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Weng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,218.30,84.30,140.63,9.41">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="975" to="1005" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

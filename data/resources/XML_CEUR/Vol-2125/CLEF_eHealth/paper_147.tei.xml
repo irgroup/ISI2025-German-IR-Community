@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,143.08,115.96,329.20,12.62;1,137.38,133.89,340.60,12.62">ECSTRA-APHP @ CLEF eHealth2018-task 1: ICD10 Code Extraction from Death Certificates</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,269.61,171.56,71.67,8.74"><forename type="first">Rémi</forename><surname>Flicoteaux</surname></persName>
+							<email>remi.flicoteaux@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="department">U1153 Epidemiology and Biostatistics Sorbonne Paris Cit Research Center (CRESS)</orgName>
+								<orgName type="institution" key="instit1">INSERM</orgName>
+								<orgName type="institution" key="instit2">ECSTRA team</orgName>
+								<address>
+									<postCode>F-75010</postCode>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,143.08,115.96,329.20,12.62;1,137.38,133.89,340.60,12.62">ECSTRA-APHP @ CLEF eHealth2018-task 1: ICD10 Code Extraction from Death Certificates</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">65DD5ED0A26DF3EA0CB63957F7096449</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:52+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>ICD-10 coding</term>
+					<term>ICD-10 codes</term>
+					<term>cause of death extraction</term>
+					<term>convolutional neural network</term>
+					<term>lexical matching</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes the participation of ECSTRA-APHP team at CLEF eHealth 2018, task 1. The task involved extracting ICD-10 codes from death certificates, mainly described with short plain texts. We casted the task as a machine learning problem the prediction of the ICD-10 codes (categorical variable) from the raw text transformed into word embeddings. We relied on probabilistic convolutional neural network for classification. Due to inbalanced representation of the ICD codes, we completed the prediction with dictionary-based lexical matching classifier for cases were there was less than 1,000 documents per code. Our best F1-score was 80.0% on a test set and 69.1% on the validate set (gold standard delivered by the organizers at the end of the challenge). This was the first time convolutional neural net were used for this multilabel classification task. The performance of our models were under the best neural predictor (recurrent network) described last year on the same task at CLEF eHealth (F1-score around 85%).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Completing death certificates is a routine task in hospitals and healthcare institutions. In France, the death certificates are produced by physicians and transmitted to the French Epidemiological Center for the Causes of Death (CépiDC) <ref type="foot" coords="1,134.77,529.22,3.97,6.12" target="#foot_0">1</ref> . Beyond the administrative and personal information, the death certificates usually contain a free-text description of the cause(s) of death. Free texts are converted by the CépiDC into formal standardized codes to be processed for statistical purposes. Like many countries, the the World Health Organisation (WHO) International Classification of Diseases (ICD) taxonomy 2 is used for this normalized representation. The ICD taxonomy covers a wide range of diseases, symptoms, signs, and other content related to diseases. The WHO issues separate versions of ICD per language/country. In this paper, we use the French release of ICD, which is now at its 10 th revision (called ICD-10). It covers more than 38,000 codes of diagnoses, but only a subset of theses codes can be causes of death.</p><p>Requiring manual work and expertise, the task of ICD-10 code extraction from text is quite time-consuming because the ICD-10 taxonomy contains thousands of possible causes of death. Within the CLEF eHealth 2018, the task 1 focuses on the problem of automatic extraction of the causes of death from the textual description <ref type="bibr" coords="2,213.76,191.88,12.19,8.74" target="#b0">[1]</ref>. Classification for health-related text is considered a special case of multilabel text classification which may be approached either from a machine learning perspective (supervised classification) or a Natural Language Processing (NLP) perspective by using syntactic and/or semantic decision rules. For this purpose machine learning algorithms have been successfully applied, i.e. Support Vector Machines, Latent Dirichlet Allocation or neural network. Both approaches aim at automating the ICD-10 code extraction from death certificates. In this paper, we mainly focus on probabilistic Convolution Neural Network (CNN). Due to unbalanced ICD labels, we enriched prediction with dictionary-based lexical matching classifier.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methods</head><p>CNNs utilize layers with convolving filters that are applied to local features <ref type="bibr" coords="2,134.77,378.83,9.96,8.74" target="#b3">[4]</ref>. Originally invented for computer vision, CNNs models have subsequently been shown to be effective for NLP and have achieved excellent results in text classification <ref type="bibr" coords="2,187.80,402.74,11.36,8.74" target="#b1">[2]</ref>. The filter can be seen as sliding over the columns of the features, performing an element-wise multiplication and summation on the current overlap, before moving one to the right. For NLP task, the filters dimension on the first axis is equal to the one, the resulting vector is only one-dimensional. One of the key differentiators between CNNs and traditional machine learning approaches is the ability for CNNs to learn complex feature representations.</p><p>State of the art for feature extraction is to use word vectors models, embedding, where each word is represented by a single real-valued vector. In this model sentences are then projected from a sparse vector space of the size of the vocabulary onto a lower dimensional vector space which encode semantic features of words in their dimensions. Then semantically close words are likewise close the new lower dimensional vector space as measured with vector distance operation like euclidean or cosine distance.</p><p>In the present work the weights of words vectors are jointly learned as the first hidden layer of the classification itself, and we train a CNN that uses multiple filters (with varying window sizes) to obtain multiple features on top of word vectors. For this multi-label classification task, the prediction layer (last one) has the size of the number of distinct labels (entries in the ICD). Here we only focuses on codes that have already been used. Finally, the prediction is a vector of real numbers which are equivalent to a probability upon each ICD label (but the all vector do not sum to one). A grid search was perform to determine the threshold among which a code was chosen.</p><p>The dictionary-based lexical matching classifier rely on word recognition from a knowledge base build from several available dictionaries on the French ICD-10 classification : second volume of ICD, orphanet thesaurus, French SNOMED CT, and CépiDC dictionaries that were provided for the challenge.</p><p>From the detection in the text of entries of the index (i.e. words) ranking scores are usually computed individually for each concept mention. For this purpose we used a very simple score base on the probability of a code associated to a word and the number of words recognized in the text :</p><formula xml:id="formula_0" coords="3,243.99,225.40,126.87,9.96">score = Σp code|word × n match</formula><p>We used this approach to predict rare codes (represented by less than 1,000 lines), so we choose only one code per statement. Our main idea was to improve prediction of the CNN classifier, so we use this result to add a weight on the output vector of CNN predictor for the selected code. A grid search was performed to decide the size of this weight.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Dataset</head><p>The CépiDC corpus has been created by the French Center for Epidemiology and Medical Causes of Death (CépiDC) specifically for the CLEF eHealth task 1 <ref type="bibr" coords="3,142.95,378.30,10.52,8.74" target="#b0">[1,</ref><ref type="bibr" coords="3,155.12,378.30,7.01,8.74" target="#b8">9]</ref>. It is composed of separate train/test samples of death certificates. Only the textual description of the causes of death are available for analysis. CépiDC dataset is highly imbalanced: about 80% of documents are assigned to less than 20% of codes. The task was defined at the level of each statement (line) in a death certificate: one statement could be associated with 0, 1 or more ICD-10 codes which represent causes of death at various levels in the causal chain which led to the death. Each line was tagged with 0 code (n=7,598 -2.5%), 1 code (n=238,929 -78.5%), 2 codes (n=40,572 -13.38%) up to 14 codes codes (n=1). The dataset included 70656 lines, it was divided into train and test set (25 000 lines). A validation set was also provided at the end of the challenge, with 70,656 lines. On the validation set, there was 1,431 (2.0%) lines without code, 51,383 (72.7%) with one code, 11,981 with 2 codes (16.9%) and the maximum number of code by line was 16 (n=1).</p><p>We remove stopwords and numerics. After an homemade spelling correction algorithm based on Levenstein distance, only words from the knoweledge base were sustain for classification. The preprocessed text vectorize in tokens are used as input for CNN and dictionary-based lexical matching.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We first build the knowledge base from the available thesaurus (cf methods) and the 2015 (most recent) CépiDC dictionaries that was provided with for the task. At the end we had a 216,110 entries ICD thesaurus, were entries goes from 1 to 314 words. An word/code index was then build with 19,606 distinct entries.</p><p>For statistical approach with convolusional network, we use words embeddings features that were fitted on the data together with classification task, and no external weights were used. Models were fitted with and without adding data from knowledge base. Our best prediction gives a F1-score to 79.6% on the test set. We performed two non official runs at the challenge, and on the validation set our best F1-score was of 69.1%.</p><p>We studied also performance at the code level given the level of document for each class. Result are presented table 2. The results on the badly represented classes were expected, and indeed a significant reduction in efficiency was recorded below 1000 representatives per class. We use the second classifier based on word recognition, which did not improve performance on the global criteria on the test set, but which allowed to gain on the F1-score on the very low represented categories. Finally, we also looked at the performances of the models on lines which were labeled with 0 ICD code. On the validation set, the performance of our final predictor for theses lines was very poor : precision = 19.7%, recall=5.2% and F1-score = 8.2%.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Discussion</head><p>The problem of ICD code extraction has been investigated from a larger perspective involving code assignment to various types of medical documents. The CLEF eHealth is one of the only international conferences to propose a specific task on this subject each year, which makes it possible to have a particularly interesting follow-up of the methods and their performances. Mainly two parallel approaches are often developed statistic and entity recognition, and in case the compilation of both. The convolutive networks have shown their effectiveness for automatic classification of documents, particularly medical documents <ref type="bibr" coords="5,134.77,476.56,10.52,8.74" target="#b1">[2,</ref><ref type="bibr" coords="5,146.95,476.56,7.01,8.74" target="#b2">3]</ref>. To our knowledge this is the first time they are used in the CLEF eHealth Challenge. We observe a 10% difference on the model performance from test to validation data. This could be due rather to overfitting on training data and to the fact that our test set might not represent the true distribution of data and labels.</p><p>Other neural net architectures are used for text classification. Recurrent networks have becoming more popular in the NLP domain and seems to outperform performance of CNN. Miftahutdinov et al. report the use of RNN in the CLEF eHealth 2017 with success and obtained F-measure of 85% <ref type="bibr" coords="5,399.92,572.43,9.96,8.74" target="#b4">[5]</ref>. New character based approach which allowed a huge reduction of time for features engineering seems to very promising also for their performances <ref type="bibr" coords="5,360.60,596.34,13.30,8.74" target="#b5">[6]</ref>, and will be to investigate for this specific task. But it was expected that classifier performance would be lower for the less well represented classes, an issue that will be challenging for every machine learning algorithm. Especially for rare diseases or documents reporting unusual situations, knowledge-based methods will be powerful complements.</p><p>Various methods have been explored in this area. In 2016 Mulligen et al. obtained the best results by combining a Solr tagger with ICD-10 terminologies at the CLEF eHealth. The terminologies were derived from the task training set and a manually curated ICD-10 dictionary. They achieved F-measure of 84.8%. Moreover the contribution of mixed methods makes perfect sense. Our dictionary-based lexical matching was too simplistic and only marginally improved the performance of CNN classifier even if the gain in the less well represented categories is interesting. Zwegembaum et al reported a similar combined approach and very promising results <ref type="bibr" coords="6,296.66,214.64,10.52,8.74" target="#b6">[7,</ref><ref type="bibr" coords="6,308.83,214.64,7.01,8.74" target="#b7">8]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>We have studied CNN performance for multi-label classification in ICD-10 of death certificates. In order to take into account the low performance of machine learning methods for situations where data are reliably represented, we combine a dictionary based method with small improvement of performance on the most rare situations.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,165.48,444.81,284.40,73.29"><head>Table 1 .</head><label>1</label><figDesc>Representativity of ICD diagnoses used in death certificates</figDesc><table coords="3,165.48,465.61,284.40,52.50"><row><cell></cell><cell cols="2">Number of distinct codes Total number of codes</cell></row><row><cell>&gt; 1,000 occurrences</cell><cell>72</cell><cell>240,301 (63.3%)</cell></row><row><cell>200-1,000 occurrences</cell><cell>180</cell><cell>80,316 (21.1%)</cell></row><row><cell>&lt; 200 occurrences</cell><cell>3007</cell><cell>59,185 (15.6%)</cell></row><row><cell>Total</cell><cell>3,259</cell><cell>379,802</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,157.92,404.80,299.51,93.07"><head>Table 2 .</head><label>2</label><figDesc>Global results</figDesc><table coords="4,157.92,423.86,299.51,74.02"><row><cell>Model</cell><cell>Precision Recall F1-Score</cell></row><row><cell>Results on test set</cell><cell></cell></row><row><cell>CNN alone without knowledge base</cell><cell>83.4% 76.8% 80.0%</cell></row><row><cell>CNN with knowledge base</cell><cell>82.0% 77.4% 79.6%</cell></row><row><cell cols="2">CNN with knowledge base plus lexical matching 81.6% 77.7% 79.6%</cell></row><row><cell>Results on validation set</cell><cell></cell></row><row><cell>CNN alone without knowledge base</cell><cell>63.3% 76.1% 69.1%</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,154.43,588.08,306.49,72.90"><head>Table 3 .</head><label>3</label><figDesc>Results on test set by categories of codes frequencies -CNN alone</figDesc><table coords="4,202.38,608.88,210.59,52.10"><row><cell cols="3">Freq codes Prop. true positives Prop. false negatives</cell></row><row><cell>[1000; inf [</cell><cell>84.4%</cell><cell>15.6%</cell></row><row><cell>[500; 1000[</cell><cell>75.0%</cell><cell>25.0%</cell></row><row><cell>[200; 5000[</cell><cell>67.7%</cell><cell>32.3%</cell></row><row><cell>[0; 200[</cell><cell>28.5%</cell><cell>71.5%</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,134.77,174.85,345.82,83.85"><head>Table 4 .</head><label>4</label><figDesc>Results on test set by categories of codes frequencies -CNN plus plus lexical matching</figDesc><table coords="5,202.38,206.61,210.59,52.10"><row><cell cols="3">Freq codes Prop. true positives Prop. false negatives</cell></row><row><cell>[1000; inf [</cell><cell>85.3%</cell><cell>14.7%</cell></row><row><cell>[500; 1000[</cell><cell>76.0%</cell><cell>24.0%</cell></row><row><cell>[200; 5000[</cell><cell>68.5%</cell><cell>31.5%</cell></row><row><cell>[0; 200[</cell><cell>34.2%</cell><cell>65.8%</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,144.73,645.84,119.39,7.86"><p>http://www.cepidc.inserm.fr/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,144.73,656.80,161.42,7.86"><p>http://www.who.int/classifications/icd/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,138.35,380.22,342.24,7.86;6,146.91,391.18,333.68,7.86;6,146.91,402.14,333.68,7.86;6,146.91,413.10,333.68,7.86;6,146.91,424.06,66.58,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,431.71,391.18,48.88,7.86;6,146.91,402.14,139.71,7.86">Overview of the CLEF eHealth Evaluation Lab</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Suominen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Spijker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nvol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Ramadier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Palotti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Zuccon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,313.78,402.14,44.58,7.86;6,379.73,402.14,100.86,7.86;6,146.91,413.10,99.67,7.86">8th Conference and Labs of the Evaluation Forum</title>
+		<title level="s" coord="6,255.40,413.10,175.02,7.86">Lecture Notes in Computer Science (LNCS</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018-09">2018. September 2018</date>
+		</imprint>
+	</monogr>
+	<note>CLEF 2018</note>
+</biblStruct>
+
+<biblStruct coords="6,138.35,435.34,342.24,7.86;6,146.91,446.30,91.15,7.86" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,182.24,435.34,223.49,7.86">Convolutional neural networks for sentence classification</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kim</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1408.5882</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,457.59,342.24,7.86;6,146.91,468.55,326.76,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,348.58,457.59,132.01,7.86;6,146.91,468.55,118.73,7.86">Medical text classification using convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hughes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kotoulas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Suzumura</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,287.04,468.55,111.74,7.86">Stud Health Technol Inform</title>
+		<imprint>
+			<biblScope unit="volume">235</biblScope>
+			<biblScope unit="page">246250</biblScope>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,479.83,342.24,7.86;6,146.91,490.79,333.68,7.86;6,146.91,501.75,20.99,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,349.19,479.83,131.40,7.86;6,146.91,490.79,97.35,7.86">Gradient-based learning applied to document recognition</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Haffner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,263.19,490.79,97.88,7.86">Proceedings of the IEEE</title>
+		<meeting>the IEEE</meeting>
+		<imprint>
+			<date type="published" when="1998-11">November 1998</date>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">22782324</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,513.03,342.24,7.86;6,146.91,523.99,333.68,7.86;6,146.91,534.95,161.08,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,292.87,513.03,187.72,7.86;6,146.91,523.99,283.44,7.86">KFU at CLEF eHealth 2017 Task 1: ICD-10 Coding of English Death Certificates with Recurrent Neural Networks</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Miftakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Tutubalina</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,455.89,523.99,24.70,7.86;6,146.91,534.95,109.50,7.86">CLEF 2017 Online Working Notes</title>
+		<title level="s" coord="6,263.71,534.95,44.28,7.86">CEUR-WS</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,546.23,342.24,7.86;6,146.91,557.19,193.27,7.86" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="6,232.62,546.23,244.25,7.86">Universal Language Model Fine-tuning for Text Classification</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1801.06146[cs.CL</idno>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,568.48,342.24,7.86;6,146.91,579.44,333.68,7.86;6,146.91,590.39,333.68,7.86;6,146.91,601.35,133.80,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,277.43,568.48,203.15,7.86;6,146.91,579.44,242.13,7.86">Multiple methods for multi-class, multi-label ICD-10 coding of multi-granularity, multilingual death certificates</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Zweigenbaum</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lavergne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,411.38,579.44,69.21,7.86;6,146.91,590.39,329.46,7.86">CLEF 2017 Evaluation Labs and Workshop: Online Working Notes. CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Dublin, Ireland</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017-09">September 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,138.35,612.64,342.24,7.86;6,146.91,623.60,333.68,7.86;6,146.91,634.55,307.59,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,276.39,612.64,204.20,7.86;6,146.91,623.60,18.82,7.86">Hybrid methods for ICD-10 coding of death certificates</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Zweigenbaum</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lavergne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,186.54,623.60,294.06,7.86;6,146.91,634.55,32.40,7.86;6,396.78,634.55,33.66,7.86">Seventh International Workshop on Health Text Mining and Information Analysis</title>
+		<meeting><address><addrLine>Austin, Texas, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-11">November 2016. 2016</date>
+			<biblScope unit="page" from="96" to="105" />
+		</imprint>
+	</monogr>
+	<note>EMNLP</note>
+</biblStruct>
+
+<biblStruct coords="6,138.35,645.84,342.24,7.86;6,146.91,656.80,333.68,7.86;7,146.91,119.67,333.68,7.86;7,146.91,130.63,333.68,7.86;7,146.91,141.59,147.52,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,300.02,656.80,180.58,7.86;7,146.91,119.67,333.68,7.86;7,146.91,130.63,60.19,7.86">CLEF eHealth 2018 Multilingual Information Extraction task Overview: ICD10 Coding of Death Certificates in French, Hungarian and Italian</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nvol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Grippo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lavergne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Morgand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Orsi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Pelikn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Ramadier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Rey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Zweigenbaum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,229.47,130.63,251.12,7.86;7,146.91,141.59,21.16,7.86">CLEF 2018 Evaluation Labs and Workshop: Online Working Notes</title>
+		<imprint>
+			<publisher>CEUR-WS</publisher>
+			<date type="published" when="2018-09">September, 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

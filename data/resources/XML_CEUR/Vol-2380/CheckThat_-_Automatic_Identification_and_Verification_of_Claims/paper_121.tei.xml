@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,168.22,115.96,278.92,12.62;1,246.04,133.89,123.28,12.62">A Hybrid Model to Rank Sentences for Check-worthiness</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,189.16,171.56,52.63,8.74"><forename type="first">Rudra</forename><surname>Dhar</surname></persName>
+							<email>rudradharrd@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Jadavpur University</orgName>
+								<address>
+									<settlement>West Bengal</settlement>
+									<country key="IN">India</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,252.35,171.56,79.59,8.74"><forename type="first">Subhabrata</forename><surname>Dutta</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Jadavpur University</orgName>
+								<address>
+									<settlement>West Bengal</settlement>
+									<country key="IN">India</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,361.88,171.56,59.85,8.74"><forename type="first">Dipankar</forename><surname>Das</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Jadavpur University</orgName>
+								<address>
+									<settlement>West Bengal</settlement>
+									<country key="IN">India</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,168.22,115.96,278.92,12.62;1,246.04,133.89,123.28,12.62">A Hybrid Model to Rank Sentences for Check-worthiness</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">0DCA9632D80E2BAF77B926D296D0DE4F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:57+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper we describe a system submitted to the CLEF 2019 CheckThat Shared Task. We implement an ensemble of a logistic regression model and an LSTM-based neural network model to predict the worthiness of a sentence for fact checking. Our key idea is to train two separate models with high precision and high recall on binary classification task, and then use the binary class probability as a check-worthiness score. Our system achieves a reciprocal rank 0.4419 and mean average precision of 0.1162 for ranking sentences according to their check-worthiness.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>With the advent of web technology, mass media have achieved a revolutionary new form. People all around the globe share information with each other to construct their opinion about everything, that too at an unprecedented speed. In this age of communication, quality of information becomes utmost important. Rumors, fake news, malicious tampering of reality can cause substantial amount of economic as well as social calamity now more than ever. This makes factchecking an essential part of media and information systems. To handle such large amount of information sharing, automation of such a system is necessary if not mandatory.</p><p>As Hassan et al. <ref type="bibr" coords="1,225.88,496.18,10.52,8.74" target="#b4">[5]</ref> suggest, automatic fact checking can be divided into a two-fold task: identification of check-worthy sentences, and checking their trustworthiness based on some reliable source. In this task, we attempt to build a system which can assign a score to an input sentence indicating its check-worthiness. This score can vary from 0 (not check-worthy) to 1 (fully check-worthy). The organizers provided the required data set comprised of 16421 sentences. These sentences are binary labelled, 0 and 1, corresponding to not check-worthy and fully check-worthy respectively. Out of these 16421 sentences, 440 are labelled as fully check-worthy. We insist on building a system using this training data only. We attempt to build a classifier framework which assigns a probability score to each sentence, and hypothesize that this probability score corresponds to the check-worthiness of the sentence. Our framework is an ensemble of two separately trained classifiers: one based on Long Short-Term Memory (LSTM) networks, and another based on Logistic Regression classifier. Our key strategy is to build one model predicting check-worthy sentences with high precision (less false positives) and another one with high recall (less false negatives), so that their ensemble will perform more accurately.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Logistic Regression Component</head><p>To train our logistic regression model, we extract the following features for each sentence:</p><p>1. Syntactic N-grams <ref type="bibr" coords="2,234.93,429.18,10.52,8.74" target="#b7">[8]</ref> computed using Syntactic N-gram builder 1 ; we generate the dependency parse tree of the sentence using Stanford CoreNLP <ref type="bibr" coords="2,470.08,441.14,10.52,8.74" target="#b5">[6]</ref> and compute syntactic n-grams for dependecy paths of length one (arc), two (bi-arc), three (tri-arc) and four (quad-arc). 2. Subjectivity score of the sentence, using TextBlob 2 . 3. Cumulative Entropy of the sentence as,</p><formula xml:id="formula_0" coords="2,221.55,514.14,189.20,26.80">CE = 1 |T | t∈T (tf (t) * (log(|T |) -log(tf (t)))</formula><p>where T is the set of terms in the corpus and tf (t) is the frequency of term t ∈ T in the sentence. 4. Count of negative, neutral and positive polarity words computed using Sen-tiWordNet <ref type="bibr" coords="2,201.27,593.00,9.96,8.74" target="#b1">[2]</ref>. 5. LIX score <ref type="bibr" coords="2,197.31,606.42,10.52,8.74" target="#b2">[3]</ref> representing the readability of the sentence. 6. Count of named entities present in the sentence.</p><p>With this feature set, we train a logistic regression classifier using Scikitlearn. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">LSTM component</head><p>We use GloVe <ref type="bibr" coords="3,200.51,515.59,10.52,8.74" target="#b6">[7]</ref> pre-trained word embeddings of size 300 to be used as word representations. Along with that, we input parts-of-speech tags of the words (tagged using Stanford CoreNLP) as one-hot vectors, which selects randomly initialized POS embeddings. These two embeddings are concatenated and input to an LSTM layer, which learns a many-to-one mapping from the sequence of word-POS tag vectors to a single representation of the sentence. We also use the manually extracted features as an input to a fully connected layer, learning a dense low dimensional representation from the sparse feature vectors. The output of the LSTM layer and the fully connected layer is then concatenated and input to another fully connected layer, which outputs a probability score. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Training</head><p>As already stated, the LSTM component and logistic regression components are trained separately. For a single sentence, if the output score of the LSTM model is greater than 0.5, then the predicted label is 1, otherwise 0. We train the LSTM model using the Adam optimizer, with a batch size equal to 256.</p><p>As the training data-set has high class imbalance, we train the LSTM model with a class-weighted binary cross-entropy loss. We weigh the positive class with weight w = log N0 N1 where N 0 , N 1 corresponds to the number of negative and positive class samples in the training data. The class imbalance automatically puts a bias in the logistic regression model towards the negative class, making its positive predictions highly precise; on the other hand, the weighted loss function forces the LSTM model to bias towards the positive class, resulting in a higher recall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Testing</head><p>To produce the final check-worthiness score, we average the scores predicted by the two components. We test our system on the test dataset provided by the organizers. Test dataset contains 7080 sentences. In Table <ref type="table" coords="4,408.63,448.00,4.98,8.74">3</ref> we present the evaluation results of our system for various metrics.</p><p>Table <ref type="table" coords="4,221.16,492.24,4.13,7.89">3</ref>. Evaluation results for ranking check-worthiness MAP RR R-P P@1 P@3 P@5 P@10 P@20 0.12 0.44 0.11 0.29 0.19 0.17 0.17 0.13</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>We made a system to predict the check-worthiness of a sentence for CLEF 2019 CheckThat (Task 1). We did not use any external data. Here we used a combined logistic regression model and an LSTM-based neural network model to get a better probability score for check-worthiness. We achieved a reciprocal rank of 0.4419 and a mean average precision of 0.1162 .</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,219.03,455.99,177.29,7.89"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Complete architecture of the system</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,229.46,115.91,129.87,114.59"><head>Table 1 .</head><label>1</label><figDesc>Feature size for each</figDesc><table coords="2,256.04,134.57,103.29,95.93"><row><cell>Feature</cell><cell>Size</cell></row><row><cell>Arc</cell><cell>4341</cell></row><row><cell>Bi-arc</cell><cell>1448</cell></row><row><cell>Tri-arc</cell><cell>479</cell></row><row><cell>Quad-arc</cell><cell>169</cell></row><row><cell cols="2">Subjectivity score 1</cell></row><row><cell cols="2">Cumulative Entropy 1</cell></row><row><cell>Polarity words</cell><cell>3</cell></row><row><cell>LIX score</cell><cell>1</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,134.77,115.91,345.82,62.04"><head>Table 2 .</head><label>2</label><figDesc>Performance of the individual on the validation set for positive class (check-worthy sentences).</figDesc><table coords="4,235.64,147.77,144.07,30.18"><row><cell></cell><cell cols="2">Precision Recall</cell></row><row><cell cols="2">Logistic Regression 0.07</cell><cell>0.78</cell></row><row><cell>LSTM</cell><cell>0.81</cell><cell>0.15</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,144.73,645.84,210.31,7.86"><p>https://github.com/jmnybl/syntactic-ngram-builder</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,144.73,656.80,163.46,7.86"><p>https://textblob.readthedocs.io/en/dev/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,138.35,142.59,342.24,7.86;5,146.91,153.55,333.68,7.86;5,146.91,164.51,141.28,7.86" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,146.91,153.55,333.68,7.86;5,146.91,164.51,34.24,7.86">Overview of the clef-2019 checkthat! lab on automatic identification and verification of claims</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Atanasova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Karadzhov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mohtarami</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Da San Martino</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+	<note type="report_type">Check-worthiness</note>
+</biblStruct>
+
+<biblStruct coords="5,138.35,175.46,342.24,7.86;5,146.91,186.42,333.68,7.86;5,146.91,197.38,25.60,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,314.05,175.46,166.54,7.86;5,146.91,186.42,197.52,7.86">Sentiwordnet 3.0: an enhanced lexical resource for sentiment analysis and opinion mining</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Baccianella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Esuli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,366.53,186.42,20.12,7.86">Lrec</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="2200" to="2204" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,208.34,342.25,7.86;5,146.91,219.30,119.08,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,220.06,208.34,178.03,7.86">Readability of newspapers in 11 languages</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">H</forename><surname>Björnsson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,407.07,208.34,73.52,7.86;5,146.91,219.30,39.21,7.86">Reading Research Quarterly</title>
+		<imprint>
+			<biblScope unit="page" from="480" to="497" />
+			<date type="published" when="1983">1983</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,230.26,342.24,7.86;5,146.91,241.22,333.68,7.86;5,146.91,252.18,333.68,7.86;5,146.91,263.14,317.24,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,264.63,241.22,215.96,7.86;5,146.91,252.18,156.76,7.86">Overview of the CLEF-2019 CheckThat!: Automatic Identification and Verification of Claims</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elsayed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hasanain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Suwaileh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Da San Martino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Atanasova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,323.60,252.18,157.00,7.86;5,146.91,263.14,123.36,7.86">Experimental IR Meets Multilinguality, Multimodality, and Interaction</title>
+		<meeting><address><addrLine>Lugano, Switzerland</addrLine></address></meeting>
+		<imprint>
+			<publisher>LNCS</publisher>
+			<date type="published" when="2019-09">September 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,274.09,342.25,7.86;5,146.91,285.05,333.68,7.86;5,146.91,296.01,122.61,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,146.91,285.05,149.12,7.86">The quest to automate fact-checking</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Hassan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Adair</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">T</forename><surname>Hamilton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tremayne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,318.45,285.05,162.14,7.86;5,146.91,296.01,93.94,7.86">Proceedings of the 2015 Computation+ Journalism Symposium</title>
+		<meeting>the 2015 Computation+ Journalism Symposium</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,306.97,342.25,7.86;5,146.91,317.93,333.68,7.86;5,146.91,328.89,333.68,7.86;5,146.91,339.85,51.70,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,464.72,306.97,15.88,7.86;5,146.91,317.93,205.45,7.86">The stanford corenlp natural language processing toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Finkel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bethard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mcclosky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,371.71,317.93,108.88,7.86;5,146.91,328.89,314.16,7.86">Proceedings of 52nd annual meeting of the association for computational linguistics: system demonstrations</title>
+		<meeting>52nd annual meeting of the association for computational linguistics: system demonstrations</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="55" to="60" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,350.81,342.24,7.86;5,146.91,361.77,333.68,7.86;5,146.91,372.72,215.28,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,323.36,350.81,157.23,7.86;5,146.91,361.77,35.30,7.86">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,203.93,361.77,276.66,7.86;5,146.91,372.72,120.77,7.86">Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP)</title>
+		<meeting>the 2014 conference on empirical methods in natural language processing (EMNLP)</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,138.35,383.68,342.24,7.86;5,146.91,394.64,333.68,7.86;5,146.91,405.58,230.04,7.89" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,146.91,394.64,329.69,7.86">Syntactic n-grams as machine learning features for natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sidorov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Velasquez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gelbukh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Chanona-Hernández</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,146.91,405.60,138.03,7.86">Expert Systems with Applications</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="853" to="860" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

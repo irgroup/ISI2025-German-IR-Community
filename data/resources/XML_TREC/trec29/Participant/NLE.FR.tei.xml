@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,100.90,84.23,410.71,15.44">Naver Labs Europe at TREC 2020 Fair Ranking Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,159.91,114.38,46.59,10.59"><forename type="first">Till</forename><surname>Kletti</surname></persName>
+							<email>till.kletti@naverlabs.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">NAVER LABS</orgName>
+								<address>
+									<settlement>Europe Meylan</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,379.10,114.38,100.83,10.59"><forename type="first">Jean-Michel</forename><surname>Renders</surname></persName>
+							<email>jean-michel.renders@naverlabs.com</email>
+							<affiliation key="aff1">
+								<orgName type="institution">NAVER LABS</orgName>
+								<address>
+									<settlement>Europe Meylan</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,100.90,84.23,410.71,15.44">Naver Labs Europe at TREC 2020 Fair Ranking Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">1D295C1A6A82F4B0085A4448AAB6F64D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In our participation to the TREC 2020 Fair Ranking Track, as Naver Labs Europe, we focused on the re-ranking task and we investigated the performance of a controller as a way to minimize unfairness over time, with minimal loss of utility.</p><p>We used a two-step approach, based on (1) a relevance probability estimator, and (2) a controller that aims to bring the actual exposure close to the target exposure.</p><p>This paper describes the components we designed in more detail. It contains a comparison of the performance of the controller to a baseline, which consists of a Plackett-Luce sampler. It also analyses the effect of the quality of the estimated relevance probabilities (closeness to the true binary relevance values) on the controller performance.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>This year, the TREC 2020 Fair Ranking Track introduces a new fairness metric, based on the differences between the system group expected exposures and the target group expected exposures, which has the particularity to mix fairness and utility into a single nonconflictual metric. Indeed, for a given query, if the relevance values of documents are known, an optimal policy exists that simultaneously offers maximum utility in the PRP (Probability Ranking Principle) sense and optimal fairness according to this year's fairness metric, at least after a periodic number of repetitions. In case of binary relevance values, this policy consists in cycling over all 𝑛 𝑟 !(𝑁 -𝑛 𝑟 )! rankings for the given query, where 𝑛 𝑟 is the number of relevant documents and 𝑁 is the total number of documents (see <ref type="bibr" coords="1,53.80,486.98,9.12,7.94" target="#b0">[1]</ref>).</p><p>Overall, in this year's TREC Fair Ranking Track, the main idea we wanted to test and evaluate in a realistic setting was the design of a controller that optimizes at any time the system fairness (as defined by the metric of this year), while dealing with the fact that the relevance values are actually unknown and can only be approximated based on an effective retrieval algorithm. We focused on the re-ranking task, leaving the full retrieval task for future work.</p><p>In a nutshell, our solution is made of two independent modules: §2 Indexing and Re-ranking: This module estimates for each query the relevance probabilities, i.e. the probabilities of a document being relevant for the query. §3 Fairness Controller: This module uses the relevance probabilities to bring the expected actual exposure close to the expected target exposure.</p><p>Note that, since the unfairness is defined by the TREC guidelines as an average over the query-level metric, we do not have to worry about amortization over different queries and can treat each query independently.</p><p>In the following, we describe our document indexing and reranking process. Then, we present our fairness controller, followed by an analysis of our obtained results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">INDEXING &amp; RE-RANKING</head><p>The main goal of this component is to estimate accurately the relevance probabilities of every document with respect to the query. As far as implementation choices are concerned, we decided to rely on rather simple indexing and retrieval techniques. This decision was taken assuming that the training set information (queries, document subsets and relevance signals) was representative of the evaluation set. The motivations for these choices are the following: (1) we are dealing with a re-ranking task, which is much less complicated than providing a full ranking across the whole collection; (2) queries and documents are multi-lingual and, even if we could have relied on a language detector and have separate pre-processing chains per language, we preferred to adopt a language-agnostic approach; (3) we observed that the relevance signals seem to come from click data, for which we had no knowledge about the context (rank of the document in the initial SERP, time of the query, etc.), so that we can consider these signals as biased and noisy, with little hope that a complex retrieval algorithm will be robust enough to give results significantly better than a standard method such as BM25 <ref type="foot" coords="1,551.48,414.99,3.38,6.44" target="#foot_0">1</ref> .</p><p>In practice, as we didn't rely on any query expansion and as we were targeting only the re-ranking task, we only indexed the subset of the collection that contains the documents to be re-ranked. To be as language-agnostic as possible, we used a simple tokenizer based on usual white space characters and punctuation, without any stop-word removal.</p><p>As retrieval model, we used a combination of BM25 <ref type="bibr" coords="1,512.23,493.85,10.43,7.94" target="#b4">[5]</ref> and word embedding-based approaches <ref type="bibr" coords="1,431.21,504.81,10.68,7.94" target="#b2">[3]</ref> for computing basic relevance scores. In a first retrieval model (called ModelB hereafter), we simply used a linear combination of the two scores to compute a fused score; the corresponding weight is determined by a line search in a cross-validation setting. In a second retrieval model (called ModelA hereafter), these intermediate relevance scores were combined with metadata (recency and number of citations) through a Gradient-Boosted-Tree classifier, trained with a pointwise log-likelihood objective function. The hyper-parameters used to train this classifier were identified by cross-validation on the training queries. The output of these two retrieval models provides us with estimated relevance scores that we have to transform into relevance probabilities. This calibration step is realised by Isotonic Regression, as described in <ref type="bibr" coords="1,363.09,647.27,9.27,7.94" target="#b3">[4]</ref>. After this calibration step, the retrieval component output consists then of a vector of estimated relevance probabilities, denoted as 𝜌 = (𝜌 𝑖 ) 𝑖 ∈ {1,𝑁 } , for each of the 𝑁 documents associated to the considered query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">FAIR CONTROLLER</head><p>We consider the true unknown relevance values to be realizations of Bernoulli random variables with parameters 𝜌, computed as in section 2. Given a query, with 𝑁 documents and relevance probabilities 𝜌 = (𝜌 𝑖 ) 𝑖 ∈ {1,𝑁 } , we assume the actual relevance 𝑟 𝑖 ∼ Ber(𝜌 𝑖 ) independently for each document 𝑖. As the document relevance values are unknown, their target exposures E * 𝑖 as defined in <ref type="bibr" coords="2,270.36,188.69,10.42,7.94" target="#b0">[1]</ref> are unknown as well. But we can compute their expected values, given the relevance probabilities. More precisely, the expected target exposure of a document 𝑖 can be expressed as</p><formula xml:id="formula_0" coords="2,75.27,235.43,218.77,26.73">E 𝑟 ∼Ber(𝜌) E * 𝑖 = 𝑁 -1 𝑠=0 PB(𝑠 |𝜌 -𝑖 ) (𝜌 𝑖 𝜇 𝑠+1 + (1 -𝜌 𝑖 )𝜈 𝑠 ) ,<label>(1)</label></formula><p>where 𝜌 -𝑖 denotes the vector of parameters 𝜌 excluding its 𝑖 th element, PB(•|𝜌) denotes the density of a Poisson-Binomial distribution with parameters 𝜌, and where 𝜇 𝑠 , 𝜈 𝑠 respectively denote the target exposure of a relevant document and the target exposure of an irrelevant document, given that 𝑠 amongst 𝑁 documents are relevant (see <ref type="bibr" coords="2,102.85,325.60,10.63,7.94" target="#b0">[1]</ref> for details of their computation). The exact computation of the probability mass function of a Poisson-Binomial is no trivial matter. We used a pre-coded method described in <ref type="bibr" coords="2,283.41,347.52,10.64,7.94" target="#b1">[2]</ref> and implemented in <ref type="bibr" coords="2,127.07,358.48,9.27,7.94">[6]</ref>. The quantities E[E * 𝑖 ] need to be computed once for each query. Document expected target exposures are then propagated to expected target exposures per producer by simple summation, as defined in the track guidelines. Then they need only to be multiplied by 𝑡 to get their value after 𝑡 repetitions of the query. We will denote the producer expected target exposure after 𝑡 repetitions as Ê * 𝑝,𝑡 , and we have:</p><formula xml:id="formula_1" coords="2,125.07,440.73,168.98,21.60">Ê * 𝑝,𝑡 = 𝑡 𝑖 produced by 𝑝 E[E * 𝑖 ]<label>(2)</label></formula><p>Due to the lack of knowledge of the true relevance values, the actual exposures are unknown as well. The computation of the expected actual exposure E[E 𝑖 ] is more straightforward than the one of the expected target exposure. Indeed, assuming the linearity of 𝑓 -the function that maps the relevance value into a probability of the user being satisfied, as defined in the track guidelines -, one can show that given a ranking 𝜋 mapping a document to its rank, we have</p><formula xml:id="formula_2" coords="2,81.36,557.84,212.68,27.36">E 𝑟 ∼Ber(𝜌) [E 𝑖 |𝜋] = 𝛾 𝜋 (𝑖)-1 𝜋 (𝑖)-1 𝑗=1 1 -𝑓 (𝜌 𝜋 -1 ( 𝑗) ) .<label>(3)</label></formula><p>Expected document exposures are then propagated to expected producer exposures by simple summation, as defined in the track guidelines. Since the group memberships are unknown, we decide to control for the exposure at producer level. Indeed a low unfairness at producer level implies a low unfairness at group level. After 𝑡 repetitions of the query, as each repetition uses in general a different ranking 𝜋 𝑡 ′ (𝑡 ′ ∈ {1, . . . , 𝑡 }), the actual expected exposure of producer 𝑝 at repetition/time 𝑡 is simply:</p><formula xml:id="formula_3" coords="2,122.67,685.47,171.38,26.08">Ê𝑝,𝑡 = 𝑡 𝑡 ′ =1 E 𝑟 ∼Ber(𝜌) [E 𝑝 |𝜋 𝑡 ′ ]<label>(4)</label></formula><p>Algorithm 1 shows the layout of our simple controller. Given a query and a history of delivered rankings, we define the advantage 𝐴 𝑡 (𝑝) of a producer 𝑝 at repetition 𝑡 as</p><formula xml:id="formula_4" coords="2,347.25,122.37,210.95,12.34">𝐴 𝑡 (𝑝) = ( Ê𝑝,𝑡-1 -Ê * 𝑝,𝑡 -1 ) 2 sign( Ê𝑝,𝑡-1 -Ê * 𝑝,𝑡 -1 ),<label>(5)</label></formula><p>The advantage 𝐴 𝑡 (𝑖) of a document 𝑖 is defined to be the arithmetic mean of the advantages of its producers. The advantage is a signed real number expressing how much a producer has been advantaged (if 𝐴 𝑡 (𝑝) &gt; 0) or disadvantaged (if 𝐴 𝑡 (𝑝) &lt; 0) in the past (i.e. up to repetition 𝑡 -1). The advantage is the equivalent of the error (between the system output and the target) in standard control theory. When the history is empty, both target and actual exposure coincide (both are 0), so all advantages are zero. Given a query and a history of delivered rankings, we define the output of our controller at repetition/time 𝑡 by the scores (ℎ 𝑖,𝑡 ) 𝑖 ∈ {1,𝑁 } for each document as</p><formula xml:id="formula_5" coords="2,392.37,264.53,165.83,8.43">ℎ 𝑖,𝑡 = 𝜃 𝜌 𝑖 + (1 -𝜃 )𝐴 𝑡 (𝑖),<label>(6)</label></formula><p>with 𝜃 ∈ (0, 1). In standard control theory, this corresponds to a 𝑃-controller (or proportional controller), as only the term proportional to the error is included in the control signal. Note that we have one controller per query, as the task defines fairness metric at the individual query level. Our ranking policy simply consists in ordering the documents by decreasing score, as output by the controller at each repetition 𝑡. Ties are broken randomly.</p><p>Algorithm 1 Outline of the controller for a unique query 𝑞. 𝑃 is the set of producers, 𝐷 is the set of documents, Ê𝑝,𝑡 (resp. Ê * 𝑝,𝑡 ) denotes the total expected actual (resp. target) exposure at repetition 𝑡 1: procedure Fair_Controller end for 12: end procedure</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">SUBMITTED RUNS</head><p>We submitted five runs to the TREC Fair Ranking Track (re-ranking task):</p><p>• ModelA_99_1: Retrieval Model A (with recency and citation metadata) combined with the fair controller with 𝜃 = 0.99</p><p>• ModelA_9_1: Retrieval Model A using the fair controller with 𝜃 = 0.9 • PL 𝜏 = 0.05: This is our baseline method: it consists in sampling rankings from a Plackett-Luce distribution with parameters (𝜌 𝑖 ) 𝑖 ∈ {1,𝑁 } and with temperature 𝜏 = 0.05 • ModelB_99_1: Retrieval Model B (without recency and citation metadata) combined with the fair controller with 𝜃 = 0.99 • ModelB_9_1: Retrieval Model B using the fair controller with 𝜃 = 0.9</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">RESULTS</head><p>In this section, we provide a concise analysis of the performance of our 5 submitted runs as reported by the official track metrics. Each query is repeated 𝑇 = 150 times and we report performances averaged over 200 queries. Table <ref type="table" coords="3,85.30,265.40,4.09,7.94">1</ref> presents the average performance of each of our runs on the training set in terms of the norm of the controlled differences ∥E[E * P,𝑇 ] -E[E P,𝑇 ] ∥ and in terms of the actual producer-level unfairness ∥E * P,𝑇 -E P,𝑇 ∥. The index P indicates that the exposures are considered vectors with one element per producer at time 𝑇 . A run with 𝜃 = 1 is also provided for comparison; it is equivalent to a PRP policy using the estimated relevance probabilities 𝜌.</p><p>On the training set the controller performs better than both the simple 𝑃𝑅𝑃 policy based on the 𝜌 𝑖 and the Plackett-Luce policy, although the difference w.r.t Plackett-Luce is not very big. Amongst the controller methods, model A slightly outperforms Model B, and a slight advantage can be obtained by choosing 𝜃 = 0.99 instead of 𝜃 = 0.9.</p><p>Table <ref type="table" coords="3,85.92,409.96,4.19,7.94">2</ref> presents the performance of our submitted runs on the evaluation set in terms of the norm of the controlled difference ∥E[E * P,𝑇 ] -E[E P,𝑇 ] ∥ and in terms of the actual group-level unfairness. On the evaluation set, no significant performance difference could be detected between either of our submitted run, although the TREC mean is clearly outperformed <ref type="foot" coords="3,199.18,463.44,3.38,6.44" target="#foot_1">2</ref> .</p><p>Figure <ref type="figure" coords="3,89.84,476.55,4.25,7.94">1</ref> has been obtained by applying the controller and the Plackett-Luce policy to the true relevance values 𝑟 𝑖 blurred towards the estimated relevance probabilities 𝜌 𝑖 by a "blur factor" in [0, 1]. This was done only for the training queries, for which we have the true relevance information. A blur factor of 𝜆 ∈ [0, 1] means that the simulated relevance probabilities for each document 𝑖 were taken to be equal to (1 -𝜆)𝑟 𝑖 + 𝜆𝜌 𝑖 . The results show that our controller does not provide any advantage with respect to a Plackett-Luce policy except when the relevance probabilities are very certain, i.e. when they are close enough to their true binary relevance values, in which case the controller tends to achieving almost zero unfairness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">CONCLUSIONS</head><p>We separated the problem into two subproblems: ( §2) estimation of the relevance probabilities, and ( §3) design of a controller bringing the expected actual exposures close to the expected target exposures at the producer-level.</p><p>We compared the controller to a baseline Plackett-Luce (PL) policy. We found that the controller slightly outperformed PL on not find sufficient evidence on the evaluation set to conclude that the controller outperforms PL in terms of group level fairness.</p><p>However, we found that the controller significantly outperforms PL, when the relevance probabilities tend to be very close to the true binary relevance values, with the controller tending to a near perfect fairness performance.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,323.83,417.31,4.89,6.18;2,346.38,415.52,211.82,9.38;2,323.83,428.74,4.89,6.18;2,346.47,426.95,26.95,7.70;2,379.24,425.23,47.22,10.15;2,422.52,433.36,9.33,3.24;2,434.84,426.95,15.84,8.43;2,465.69,427.43,92.51,7.94;2,323.83,441.06,4.89,6.18;2,346.65,439.52,74.50,8.19;2,323.83,452.02,4.89,6.18;2,359.92,450.23,40.08,7.76;2,401.69,450.23,55.76,7.90;2,459.14,450.23,65.11,8.43;2,554.39,452.64,3.75,4.01;2,333.20,461.68,129.51,7.94;2,323.83,488.40,4.89,6.18;2,360.55,486.61,7.59,7.70;2,368.16,491.13,6.63,3.24;2,376.03,486.61,2.99,7.70;2,378.91,486.61,38.41,9.43;2,425.37,471.97,33.00,9.38;2,458.26,476.50,2.55,3.24;2,462.49,471.97,10.50,7.70;2,428.65,484.52,1.97,11.99;2,459.21,484.52,1.97,11.99;2,423.91,503.45,9.95,5.61;2,445.41,501.03,11.41,7.70;2,456.71,505.55,2.55,3.24;2,460.94,501.03,13.60,7.70;2,491.30,483.44,4.01,4.02;2,484.73,491.98,17.51,8.43;2,518.50,487.10,39.70,7.94;2,333.20,511.95,69.54,7.94;2,323.83,524.21,4.89,6.18;2,360.01,522.43,69.22,9.38;2,430.46,522.43,2.99,7.70;2,498.34,522.91,59.86,7.94;2,323.83,536.12,4.89,6.18;2,359.92,534.33,26.95,7.70;2,392.69,532.61,57.78,9.42;2,459.42,536.72,69.04,7.67;2,530.05,534.33,28.09,7.70;2,333.20,545.88,206.10,7.94;2,323.83,560.71,4.89,6.18;2,359.92,558.92,26.95,7.70;2,392.69,557.20,7.74,7.94;2,396.49,564.89,8.25,3.24;2,408.47,557.20,21.40,9.42;2,425.93,563.35,16.99,6.25;2,445.41,558.92,5.06,7.70;2,459.42,556.86,68.26,12.12;2,523.59,565.31,6.63,3.24;2,554.39,561.33,3.75,4.01;2,333.20,572.53,202.20,7.94;2,320.58,585.25,8.13,6.18;2,359.92,581.75,112.36,10.51;2,468.34,589.44,8.25,3.24;2,477.82,581.75,62.56,10.15;2,536.44,589.44,8.25,3.24;2,545.93,583.47,12.21,7.70;2,333.20,595.60,118.45,7.94;2,320.58,607.86,8.13,6.18"><head>2 : 3 : 4 : 5 :</head><label>2345</label><figDesc>𝐴 1 (𝑝) ← 0, ∀𝑝 ∈ 𝑃 ⊲ Initialise producer advantages to 0 ∀𝑝 ∈ 𝑃, Ê𝑝,0 ← 0, Ê * 𝑝,0 ← 0 ⊲ Initialise exposures to 0 for 𝑡 = 1 to 𝑡 = 𝑛 do ∀𝑑 ∈ 𝐷, 𝐴 𝑡 (𝑑) ← mean{𝐴 𝑡 (𝑝)|𝑝 produces 𝑑 } ⊲ Compute the document advantages 6:(ℎ 𝑖,𝑡 ) 𝑖 ∈ {1,𝑁 } ← 𝜌 1 -𝐴 𝑡 (1)𝜋 ← (ℎ 1,𝑡 , . . . , ℎ 𝑁 ,𝑡 ) ⊲ Sort the scores 8: ∀𝑝 ∈ 𝑃, Ê𝑝,𝑡 ← Ê𝑝,𝑡-1 + 𝑖 produced by𝑝 E[E 𝑖,𝑡 |𝜋] ⊲ Update the expected actual exposures using equation (3) 9: ∀𝑝 ∈ 𝑃, Ê * 𝑝,𝑡 ← Ê * 𝑝,𝑡 -1 + 𝑖 produced by𝑝 E E * 𝑖,𝑡 ⊲ Update the expected target exposure using equation (1) 10: ∀𝑝 ∈ 𝑃, 𝐴 𝑡 +1 (𝑝) ← ( Ê𝑝,𝑡 -Ê * 𝑝,𝑡 ) 2 sign( Ê𝑝,𝑡 -Ê * 𝑝,𝑡 ) ⊲ Update the producer advantages 11:</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,320.88,685.61,237.33,6.18;1,317.96,693.58,240.25,6.18;1,317.96,701.80,198.78,6.18"><p>Actually, we tried some BERT-based retrieval models, pre-trained on the MS-MARCO dataset and fine-tuned with the (rather small) training set of this track, but the retrieval performance was disappointing with respect to a simple BM25 model.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,56.84,694.00,237.20,6.18;3,53.80,700.70,72.74,8.21"><p>Statistical significance tests based on a paired t-test confirmed this observation with a 𝑝-value less than 10 -12 .</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>the training data in terms of producer-level unfairness. But we did</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,65.99,175.77,228.05,6.18;4,65.99,183.69,228.75,6.23;4,65.99,191.66,228.05,6.23;4,65.99,199.63,228.87,6.23;4,65.99,207.65,32.25,6.18" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><forename type="middle">D</forename><surname>Ekstrand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Asia</forename><forename type="middle">J</forename><surname>Biega</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Carterette</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3340531.3411962</idno>
+		<idno type="arXiv">arXiv:2004.13157</idno>
+		<ptr target="https://doi.org/10.1145/3340531.3411962" />
+		<title level="m" coord="4,115.88,183.69,178.86,6.23;4,65.99,191.66,228.05,6.23;4,65.99,199.63,35.41,6.23">Evaluating Stochastic Rankings with Expected Exposure. Proceedings of the 29th ACM International Conference on Information &amp; Knowledge Management</title>
+		<imprint>
+			<date type="published" when="2020-10">2020. Oct. 2020</date>
+			<biblScope unit="page" from="275" to="284" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,65.99,215.62,228.05,6.18;4,65.99,223.54,229.13,6.23;4,65.99,231.56,115.85,6.18" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="4,112.85,215.62,181.20,6.18;4,65.99,223.59,32.85,6.18">On computing the distribution function for the Poisson binomial distribution</title>
+		<author>
+			<persName coords=""><forename type="first">Yili</forename><surname>Hong</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.csda.2012.10.006</idno>
+		<ptr target="https://doi.org/10.1016/j.csda.2012.10.006" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,105.27,223.54,118.39,6.23">Computational Statistics &amp; Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="page" from="41" to="51" />
+			<date type="published" when="2013-03">2013. March 2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,65.99,239.53,228.05,6.18;4,65.99,247.45,229.13,6.23;4,65.99,255.47,141.73,6.18" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Bhaskar Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Caruana</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1602.01137</idno>
+		<idno>arXiv: 1602.01137</idno>
+		<ptr target="http://arxiv.org/abs/1602.01137" />
+		<title level="m" coord="4,273.29,239.53,20.75,6.18;4,65.99,247.50,133.33,6.18">A Dual Embedding Space Model for Document Ranking</title>
+		<imprint>
+			<date type="published" when="2016-02">2016. Feb. 2016</date>
+		</imprint>
+	</monogr>
+	<note>cs</note>
+</biblStruct>
+
+<biblStruct coords="4,65.99,263.44,228.05,6.18;4,65.73,271.36,228.31,6.23;4,65.99,279.33,228.06,6.23;4,65.99,287.35,228.05,6.18" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,212.13,263.44,81.92,6.18;4,65.73,271.41,74.53,6.18">Predicting Good Probabilities with Supervised Learning</title>
+		<author>
+			<persName coords=""><forename type="first">Alexandru</forename><surname>Niculescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">-Mizil</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Caruana</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1102351.1102430</idno>
+		<ptr target="https://doi.org/10.1145/1102351.1102430" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,154.02,271.36,140.02,6.23;4,65.99,279.33,60.29,6.23;4,184.44,279.33,25.99,6.23">Proceedings of the 22nd International Conference on Machine Learning</title>
+		<meeting>the 22nd International Conference on Machine Learning<address><addrLine>Bonn, Germany; New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="625" to="632" />
+		</imprint>
+	</monogr>
+	<note>ICML &apos;05)</note>
+</biblStruct>
+
+<biblStruct coords="4,65.99,295.32,228.05,6.18;4,65.99,303.24,228.75,6.23;4,65.99,311.21,229.13,6.23;4,65.83,319.23,80.36,6.18" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="4,223.78,295.32,70.26,6.18;4,65.99,303.29,207.91,6.18">A probabilistic model of information retrieval: development and comparative experiments: Part 1</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">Sparck</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/S0306-4573(00)00015-7</idno>
+		<ptr target="https://doi.org/10.1016/S0306-4573(00" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,278.82,303.24,15.92,6.23;4,65.99,311.21,95.09,6.23">Information Processing &amp; Management</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="15" to="17" />
+			<date type="published" when="2000-11">2000. Nov. 2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

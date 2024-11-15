@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,185.94,115.90,243.48,12.90">Feature Bagging for Author Attribution</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,219.98,154.35,91.58,8.64"><forename type="first">François-Marie</forename><surname>Giraud</surname></persName>
+							<email>giraudf@poleia.lip6.fr</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">LIP6</orgName>
+								<orgName type="institution">Université Pierre et Marie Curie (UPMC)</orgName>
+								<address>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,330.92,154.35,64.46,8.64"><forename type="first">Thierry</forename><surname>Artières</surname></persName>
+							<email>thierry.artieres@lip6.fr</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">LIP6</orgName>
+								<orgName type="institution">Université Pierre et Marie Curie (UPMC)</orgName>
+								<address>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,185.94,115.90,243.48,12.90">Feature Bagging for Author Attribution</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">0D027FD648E9A688DBFE48C2DCB0D8F5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:30+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The authorship attribution literature demonstrates the difficulty to design classifiers overcoming simple strategies such as linear classifiers operating on a number, most frequent, of lexical features such as character trigrams. We claim this comes, at least partially, from the difficulty to efficiently learn the contribution of all features, which leads to either undertraining or overtraining of classifiers. To overcome this difficulty we propose to use bagging techniques that rely on learning classifiers on different random subset of features, then to combine their decision by making them vote.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>A key issue in author attribution and verification lies in feature definition and selection, which motivated many studies <ref type="bibr" coords="1,262.11,380.26,15.27,8.64" target="#b13">[14]</ref>, <ref type="bibr" coords="1,284.69,380.26,10.58,8.64" target="#b7">[8]</ref>. One conclusion is that despite many efforts to build smart features <ref type="bibr" coords="1,230.16,392.21,11.62,8.64" target="#b5">[6]</ref> very simple ones such as counts (or tfidf like features) of words and/or of character n-grams are commonly used. Moreover feature selection is performed using simple criterion such as choosing the most frequent words and character ngrams. Finally, simple classifiers such as linear SVM have been shown to perform well with above features and such simple systems appear to be difficult to outperform <ref type="bibr" coords="1,134.77,451.99,10.58,8.64" target="#b7">[8]</ref>. Our work is an attempt to outperform such a simple, and efficient, strategy. It is inspired from two key observations that have been made in the past.</p><p>First, it has been observed that learning rich models on few training data may yield a form of undertraining <ref type="bibr" coords="1,222.51,488.26,16.60,8.64" target="#b14">[15]</ref> where some relevant features are not fully taken into account by the model after training. This may happen when a number of features (not necessarily many) are sufficient, alone, for perfect discrimination of the training samples. In that case learning may focus on learning good weights for few of these relevant features while neglecting remaining relevant features. Then if only the neglected discriminative features occur in a test sample it will be misclassified. This has been observed in particular in the context of text processing with log linear models where one usually exploits a huge number of features and where training samples are often linearly separable with a small subset of the features.</p><p>Second, the work by <ref type="bibr" coords="1,238.36,596.26,16.60,8.64" target="#b9">[10]</ref> suggests that an author's witting style is characterized by a limited number of discriminative features and more importantly by the way the classifier performance behaves (i.e. accuracy drops) when most important features (e.g. having large weights after SVM learning) are iteratively removed.</p><p>We investigate here new methods that take into account the two above results to design efficient classifiers for authorship attribution. They both rely on bagging ideas where one combines the results of a number of classifiers that are learned on training samples represented with a random subset of features.</p><p>We first draw a panorama of related works in section 2 then we provide in section 3 details on the datasets that we used in this paper in addition to the PAN 2012 challenge datasets. Next we introduce our general idea and investigate the potential interest of feature bagging in section 4 and we present our approach in section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related works 2.1 Features</head><p>Designing good features is a key issue for author identification, many features have been investigated up to now. These may be grouped in a few categories; lexical features, syntactic features, structural features, and contextual features. We briefly review all these now.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Lexical features</head><p>-TF-IDF (term frequency -inverse document frequency): Tf-idf are standard features used in text processing, information retrieval, that consist in counting words' occurrences and weighting these counts by words' document frequency to decrease the influence of frequent and uninformative (with respect to the topic of the text) words <ref type="bibr" coords="2,178.04,398.65,15.27,8.64" target="#b10">[11]</ref>. Using Tf-idf yields representing a document in a very high dimensional space (there are one feature per word in the vocabulary). One may reduce the dimension of the feature space by selecting features using various measures such as information gain <ref type="bibr" coords="2,220.83,434.52,10.58,8.64" target="#b7">[8]</ref>.</p><p>-Word length: Statistics on word length has been used in e.g. <ref type="bibr" coords="2,394.81,447.12,10.58,8.64" target="#b3">[4]</ref>. It is a simple and easy to compute feature but it has a low discriminative power. -Sentence length.</p><p>-Richness of the vocabulary: This may be computed as the number of different words used by an author. Again it is a simple and easy to compute feature but with a low discriminative power. -Word N-grams: These features are counts of the number of occurrences of N successive words. One only considers unigrams (N=1), bigrams (N=2) and trigrams (N=3). One can use simple counting or Tf-idf like scores <ref type="bibr" coords="2,379.48,544.72,10.58,8.64" target="#b4">[5]</ref>. Of course one cannot consider all N-grams which are much too numerous, and one has to select a priori the most useful ones. -Character N-grams: These features are similar to previous ones but we are interested in tuples of characters not word <ref type="bibr" coords="2,309.63,593.20,10.58,8.64" target="#b6">[7]</ref>. Interestingly these features have been shown to be efficient in a number of tasks on text data. -CW: This is a short name for TF-IDF features computed for the 1 000 words with highest information gain (after <ref type="bibr" coords="2,276.16,629.72,11.20,8.64" target="#b7">[8]</ref>) -CNG: This is a short name for TF-IDF features computed for the 1 000 trigrams (of words) with highest information gain (after <ref type="bibr" coords="2,340.53,654.28,11.20,8.64" target="#b7">[8]</ref>)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Syntactic features</head><p>-Linking words: Counting features (simple counts or TF-IDF like normalized counts) for particular words: conjunction, preposition, pronoun, modal verbs, ... -Part Of Speech (POS): Counting features (simple counts or TF-IDF like normalized counts) on a tagged representation of the text; nouns, adjectives, verbs, singular, plural, ... <ref type="bibr" coords="3,189.89,187.19,16.60,8.64" target="#b11">[12]</ref> -POS N-grams: N-gram on POS tags <ref type="bibr" coords="3,297.81,199.17,11.62,8.64" target="#b1">[2]</ref> Structural features -Font size <ref type="bibr" coords="3,190.30,243.24,11.62,8.64" target="#b0">[1]</ref> -Font color <ref type="bibr" coords="3,195.28,255.22,11.62,8.64" target="#b0">[1]</ref> -Number of images in the document <ref type="bibr" coords="3,295.03,267.20,11.62,8.64" target="#b0">[1]</ref> -Number of hyper links <ref type="bibr" coords="3,244.62,279.18,11.62,8.64" target="#b0">[1]</ref> Contextual features -Topic(s) of the document <ref type="bibr" coords="3,254.39,323.25,11.62,8.64" target="#b0">[1]</ref> -Elongation and inflexion of Arabic words <ref type="bibr" coords="3,319.64,335.23,11.62,8.64" target="#b0">[1]</ref> The difficulty to find good features for author identification lies in that author signature is embedded in many other information in the text that concern the topic, the opinion, etc. As far as we can imagine from our own way to guess the author of a text we focus on very particular construction, the use of particular words etc, in other words we look at any unusual difference with a mean way of writing. Also it is more likely that the most discriminative features for one author are very dependent on the author and cannot be guessed a priori.</p><p>Then, one most often uses an eventually large number of features and let the classifier decide which ones are useful or not for the targeted author identification task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">State of the art</head><p>Few classification methods have been investigated to operate on documents representated by a subset of features taken from the list above. Mainly two families of methods have been used: methods coming from the information retrieval field (dot product or any similarity measure on vectorial representations of documents), and methods from the statistical machine learning field such as Support Vector Machines (SVM). Table <ref type="table" coords="3,475.61,548.79,4.98,8.64" target="#tab_0">1</ref> compares few results from the literature in terms of corpus, of classification method, and of the features used to represent a document.</p><p>We want to comment a little on this table and on the studies from which these results are taken.</p><p>First of all, the work in <ref type="bibr" coords="3,250.42,608.62,16.60,8.64" target="#b15">[16]</ref> on a French corpus focused on measuring the relevance of using kernelized SVM instead of simpler linear ones. Although they showed improved accuracy it is an isolated work. The literature shows on the contrary that linear SVM are popular and efficient in the author identification field. These models are powerful enough when used with a large number of features, as it as been demonstrated in many text classification tasks, they often allow perfect classification on the training set.</p><p>[8] compared the efficiency of various feature sets with different classification methods and showed that best results were achieved with SVM working with CW and CNG features on a few datasets. Besides, the studies of extremist posts (KKK for English and Palestinian and Al-Aqsa Martyrs group for Arabic) concerned 5 authors only but the study demonstrated the usefulness of structural and contextual features in this particular context <ref type="bibr" coords="4,179.60,391.63,10.58,8.64" target="#b0">[1]</ref>. A conclusion of studies on the discriminative power of various features vary and it appears difficult to determine definitely a set of discriminative features.</p><p>At the end, few works aimed at designing new classification methods dedicated to author identification. Linear SVMs appear to be a good compromise, and the key issue is rather to determine which are the moste useful features, this appears as the main question to get good results.</p><p>3 Datasets and experimental settings</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Datasets</head><p>We report experimental results gained on the PAN 2012 challenge datasets and on two additional datasets on which we have been able to perform numerous experiments in order to characterize the behaviour of our method. We provide here details on the two additional datasets, details one the PAN 2012 challenge may be found on the challenge website.</p><p>The first additional dataset that we use is an english literature corpus used in some previous publications ( <ref type="bibr" coords="4,226.57,608.62,10.45,8.64" target="#b7">[8]</ref>, <ref type="bibr" coords="4,243.29,608.62,14.94,8.64" target="#b9">[10]</ref>). It is very similar to the corpus used in the PAN 2012 challenge: There are 9 authors and 2 complete books per author. There are an average of 100 thousands words by book and every book was divided manually in about a hundred documents, keeping integrity of chapters and of text sections. A large majority of the documents are about 500 to 3000 words length.</p><p>The second additional corpus is a subset of a corpus of blogs with about 18 000 authors <ref type="bibr" coords="5,166.47,131.27,10.58,8.64" target="#b8">[9]</ref>. We worked on a subset of this corpus considering only the 60 main authors (bloggers), i.e. those who post frequently (at least 20 posts) posts that are longer than 100 words.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Experimental settings</head><p>In all reported experiments we used linear support vector machines (SVMs) as classifiers since they have been shown to provide state of the art results in many text processing and classification tasks and in particular for author authentification.</p><p>We used the LibSVM library <ref type="bibr" coords="5,271.56,241.38,11.62,8.64" target="#b2">[3]</ref> where a multiclass classifier for a N class classification problem is implemented through the learning of N × (N -1)/2 one-to-one binary SVMs. All classifiers are learned with a standard L2 regularization term (to avoid overfitting) whose weight is set on the validation dataset.</p><p>Note also that we exploited the probabilistic variant of SVMs as implemented by LibSVM. When the outputs of multiple SVMs are to be compared in order to take a decision (see section 6) we naturally take the decision corresponding to the SVM with the biggest output.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Unexploited features and classifier undertraining</head><p>We hypothesize that undertraining as described in <ref type="bibr" coords="5,340.94,381.37,16.60,8.64" target="#b14">[15]</ref> often occurs in authorship attribution tasks. Actually we observed on many datasets that SVMs working on many lexical features (word or character trigrams counts or tf-idf) easily reach 100% accuracy on the training set while performance on the test set may be significantly below, which is symptomatic of an overtraining problem. Yet, as suggested by <ref type="bibr" coords="5,433.78,429.19,16.60,8.64" target="#b14">[15]</ref> it may be more accurately understood as an undertraining problem when considering linear models exploiting a large number of features.</p><p>Indeed when the classifier is rich enough (e.g. a linear classifier exploiting a number of discriminative features) it may happen that some relevant features are not fully taken into account by the learned model. This may happen when a number of features (not necessarily many) are sufficient, alone, for perfect discrimination of the training samples. Then training may focus on exploiting some of the relevant features allowing perfect classification on the training set, while ignoring some other relevant features. In such a case, if a test sample includes neglected discriminative features only it will be misclassified. It is a form of undertraining that may occur when training samples are linearly separable with a small subset of the features, e.g. when having many features and/or few training data.</p><p>Figure <ref type="figure" coords="5,178.75,584.71,4.98,8.64" target="#fig_0">1</ref> reports preliminary experimental results that yield thinking there is actually some kind of undertraining in SVMs learned on authorship attribution tasks with many simple (lexical) features. It plots the accuracy of a linear SVM (Support Vector Machine) exploiting a limited number of features, X, ranging from 10 to 350 chosen from a set of 2 500 features (2 500 most frequent character trigrams) as a function of X. Plots are for the training dataset (top) and for the test set (bottom). Both plots provide two curves corresponding to choosing the X features at random or by selecting the X most frequent features, a line which corresponds to a linear SVM exploiting all 2 500 features, and an additional curve for the accuracy of a SVM using all 2 500 features minus the X most frequent features.</p><p>These figures put in evidence some interesting facts. As may be seen the performance of classifiers exploiting only few features is very high on the training set when using the most frequent features, quickly reaching 100% perfect classification, (which is also true when using all features) while it reaches a plateau on the test set at about 80% accuracy. There is then a strong gap between the performance on the training set and on the test set which show an overtraining problem. Also the accuracy of a SVM exploiting all 2 500 features minus the most frequent ones is very high both on the training set and on the test set, which shows these features contain discriminative information too.</p><p>Indeed the figures also show that using few random features also allow to discriminate between authors up to a certain extent, which means all features (including less frequent ones) contain some discriminative information. It is likely that the learning of a SVM will focus on exploiting most frequent features so that at the end one may expect that SVMs will not necessarily fully exploit all discriminative features since only few of them (most frequent) already allow reaching 100% accuracy on the training set. As a consequence there exist a number of discriminative features that are neglected by during learning and that might improve generalization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Bagging features for improved author authentification</head><p>Based on the discussion above we aim at designing approaches able to fully exploit the potential of all available features. We investigated methods relying on bagging features, i.e. learning many classifiers on different subsets of the features then combining their predictions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Principle</head><p>Many methods have been proposed for combining classifiers such as co-training, boosting, bagging, a number of which have been designed or adapted for working with classifier exploiting different subsets of features <ref type="bibr" coords="7,317.51,524.36,15.27,8.64" target="#b16">[17]</ref>, <ref type="bibr" coords="7,339.91,524.36,15.27,8.64" target="#b14">[15]</ref>. In particular, feature bagging has been investigated by a few researchers in the past <ref type="bibr" coords="7,358.42,536.32,15.27,8.64" target="#b12">[13]</ref>, <ref type="bibr" coords="7,380.92,536.32,15.27,8.64" target="#b14">[15]</ref>. Viola &amp; jones <ref type="bibr" coords="7,463.99,536.32,16.60,8.64" target="#b16">[17]</ref> used boosting with extremely weak classifiers (learned on a single feature each) every iteration. <ref type="bibr" coords="7,173.20,560.23,16.60,8.64" target="#b12">[13]</ref> also used boosting with an adaptation of AdaBoost to feature weighting instead of samples weighting as in AdaBoost.</p><p>In this preliminary study we decided to investigate a standard bagging combination where an eventually large number of base classifiers that are learned on random subsets of the features (with eventual overlap) and that are combined at test time thourgh a voting procedure. In practice we investigated using a majority vote decision process with a number of SVM classifier trained on many (hundreds to thousands) random subsets of few (tens to hundreds) features. SVM classifier are learned with libsvm toolbox(see section 3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Experimental results</head><p>Preliminary experiments Preliminary results were obtained on the 60 bloggers corpus.</p><p>All the results presented in this section have been obtained on a single learning/validation/test split to limit computational complexity. All the models are trained on the learning set and the validation test is used to determine the optimal value of the SVM regularization parameter.</p><p>First we investigate the influence of the number of random features K exploited by the base classifiers and of the number of base classifiers M . Figure shows the evolution ot the system's accuracy as a function of the number of base models. There are few curves corresponding to a different number of random features used by a base classifier. The features used are chosen from a set of 3 000 most frequent character trigrams. As may be seen the value of K influences the performance of the overall approach and it seems better to use a small value here K, probably yielding more variability between all base classifiers. Besides, it looks like the more there are base classifiers the higher the accuracy, in particular when designing base classifiers working on a small number of random features. Table <ref type="table" coords="8,174.56,547.88,4.98,8.64" target="#tab_1">2</ref> provides some interesting statistics on the base classifiers, the mean accuracy, the minimum accuracy (among all base classifiers) and the maximum accuracy on the training, the validation and the test datasets. It shows in particular that the more features the base classifier exploit the higher is the average accuracy, but it shows also that a single base classifier is not a good performer alone.</p><p>Table <ref type="table" coords="8,174.76,608.62,4.98,8.64" target="#tab_2">3</ref> compares the performance of the bagging feature approach with that of a single SVM working witl all features. One may see here that whatever the number of random features used by base classifiers, the bagging approach systematically outperforms a SVM exploiting all the features. This justifies a posteriori our discussion on the undertraining phenomenon of classifiers in the context of author identification.</p><p>These results show a significative improvement of the bagging feature approach over a single SVM classifier exploiting all the features. PAN'12 challenge For the PAN challenge dataset, we learned models on a number of splits of the provided training corpus into pairs of learning/validation datasets. For each of these S training/validation splits, we learned M models based on K randomly selected features from the initial set of features (word or caracter trigram counts) (see Table <ref type="table" coords="9,469.80,433.79,3.60,8.64" target="#tab_3">4</ref>). We finally take decision over (S × M ) models learned each with K random selected features in the T initial features. For closed problem, we simply used a majoritary vote to design prediction on test data. For open problems we use same models and vote method but fixed a threshold on each author based on validation results below wich we consider that none of the condidates is the real author. The table below summarize by task ours submitted methods. In the table the initial set of features is described by the feature type (i.e word-count or character-n-gram count) and by the number T of most frequent features keeped from the training set. Accuracy of our approach for a variety of hyperparameters (M , K, etc) values are given in the table.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Two stage approach</head><p>To go further we built on the work of <ref type="bibr" coords="9,285.92,596.66,16.60,8.64" target="#b9">[10]</ref> who suggested that an author's witting style is characterized by a limited number of discriminative features and more importantly by the way the classifier performance behaves (i.e. drops) when most important features (having large weights after learning) are iteratively removed. We designed a method that is inspired by this work and exploits weak SVM classifiers learned on random subsets of features. We explain now the principle of this approach. Consider an author classification problem with N authors (classes) and where documents are represented by p-dimensional feature vectors. The system we propose is a two stage system.</p><p>In a first stage we learn N linear multiclass SVMs exploiting random subsets (of size X) of the p original features as before in section 5. We note S i ⊂ [1, d] the set of indices of features used by the i th SVM and SV M i the i th classifier. These classifiers are learned to affect a document to one of the N authors.</p><p>Then we use the classifiers of the first stage to build new vectors (that we call profiles) that will be processed in a second stage by another classifier. We start by describing how the first stage is used to build a new training dataset which we call the second stage dataset. For any author a ∈ [1, N ] and for any document d, we build a new p-dimensional feature vector (a profile) whose j th component is the proportion of classifiers (among the N classifiers that exploit feature j) that predict author a. More formally the profile for a particular pair (document,author) which we note u(d, a) is a vector whose components are defined as:</p><formula xml:id="formula_0" coords="10,195.54,512.22,285.06,26.80">u j (d, a) = 1 Z(j) i=1:K δ(j ∈ S i ) × δ(SV M i (d) == a)<label>(1)</label></formula><p>where SV M i (d) stands for the output (a class number in <ref type="bibr" coords="10,371.86,548.53,11.62,8.64">[1.</ref>.N]) of the i th SVM for document d, where δ(P ) equals one if predicate P is true and 0 otherwise, and where Z(j) is a normalization factor Z = i=1:K δ(j ∈ S i )×. At the end u j (d, a) stands for the percentage of classifiers, among those that exploit the j th feature, that predict author a.</p><p>We then use such profiles as an input to a second stage classification system. Those profiles may be sorted (from the highest value to the lowest) so that the numbering of the components are lost. Figure <ref type="figure" coords="10,267.28,632.53,4.98,8.64" target="#fig_2">3</ref> shows such profiles for the 60 authors of the blog dataset. As suggested by <ref type="bibr" coords="10,236.70,644.48,16.60,8.64" target="#b9">[10]</ref> the rate the performance decreases may be relevant of a particular author. When classifying a test document we first run the set of K SVM classifiers of the first stage, tehn we build N p-dimensional profiles as above. We take the final decision based on the second stage classifier that is run on these N second stage feature vectors (looking for the highest similatity, lowest distance).</p><p>Table <ref type="table" coords="11,174.85,389.89,4.98,8.64" target="#tab_4">5</ref> shows that this second approach also significantly outperforms the single SVM approach and it allows reaching similar results as the standard bagging approach while working on a very different representation of the documents. This let some hope that the two methods could be advantageously combined which we did not investigate by lack of time. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Conclusion</head><p>We presented an experimental investigation that show that one of the most competitive method for author identification may suffer from undertraining. We built on this idea to propose new approaches for author identification that rely on the idea of bagging features. The first method is a rather traditional method for bagging features and achieved interesting results on the PAN 2012 challenge, reaching the third place among eleven participants on closed identification tasks. The second method extends the bagging feature strategy and provides preliminary promising results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Aknowledgment</head><p>Special thanks to Moshe Koppel of Bar-Ilan Univeristy in Israel for filling us with corpus. This work has been done in the context of the SAIMSI project (reference ANR-09-CSOSG-SAIMSI) funded by the French Research Agency (ANR).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="6,134.77,546.74,345.83,8.12;6,134.77,557.76,345.83,8.06;6,134.77,569.01,345.83,7.77;6,134.77,579.68,345.83,8.06;6,134.77,590.64,268.42,8.06;6,180.12,372.12,255.11,149.93"><head>Figure 1 .</head><label>1</label><figDesc>Figure1. Accuracy (on a 9 authors dataset<ref type="bibr" coords="6,286.26,547.09,10.08,7.77" target="#b7">[8]</ref>) on the training set (top) and on the test set (bottom) of linear SVMs when selecting a subset of X features at random or by selecting the X most frequent features from a set of 2 500 features. Curves represent accuracy plotted as a function of X for X ∈<ref type="bibr" coords="6,177.52,579.68,14.33,7.86" target="#b9">[10,</ref> 300]. Accuracy of a SVM using all 2 500 features and of a SVM exploiting all 2 500 features minus the X most frequent features are given for comparison.</figDesc><graphic coords="6,180.12,372.12,255.11,149.93" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="8,134.77,498.82,345.83,8.12;8,134.77,510.12,270.66,7.77;8,222.64,356.50,170.07,117.62"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Performance of the bagging approach as a function of the number of models. The three curves stand for the number of random features that base classifiers exploit.</figDesc><graphic coords="8,222.64,356.50,170.07,117.62" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="11,165.21,223.10,284.94,8.12"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Example of profile vectors on the blog dataset (one curve per author).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,134.77,119.04,393.26,151.70"><head>Table 1 .</head><label>1</label><figDesc>Comparison of literature results. LSVM stands for Linear SVM and KSVM stands for Kernel SVM (i.e. nonlinear). Lex, Syt, Str and Cnt stand respectively for Lexical features, syntactic features, structural features and contextual features.</figDesc><table coords="4,138.37,119.04,389.66,108.98"><row><cell cols="2">Language # authors</cell><cell>Context</cell><cell>Features</cell><cell cols="2">Classifier Error rate Ref</cell></row><row><cell>French</cell><cell>28</cell><cell>Literature (≈ 4 books/author)</cell><cell>Character N-grams</cell><cell>KSVM</cell><cell>12,30 % [16]</cell></row><row><cell>English</cell><cell>2</cell><cell>Email (240 / author)</cell><cell>CW+CNG</cell><cell>LSVM</cell><cell>21,80% [8]</cell></row><row><cell>English</cell><cell>9</cell><cell>Literature (2 books/author)</cell><cell>CW+CNG</cell><cell>LSVM</cell><cell>13,70% [8]</cell></row><row><cell>English</cell><cell>20</cell><cell>Blogs (≈ 400 posts/author)</cell><cell>CW+CNG</cell><cell>LSVM</cell><cell>14,30% [8]</cell></row><row><cell>English</cell><cell>8000</cell><cell>Blogs</cell><cell cols="3">TF-IDF on words Dot Product 72,00% [9]</cell></row><row><cell>English</cell><cell>5</cell><cell>Post in forums (20 messages/author)</cell><cell>87 Lex</cell><cell>SVM</cell><cell>12,00% [1]</cell></row><row><cell>English</cell><cell>5</cell><cell>Idem</cell><cell>301 (Lex, Syt, Str, Cnt)</cell><cell>SVM</cell><cell>3,00% [1]</cell></row><row><cell>Arabic</cell><cell>5</cell><cell>idem</cell><cell>79 Lex</cell><cell>SVM</cell><cell>12,30% [1]</cell></row><row><cell>Arabic</cell><cell>5</cell><cell>Idem</cell><cell>418 (Lex, Syt, Str, Cnt)</cell><cell>SVM</cell><cell>5,20% [1]</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="9,197.39,162.45,220.57,64.60"><head>Table 2 .</head><label>2</label><figDesc>Statistics on base classifiers.</figDesc><table coords="9,197.39,181.61,220.57,45.44"><row><cell></cell><cell></cell><cell>Minimum</cell><cell>Mean</cell><cell>Maximum</cell><cell></cell></row><row><cell cols="6"># features Train Valid Test Train Valid Test Train Valid Test</cell></row><row><cell>100</cell><cell>99.8</cell><cell cols="2">33.2 32.2 99.8 45.6 42.7 100</cell><cell>56.1</cell><cell>53.3</cell></row><row><cell>225</cell><cell>99.8</cell><cell>50</cell><cell>46.1 99.9 60.5 55.8 100</cell><cell>69.4</cell><cell>64.4</cell></row><row><cell>600</cell><cell>99.8</cell><cell>55</cell><cell>48.9 99.9 65.5 60.1 100</cell><cell>75.5</cell><cell>67.8</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="9,208.61,283.59,198.13,59.56"><head>Table 3 .</head><label>3</label><figDesc>Performance of the Bagging feature approach.</figDesc><table coords="9,239.46,304.31,136.43,38.84"><row><cell>Model</cell><cell>Train Valid Test</cell></row><row><cell>Bagging (100 features)</cell><cell>99.9 82.2 79.4</cell></row><row><cell>Bagging (225 features)</cell><cell>100 83.9 76.7</cell></row><row><cell>Bagging (600 features)</cell><cell>100 83.9 76.1</cell></row><row><cell cols="2">Single SVM with all 3000 features 100 79.4 71.6</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="10,140.15,115.83,335.05,170.17"><head>Table 4 .</head><label>4</label><figDesc>Accuracy of the feature bagging approach on PAN 2012 datasets.</figDesc><table coords="10,140.15,136.49,335.05,149.51"><row><cell cols="9">TASK Run Name K (# splits) N (# Models / split) # Models overal Type of feature # Random features Open/Closed task Accurracy</cell></row><row><cell>A</cell><cell>Lip6 1</cell><cell>8</cell><cell>100</cell><cell>800</cell><cell>WORDS-1500</cell><cell>200</cell><cell>open</cell><cell>100</cell></row><row><cell>B</cell><cell>Lip6 1</cell><cell>8</cell><cell>100</cell><cell>800</cell><cell>WORDS-1500</cell><cell>200</cell><cell>closed</cell><cell>70</cell></row><row><cell>A</cell><cell>Lip6 2</cell><cell>8</cell><cell>1</cell><cell>8</cell><cell>3CHAR-3500</cell><cell>3500</cell><cell>open</cell><cell>100</cell></row><row><cell>B</cell><cell>Lip6 2</cell><cell>8</cell><cell>1</cell><cell>8</cell><cell>3CHAR-3500</cell><cell>3500</cell><cell>closed</cell><cell>60</cell></row><row><cell>A</cell><cell>Lip6 3</cell><cell>8</cell><cell>100</cell><cell>800</cell><cell>WORDS-1500</cell><cell>300</cell><cell>open</cell><cell>100</cell></row><row><cell>B</cell><cell>Lip6 3</cell><cell>8</cell><cell>100</cell><cell>800</cell><cell>WORDS-1500</cell><cell>300</cell><cell>closed</cell><cell>70</cell></row><row><cell>C</cell><cell>Lip6 1</cell><cell>10</cell><cell>100</cell><cell>1000</cell><cell>WORDS-1500</cell><cell>400</cell><cell>open</cell><cell>100</cell></row><row><cell>D</cell><cell>Lip6 1</cell><cell>10</cell><cell>100</cell><cell>1000</cell><cell>WORDS-1500</cell><cell>400</cell><cell>closed</cell><cell>41.18</cell></row><row><cell>C</cell><cell>Lip6 2</cell><cell>10</cell><cell>300</cell><cell>3000</cell><cell>3CHAR-3500</cell><cell>1000</cell><cell>open</cell><cell>75</cell></row><row><cell>D</cell><cell>Lip6 2</cell><cell>10</cell><cell>300</cell><cell>3000</cell><cell>3CHAR-3500</cell><cell>1000</cell><cell>closed</cell><cell>52.94</cell></row><row><cell>C</cell><cell>Lip6 3</cell><cell>10</cell><cell>300</cell><cell>3000</cell><cell>3CHAR-3500</cell><cell>1250</cell><cell>open</cell><cell>62.5</cell></row><row><cell>D</cell><cell>Lip6 3</cell><cell>10</cell><cell>300</cell><cell>3000</cell><cell>3CHAR-3500</cell><cell>1250</cell><cell>closed</cell><cell>35.29</cell></row><row><cell>I</cell><cell>Lip6 1</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-1500</cell><cell>1500</cell><cell>open</cell><cell>85.71</cell></row><row><cell>J</cell><cell>Lip6 1</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-1500</cell><cell>1500</cell><cell>closed</cell><cell>81.25</cell></row><row><cell>I</cell><cell>Lip6 2</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-2000</cell><cell>2000</cell><cell>open</cell><cell>78.57</cell></row><row><cell>J</cell><cell>Lip6 2</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-2000</cell><cell>2000</cell><cell>closed</cell><cell>68.75</cell></row><row><cell>I</cell><cell>Lip6 3</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-2500</cell><cell>2500</cell><cell>open</cell><cell>78.57</cell></row><row><cell>J</cell><cell>Lip6 3</cell><cell>12</cell><cell>1</cell><cell>12</cell><cell>WORDS-2500</cell><cell>2500</cell><cell>closed</cell><cell>75</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="11,211.43,469.53,192.49,55.11"><head>Table 5 .</head><label>5</label><figDesc>Accuracy of the two stage approach.</figDesc><table coords="11,211.43,490.44,192.49,34.19"><row><cell>Similarity measure</cell><cell>Samples</cell><cell cols="2">Accuracy Valid Accuracy Test</cell></row><row><cell cols="2">Euclidean distance Raw vectors</cell><cell>82.2</cell><cell>79.4</cell></row><row><cell>Correlation</cell><cell>Raw Profiles</cell><cell>80.2</cell><cell>78.9</cell></row><row><cell>Correlation</cell><cell>Sorted profiles</cell><cell>82.2</cell><cell>79.4</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="12,142.61,249.56,303.32,7.77;12,150.95,260.52,219.41,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="12,230.89,249.56,215.04,7.77;12,150.95,260.52,32.10,7.77">Applying authorship analysis to extremist-group web forum messages</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Abbasi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Chen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,189.30,260.52,90.66,7.77">IEEE Intelligent Systems</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="67" to="75" />
+			<date type="published" when="2005-09">Sep 2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,270.49,316.43,7.77;12,150.95,281.45,320.63,7.77;12,150.95,292.40,53.04,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="12,324.59,270.49,134.45,7.77;12,150.95,281.45,89.65,7.77">Style-based text categorization: What newspaper am I reading?</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon-Engelson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Avneri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,255.05,281.45,212.87,7.77">Proceedings of the AAAI Workshop on Text Categorization</title>
+		<meeting>the AAAI Workshop on Text Categorization</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="1" to="4" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,302.37,337.98,7.77;12,150.95,313.33,296.23,7.77;12,150.95,324.29,144.13,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="12,235.13,302.37,171.52,7.77">LIBSVM: A library for support vector machines</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">C</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">J</forename><surname>Lin</surname></persName>
+		</author>
+		<ptr target="http://www.csie.ntu.edu.tw/cjlin/libsvm" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,412.85,302.37,67.74,7.77;12,150.95,313.33,139.84,7.77">ACM Transactions on Intelligent Systems and Technology</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="1" to="27" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,334.26,313.84,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="12,198.96,334.26,120.57,7.77">On mathematical analysis of style</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Fucks</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,324.96,334.26,40.35,7.77">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="issue">1-2</biblScope>
+			<biblScope unit="page" from="122" to="129" />
+			<date type="published" when="1952">1952</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,344.22,329.25,7.77;12,150.95,355.18,113.58,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="12,202.87,344.22,180.88,7.77">Frequent Word Sequences and Statistical Stylistics</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">L</forename><surname>Hoover</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,389.19,344.22,82.68,7.77;12,150.95,355.18,40.36,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="157" to="180" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,365.15,294.75,7.77;12,150.95,376.11,229.75,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="12,339.23,365.15,98.13,7.77;12,150.95,376.11,161.84,7.77">Authorship classification: a discriminative syntactic tree mining approach</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Weninger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">D</forename><surname>Kim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,331.14,376.11,23.41,7.77">SIGIR</title>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,386.08,314.50,7.77;12,150.95,397.04,275.85,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="12,194.79,386.08,262.32,7.77;12,150.95,397.04,66.01,7.77">Authorship determination using letter pair frequency features with neural network classifiers</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Kjell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,222.34,397.04,125.28,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="119" to="124" />
+			<date type="published" when="1994">1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,407.00,317.87,7.77;12,150.95,417.96,311.38,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="12,283.56,407.00,173.63,7.77">Computational methods in authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,150.95,417.96,263.58,7.77">Journal of the American Society for Information Science and Technology</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.61,427.93,331.80,7.77;12,150.95,438.89,327.85,7.77;12,150.95,449.85,329.64,7.77;12,150.95,460.81,82.28,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="12,328.64,427.93,145.78,7.77;12,150.95,438.89,61.66,7.77">Authorship attribution with thousands of candidate authors</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Messeri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,230.64,438.89,248.16,7.77;12,150.95,449.85,191.79,7.77;12,397.36,449.85,36.26,7.77">Proceedings of the 29th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 29th annual international ACM SIGIR conference on Research and development in information retrieval<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="659" to="660" />
+		</imprint>
+	</monogr>
+	<note>SIGIR &apos;06</note>
+</biblStruct>
+
+<biblStruct coords="12,142.24,470.78,309.26,7.77;12,150.95,481.73,252.37,7.77" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="12,310.76,470.78,140.74,7.77;12,150.95,481.73,80.96,7.77">Measuring differentiability: unmasking pseudonymous authors</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Bonchek-Dokow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,237.74,481.73,139.44,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,491.70,313.89,7.77;12,150.95,502.66,279.20,7.77;12,150.95,513.62,78.47,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="12,262.54,491.70,193.59,7.77;12,150.95,502.66,84.12,7.77">On the utility of content analysis in author attribution: lt;igt;the federalistlt;/igt</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Martindale</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mckenzie</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/BF01830395</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,243.37,502.66,111.33,7.77">Computers and the Humanities</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="259" to="270" />
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,523.59,325.65,7.77;12,150.95,534.55,81.43,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="12,221.43,523.59,115.42,7.77">Correspondence analysis of luke</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">L</forename><surname>Mealand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,342.61,523.59,125.28,7.77">Literary and Linguistic Computing</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="171" to="182" />
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,544.51,304.13,7.77;12,150.95,555.47,289.33,7.77;12,150.95,566.43,244.28,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="12,337.54,544.51,108.82,7.77;12,150.95,555.47,149.10,7.77">Featureboost: A meta learning algorithm that improves model robustness</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>O'sullivan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Langford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Caruana</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Blum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,327.83,555.47,112.45,7.77;12,150.95,566.43,167.21,7.77">Proceedings of the Seventeenth International Conference on Machine Learning</title>
+		<meeting>the Seventeenth International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+			<biblScope unit="page" from="703" to="710" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,576.40,302.64,7.77;12,150.95,587.36,295.70,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="12,207.24,576.40,182.01,7.77">A survey of modern authorship attribution methods</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,395.57,576.40,49.31,7.77;12,150.95,587.36,212.03,7.77">Journal of the American Society for Information Science and Technology</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="538" to="556" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,597.33,330.77,7.77;12,150.95,608.28,218.40,7.77" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="12,294.56,597.33,178.45,7.77;12,150.95,608.28,128.61,7.77">Feature bagging: Preventing weight undertraining in structured discriminative learning</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Sutton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sindelar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mccallum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<publisher>CIIR</publisher>
+		</imprint>
+	</monogr>
+	<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct coords="12,142.24,618.25,302.05,7.77;12,150.95,629.21,227.26,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="12,235.61,618.25,115.56,7.77">Kernel-based text-categorization</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Teytaud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jalam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,378.79,618.25,65.50,7.77;12,150.95,629.21,116.19,7.77">International Joint Conference on Neural Networks</title>
+		<meeting><address><addrLine>IJCNNŠ</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2000">2001. 2000</date>
+			<biblScope unit="page" from="1" to="1" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,142.24,639.18,332.42,7.77;12,150.95,650.14,172.67,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="12,224.89,639.18,234.16,7.77">Rapid object detection using a boosted cascade of simple features</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Viola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,150.95,650.14,148.66,7.77">Computer Vision and Pattern Recognition</title>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

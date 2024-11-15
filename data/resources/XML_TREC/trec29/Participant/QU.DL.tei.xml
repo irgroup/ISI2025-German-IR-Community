@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,229.68,84.23,154.83,15.44;1,93.30,104.15,425.41,15.44">bigIR at TREC 2020: Simple but Deep Retrieval of Passages and Documents</title>
+				<funder ref="#_RpZN6ba">
+					<orgName type="full">GSRA</orgName>
+				</funder>
+				<funder>
+					<orgName type="full">Qatar Foundation</orgName>
+				</funder>
+				<funder ref="#_zsZtZpK">
+					<orgName type="full">Qatar National Research Fund</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,192.88,134.27,73.23,10.59"><forename type="first">Fatima</forename><surname>Haouari</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science and Engineering Department</orgName>
+								<address>
+									<country>Qatar University</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,274.39,134.27,145.73,10.59"><roleName>Tamer Elsayed</roleName><forename type="first">Marwa</forename><surname>Essam</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science and Engineering Department</orgName>
+								<address>
+									<country>Qatar University</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,229.68,84.23,154.83,15.44;1,93.30,104.15,425.41,15.44">bigIR at TREC 2020: Simple but Deep Retrieval of Passages and Documents</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">02FC25FCB7925E540C2EB44CB50CF91F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we present the participation of the bigIR team at Qatar University in the TREC Deep Learning 2020 track. We participated in both document and passage retrieval tasks, and each of its subtasks, full ranking and reranking. As it is our first participation in the track, our primary goal is to experiment with the latest approaches and pre-trained models for both tasks. We used Anserini IR toolkit for indexing and retrieval, and experimented with different techniques for passage expansion and reranking, which are either BERT-based or sequence-to-sequence based. All our submitted runs for the passage retrieval task, and most of our submitted runs for the document retrieval task outperformed TREC median submission. We observed that BERT reranker performed slightly better than T5 reranker when expanding passages with sequence-to-sequence based models. However, T5 achieved better results than BERT when passages were expanded with DeepCT, a BERT-based model. Moreover, the results showed that combining the title and the head segment as document representation for reranking yielded significant improvement over each separately.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Motivated to study the use of deep learning approaches in ad-hoc search over large-scale datasets, the Text REtrieval Conference (TREC) organized the deep learning track (TREC-DL) in 2019, with a follow-up in 2020. The track employs MS MARCO collection, 1 a large-scale Question Answering (QA) dataset created from around half a million questions sampled from Bing's search query logs. QA is mainly concerned with developing systems that can provide answers to questions posted by humans. The dataset contains 3.2M documents, with around 8.8M passages, and over 1M queries.</p><p>The deep learning track has two tasks, document retrieval and passage retrieval. In both tasks, a set of questions are given, and the goal is to find answers to these questions from the MS MARCO dataset. In document retrieval, the task is to retrieve, for each question, a list documents that most probably contain the answer to the given question. While in passage retrieval, the task is to retrieve the actual passages (from within the documents) that most probably contain the answer to that question. The same test queries are used for both the passage retrieval and document retrieval tasks, with NDCG@10 being used as the official measure for evaluation.</p><p>The most successful approaches in TREC-DL 2019 adopted passage expansion and exploited BERT for reranking <ref type="bibr" coords="1,234.72,637.29,13.41,7.94" target="#b10">[11,</ref><ref type="bibr" coords="1,250.38,637.29,10.06,7.94" target="#b13">14]</ref>. The top ranked runs for both passage and document retrieval tasks were by Yan et al. <ref type="bibr" coords="1,102.61,659.21,13.39,7.94" target="#b10">[11]</ref>. For the passage retrieval task, they trained an encoder-decoder model with their proposed "attention over attention" mechanism to expand the passages. To rerank the retrieved 1 http://www.msmarco.org/ passages and documents, they first trained a BERT model from scratch by modifying the next sentence prediction task. They then fine-tuned it using the query-passage MS MARCO collection by employing the point-wise ranking technique. For the document retrieval task, they first split the document into passages to overcome the input size limitation of BERT. For each document, they reranked the split passages concatenated with the title of documents, and they considered the maximum relevance score among all passages as the document score. The second best performing runs were submitted by Yilmaz et al. <ref type="bibr" coords="1,405.91,278.76,14.72,7.94" target="#b13">[14]</ref> who used a pre-trained transformer model <ref type="bibr" coords="1,343.73,289.72,10.68,7.94" target="#b7">[8]</ref> to predict queries given passages, and they expanded each passage in the collection with the predicted queries. They employed a BERT-based relevance classifier pre-trained by Nogueira and Cho <ref type="bibr" coords="1,350.84,322.59,10.55,7.94" target="#b4">[5]</ref> for reranking passages and documents. For document reranking, they split each document into sentences and they used BERT to rerank those sentences. Finally, to rerank documents, they used an aggregation of the top 3 sentences scores.</p><p>In this paper, we describe our participation for both the passage and document retrieval tasks in 2020. We adopted a simple approach that employs document expansion, query expansion, and reranking models. For document expansion, we adopted BERT-based and sequence-to-sequence based approaches. For the passage retrieval task, prior indexing, we expanded each passage in the collection with a set of queries for which the corresponding passage may contain their answers. We experimented with three different passage expansion techniques, namely doc2Query <ref type="bibr" coords="1,467.34,454.10,9.27,7.94" target="#b7">[8]</ref>, doctTTTTTquery <ref type="bibr" coords="1,546.83,454.10,9.27,7.94" target="#b6">[7]</ref>, and DeepCT <ref type="bibr" coords="1,364.98,465.06,9.27,7.94" target="#b2">[3]</ref>. To further improve the retrieval, we expanded the queries using RM3 <ref type="bibr" coords="1,389.54,476.02,9.52,7.94" target="#b0">[1]</ref>. For reranking, we exploited two different pre-trained models, namely monoBERT <ref type="bibr" coords="1,469.83,486.98,10.68,7.94" target="#b4">[5]</ref> and monoT5 <ref type="bibr" coords="1,533.24,486.98,9.52,7.94" target="#b5">[6]</ref>. To alleviate the input length limitation of the reranking models, we tried different short document representation for the document retrieval task.</p><p>The rest of the paper is organized as follows: In Section 2, we detail our participation for the passage retrieval task, including a description of the submitted runs and an analysis of the results. Similarly, in Section 3, we present our participation for the document retrieval task. Finally, we conclude in Section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">PASSAGE RETRIEVAL TASK</head><p>In this Section, we present our approach and experimental results for the passage retrieval task. We present our general approach in Section 2.1. We discuss the preliminary experiments we performed before our official runs configurations selection in Section 2.2, then we present our official submitted runs for both the full ranking and reranking subtasks in Section 2.3. Finally, we discuss the results of our official runs in Section 2.4. The process within the dotted rectangle is only done for the full ranking subtask.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Passage Expansion</head><note type="other">Expanded</note></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Approach</head><p>The passage retrieval task has two subtasks: full ranking and reranking. For the full ranking subtask, we adopted a two-way expansion approach. We first expanded each passage in the collection with queries for which this passage most probably contains their answers. For that, we used a pre-trained passage expansion model. The expanded passages are then indexed. We further used query expansion to expand each query with a set of keywords to further improve the retrieval. The expanded queries are used to retrieve an initial candidate set of passages for each given query. Finally, the candidate set is reranked using a pre-trained reranker model. For the passage reranking subtask, we reranked the top 1000 passages given by TREC organizers. Figure <ref type="figure" coords="2,179.25,346.75,4.17,7.94" target="#fig_0">1</ref> illustrates the approach. We based all our experiments on passage and query expansion which were showed to improve retrieval performance in the TREC-DL 2019 <ref type="bibr" coords="2,85.98,379.62,9.39,7.94" target="#b1">[2]</ref>.</p><p>For passage expansion, we adopted three models that were pretrained with the MS MARCO passage collection:</p><p>• doc2query [8]: This model is a sequence-to-sequence transformer model <ref type="bibr" coords="2,128.88,425.83,13.22,7.94" target="#b9">[10]</ref>. Given a passage, the model is pre-trained to predict the top k queries using the top-k sampling technique proposed by Fan et al. <ref type="bibr" coords="2,186.29,447.75,9.43,7.94" target="#b3">[4]</ref>. A maximumn of 400 passage tokens and 100 query tokens were used to train the model. For our experiments, we expanded each passage with queries<ref type="foot" coords="2,124.87,478.48,3.38,6.44" target="#foot_0">2</ref> generated by doc2query. Each passage was appended with 10 queries, as recommended by Nogueira et al. <ref type="bibr" coords="2,97.97,502.55,9.39,7.94" target="#b7">[8]</ref>.</p><p>• docTTTTTquery <ref type="bibr" coords="2,142.69,513.50,9.48,7.94" target="#b6">[7]</ref>: This model takes advantage of T5 <ref type="bibr" coords="2,282.54,513.50,9.37,7.94" target="#b8">[9]</ref>, a sequence-to-sequence tansformer model, and it is pretrained to generate queries given a passage. The model was trained with a maximum input and output of 512 and 64 tokens respectively. In our work, we expanded each passage with queries<ref type="foot" coords="2,123.20,566.16,3.38,6.44" target="#foot_1">3</ref> generated by docTTTTTquery model. We appended the top 40 sampling as recommended by Nogueira et al. <ref type="bibr" coords="2,97.97,590.22,10.55,7.94" target="#b6">[7]</ref> to each passage. • DeepCT <ref type="bibr" coords="2,109.66,601.18,9.37,7.94" target="#b2">[3]</ref>: This is a BERT-based expansion method to identify passage terms that are likely to appear in relevant queries. Given a query and a passage, the model was pre-trained to estimate a weight for each term in the passage. The trained model can be used to estimate the term weights for any passage without the need of queries. For our experiments, we used the expanded passages<ref type="foot" coords="2,180.39,664.79,3.38,6.44" target="#foot_2">4</ref> provided by DeepCT.</p><p>For query expansion, we used RM3 approach implemented by Anserini <ref type="bibr" coords="2,351.53,98.73,13.50,7.94" target="#b11">[12,</ref><ref type="bibr" coords="2,367.28,98.73,10.13,7.94" target="#b12">13]</ref>.</p><p>For reranking the retrieved candidate passages, we used two existing pre-trained reranker models, available at pygaggle <ref type="foot" coords="2,535.36,118.50,3.38,6.44" target="#foot_3">5</ref> , that were both trained with the MS MARCO passage collection. The first is monoBERT <ref type="bibr" coords="2,390.47,142.56,9.52,7.94" target="#b4">[5]</ref>, a BERT-based relevance classifier model for query-passage pairs. The second is monoT5 <ref type="bibr" coords="2,500.01,153.52,9.52,7.94" target="#b5">[6]</ref>, a T5 model fine-tuned to produce the words "false" or "true" based on whether the passage is relevant or not to the query. Both reranker models were trained with a maximum of 512 input tokens, i.e., the total tokens of both the query and passage given to the model are not more than 512 tokens.</p><p>We note that, in the reranking step, we opted to use original (unexpanded) passages and queries as they exhibited better performance in our preliminary experiments over the expanded ones.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Pre-TREC Experiments</head><p>Before TREC submission, we experimented with the combination of each passage expansion technique and each reranker model mentioned in Subsection 2.1. For retrieval, we used BM25, implemented by Anserini, with the parameters set as recommended by Yilmaz et al. <ref type="bibr" coords="2,337.42,319.80,14.72,7.94" target="#b13">[14]</ref> to 𝑘 1 =0.82 and b=0.68. An exception is the retrieval from the index of DeepCT-based expanded passages; we set the BM25 parameters to 𝑘 1 =18 and b=0.7, as recommended by Dai and Callan <ref type="bibr" coords="2,317.96,352.68,9.39,7.94" target="#b2">[3]</ref>.</p><p>For evaluation purposes, we used TREC-DL 2019 queries in our pre-TREC experiments <ref type="bibr" coords="2,401.93,374.59,9.28,7.94" target="#b1">[2]</ref>. In Table <ref type="table" coords="2,447.85,374.59,3.01,7.94" target="#tab_0">1</ref>, we present the results of the full ranking subtask. We observe that when expanding the passages with the sequence-to-sequence based models, namely doc2query or docTTTTTquery, BERT reranker performed slightly better than T5 reranker in terms of NDCG@10. However, T5 outperformed BERT reranker, when passages were expanded with DeepCT <ref type="bibr" coords="2,539.48,429.39,9.32,7.94" target="#b2">[3]</ref>, a BERT-based model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Passage Expansion</head><p>Reranker R@1000 NDCG@10 </p><formula xml:id="formula_0" coords="2,345.73,486.33,38.49,7.94">doc2query</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Submitted Runs</head><p>Based on our Pre-TREC experimental results, we selected the top 3 performing methods, highlighted in bold in Table <ref type="table" coords="2,509.47,629.64,3.11,7.94" target="#tab_0">1</ref>, in terms of both NDCG@10 and Recall@1000, as our official runs submitted to the full ranking subtask:</p><p>• bigIR-T5-BERT-F: Using docTTTTTquery model for passage expansion, RM3 for query expansion, BM25 for retrieval, and monoBERT model for reranking.</p><p>• bigIR-T5xp-T5-F: Using docTTTTTquery model for passage expansion, RM3 for query expansion, BM25 for retrieval, and monoT5 model for reranking. • bigIR-DCT-T5-F: Using DeepCT model for passage expansion, RM3 for query expansion, BM25 for retrieval, and monoT5 model for reranking.</p><p>For the reranking subtask, we submitted two runs, one of each reranker model discussed in Section 2.1.</p><p>• bigIR-BERT-R: Using monoBERT for reranking.</p><p>• bigIR-T5-R: Using monoT5 for reranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Official TREC Results</head><p>The official results of our submitted runs for the passage retrieval task are presented in Table <ref type="table" coords="3,153.80,242.45,3.06,7.94">2</ref>. We compare the performance of our runs against TREC-DL 2020 median which represents the mean of median per-topic scores.</p><p>As shown in Table <ref type="table" coords="3,132.14,275.33,3.01,7.94">2</ref>, all our runs for both subtasks scored above the median. For the full ranking subtask, we observe that using DeepCT, the BERT-based approach for passage expansion, achieved better performance than using docTTTTTquery, the T5-based approach, achieving NDCG@10 of 0.7173 and 0.7034 respectively. The results also show that for full ranking runs that exploited the passages expanded with docTTTTTquery, the T5 reranker could not beat the BERT reranker.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Subtask</head><p>Run NDCG@10 TREC2020-Median 0.681 Full Ranking bigIR-T5-BERT-F 0.7073 bigIR-DCT-T5-F 0.7173 bigIR-T5xp-T5-F 0.7034 Reranking bigIR-BERT-R 0.7201 bigIR-T5-R 0.7138</p><p>Table <ref type="table" coords="3,77.40,473.22,3.45,7.70">2</ref>: NDCG@10 scores of the submitted passage retrieval runs compared to TREC-DL 2020 median score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">DOCUMENT RETRIEVAL TASK</head><p>In this Section, we present our approach and experimental results for the document retrieval task. We present our general approach in Section 3.1. We present our official submitted runs for both the full ranking and reranking subtasks in Section 3.2. Finally, we discuss the results of our official runs in Section 3.3.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Query</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Approach</head><p>Similar to the passage retrieval task, we used Anserini for indexing the document collection, and its BM25 implementation and RM3 query expansion for retrieving the initial set of candidate relevant documents for the full ranking subtask. For both full ranking and reranking subtasks, we adopted the monoT5 reranker model to rerank the candidate documents for better retrieval quality. Since the input sequence to monoT5 is limited in size (maximum 512 tokens), we experimented with three different representations of the document as input sequence to the model: title of the document, the head segment of the document (the leading 384 terms specifically, as recommended by Yan et al. <ref type="bibr" coords="3,427.60,211.06,12.87,7.94" target="#b10">[11]</ref>), and the concatenation of both. Figure <ref type="figure" coords="3,343.49,222.01,4.17,7.94" target="#fig_1">2</ref> illustrates our approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Submitted Runs</head><p>We submitted three runs for the full ranking subtask. In all of our submitted runs, we set Anserini to use the BM25 retrieval model with RM3 query expansion, where 𝑘 1 and 𝑏 were set to 0.82 and 0.68 respectively. For reranking the initial candidate set, we used different document representations for each submitted run as follows:</p><p>• bigIR-DT-T5-F: Using the title to represent each candidate document. • bigIR-DH-T5-F: Using the head segment to represent each candidate document. • bigIR-DTH-T5-F: Using the concatenation of both title and head segment to represent each candidate document.</p><p>We also submitted three runs to the reranking subtask as follows.</p><p>• bigIR-DT-T5-R: Using the title to represent each given document. • bigIR-DH-T5-R: Using the head segment to represent each given document. • bigIR-DTH-T5-R: Using the concatenation of both title and head segment to represent each candidate document.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Official TREC Results</head><p>Table <ref type="table" coords="3,339.66,500.95,4.15,7.94">3</ref> shows the performance results that our runs achieved. We notice that using only the title of the candidate documents, along with the query, as input to the reranker model did not perform well. In fact, it falls well below the TREC-DL 2020 median in both subtasks. This suggests an inadequate context for reranking, and can be explained by the fact that titles of documents do not usually contain sufficient information on the document content. The results also show that using the head segment of the document only performed slightly better than the median. However, using both the title and the head segment yielded a significant improvement in performance over the median. While we opted to experiment with very simple representation of documents in our submitted runs, due to time limitation, there are several other ways of representing documents that we plan to study in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSION</head><p>In this paper, we present our bigIR group's first participation in the passage and document retrieval tasks at the TREC deep learning track 2020. We focused on simple ideas this year, such as document and query expansion. We explored different pre-trained models for passage/document expansion and reranking, including doc2Query, docTTTTTquery, DeepCT, monoBERT and monoT5. We conducted a preliminary study on TREC-DL 2019 data, based on which we selected the configuration of our submitted runs. All of our submitted runs for passage ranking and most of the submitted runs for document ranking outperformed the TREC median for the different subtasks. The results demonstrate two messages. First, monoBERT performed slightly better than monoT5 when passages were expanded with sequence-to-sequence based models; however, it could not beat monoT5 when passages were expanded using a BERTbased model. Second, using both the title and the head segment of the document at the reranking step for the document retrieval task significantly improved the results compared to each separately.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,53.80,166.42,241.78,7.70;2,53.50,177.38,240.54,7.70;2,53.80,188.34,84.97,7.70"><head>Figure 1 :</head><label>1</label><figDesc>Figure1: Proposed approach for the passage retrieval task. The process within the dotted rectangle is only done for the full ranking subtask.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,58.43,685.59,230.98,7.70"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Proposed approach for document retrieval task.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,91.65,86.13,31.81,7.70;4,166.51,86.13,17.31,7.70;4,219.44,86.13,44.19,7.70;4,140.85,99.22,68.63,7.94;4,230.12,99.22,22.82,7.94;4,84.22,123.53,46.67,7.94;4,148.74,112.57,52.85,7.94;4,232.21,112.57,18.65,7.94;4,147.86,123.53,54.61,7.94;4,230.12,123.53,22.82,7.94;4,151.26,134.49,47.81,7.94;4,228.92,134.74,25.23,7.70;4,88.59,156.81,37.93,7.94;4,148.28,145.85,53.76,7.94;4,230.12,145.85,22.82,7.94;4,147.40,156.81,55.53,7.94;4,230.12,156.81,22.82,7.94;4,144.75,167.77,60.84,7.94;4,228.92,168.02,25.23,7.70;4,53.50,191.33,242.15,7.70;4,53.80,202.29,220.08,7.70"><head>Table 3 :</head><label>3</label><figDesc>NDCG@10 scores of the submitted document retrieval runs compared to TREC-DL 2020 median score.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,317.66,480.85,240.54,97.82"><head>Table 1 :</head><label>1</label><figDesc>Performance of document expansion and reranking models in Pre-TREC experiments for full passage ranking.</figDesc><table coords="2,333.73,480.85,199.23,63.55"><row><cell></cell><cell>BERT</cell><cell>0.7803</cell><cell>0.7266</cell></row><row><cell></cell><cell>T5</cell><cell>0.7803</cell><cell>0.7257</cell></row><row><cell>docTTTTTquery</cell><cell>BERT T5</cell><cell>0.8542 0.8542</cell><cell>0.7476 0.7391</cell></row><row><cell>DeepCT</cell><cell>BERT T5</cell><cell>0.7946 0.7946</cell><cell>0.7392 0.7404</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,56.84,685.95,122.22,6.18"><p>https://github.com/nyu-dl/dl4ir-doc2query</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="2,56.84,694.36,130.40,6.18"><p>https://github.com/castorini/docTTTTTquery</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="2,56.72,702.77,105.01,6.18"><p>https://github.com/AdeDZY/DeepCT</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3" coords="2,321.00,702.77,107.56,6.18"><p>https://github.com/castorini/pygaggle</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>ACKNOWLEDGMENTS</head><p>This work was made possible by NPRP grant# <rs type="grantNumber">NPRP 11S-1204-170060</rs> from the <rs type="funder">Qatar National Research Fund</rs> (a member of <rs type="funder">Qatar Foundation</rs>). The work of <rs type="person">Fatima Haouari</rs> was supported by <rs type="funder">GSRA</rs> grant# <rs type="grantNumber">GSRA6-1-0611-19074</rs> from the <rs type="funder">Qatar National Research Fund</rs>. The statements made herein are solely the responsibility of the authors.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_zsZtZpK">
+					<idno type="grant-number">NPRP 11S-1204-170060</idno>
+				</org>
+				<org type="funding" xml:id="_RpZN6ba">
+					<idno type="grant-number">GSRA6-1-0611-19074</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,69.23,519.46,225.58,6.18;4,69.00,527.43,225.86,6.18;4,69.23,535.37,224.81,6.23;4,69.03,543.37,31.67,6.18" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="4,233.33,527.43,61.54,6.18;4,69.23,535.40,54.74,6.18">UMass at TREC 2004: Novelty and HARD</title>
+		<author>
+			<persName coords=""><forename type="first">Nasreen</forename><surname>Abdul-Jaleel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leah</forename><surname>Larkey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaoyan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Courtney</forename><surname>Wade</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,132.57,535.37,161.47,6.23">Computer Science Department Faculty Publication Series</title>
+		<imprint>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,69.23,551.34,224.81,6.18;4,69.00,559.28,225.04,6.23;4,69.23,567.25,67.08,6.23" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="4,116.73,559.31,131.72,6.18">Overview of the trec 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Emine</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2003.07820</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,575.25,224.81,6.18;4,69.23,583.19,224.81,6.23;4,69.03,591.19,18.66,6.18" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.10687</idno>
+		<title level="m" coord="4,182.18,575.25,111.86,6.18;4,69.23,583.22,130.63,6.18">Context-aware sentence/passage term importance estimation for first stage retrieval</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,599.16,224.99,6.18;4,69.23,607.10,142.87,6.23" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Angela</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yann</forename><surname>Dauphin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1805.04833</idno>
+		<title level="m" coord="4,220.67,599.16,73.56,6.18;4,69.23,607.13,29.28,6.18">Hierarchical neural story generation</title>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,615.10,225.88,6.18;4,69.23,623.04,108.33,6.23" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<title level="m" coord="4,203.72,615.10,87.86,6.18">Passage Re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,631.04,224.81,6.18;4,69.23,638.98,223.08,6.23" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="4,222.69,631.04,71.36,6.18;4,69.23,639.01,110.44,6.18">Document ranking with a pretrained sequence-to-sequence model</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiying</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2003.06713</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,646.98,224.81,6.18;4,69.23,654.92,115.46,6.23" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="4,237.26,646.98,56.79,6.18;4,69.23,654.95,46.18,6.18">From doc2query to docTTTTTquery</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">I</forename><surname>Epistemic</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Online preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,662.92,224.81,6.18;4,69.23,670.86,199.34,6.23" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="4,264.53,662.92,29.51,6.18;4,69.23,670.89,85.72,6.18">Document expansion by query prediction</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.08375</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,69.23,678.86,225.58,6.18;4,69.23,686.83,224.81,6.18;4,69.23,694.77,224.81,6.23;4,69.23,702.74,109.13,6.23" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="4,237.66,686.83,56.38,6.18;4,69.23,694.80,165.57,6.18">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,240.26,694.77,53.79,6.23;4,69.23,702.74,50.59,6.23">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,89.07,225.58,6.18;4,333.15,97.04,225.06,6.18;4,333.39,104.99,212.44,6.23" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="4,513.37,97.04,44.83,6.18;4,333.39,105.01,24.64,6.18">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,370.40,104.99,139.53,6.23">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,112.98,225.88,6.18;4,333.39,120.95,224.81,6.18;4,333.39,128.92,224.81,6.18;4,333.39,136.87,17.16,6.23" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="4,351.69,120.95,206.51,6.18;4,333.39,128.92,211.39,6.18">IDST at TREC 2019 Deep Learning Track: Deep Cascade Ranking with Generation-based Document Expansion and Pre-trained Language Modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Ming</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenliang</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chen</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bin</forename><surname>Bi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiangnan</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luo</forename><surname>Si</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,333.39,136.87,13.73,6.23">TREC</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,144.87,224.81,6.18;4,333.39,152.81,224.81,6.23;4,333.39,160.78,225.88,6.23;4,333.23,168.78,31.30,6.18" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="4,470.88,144.87,87.32,6.18;4,333.39,152.84,113.88,6.18">Anserini: Enabling the use of Lucene for information retrieval research</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,459.19,152.81,99.01,6.23;4,333.39,160.78,223.23,6.23">Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1253" to="1256" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,176.75,224.81,6.18;4,333.39,184.69,224.97,6.23;4,333.18,192.69,35.49,6.18" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="4,466.36,176.75,91.84,6.18;4,333.39,184.72,65.27,6.18">Anserini: Reproducible ranking baselines using Lucene</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,405.19,184.69,137.59,6.23">Journal of Data and Information Quality (JDIQ)</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="1" to="20" />
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,200.66,224.81,6.18;4,333.39,208.63,224.81,6.18;4,333.39,216.57,202.07,6.23" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="4,518.86,200.66,39.34,6.18;4,333.39,208.63,214.67,6.18">H2oloo at trec 2019: Combining sentence and document evidence in the deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">Akkalyoncu</forename><surname>Zeynep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shengjin</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,333.39,216.57,164.71,6.23">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference</meeting>
+		<imprint>
+			<publisher>TREC</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

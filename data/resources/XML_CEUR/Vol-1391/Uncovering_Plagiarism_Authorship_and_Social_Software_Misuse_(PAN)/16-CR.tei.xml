@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,152.07,115.90,311.21,12.90;1,223.43,135.94,168.50,10.75">Statistical Learning Methods for Profiling Analysis Notebook for PAN at CLEF 2015</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,258.27,172.53,98.81,8.64"><forename type="first">Lesly</forename><forename type="middle">Miculicich</forename><surname>Werlen</surname></persName>
+							<email>lesly.miculicich@unine.ch</email>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science Deparment</orgName>
+								<orgName type="institution">University of Neuchâtel</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,152.07,115.90,311.21,12.90;1,223.43,135.94,168.50,10.75">Statistical Learning Methods for Profiling Analysis Notebook for PAN at CLEF 2015</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">EF2484744658D55BB771B46495CFFC04</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:42+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Author profiling is the task to infer some information about an author by analyzing her/his writing style. It's application in forensics, business intelligence and psychology makes this topic interesting for researching. In this notebook, we present our baseline approach using SVM and Linear Discriminant Analysis (LDA) classifiers. We analyze features obtained from LIWC dictionaries, these are frequencies of use words by categories, which gives a general view about how the author writes and what he/she is talking about. According the experimental results, those are significant features to differentiate gender, age-group and personality. Although they are relatively few (not more than 100), they allow to discriminate with an acceptable accuracy.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Studies have demonstrated evidence of differences in the writing style according the gender and age of the authors. These differences are detected with the use of functionwords and content-words. The function-words define how the person use the grammar and build sentences. On the other hand, content-words indicate what the person is talking about. For example, Pennebaker <ref type="bibr" coords="1,283.99,452.62,11.62,8.64" target="#b6">[7]</ref> found that women tend to use more personal pronouns and words referring to emotions. By the contrary, men tend to use more nouns, prepositions and big words (defined as words with more than 6 characters).</p><p>In the case of age, Pennebaker <ref type="bibr" coords="1,278.92,488.68,11.62,8.64" target="#b6">[7]</ref> found that younger writers use more personal pronouns in first person and past tense verbs; while older writers tend to use more articles, nouns prepositions and future tense verbs. Another example of this differences is in Schler et al. <ref type="bibr" coords="1,206.53,524.55,10.58,8.64" target="#b8">[9]</ref>, where these authors found that men's writing is more related to money, job and TV, while women's writing is more related to family, sex and eating. In the case of age, younger people use to write more about sports, friends and emotions; while older people write more about money, job, and family.</p><p>More recently studies expanded this analysis to determinate weather the personality influence the writing style too. For example Yarkoni <ref type="bibr" coords="1,340.51,584.51,16.60,8.64" target="#b11">[12]</ref> presented a detailed work were he found that extroverted people are more likely to speak about leisure activities, family and other persons than non extroverted. People open to new experiences talk more about friends, time and positive emotions than other people; and some other similar relations for all different personalities.</p><p>Based on this evidence, we believe that the word categories are important features to determine the profile of an author of a text, and we will try to measure how much they can tell us about the authors of tweets. Therefore, in this notebook, we present a baseline author profile classifier based on statistical learning over word category features. First, we present the feature pre-processing, extraction and selection. Then, the classification models to identify gender, age group, and personality. And finally, we present the description of the experiments, the results and the conclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Features</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">LIWC</head><p>The studies mentioned previously used the Linguistic Inquired and Word Count (LIWC) <ref type="bibr" coords="2,134.77,246.37,10.58,8.64" target="#b5">[6]</ref>. This tool propose a list of word categories, each category is formed by agreement between at least three judges. Then, given a text, it counts the number of words that the text have per each category. The idea is to know how frequent a person use each word category and with that data estimate some information about him or her.</p><p>The LIWC categories are grouped in linguistic dimensions (e.g., part-of-speech); content dimensions(e.g., emotions and activities); or spoken dimensions (e.g. fillers and no fluencies markers). LIWC has dictionaries in a variety of languages, for this experiment English, Italian, Spanish and Dutch dictionaries are used. Each dictionary contains the list of predefined categories and the words associated with them, for example for the category positive emotions some associated words are "fun", "nice", "succes", etc. They were created over reiterative process of human judgment and were tested in several times in different studies to assure their validity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Additional Categories</head><p>Additionally, we include other two groups of categories: punctuation marks and tweet. We include seven categories in punctuation marks: question mark, exclamation, period, comma, colon, semi-colon and all punctuation. The last one groups any punctuation mark including the mentioned before. The tweet categories are added for the nature of the corpus data and because they are frequently employed by tweet users: emoticons, hyper-link, hashtag and references to other users. In Table <ref type="table" coords="2,371.38,481.84,4.98,8.64" target="#tab_0">1</ref> we can see a summary of the total categories analyzed in this experiment. Table <ref type="table" coords="2,173.74,644.48,4.98,8.64">2</ref> shows one example of our analysis with LIWC and the additional categories in the tweet: "ummm yesterday, I was with @Tim in a beautiful concert :) .".</p><p>Table <ref type="table" coords="3,158.05,115.83,3.36,8.06">2</ref>. Example of analysis with LIWC and additional categories for the tweet: "ummm yesterday, I was with @Tim in a beautiful concert :) ."</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dimension Category</head><p>Words Counting</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Linguistic</head><p>Word count all words 10 Function words "I"," was", "with", "in", "a" </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Feature Extraction</head><p>The tweets were given in XML files. Each XML file was processed to extract only the text information given as scale. First, the text was tokenized using white space (including tab, change of line among others) and punctuation marks as separation characters. We consider the apostrophe as part of the word, for example "she's" is consider a single word. This choose is related to the LIWC dictionaries that consider them in this way.</p><p>Once the tokens are obtained, they were counted in the corresponding categories. As mentioned before, in the dictionary each category has a set of words, so, if the token is part of the set of word of a category then it sums one to that category. One token can appear in many categories (e.g. "I" as pronoun and function word).</p><p>The granularity of the models is set by user and not by tweet, so, there is a vector of categories per each user. Once we complete the counting per user, we divide each count by the total number of words by user in other to obtain the relative frequencies. Finally, we keep the frequencies in a matrix format, where the columns are the word categories and the rows are the users. Thus, each row represent the distribution over LIWC categories for the given user.</p><p>One additional step is performed before the feature selection, the relative word frequencies x are scaled by calculating the z -score respect to each category according to the following formula:</p><formula xml:id="formula_0" coords="3,283.99,592.41,196.61,22.31">z = x -µ σ .<label>(1)</label></formula><p>where, µ and σ are the mean and standard deviation of the frequencies in each category. The frequency of use of words in not uniform in a language. Some of them are highly used (e.g., function words) and some others have low frequency of use (e.g., topic related words), the relative frequencies are scaled because we need to compare them obtaining their use related to each particular category and not to the general use of language.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Feature Selection</head><p>Even we have a reduce set of features, we need to ignore noisy and irrelevant features before applying a classification scheme. Additionally, it derives in an easier linguistic explanation about the key features to discriminate among the different classes.</p><p>Gender and Age Group Fourth feature selection methods were evaluated to determine the more suitable for the data: Manual selection, Information Gain, Odd ratio and Support Vector Machine Recursive Feature Elimination (SVM RFE). The manual selection was based on <ref type="bibr" coords="4,231.20,267.80,11.62,8.64" target="#b6">[7]</ref> and <ref type="bibr" coords="4,263.69,267.80,10.58,8.64" target="#b4">[5]</ref>, where it is explained which are the more general categories to differentiate an author according she/he's age and gender. The Information Gain and Odd Ratio were based on the study of Sebastiani <ref type="bibr" coords="4,385.21,291.71,16.60,8.64" target="#b10">[11]</ref> where he compares different methods for feature reduction in text categorization. The SVM RFE proposed by Guyon <ref type="bibr" coords="4,178.03,315.62,11.62,8.64" target="#b2">[3]</ref> is a backward feature elimination using SVM, it eliminates one feature at time given a ranking criteria. The three last methods were implemented with Weka <ref type="bibr" coords="4,134.77,339.53,10.58,8.64" target="#b3">[4]</ref>. For their evaluation, three different classifiers were tested and the results were compared according the accuracy of classification. The best subset was obtained with SVM RFE.</p><p>Personality In the case of personality, the number of classes to discriminate is larger than the previous models and it is more difficult to associate specific categories to each class. Consequently, the methods mentioned before did not have significant improvement in comparison of using the full set of features. So for this case, we applied Forward-Backward Feature Selection, trying to improve the Root Mean Squared Error (RMSE).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Classification</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Gender and Age Group</head><p>These classes were defined as categorical. We have two classes for gender: "Male" and "Female", and fourth classes for age: "18-24", "25-34", "35-49", and "50-xx". The classification was made with ν-SVM <ref type="bibr" coords="4,286.63,560.76,15.27,8.64" target="#b9">[10]</ref>, which is a variant of the original SVM but with an easier interpretation for the cost parameter called ν. In the experiments, ν was set to 0.01 and we used radial kernel. The implementation was made in R with the library "e1071".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Personality</head><p>In the case of personality, we define one model per each personality. Our first approach was to define the classes as categorical without taking into account the order of the score of the personality, so we have 11 classes from "-0.5" to "0.5" with one decimal of difference. We choose two classifiers: ν-SVM with ν set to 0.01 and with radial kernel, and Linear Discriminant Analysis (LDA). The implementation was done in R with the libraries "e1071" and "MASS".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiments and Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Training</head><p>The corpus to develop the models is a training set of tweets in English, Spanish, Italian and Dutch given by PAN 2015 Author Profiling task <ref type="bibr" coords="5,358.68,234.99,10.58,8.64" target="#b7">[8]</ref>. The validation was made measuring the accuracy for gender and age-group, and RMSE for personality (according the specification of the task). We used the full training set with leave-one-out validation. The results are showed in Tables <ref type="table" coords="5,267.08,270.85,4.98,8.64" target="#tab_2">3</ref> and<ref type="table" coords="5,291.43,270.85,3.74,8.64" target="#tab_3">4</ref>. 0.15 0.18 0.12 0.18 0.12 0.14 0.19 Open 0.15 0.15 0.16 0.12 0.21 0.15 0.12 0.17</p><p>In the feature selection, the experiment shows that there are some categories to discriminate between gender which are independent of language while other are different for each language, and the same patter for the other models. Tables <ref type="table" coords="5,406.24,584.71,7.47,8.64" target="#tab_4">5,</ref><ref type="table" coords="5,416.39,584.71,3.74,8.64" target="#tab_5">6</ref>, and 7 contain the common categories that were found in one or more languages.</p><p>The training and testing are implemented separately. The outputs are the models and the vectors of means and standard deviation calculated with the training data. These vectors are used to calculate the z -score of the testing data. This step corresponds to Software 1 of TIRA <ref type="bibr" coords="5,217.12,656.44,10.58,8.64" target="#b1">[2]</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Testing</head><p>The corpus to test was given by PAN 2015 Author Profiling task <ref type="bibr" coords="7,401.05,139.67,10.58,8.64" target="#b7">[8]</ref>. The parameters are the input files and the models. This step corresponds to Software 2 on TIRA <ref type="bibr" coords="7,455.09,151.63,10.58,8.64" target="#b1">[2]</ref>. Table <ref type="table" coords="7,174.81,163.67,4.98,8.64">8</ref> shows the result for the testing. In almost all cases our solution performs better than the average with less runtime than the majority. The best global results were in Dutch and English, and the worse with Italian. In the case of gender and age-group, the results were good comparing with the state of the art using similar features, Argamon et al. <ref type="bibr" coords="7,184.22,211.49,11.62,8.64" target="#b0">[1]</ref> reported 72% accuracy to distinguish gender and 67% for age-group (having 3 groups). Specially in the case of Spanish, where we obtained 92% of accuracy in gender. Nevertheless, the accuracy of classification of age-group was close to average. In the case of personality, the results are also good taking into account the difficulty of the data: bigger number of classes to discriminate many of them with very few or none samples to train, and the few quantity of features used (less than 100). The selected runs for testing personality where using SVM classifier.</p><p>The global ranking of our solution for English was 7th over 22, Dutch 5th over 20, Italian 9th over 19, and Spanish 8th over 21.</p><p>Table <ref type="table" coords="7,157.69,338.70,3.36,8.06">8</ref>. Testing results: "GLOBAL" is the total performance of the solution, "Gender" and "Age" are measured by accuracy in %,"BOTH" is the accuracy when gender and age were both well classified. The personality traits were measure with RMSE rounded to two decimal points, "RMSE" is the average of all personalities traits. The present approach using LIWC Categories has demonstrated being a good solution regarding the limitation of having a few quantity of features compared with other solutions. According to the testing results, it had better performance than the average state of the art. Moreover, it is simple and efficient. But the most important point is that we can linguistically justify the classification decision because we can know which are the key features for the decision process. Deeper analysis is needed to extract the explanation of correct and incorrect assignment of classes; and to compare the differences in the results using SVM or LDA classifier. We think that it can be improved in future with a finer analysis of features and selection methods, and with a more appropriate definition of the classes and modeling for age-group and personality traits.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,166.58,523.70,282.20,84.48"><head>Table 1 .</head><label>1</label><figDesc>Number of categories used as features per language's dictionary</figDesc><table coords="2,166.58,554.98,282.20,53.20"><row><cell cols="7">Dictionary Linguistic Content Spoken Punctuations Tweet Total</cell></row><row><cell>English</cell><cell>24</cell><cell>40</cell><cell>3</cell><cell>7</cell><cell>4</cell><cell>78</cell></row><row><cell>Dutch</cell><cell>14</cell><cell>55</cell><cell>2</cell><cell>7</cell><cell>4</cell><cell>82</cell></row><row><cell>Italian</cell><cell>14</cell><cell>74</cell><cell>0</cell><cell>7</cell><cell>4</cell><cell>99</cell></row><row><cell>Spanish</cell><cell>14</cell><cell>55</cell><cell>2</cell><cell>7</cell><cell>4</cell><cell>82</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,134.77,298.80,345.83,60.91"><head>Table 3 .</head><label>3</label><figDesc>Gender and Age Group: Accuracy in %. Leave-one-out validation with training data set. Feature selection with SVM RFE and classification with SVM</figDesc><table coords="5,221.53,329.22,174.53,30.49"><row><cell></cell><cell cols="4">English Dutch Italian Spanish</cell></row><row><cell>Gender</cell><cell>86</cell><cell>97</cell><cell>92</cell><cell>94</cell></row><row><cell>Age group</cell><cell>77</cell><cell>-</cell><cell>-</cell><cell>69</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,134.77,414.15,345.83,96.84"><head>Table 4 .</head><label>4</label><figDesc>Personality: RMSE rounded to two decimals. Leave-one-out validation with training data set. Feature selection with Back-Forward Propagation and classification with LDA and SVM</figDesc><table coords="5,174.73,446.43,268.90,64.56"><row><cell></cell><cell>English</cell><cell>Dutch</cell><cell>Italian</cell><cell>Spanish</cell></row><row><cell>Personality</cell><cell cols="4">LDA SVM LDA SVM LDA SVM LDA SVM</cell></row><row><cell>Extroverted</cell><cell cols="4">0.16 0.16 0.14 0.13 0.21 0.18 0.16 0.19</cell></row><row><cell>Stable</cell><cell cols="4">0.22 0.21 0.12 0.22 0.18 0.18 0.18 0.20</cell></row><row><cell>Agreeable</cell><cell cols="4">0.16 0.15 0.23 0.15 0.21 0.16 0.15 0.16</cell></row><row><cell cols="2">Conscientious 0.15</cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="6,140.71,136.81,338.47,105.19"><head>Table 5 .</head><label>5</label><figDesc>Selected Features for Gender: Common features among one or more languages</figDesc><table coords="6,140.71,177.14,338.47,64.86"><row><cell>Linguistic</cell><cell>Prepositions, word count, you, pronouns</cell></row><row><cell>Content</cell><cell>Family, affect, space, swear, feel, emotions, body, home, work, TV, money, fu-</cell></row><row><cell></cell><cell>ture, motion, school, inclusion (and, we, both), exclusion (or, either, but)</cell></row><row><cell>Spoken</cell><cell>None</cell></row><row><cell cols="2">Punctuations Question mark, exclamation mark, colon</cell></row><row><cell>Tweet</cell><cell>Emoticon, reference to other users, hyper-links</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="6,140.71,303.66,335.11,94.11"><head>Table 6 .</head><label>6</label><figDesc>Selected Features for Age-group: Common features among one or more languages</figDesc><table coords="6,140.71,343.98,335.11,53.78"><row><cell>Linguistic</cell><cell>Prepositions</cell></row><row><cell>Content</cell><cell>Anger, body, optimist, insight, discrepancy, inhibition(block, constraint, deny)</cell></row><row><cell>Spoken</cell><cell>None</cell></row><row><cell cols="2">Punctuations Comma</cell></row><row><cell>Tweet</cell><cell>Reference to other users, hyper-links</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="6,140.67,459.43,338.52,170.79"><head>Table 7 .</head><label>7</label><figDesc>Selected Features for Personality: Common features among one or more languages</figDesc><table coords="6,140.67,499.74,338.52,130.48"><row><cell cols="2">Extroverted Word count, big words, pronouns, I, we, us, others, article, social, family, emoti-</cell></row><row><cell></cell><cell>cons, reference to other users</cell></row><row><cell>Stable</cell><cell>Pronouns, oneself, we, us, others, article, affection, positive emotions, optimist,</cell></row><row><cell></cell><cell>anxiety, sadness, anger, emoticons, reference to other users, hyper-links</cell></row><row><cell>Agreeable</cell><cell>Pronouns, I , others, prepositions, inhibition, sadness, certain, see, listen, dis-</cell></row><row><cell></cell><cell>crepancy, causation, cognitive process, emoticons, reference to other users,</cell></row><row><cell></cell><cell>hyper-links</cell></row><row><cell cols="2">Conscientious Pronouns, I , us, others, time, present, past, work, motion, home, optimist, pos-</cell></row><row><cell></cell><cell>itive emotions, number, reference to other users, hyper-links</cell></row><row><cell>Open</cell><cell>Pronouns, I , us, others, negation, preposition, number, affection, optimist, cer-</cell></row><row><cell></cell><cell>tain, discrepancy, cause, tentative, see, insight, emoticons, reference to other</cell></row><row><cell></cell><cell>users, hyper-links</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,142.61,306.26,337.98,7.77;8,150.95,317.22,262.12,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,348.57,306.26,132.02,7.77;8,150.95,317.22,66.60,7.77">Automatically profiling the author of an anonymous text</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,222.91,317.22,106.49,7.77">Communications of the ACM</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="119" to="123" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,328.18,337.98,7.77;8,150.95,339.14,329.64,7.77;8,150.95,350.10,329.64,7.77;8,150.95,361.06,23.90,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,276.83,328.18,203.76,7.77;8,150.95,339.14,134.02,7.77">Ousting ivory tower research: towards a web framework for providing experiments as a service</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,302.19,339.14,178.40,7.77;8,150.95,350.10,244.13,7.77">Proceedings of the 35th international ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 35th international ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="1125" to="1126" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,372.02,337.98,7.77;8,150.95,382.97,246.15,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,318.57,372.02,162.02,7.77;8,150.95,382.97,85.75,7.77">Gene selection for cancer classification using support vector machines</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Weston</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Barnhill</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vapnik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,242.96,382.97,63.00,7.77">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="issue">1-3</biblScope>
+			<biblScope unit="page" from="389" to="422" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,393.93,337.98,7.77;8,150.95,404.89,322.07,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,428.06,393.93,52.52,7.77;8,150.95,404.89,96.28,7.77">The weka data mining software: an update</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Holmes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Pfahringer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Reutemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><forename type="middle">H</forename><surname>Witten</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,253.22,404.89,145.10,7.77">ACM SIGKDD Explorations Newsletter</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="10" to="18" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,415.85,337.98,7.77;8,150.95,426.81,326.84,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,388.13,415.85,92.46,7.77;8,150.95,426.81,164.08,7.77">Gender differences in language use: An analysis of 14,000 text samples</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">L</forename><surname>Newman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">J</forename><surname>Groom</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">D</forename><surname>Handelman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,321.16,426.81,72.96,7.77">Discourse Processes</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="211" to="236" />
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,437.77,337.98,7.77;8,150.95,448.73,204.71,7.77" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="8,323.59,437.77,157.00,7.77">Linguistic inquiry and word count: LIWC</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">E</forename><surname>Francis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">J</forename><surname>Booth</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001">2001. 2001</date>
+			<publisher>Lawrence Erlbaum Associates</publisher>
+			<biblScope unit="volume">71</biblScope>
+			<pubPlace>Mahway</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,459.69,337.98,7.77;8,150.95,470.65,64.51,7.77" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<title level="m" coord="8,208.01,459.69,221.75,7.77">The Secret Life of Pronouns: What Our Words Say About Us</title>
+		<imprint>
+			<publisher>Bloomsbury Publishing</publisher>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,481.60,337.98,7.77;8,150.95,492.56,329.64,7.77;8,150.95,503.52,294.10,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,379.99,481.60,100.60,7.77;8,150.95,492.56,94.20,7.77">Overview of the 3rd author profiling task at pan 2015</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,174.86,503.52,117.33,7.77">CLEF 2015 Labs and Workshops</title>
+		<title level="s" coord="8,298.67,503.52,85.63,7.77">Notebook Papers. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Gareth</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">San</forename><surname>Juan</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.61,514.48,337.98,7.77;8,150.95,525.44,329.64,7.77;8,150.95,536.40,95.71,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,353.70,514.48,126.89,7.77;8,150.95,525.44,14.55,7.77">Effects of age and gender on blogging</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,187.10,525.44,289.32,7.77">AAAI Spring Symposium: Computational Approaches to Analyzing Weblogs</title>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="199" to="205" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,547.36,338.35,7.77;8,150.95,558.32,166.11,7.77" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,367.61,547.36,109.29,7.77">New support vector algorithms</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">J</forename><surname>Smola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">C</forename><surname>Williamson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">L</forename><surname>Bartlett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,150.95,558.32,73.47,7.77">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1207" to="1245" />
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,569.28,338.35,7.77;8,150.95,580.23,99.62,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,203.30,569.28,178.37,7.77">Machine learning in automated text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,387.31,569.28,93.28,7.77;8,150.95,580.23,29.39,7.77">ACM Computing Surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="47" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,591.19,338.35,7.77;8,150.95,602.15,282.90,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,197.14,591.19,283.45,7.77;8,150.95,602.15,70.28,7.77">Personality in 100,000 words: A large-scale analysis of personality and word use among bloggers</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Yarkoni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,227.16,602.15,123.02,7.77">Journal of Research in Personality</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="363" to="373" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

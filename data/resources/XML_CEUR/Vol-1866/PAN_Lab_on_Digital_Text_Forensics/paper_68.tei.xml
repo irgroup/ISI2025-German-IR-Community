@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,145.04,115.90,325.27,12.90;1,223.43,136.13,168.50,10.75">Author Masking using Sequence-to-Sequence Models Notebook for PAN at CLEF 2017</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,236.92,172.92,59.09,8.64"><forename type="first">Oleg</forename><surname>Bakhteev</surname></persName>
+							<email>bahteev@ap-team.ru</email>
+						</author>
+						<author>
+							<persName coords="1,315.38,172.92,63.05,8.64"><forename type="first">Andrey</forename><surname>Khazov</surname></persName>
+							<email>hazov@ap-team.ru</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">Antiplagiat CJSC</orgName>
+								<address>
+									<settlement>Moscow</settlement>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Institute of Physics and Technology (MIPT)</orgName>
+								<orgName type="institution">Moscow</orgName>
+								<address>
+									<settlement>Moscow</settlement>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff2">
+								<orgName type="institution">Antiplagiat CJSC</orgName>
+								<address>
+									<settlement>Moscow</settlement>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,145.04,115.90,325.27,12.90;1,223.43,136.13,168.50,10.75">Author Masking using Sequence-to-Sequence Models Notebook for PAN at CLEF 2017</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">F84297F4D148DF66C9814C8C14589A9A</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:50+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The paper describes the approach adopted for Author Masking Task at PAN 2017. For the purpose of masking the original author, we use the combination of methods based either on deep learning approach or traditional methods of obfuscation. We obtain sample of obfuscated sentences from original one and choose best of them using language model. We try to change both the content and length of original sentence preserving its meaning.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction &amp; Related Work</head><p>PAN 2017 <ref type="bibr" coords="1,178.20,397.53,16.60,8.64" target="#b15">[16]</ref> is a series of tasks on digital text forensics, which is held as a part of the CLEF conference <ref type="bibr" coords="1,207.92,409.49,10.58,8.64" target="#b7">[8]</ref>. The main idea of one of the proposed tasks named author masking task <ref type="bibr" coords="1,169.34,421.44,11.62,8.64" target="#b4">[5]</ref> is to paraphrase a given document so that its writing style does not match that of its original author, anymore. Training corpus consists of set of documents from the same author. One of these documents should be obfuscated. Quality of suggested software is verified by following metrics:</p><p>safety -a forensic analysis does not reveal the original author of its obfuscated texts, soundness -obfuscated texts are textually entailed with their originals, sensibleness -obfuscated texts are inconspicuous.</p><p>The related tasks that were proposed at PAN 2017 are author identification <ref type="bibr" coords="1,446.14,536.50,16.60,8.64" target="#b21">[21]</ref> and author profiling <ref type="bibr" coords="1,200.85,548.45,15.27,8.64" target="#b17">[18]</ref>. The evaluation of all the tasks is conducted using TIRA <ref type="bibr" coords="1,453.93,548.45,15.27,8.64" target="#b13">[14]</ref>, a service for data analysis tasks evaluation.</p><p>On PAN'16 conference <ref type="bibr" coords="1,249.29,572.75,16.60,8.64" target="#b14">[15]</ref> in "Author Obfuscation" task participants proposed three different ways for author masking. The first approach consists of translation text from the source language (English) into an intermediate language before it gets eventually translated back to English <ref type="bibr" coords="1,270.76,608.62,10.58,8.64" target="#b8">[9]</ref>. The main advantage of this method is a strong modification of the original text, the main disadvantages -a vast amount of untranslated words and weak semantic coherence of the resulted text. The second approach used in <ref type="bibr" coords="1,166.64,644.48,16.60,8.64" target="#b10">[11]</ref> is to synonymize the most frequent words of original text. This approach keeps the original meaning of the text in most of cases, but gives a small amount of modifications of the original text. The third approach combines strong context modification with preserving the original sense <ref type="bibr" coords="2,296.11,131.27,15.27,8.64" target="#b11">[12]</ref>. This algorithm is based on different types of text obfuscation and gave the best result by the metrics used in the contest.</p><p>Statistical and context features are used in modern detecting authorship approaches, for example in GLAD <ref type="bibr" coords="2,228.91,167.13,10.58,8.64" target="#b6">[7]</ref>. In our solution we try to obfuscate both of them. We use both traditional methods for author masking, such as synonimizing and splitting/joining sentences and obtain some modern methods based on recurrent neural networks. Using deep neural networks we took into account the papers <ref type="bibr" coords="2,352.50,203.00,16.42,8.64" target="#b12">[13,</ref><ref type="bibr" coords="2,368.92,203.00,12.31,8.64">19,</ref><ref type="bibr" coords="2,381.23,203.00,12.31,8.64" target="#b22">22,</ref><ref type="bibr" coords="2,393.54,203.00,8.21,8.64" target="#b3">4,</ref><ref type="bibr" coords="2,401.75,203.00,12.31,8.64" target="#b16">17,</ref><ref type="bibr" coords="2,414.07,203.00,12.31,8.64" target="#b20">20]</ref> on the use of recurrent neural networks in paraphrase generation and detection. We use LSTM-based model <ref type="bibr" coords="2,162.16,226.91,16.60,8.64" target="#b20">[20]</ref> in Encoder-Decoder fashion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Proposed Approach</head><p>Our approach is based on per-sentence obfuscation. At the first step we split text into sentences. After that we try to paraphrase sentences using methods described below. We paraphrase each sentence until Jaccard similarity score between set of tokens from an original s original sentence and an obfuscated s obfuscated sentence is less than threshold θ or unless we tested all the obfuscation methods for the original sentence:</p><formula xml:id="formula_0" coords="2,209.77,349.91,270.82,23.56">J(s original , s obfuscated ) = |s original ∩ s obfuscated | |s original ∪ s obfuscated | ≤ θ.<label>(1)</label></formula><p>All of the described obfuscation methods works with one or two sentences. Priority of using obfuscation methods is based on statistics of its previous successful appliance -we try to make the distribution of methods usage close to uniform since different methods of obfuscation can mask different style features of the original text. Therefore infrequently used approaches apply first for new sentences.</p><p>The methods we use to obfuscate sentences can be divided into 2 groups:</p><p>1. Methods that change the content of the sentences, trying to save the sense. 2. Methods that change the structure and length of the sentences.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Changing the Structure and Length of the Original Text</head><p>We use different types of changing sentences length. As a part of preprocessing, we replace short forms for long ones: words ended with 'll, 've, 'm, etc. replaces with their long forms -will, have, am, etc.</p><p>Our main approach of changing text length is to split and join sentences. As a trigger of splitting we use rather simple heuristic: we try to split sentences by coordinating (and, but) and subordinating (because, since, so, therefore) conjunctions. As a method of joining sentences we use the following rule: we can join sentences using the same conjunctions if both sentence have rather small length, we use range between 30 and 150 chars for this constraint.</p><p>The third method we used is an adjustment or removal introductory phrases from sentences. We use only general meaning phrases such as it is important to note that, anyway, in fact, also, etc.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Changing Content of the Original Text</head><p>We use two methods of changing content of the sentence. Synonym replacing. First method is based on traditional synonimizing idea, where some words of the input sentence are replaced by their synonyms. However, instead of using existing dictionaries or ontologies we use word embedding as a source of synonimizing. We generate subsample set of k different combinations from nearest words lists and take best of generated sentence by the language model score.</p><p>Let (w 1 , . . . , w n ) be a sequence of word embeddings from the sentence. For each word w i except stopwords we take k nearest words by cosine similarity: v i = (w i1 , . . . , w ik ). We generate s sentences s 1 , . . . , s s sampling from v i words instead of original word w i . After that we find the sampled sentence with the maximal language model score:</p><formula xml:id="formula_1" coords="3,245.70,280.85,231.02,17.02">s obfuscated = arg max s∈{s1,...,ss} LM(s), (<label>2</label></formula><formula xml:id="formula_2" coords="3,476.72,281.19,3.87,8.64">)</formula><p>where LM is a logarithm of language model probability <ref type="bibr" coords="3,359.12,305.93,15.27,8.64" target="#b9">[10]</ref>.</p><p>For our experiments we used k = 5 and s = 100. The language model was trained on 3-grams from Shakespeare's Sonnets corpus from Project Gutenberg <ref type="bibr" coords="3,418.07,329.84,10.58,8.64" target="#b0">[1]</ref>. In our opinion the original author style will be masked because this procedure gives best scores for sentences, nearest to Shakespeare style. We did not use language model of higher order because of small size of the corpus.</p><p>Encoder-Decoder approach. Another method is based on LSTM recurrent neural network. The basic LSTM model can be described with the following equations:</p><formula xml:id="formula_3" coords="3,249.24,421.44,231.35,39.57">i t = σ(θ xi x t + θ hi h t-1 + b i ), f t = σ(θ xf x t + θ hf h t-1 + b f ), o t = σ(θ xo x t + θ ho h t-1 + b o ),<label>(3)</label></formula><formula xml:id="formula_4" coords="3,232.38,466.27,248.21,54.51">c in = tanh(θ xc x t + θ hc h t-1 + b c ), c t = f t • c t-1 + i t • c in , h t = o t • tanh(c t ), g(h t-1 , w t-1 , c t-1 ) = h t .<label>(4)</label></formula><p>We train our model in Encoder-Decoder way <ref type="bibr" coords="3,335.83,532.43,16.60,8.64" target="#b20">[20,</ref><ref type="bibr" coords="3,352.43,532.43,12.45,8.64">19]</ref> with modification of LSTM described in <ref type="bibr" coords="3,185.67,544.39,15.49,8.64" target="#b20">[20]</ref>: we decompose our model into Encoder model and Decoder model.</p><p>Encoder recursively combines the sequence of word embeddings w 1 , . . . , w n into a fixed-length vector h n-1 :</p><formula xml:id="formula_5" coords="3,250.99,586.88,113.38,12.69">h t = g e (h e t-1 , w t-1 , c e t-1 ),</formula><p>where g e is a stack of LSTM functions, h e t-1 is a hidden state, c e t-1 is a cell state vector. Decoder tries to reproduce the input sequence w 1 , . . . , w n by hidden vector sequence h e n-1 , . . . , h e 1 and vector c:</p><formula xml:id="formula_6" coords="3,247.93,654.05,121.23,12.69">ŵt = f d (h d t-1 , ŵt-1 , c d t-1 , c),</formula><p>where g d is a stack of LSTM functions, h d t-1 is a hidden state, c d t-1 is a cell state vector, c is a cell state vector from the last step of the encoder.</p><p>Encoder and Decoder models are jointly trained in order to minimize reconstruction error:</p><formula xml:id="formula_7" coords="4,273.56,161.99,68.97,30.32">n i=1 ||w i -ŵi || 2 .</formula><p>For the end of sentence determination we added "End of sentence" token to our embedding model so that in general the length of our original sentence s original and the obfuscated sentence s obfuscated may differ. Further we use reproduced sequence ŵ1 , . . . , ŵno the same way as we use in our synonym replacing approach (2), where n o is the number of tokens before "End of sentence" token.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Evaluation</head><p>We considered two automatic metrics for evaluating final obfuscation. For the sensibleness evaluation we used average language model score from KenLM language model <ref type="bibr" coords="4,162.94,320.73,10.58,8.64" target="#b5">[6]</ref>. The language model from our obfuscation method differs from the model we use for evaluation: whenever we used model trained on Shakespeare corpus for obfuscation, the model for the evaluation was trained on Wikipedia corpus. Therefore despite the fact we tried to mask the original author style using Shakespeare style, during the evaluation step we considered how the obfuscated text fitted into common English language.</p><p>For the safety evaluation we used the similar method as described in <ref type="bibr" coords="4,424.55,392.46,15.49,8.64" target="#b11">[12]</ref>: we measured how much the prediction from GLAD <ref type="bibr" coords="4,310.68,404.41,11.62,8.64" target="#b6">[7]</ref> author verification system changed. We used random forest classifier in GLAD.</p><p>We did not consider any automatic metric for the soundness and used peer review.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiment Details and Results</head><p>On preprocessing step we used the NLTK toolbox <ref type="bibr" coords="4,347.79,484.10,11.62,8.64" target="#b1">[2]</ref> to extract separate sentences from the original text. We used FastText library <ref type="bibr" coords="4,333.09,496.05,11.62,8.64" target="#b2">[3]</ref> for word embedding. Our model was trained on the latest dump of Wikipedia corpus, with word vector dimension equal to 300. For the recurrent neural network training we used Seq2Seq library<ref type="foot" coords="4,428.06,518.29,3.49,6.05" target="#foot_0">1</ref> also trained on Wikipedia corpus. Based on peer review we set θ = 0.75 in (1). We used 2-layer LSTM as it showed better results than 1-layer model. Our average language model score for sensibleness was -99.4 ± 61.9 whenever the score for the original sentences was -79.4 ± 55.8. As we can see, the scores are rather close since the means of distributions lie in the range of the standard deviations of each other.</p><p>The average change in GLAD probabilities is -0.11 ± 0.22. The number of correctly verified texts was lowered after obfuscation from 189 to 153. We observe that our obfuscation method works successfully and lowers the verification probabilities for the obfuscated texts.</p><p>An example of our obfuscation method is listed in table 3. As we can see, the obfuscated sentences obtained by Encoder-Decoder can lead to some grammatical errors. However, the significant part of the sentences we viewed was grammatically correct. The other interesting feature of the sentences with synonym replacement and Encoder-Decoder method is an appearance of word "scabbard" in obfuscated sentences. We consider it is a result of using Shakespeare corpus in the final sentence scoring (2). Table <ref type="table" coords="5,255.29,209.45,3.36,8.06">1</ref>. An example of our method usage</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Method</head><p>Obfuscated sentences Original</p><p>The quick brown fox jumps over the lazy dog. The five boxing wizards jump quickly with knifes. Synonym replacing The rapid reddish fox grabs over the sloppy terrier. The five boxer spellcasters jumper quickly with scabbard. Encoder-Decoder The better brown fox tosses overlapped in scary pig even. The Seven boxing superhero trampolining eventually with scabbard. Introductory words All in all, the quick brown fox jumps over the lazy dog. In a word, the five boxing wizards jump quickly with knifes. Join sentences The quick brown fox jumps over the lazy dog, because the five boxing wizards jump quickly with knifes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>The paper describes our system for the PAN 2017 Author Masking Task. Our main approach based on using recurrent neural networks for text obfuscation. Also we use more traditional methods of obfuscation, such as synonimizing and changing statistical text features. We used language model for selection best masking result. Further development includes improving obfuscation quality of seq2seq model by tuning its parameters and taking into consideration many other heuristics.</p></div>			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,144.73,657.08,150.72,7.77"><p>https://github.com/farizrahman4u/seq2seq</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,142.61,527.94,234.26,7.77;5,150.95,538.90,153.87,7.77" xml:id="b0">
+	<monogr>
+		<ptr target="http://www.gutenberg.org/wiki/Main_Page" />
+		<title level="m" coord="5,150.96,527.94,63.57,7.77">Project Gutenberg</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,549.39,336.34,7.77;5,150.95,560.35,213.27,7.77" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="5,257.69,549.39,221.26,7.77;5,150.95,560.35,97.40,7.77">Natural language processing with Python: analyzing text with the natural language toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bird</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Klein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Loper</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<publisher>O&apos;Reilly Media, Inc</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,570.83,325.55,7.77;5,150.95,581.79,191.31,7.77" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,333.00,570.83,135.16,7.77;5,150.95,581.79,40.87,7.77">Enriching word vectors with subword information</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1607.04606</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,142.61,592.28,328.21,7.77;5,150.95,603.24,272.97,7.77" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">R</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Vilnis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jozefowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1511.06349</idno>
+		<title level="m" coord="5,430.98,592.28,39.84,7.77;5,150.95,603.24,122.55,7.77">Generating sentences from a continuous space</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,142.61,613.72,323.23,7.77;5,150.95,624.68,230.53,7.77" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<title level="m" coord="5,173.36,624.68,208.12,7.77">Working Notes Papers of the CLEF 2017 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,635.17,324.03,7.77;5,150.95,646.13,329.38,7.77;5,150.95,657.08,312.16,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,199.26,635.17,182.68,7.77">KenLM: faster and smaller language model queries</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Heafield</surname></persName>
+		</author>
+		<ptr target="https://kheafield.com/papers/avenue/kenlm.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,399.90,635.17,66.74,7.77;5,150.95,646.13,234.50,7.77">Proceedings of the EMNLP 2011 Sixth Workshop on Statistical Machine Translation</title>
+		<meeting>the EMNLP 2011 Sixth Workshop on Statistical Machine Translation<address><addrLine>Edinburgh, Scotland, United Kingdom</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2011-07">July 2011</date>
+			<biblScope unit="page" from="187" to="197" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,119.96,318.93,7.77;6,150.95,130.92,322.94,7.77;6,150.95,141.88,307.12,7.77;6,150.95,152.84,308.20,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,393.56,119.96,67.98,7.77;6,150.95,130.92,251.17,7.77">GLAD: Groningen Lightweight Authorship Detection-Notebook for PAN at CLEF 2015</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hürlimann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Weck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Van Den Berg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Šuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Nissim</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,294.64,141.88,163.43,7.77;6,150.95,152.84,78.86,7.77">CLEF 2015 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Jones</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>San Juan</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Toulouse, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-09">8-11 September. Sep 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,163.81,325.79,7.77;6,150.95,174.77,318.86,7.77;6,150.95,185.73,302.83,7.77;6,150.95,196.68,132.24,7.77" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">J F</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Lawless</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gonzalo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Goeuriot</surname></persName>
+		</author>
+		<title level="m" coord="6,210.72,174.77,259.10,7.77;6,150.95,185.73,239.53,7.77">Experimental IR Meets Multilinguality, Multimodality, and Interaction -8th International Conference of the CLEF Association, CLEF 2017</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Mandl</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename></persName>
+		</editor>
+		<meeting><address><addrLine>Dublin, Ireland</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017">September 11-14, 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,207.65,279.04,7.77;6,150.95,218.61,316.15,7.77;6,150.95,229.57,325.94,7.77;6,150.95,240.53,319.77,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,332.49,207.65,89.16,7.77;6,150.95,218.61,168.16,7.77">Author Masking through Translation-Notebook for PAN at CLEF 2016</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Keswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Trivedi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Mehta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Majumder</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1609/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,228.65,229.57,244.53,7.77">CLEF 2016 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Évora, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-09">5-8 September. Sep 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,251.50,324.13,7.77;6,150.95,262.46,76.46,7.77" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Koehn</surname></persName>
+		</author>
+		<title level="m" coord="6,189.99,251.50,110.43,7.77">Statistical Machine Translation</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+	<note>1st edn.</note>
+</biblStruct>
+
+<biblStruct coords="6,142.24,273.43,334.37,7.77;6,150.95,284.39,297.55,7.77;6,150.95,295.35,327.04,7.77;6,150.95,306.31,307.21,7.77;6,150.95,317.27,101.86,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,383.47,273.43,93.14,7.77;6,150.95,284.39,242.21,7.77">Author Obfuscation using WordNet and Language Models-Notebook for PAN at CLEF 2016</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mansoorizadeh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Rahgooy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Aminiyan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eskandari</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1609/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,321.29,295.35,156.71,7.77;6,150.95,306.31,85.58,7.77">CLEF 2016 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Évora, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-09">5-8 September. Sep 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,328.24,286.50,7.77;6,150.95,339.20,316.93,7.77;6,150.95,350.16,327.04,7.77;6,150.95,361.11,307.21,7.77;6,150.95,372.07,101.86,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,150.95,339.20,261.59,7.77">SU@PAN&apos;2016: Author Obfuscation-Notebook for PAN at CLEF 2016</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mihaylova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Karadjov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kiprov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Georgiev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Koychev</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1609/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,321.29,350.16,156.71,7.77;6,150.95,361.11,85.58,7.77">CLEF 2016 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Évora, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-09">5-8 September. Sep 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,383.04,304.07,7.77;6,150.95,394.00,325.15,7.77;6,150.95,404.96,114.55,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,256.33,383.04,189.97,7.77;6,150.95,394.00,32.76,7.77">Siamese recurrent architectures for learning sentence similarity</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mueller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Thyagarajan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,201.43,394.00,257.79,7.77">Proceedings of the Thirtieth AAAI Conference on Artificial Intelligence</title>
+		<meeting>the Thirtieth AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<publisher>AAAI Press</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="2786" to="2792" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,415.93,318.55,7.77;6,150.95,426.89,318.49,7.77;6,150.95,437.85,329.64,7.77;6,150.95,448.81,318.18,7.77;6,150.95,459.77,308.41,7.77;6,150.95,470.73,215.67,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,409.87,415.93,50.92,7.77;6,150.95,426.89,318.49,7.77;6,150.95,437.85,57.89,7.77">Improving the Reproducibility of PAN&apos;s Shared Tasks: Plagiarism Detection, Author Identification, and Author Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,220.71,448.81,248.42,7.77;6,150.95,459.77,291.41,7.77">Information Access Evaluation meets Multilinguality, Multimodality, and Visualization. 5th International Conference of the CLEF Initiative (CLEF 14)</title>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lupu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Clough</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sanderson</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Hall</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Hanbury</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Toms</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014-09">Sep 2014</date>
+			<biblScope unit="page" from="268" to="299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,481.70,326.51,7.77;6,150.95,492.66,311.47,7.77;6,150.95,503.61,251.16,7.77;6,150.95,514.57,101.86,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,277.48,481.70,191.26,7.77;6,150.95,492.66,83.28,7.77">Author Obfuscation: Attacking the State of the Art in Authorship Verification</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1609/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,252.07,492.66,206.43,7.77">Working Notes Papers of the CLEF 2016 Evaluation Labs</title>
+		<title level="s" coord="6,150.95,503.61,172.47,7.77">CEUR Workshop Proceedings, CLEF and CEUR</title>
+		<imprint>
+			<date type="published" when="2016-09">Sep 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,525.54,334.92,7.77;6,150.95,536.50,315.97,7.77;6,150.95,547.46,324.88,7.77;6,150.95,558.42,317.88,7.77;6,150.95,569.38,325.13,7.77;6,150.95,580.34,20.92,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,432.45,525.54,44.71,7.77;6,150.95,536.50,262.32,7.77">Overview of PAN&apos;17: Author Identification, Author Profiling, and Author Obfuscation</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,150.95,558.42,317.88,7.77;6,150.95,569.38,162.70,7.77">Experimental IR Meets Multilinguality, Multimodality, and Interaction. 8th International Conference of the CLEF Initiative (CLEF 17)</title>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Jones</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Lawless</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Gonzalo</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2017-09">Sep 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,591.31,334.76,7.77;6,150.95,602.27,317.38,7.77" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="6,411.52,591.31,65.47,7.77;6,150.95,602.27,166.77,7.77">Neural paraphrase generation with stacked residual lstm networks</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Prakash</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Datla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Qadir</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Farri</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1610.03098</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,142.24,613.24,321.83,7.77;6,150.95,624.20,267.72,7.77;6,134.77,635.17,7.47,7.77" xml:id="b17">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<title level="m" coord="6,210.55,624.20,208.12,7.77;6,134.77,635.17,7.47,7.77">Working Notes Papers of the CLEF 2017 Evaluation Labs 19</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,635.17,311.79,7.77;6,150.95,646.13,314.16,7.77;6,150.95,657.08,314.33,7.77;7,150.95,119.96,133.75,7.77" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,376.32,635.17,77.70,7.77;6,150.95,646.13,206.78,7.77">Dynamic pooling and unfolding recursive autoencoders for paraphrase detection</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">H</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">Y</forename><surname>Ng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="s" coord="6,349.22,657.08,116.06,7.77;7,150.95,119.96,70.99,7.77">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Shawe-Taylor</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><forename type="middle">S</forename><surname>Zemel</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><forename type="middle">L</forename><surname>Bartlett</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Pereira</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">K</forename><forename type="middle">Q</forename><surname>Weinberger</surname></persName>
+		</editor>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="801" to="809" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,286.95,119.96,112.05,7.77;7,150.95,130.92,321.87,7.77;7,150.95,141.88,102.14,7.77" xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>Curran Associates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Inc</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/4204-dynamic-pooling-and-unfolding-recursive-autoencoders-for-paraphrase-detection.pdf" />
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,152.84,327.72,7.77;7,150.95,163.80,281.44,7.77" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="7,279.55,152.84,186.51,7.77">Sequence to sequence learning with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,163.16,163.80,183.22,7.77">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="page" from="3104" to="3112" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,174.76,317.59,7.77;7,150.95,185.71,315.65,7.77;7,150.95,196.67,151.56,7.77" xml:id="b21">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<title level="m" coord="7,412.29,185.71,54.32,7.77;7,150.95,196.67,151.56,7.77">Working Notes Papers of the CLEF 2017 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,207.63,330.34,7.77;7,150.95,218.59,272.76,7.77" xml:id="b22">
+	<monogr>
+		<title level="m" type="main" coord="7,328.30,207.63,144.27,7.77;7,150.95,218.59,41.43,7.77">Towards universal paraphrastic sentence embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wieting</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bansal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Gimpel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Livescu</surname></persName>
+		</author>
+		<idno>CoRR abs/1511.08198</idno>
+		<ptr target="http://arxiv.org/abs/1511.08198" />
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

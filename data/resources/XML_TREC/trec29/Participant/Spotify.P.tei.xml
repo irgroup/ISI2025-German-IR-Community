@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,90.40,135.46,431.21,9.73;1,268.30,160.37,75.40,9.73">Spotify at the TREC 2020 Podcasts Track: Segment Retrieval</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,176.01,199.19,60.94,6.76"><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Massachuse s Amherst</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,249.05,199.19,81.76,6.76"><forename type="first">Jussi</forename><surname>Karlgren</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Massachuse s Amherst</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,342.92,199.19,84.56,6.76"><forename type="first">Hamed</forename><surname>Bonab</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Massachuse s Amherst</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,162.76,217.12,45.13,6.76"><forename type="first">Ann</forename><surname>Cli</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Massachuse s Amherst</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,376.93,217.12,66.95,6.76"><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Massachuse s Amherst</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,90.40,135.46,431.21,9.73;1,268.30,160.37,75.40,9.73">Spotify at the TREC 2020 Podcasts Track: Segment Retrieval</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">4E9D3B43886F7F00D340C4D159D9C321</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this notebook paper, we present the details of baselines and experimental runs of the segment retrieval task in TREC 2020 Podcasts Track. As baselines, we implemented traditional IR methods,i.e. BM25 and QL, and the neural re-ranking BERT model pre-trained on MS MARCO passage re-ranking task. We also detail experimental runs of the re-ranking model fine-tuned on additional external data sets from (1) crowdsourcing, (2) automatically generated questions, and (3) episode title-description pairs.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The TREC 2020 Podcasts track 1 included an an Adhoc Segment Retrieval task <ref type="bibr" coords="1,183.41,483.35,12.79,5.14" target="#b5">[6]</ref>. High-quality search of topical content of podcast episodes is challenging. Existing podcast search engines index the available metadata fields for the podcast as well as textual descriptions of the show and episode, but these descriptions o en fail to cover the salient aspects of the content <ref type="bibr" coords="1,164.02,564.65,13.53,5.14" target="#b1">[2]</ref>. Improving and extending podcast search is limited by the availability of transcripts and the cost of automatic speech recognition. Therefore, this year's task is set to fixedlength segment retrieval: given an arbitrary query (a phrase, sentence, or set of words), retrieve topically relevant segments from the data. These segments can then be used as a basis for topical retrieval, for visualization, or other downstream purposes <ref type="bibr" coords="1,94.05,686.59,11.51,5.14" target="#b4">[5]</ref>. Figure <ref type="figure" coords="1,149.49,686.59,5.07,5.14">1</ref> shows an example of the retrieval topics. &lt;topic&gt; &lt;num&gt;34&lt;/num&gt; &lt;query&gt;halloween stories and chat&lt;/query&gt; &lt;type&gt;topical&lt;/type&gt; &lt;description&gt;I love Halloween and I want to hear stories and conversations about things people have done to celebrate it. I am not looking for information about the history of Halloween or generalities about how it is celebrated, I want specific stories from individuals. &lt;/description&gt; &lt;/topic&gt; Figure <ref type="figure" coords="1,360.74,687.19,4.09,5.63">1</ref>: An example of the retrieval topics.</p><p>In this notebook paper, we describe the details of our submissions to the TREC Podcasts Track 2020. Based on the task guidelines, a segment, for the purposes of the document collection, is a twominute chunk with one minute overlap and starting on the minute; e.g. 0.0-119.9 seconds, 60.0-179.9 seconds, 120.0-239.9 seconds, etc. This creates 3.4M segments in total from the document collection with the average word count of 340 ± 70. These segments will be used as passage units and the retrieved passage is then judged by assessors. We have implemented two baseline models as well as three experimental runs. The baselines are traditional IR models and neural re-ranking from the top-N passages. The experimental runs used the re-ranking model fine-tuned on various synthetic or external data labels from the data corpus (Table <ref type="table" coords="2,65.06,321.54,3.58,5.14" target="#tab_0">1</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Information Retrieval Baselines</head><p>We implemented as baselines the standard retrieval models 25 and query likelihood ( ), using the Pyserini package 2 , built on top of the open-source Lucene 3 search library. Stemming was performed using the Porter stemmer. The models 25 and are used with Anserini's default parameters. 4  We created two document indexes, one with transcript segments only and the other with title and descriptions concatenated to each transcript segment. For each topic, there is a short query phrase and a sentence-long description. The short query phrase was used as the query term for searching the index. Up to the top 1000 passages were submi ed in runs on the 50 test topics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Neural re-ranking baseline</head><p>The BERT re-ranking system is the current stateof-the-art in search <ref type="bibr" coords="2,413.09,125.38,11.51,5.14" target="#b7">[8]</ref>. It been implemented for passage and document ranking systems on many document collections, including MS-MARCO <ref type="bibr" coords="2,531.59,152.47,11.51,5.14" target="#b0">[1]</ref>, TREC-CAR <ref type="bibr" coords="2,363.82,166.02,16.37,5.14" target="#b3">[4]</ref>, and Robust04 <ref type="bibr" coords="2,452.26,166.02,11.51,5.14" target="#b2">[3]</ref>.</p><p>The system can be described as two main stages. First, a large number of possibly relevant documents to a given question are retrieved from a corpus by a standard mechanism, such as BM25. In the second stage, passage re-ranking, each of these documents is scored and re-ranked by a more computationally-intensive method.</p><p>The job of the re-ranker is to estimate a score of how relevant a candidate passage is to a query . The query and passage pair is fed into the model as sentence A and sentence B with BERT tokenization 5 . The query was truncated to have at most 128 tokens, and the passage text was truncated so that the concatenation of query, passage, and separator tokens stays within the maximum length of 512 tokens. To evaluate how much the segments could be truncated, we used the organizer-provided 8-topic 609-example "training" sets as our evaluation examples. Using topic descriptions (with avg. 39 tokens) as sentence A, 13% (82 out of 609) of segment texts are truncated and 37 ± 27 tokens are removed in 82 truncated texts.</p><p>A BERT-LARGE model was used as a binary classification model, that is, the [CLS] vector was used as input to a single layer neural network to obtain the probability of the passage being relevant. The pre-trained BERT model was fine-tuned on MS MARCO dataset with 400M tuples of a query, relevant and non-relevant passages with point-wise cross-entropy loss:</p><formula xml:id="formula_0" coords="2,354.08,590.87,192.86,21.53">= - ∈ log( ) -(1 -) log(1 -)) (1)</formula><p>where J is the set of indices of the passages in top documents retrieved with BM25.</p><p>The model learned that knowledge of querydocument relevance can be transferred to other 2 h ps://github.com/castorini/pyserini -a Python front end to the Anserini open-source information retrieval toolkit <ref type="bibr" coords="2,65.06,695.80,16.46,4.69" target="#b12">[13]</ref> .</p><p>3 h ps://lucene.apache.org  Another nontrivial question is whether we should use the phrase-like query or sentence-like description of the topic as the input to the reranking model. For exploration purposes, we prepared two baseline runs using query and description, denoted as RERANK-QUERY and RERANK-DESC respectively. The top 50 passages retrieved by BM25 <ref type="foot" coords="4,105.56,238.16,3.71,3.75" target="#foot_0">6</ref> were scored and re-ranked for each test topic. We submi ed the top-50 re-ranked passages for test topics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Fine-tuning</head><p>One of the the limitations of BERT re-ranking is that it is trained on MS Marco dataset, which is di erent in the domain and topics from podcast ranking. The models have not seen the corpus even once. Therefore, we performed more fine-tuning on the re-ranking models with external and synthetic examples as described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1">Crowd-sourced labels</head><p>One of challenges for a new dataset is the limited set of labeled training data. The TREC 2020 Podcasts Track organizers provided 609 training labels for 8 topics. But these examples are too few to train a reasonable model from scratch. Therefore, we developed 30 more topics in the same format as the training/test topics <ref type="foot" coords="4,149.67,539.75,3.71,3.75" target="#foot_1">7</ref> , and use the those eight "training" topic as our validation topics. We collected the union of the top-20 segments from BM25 and QL model and fed the examples to a crowd-sourcing tool Appen<ref type="foot" coords="4,113.97,593.94,3.71,3.75" target="#foot_2">8</ref> . We thus obtained 919 relevance labels on the Excellent-Good-Fair-Bad (EGFB) scale (denoted as 3,2,1,0 respectively) from crowd-sourced annotators for those 30 development topics. The distribution of labels is shown in Figure <ref type="figure" coords="4,250.01,650.72,3.74,5.14" target="#fig_1">2</ref>. The 4point scale labels were transformed to binary labels (EG to one, FB to zero) and then fed into the BERT binary classification model. The topic description was chosen as the sentence A in the BERT model. The model is fine-tuned from the baseline model for 10 epochs using the AdamW Optimizer <ref type="foot" coords="4,517.53,142.82,3.71,3.75" target="#foot_3">9</ref> . The retrieval setup is similar to the neural re-ranking baselines, but we submi ed the run as BERT-DESC-S with the scores computed from this fine-tuned model (the 'S' is DESC-S is for "supervised"). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Automatically Generated estions</head><p>In an a empt to generate large amounts of training data for domain adaption and further fine-tuning to our podcast corpus content, we leveraged the recently introduced doc2query model <ref type="bibr" coords="4,484.95,528.78,16.34,5.14" target="#b9">[10]</ref>. The authors used existing MS-MARCO dataset in the reverse order; given a document generate the query. A sequence-to-sequence model is trained using the MS-MARCO's relevant passages along with the relevant query questions. The trained model is expected to produce a list of relevant questions (or queries) given a passage. The original doc2query model was trained from scratch on a Transformer neural model <ref type="bibr" coords="4,383.98,650.72,16.34,5.14" target="#b11">[12]</ref>. The authors further improved the question generation model using a pre-trained text-to-text model, named T5 <ref type="bibr" coords="5,196.50,265.68,17.93,5.14" target="#b10">[11]</ref>, using the same training data. It has shown be er performance on downstream retrieval tasks and the model is denoted as docTTTTTquery <ref type="bibr" coords="5,173.64,306.33,15.63,5.14" target="#b8">[9]</ref>. Along with the strategy of feeding the reranking model with additional data from the current corpus, we propose a few-shot tuning method using the automatically generated questions as synthetic queries, with their source-passages as the corresponding relevant documents. The scheme is shown in Figure <ref type="figure" coords="5,140.43,407.59,3.74,5.14" target="#fig_2">3</ref>. For each topic, we first retrieve the top-50 segments using BM25, then we generate 5 queries or questions using the docTTTTTquery model for each segment. These question-segment pairs are treated as positive labels for fine-tuning the BERT model. The negative labels can be generated using di erent sampling strategies. Due to time limitations, we implemented only one strategy for this experiment. For each segment retrieved per query, we randomly sample 5 questions generated by other segments but within the same topic. The reasoning for this strategy is that the generated negative questions should be close to the positive questions but still distinguishable from one segment to another segment. An example of generated questions and labels is shown in Figure <ref type="figure" coords="5,274.66,610.83,3.74,5.14" target="#fig_3">4</ref>.</p><p>The retrieval setup is similar to neural reranking baselines. We fine-tuned the BERT reranking model using the synthetic examples as described above on the test topics. A er fine-tuning, we used the scores using the topic description and segment text from this fine-tuned model and submi ed the run as BERT-DESC-Q.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.3">Title and Description</head><p>Unlike other corpora, the podcast dataset contains plentiful metadata which is extracted from RSS feed of the podcast episodes. The metadata, especially the text title and description, could contain important information about the episode. More importantly, many named entities which could be mistranscibed by the automatic speech recognition system are wri en in description. Therefore, linking the episode title and description to the transcripts could potentially help named entity matching in the re-ranking models.</p><p>We pre-process the episode title and description the same way as the topic query and description. We first cleaned non-topical content in the title and description, e.g. .5, 4 3, 5 patterns in titles using a regular expression<ref type="foot" coords="5,495.26,519.82,7.41,3.75" target="#foot_5">10</ref> as well as advertisements and links in descriptions. Then, we use the cleaned episode title as a search query, calculating the BM25 ranking score for each segment within the episode. Then, we input the episode description as sentence A to BERT re-ranking model. The top-3 ranked segments by BM25 score were used as positive labels and the bo om-3 at 50th ranked segments were used as negative labels. The model was fine-tuned on the 100K examples randomly sampled from the synthetic examples above. Similarly to other experiments, the top-50 segments by ranking score were selected and submitted for the test topics. This submission is called BERT-DESC-TD. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Extension: Search with Full Transcript</head><p>In order to understand the benefits from searching on transcript content as compared to only on title and descriptions. We have conducted a set of experiments on a document-level retrieval task. The task is to rank the podcast episode given a search query. We convert judged query segment annotations using = max( 1 , 2 , ..., ) to document relevance, which is the maximum of the relevance score of the segments in the given document.</p><p>The episode's title, episode's title with description, episode's title with description plus show's title with description, episodes' transcript, and episode's transcript with title and description are indexed, respectively. We performed the document-level search task using 50 test topics and the standard retrieval model 25. The results are shown in Table <ref type="table" coords="6,135.19,565.46,3.74,5.14" target="#tab_2">2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>According to the document-level search results in Table <ref type="table" coords="6,92.94,649.93,3.74,5.14" target="#tab_2">2</ref>, the episode description entails more relevant information than episode title. Searching on combined episode title and description outperforms searching on individuals. This means episode title and description are mutually supportive and supplementary. However, adding information of show title and description does not help search re-sult significantly. It is because we are measuring the episode level relevance in this metric, and show level information may bring false positive signals to the search results. In another word, the episodes in a relevant show may not be all relevant to the search query. Instead, the transcript containing the details of content information significantly improves the search result. The result shows the advantage of transcript search against regular search on episode title and description. When all information, transcript, title and description, are used, we can achieve the best retrieval performance.</p><p>The submi ed runs on 50 test topics from the systems were evaluated by the NIST assessors. The annotation depth was 20 across di erent runs. Based on the annotation depth and submi ed runs, we use NDCG@10 and NDCG@20 as our evaluation metrics. The results are shown in Table <ref type="table" coords="6,359.41,541.53,3.74,5.14" target="#tab_1">3</ref>. The neural re-ranking baselines significantly outperforms traditional IR methods. Reranking on topic query and topic description get similar mean scores. However, in order to understand the distribution of score on individual topics, we plot the score for RERANK-DESC and RERANK-QUERY models in Figure <ref type="figure" coords="6,480.33,622.83,3.74,5.14" target="#fig_5">5</ref>. The ranking on topic description tends to push extreme score from RERANK-QUERY to center. In another word, even though the mean nDCG cross topics are same for both model, the variance of RERANK-DESC is lower. Reranking on topic description has more resistances to extreme queries. However, the three experimental runs do not show significant di erence against the re-ranking baseline on description.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>We have presented the details of our TREC 2020 Podcasts Track segment retrieval task submissions.</p><p>Our experiments included baseline runs using traditional information retrieval methods and neural re-ranking baseline using BERT models pre-trained for a similar task. We also provide three experimental runs by fine-tuning the re-ranking with various synthetic labels. Even if the performance of the fine-tuned models did not improve compared to the neural baseline models, we have been able to calibrate our approach for more general deployment and lay the ground for experimentation on next year's task, where we plan to direct our attention not only at the re-ranking stage using language models but also at the improving the 1ststage recall-based retrieval models.</p><p>TREC </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,79.11,717.35,346.43,9.34;2,79.11,729.31,176.83,7.05;2,166.49,764.75,265.13,5.63;3,65.06,46.08,202.44,5.63;3,467.57,46.08,65.48,5.63;3,71.03,229.03,20.04,5.63;3,154.99,229.03,56.97,5.63;3,346.94,229.03,48.19,5.63;3,346.94,243.48,21.47,5.63;3,407.09,229.03,68.25,5.63;3,71.03,258.32,29.08,5.63;3,154.99,258.32,180.00,5.63;3,154.99,272.77,180.00,5.63;3,154.99,287.22,19.13,5.63;3,346.94,258.32,28.55,5.63;3,407.09,258.32,50.19,5.63;3,407.09,272.77,21.48,5.63;3,71.03,302.06,15.02,5.63;3,169.90,302.06,165.09,5.63;3,154.99,316.51,63.18,5.63;3,346.94,302.06,28.55,5.63;3,407.09,302.06,50.19,5.63;3,407.09,316.51,21.48,5.63;3,71.03,331.35,48.10,5.63;3,71.03,345.80,37.69,5.63;3,154.99,331.35,180.00,5.63;3,154.99,345.80,180.00,5.63;3,154.99,360.24,108.94,5.63;3,346.94,331.35,28.55,5.63;3,407.09,331.35,50.19,5.63;3,407.09,345.80,21.48,5.63;3,71.03,375.09,48.10,5.63;3,71.03,389.53,29.06,5.63;3,154.99,375.09,180.00,5.63;3,154.99,389.53,180.00,5.63;3,154.99,403.98,121.66,5.63;3,346.94,375.09,48.19,5.63;3,346.94,389.53,39.20,5.63;3,346.94,403.98,19.59,5.63;3,407.09,375.09,50.19,5.63;3,407.09,389.53,21.48,5.63;3,71.03,418.82,263.95,5.63;3,154.99,433.27,180.00,5.63;3,154.99,447.71,140.39,5.63;3,346.94,418.82,48.19,5.63;3,346.94,433.27,39.20,5.63;3,346.94,447.71,19.59,5.63;3,407.09,418.82,50.19,5.63;3,407.09,433.27,21.48,5.63;3,71.03,462.56,63.75,5.63;3,71.03,477.00,8.86,5.63;3,154.99,462.56,180.00,5.63;3,154.99,477.00,180.00,5.63;3,154.99,491.45,180.00,5.63;3,154.99,505.90,47.14,5.63;3,346.94,462.56,48.19,5.63;3,346.94,477.00,39.20,5.63;3,346.94,491.45,19.59,5.63;3,407.09,462.56,50.19,5.63;3,407.09,477.00,21.48,5.63;3,71.03,520.74,63.75,5.63;3,70.45,535.19,14.94,5.63;3,154.99,520.74,180.00,5.63;3,154.99,535.19,180.00,5.63;3,154.99,549.63,180.00,5.63;3,154.99,564.08,81.07,5.63;3,346.94,520.74,48.19,5.63;3,346.94,535.19,39.20,5.63;3,346.94,549.63,19.59,5.63;3,407.09,520.74,50.19,5.63;3,407.09,535.19,21.48,5.63"><head>4 25 2 Segment</head><label>42</label><figDesc>parameter se ings = 0.9, = 0.4; se ing for Dirichlet smoothing = 1000 5 BERT tokenization is based on WordPiece. TREC 2020 Podcasts Track Segment Retrieval -Page query) + BERT reranking model (using the query of the topic as the input) -S Same as RERANK-DESC except that the re-ranking model was fine-tuned on extra crowdas RERANK-DESC except that the re-ranking model was fine-tuned on synthetic data from generated questions query + description Transcript only BERT-DESC-TD Same as RERANK-DESC except that the re-ranking model was fine-tuned on synthetic data from episode title and descriptions query + description Transcript only</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,320.17,389.07,226.78,5.63;4,320.17,403.51,226.78,5.63;4,320.17,417.96,119.89,5.63;4,325.56,223.50,216.00,146.75"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Counts of crowd-sourced relevance labels for 30 development topics. (3:Excellent,2:Good,1:Fair,0:Bad)</figDesc><graphic coords="4,325.56,223.50,216.00,146.75" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,106.74,230.49,398.53,5.63;5,144.00,84.36,324.01,127.32"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Scheme of re-ranking model with few-shots tuning on generate queries.</figDesc><graphic coords="5,144.00,84.36,324.01,127.32" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,65.06,243.82,481.89,5.63;6,65.06,258.27,105.00,5.63;6,144.00,84.36,324.00,140.65"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: An example of the generated questions and labels. The sentences related to positive questions are highlighted.</figDesc><graphic coords="6,144.00,84.36,324.00,140.65" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="6,166.49,764.75,265.13,5.63;7,65.06,46.08,202.44,5.63;7,467.57,46.08,65.48,5.63;7,65.06,91.21,226.77,5.14;7,65.06,104.76,226.77,5.14;7,65.06,118.31,226.77,5.14;7,65.06,131.86,226.77,5.14;7,65.06,145.41,183.10,5.14"><head></head><label></label><figDesc>TREC 2020 Podcasts Track Segment Retrieval -Page 6 Segment Retrieval for the Podcasts Track Yu et al. 2021And the model fine-tuned on crowd-sourced data performed slightly be er than other two. Possible reasons are (1) the ranking depth, which is 50, was set too shallow; (2) the negative sampling strategy should be be er designed and evaluated.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="7,65.06,497.66,226.77,5.63;7,65.06,512.10,226.77,5.63;7,65.06,526.55,226.77,5.63;7,65.06,540.99,226.77,5.63;7,65.06,555.44,59.97,5.63;7,70.44,166.22,215.99,312.62"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: nDCG@20 score di erence plot between RERANK-QUERY and RERANK-DESC for each individual topic. The arrow starts from RERANK-QUERY score and ends at RERANK-DESC score.</figDesc><graphic coords="7,70.44,166.22,215.99,312.62" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,166.49,587.75,265.13,182.63"><head>Table 1 :</head><label>1</label><figDesc>Run names and short descriptions.</figDesc><table /><note coords="3,166.49,764.75,265.13,5.63;4,65.06,46.08,202.44,5.63;4,467.57,46.08,65.48,5.63;4,65.06,91.21,226.77,5.14;4,65.06,104.76,226.77,5.14;4,65.06,118.31,226.77,5.14;4,65.06,131.86,103.22,5.14"><p>TREC 2020 Podcasts Track Segment Retrieval -Page 3 Segment Retrieval for the Podcasts Track Yu et al. 2021 similar datasets. Therefore, we implement the neural baselines using the BERT re-ranking model as described above by Nogueira et. al.[8] without further parameter-tuning.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="7,65.06,590.96,226.77,145.27"><head>Table 3 :</head><label>3</label><figDesc>Results of test topics across di erent runs.</figDesc><table coords="7,71.03,590.96,216.53,107.15"><row><cell>list of runs</cell><cell cols="2">nDCG@20 nDCG@10</cell></row><row><cell>BM25</cell><cell>0.386</cell><cell>0.366</cell></row><row><cell>QL</cell><cell>0.380</cell><cell>0.366</cell></row><row><cell>RERANK-QUERY</cell><cell>0.469</cell><cell>0.457</cell></row><row><cell>RERANK-DESC</cell><cell>0.469</cell><cell>0.459</cell></row><row><cell>BERT-DESC-S</cell><cell>0.473</cell><cell>0.461</cell></row><row><cell>BERT-DESC-Q</cell><cell>0.433</cell><cell>0.420</cell></row><row><cell>BERT-DESC-TD</cell><cell>0.464</cell><cell>0.456</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="7,197.63,764.75,233.99,5.63"><head>Table 2 :</head><label>2</label><figDesc>2020 Podcasts Track Segment Retrieval -Page 7 The contribution of transcripts compared to title search on document-level search results.</figDesc><table coords="8,65.06,46.08,202.44,5.63"><row><cell>Segment Retrieval for the Podcasts Track</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_0" coords="4,82.99,683.84,226.23,4.69"><p>Top passages were retrieved using the topic query only.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_1" coords="4,82.99,694.37,314.52,8.30"><p>To simplify the task, we included only topical topics, and not known-item.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_2" coords="4,82.99,707.75,97.38,4.69"><p>h ps://www.appen.com</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_3" coords="4,82.99,719.71,463.96,4.69;4,65.06,729.28,119.56,9.36"><p>Optimizer AdamW<ref type="bibr" coords="4,155.25,719.71,17.08,4.69" target="#b6">[7]</ref> is implemented using Transformers(h ps://github.com/huggingface/transformers) with the initial learning rate set to 1 ×</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="10" xml:id="foot_4" coords="4,196.10,727.57,8.01,6.25;4,207.09,731.67,149.03,4.69"><p>-6  and linear decay of the learning rate</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="10" xml:id="foot_5" coords="5,83.49,729.28,17.17,8.56;5,133.60,729.28,1.99,8.56;5,164.31,729.28,81.15,8.56"><p>( | | | | ) (.| -|) (|\ )\ +</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,88.94,288.68,202.89,5.14;8,88.93,302.23,202.90,5.14;8,88.93,315.77,202.90,5.14;8,88.93,329.32,202.90,5.14;8,88.93,342.87,202.90,5.14;8,88.93,354.39,202.90,9.71;8,88.93,369.97,22.69,5.14" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Payal</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.09268</idno>
+		<title level="m" coord="8,248.68,329.32,43.15,5.14;8,88.93,342.87,202.90,5.14;8,88.93,356.42,54.48,5.14">A Human Generated MAchine Reading COmprehension Dataset</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,88.94,395.93,202.89,5.14;8,88.93,409.47,202.90,5.14;8,88.93,423.02,202.90,5.14;8,88.93,436.57,202.90,5.14;8,88.93,448.09,202.90,9.71;8,88.93,461.64,202.90,9.71;8,88.93,477.22,202.89,5.14;8,88.93,490.77,52.62,5.14" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,130.68,409.47,161.15,5.14;8,88.93,423.02,143.83,5.14">An exploratory study of user goals and strategies in podcast search</title>
+		<author>
+			<persName coords=""><forename type="first">Jana</forename><surname>Besser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katja</forename><surname>Hofmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Martha</forename><forename type="middle">A</forename><surname>Larson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,88.93,448.09,202.90,9.71;8,88.93,461.64,74.85,9.71">Proceedings from the workshop Lernen, Wissen &amp; Adaptivität</title>
+		<editor>
+			<persName><forename type="first">Joachim</forename><surname>Baumeister</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Martin</forename><surname>Atzmüller</surname></persName>
+		</editor>
+		<meeting>from the workshop Lernen, Wissen &amp; Adaptivität</meeting>
+		<imprint>
+			<publisher>Germany</publisher>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+		<respStmt>
+			<orgName>LWA). Department of Computer Science, University of Würzburg</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,88.94,516.72,202.89,5.14;8,88.93,530.27,202.90,5.14;8,88.93,541.79,202.90,9.71;8,88.93,555.34,202.90,9.71;8,88.93,568.89,202.90,9.71;8,88.93,582.44,124.71,9.71" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,238.37,516.72,53.45,5.14;8,88.93,530.27,202.90,5.14;8,88.93,543.82,85.59,5.14">Deeper text understanding for ir with contextual neural language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,207.36,541.79,84.47,9.71;8,88.93,555.34,202.90,9.71;8,88.93,568.89,202.90,9.71;8,88.93,582.44,25.83,9.71">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="985" to="988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,88.94,610.42,202.89,5.14;8,88.93,623.97,202.90,5.14;8,88.93,635.49,202.90,9.71;8,88.93,649.04,202.90,9.71;8,88.93,664.62,202.90,5.14;8,88.93,678.17,146.20,5.14" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,234.17,610.42,57.65,5.14;8,88.93,623.97,202.90,5.14;8,88.93,637.52,108.23,5.14">Filip Radlinski, and Nick Craswell. TREC Complex Answer Retrieval Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Manisha</forename><surname>Verma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,229.81,635.49,62.02,9.71;8,88.93,649.04,202.90,9.71;8,88.93,664.62,106.84,5.14">TREC 2017) Proceedings, NIST Special Publication</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note>The 26th Text Retrieval Conference</note>
+</biblStruct>
+
+<biblStruct coords="8,88.94,704.12,202.89,5.14;8,88.93,717.67,202.90,5.14;8,88.93,731.22,202.90,5.14;8,344.05,261.68,202.90,9.71;8,344.05,275.23,202.90,9.71;8,344.05,290.81,22.69,5.14" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,124.77,717.67,167.06,5.14;8,88.93,731.22,198.95,5.14">New metrics for meaningful evaluation of informally structured speech retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Walid</forename><surname>Magdy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Gareth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,357.59,261.68,189.36,9.71;8,344.05,275.23,156.20,9.71">Proceedings of the 34th European Conference on Information Retrieval (ECIR)</title>
+		<meeting>the 34th European Conference on Information Retrieval (ECIR)</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,344.05,316.79,202.89,5.14;8,344.05,330.34,202.90,5.14;8,344.05,343.89,202.90,5.14;8,344.05,357.43,53.15,5.14;8,417.18,357.43,129.76,5.14;8,344.05,368.95,202.89,9.71;8,344.05,382.50,202.89,9.71;8,344.05,398.08,202.90,5.14;8,344.05,411.63,78.57,5.14" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,417.18,357.43,129.76,5.14;8,344.05,370.98,37.05,5.14">TREC 2020 podcasts track overview</title>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Cartere E</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Cli On</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">F</forename><surname>Gareth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,399.03,368.95,147.92,9.71;8,349.70,382.50,197.24,9.71;8,344.05,398.08,31.82,5.14">TREC 2020) Proceedings, NIST Special Publication</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note>The 29th Text Retrieval Conference</note>
+</biblStruct>
+
+<biblStruct coords="8,344.05,437.61,202.89,5.14;8,344.05,449.13,202.90,9.71;8,344.05,462.68,98.84,9.71" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Loshchilov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Frank</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Er</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1711.05101</idno>
+		<title level="m" coord="8,498.93,437.61,48.01,5.14;8,344.05,451.16,126.36,5.14">Decoupled weight decay regularization</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,344.05,490.69,202.89,5.14;8,344.05,502.21,202.90,9.71;8,344.05,515.76,98.84,9.71" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<title level="m" coord="8,527.64,490.69,19.30,5.14;8,344.05,504.24,123.68,5.14">Passage re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,344.05,543.77,202.89,5.14;8,344.05,557.32,202.90,5.14;8,344.05,568.84,94.41,9.71" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="8,380.08,557.32,161.51,5.14">From doc2query to docTTTTTquery</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">I</forename><surname>Epistemic</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Online preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,344.05,596.85,202.89,5.14;8,344.05,610.40,102.66,5.14;8,463.30,610.40,83.65,5.14;8,344.05,623.95,122.39,5.14;8,483.18,621.92,63.77,9.71;8,344.05,635.47,98.84,9.71" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="8,463.30,610.40,83.65,5.14;8,344.05,623.95,118.02,5.14">Document expansion by query prediction</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.08375</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,344.05,663.48,202.89,5.14;8,344.05,677.02,202.90,5.14;8,344.05,690.57,202.90,5.14;8,344.05,704.12,202.90,5.14;8,344.05,715.64,202.90,9.71;8,344.05,729.19,196.65,9.71" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,344.05,704.12,202.90,5.14;8,344.05,717.67,148.37,5.14">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Colin Ra</forename><surname>El</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,503.15,715.64,43.80,9.71;8,344.05,729.19,119.17,9.71">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,88.94,91.21,202.89,5.14;9,88.93,104.76,202.90,5.14;9,88.93,118.31,202.90,5.14;9,88.93,129.83,202.90,9.71;9,88.93,143.38,181.43,9.71" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,249.70,118.31,42.13,5.14;9,88.93,131.86,61.33,5.14">A ention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,170.09,129.83,121.73,9.71;9,88.93,143.38,100.96,9.71">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,344.05,91.21,202.89,5.14;9,344.05,104.76,202.90,5.14;9,344.05,116.28,202.90,9.71;9,344.05,129.83,202.90,9.71;9,344.05,143.38,202.90,9.71;9,344.05,156.93,85.70,9.71" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,344.05,104.76,202.90,5.14;9,344.05,118.31,125.37,5.14">Anserini: Enabling the use of Lucene for information retrieval research</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,495.55,116.28,51.39,9.71;9,344.05,129.83,202.90,9.71;9,344.05,143.38,202.90,9.71;9,344.05,156.93,56.23,9.71">Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

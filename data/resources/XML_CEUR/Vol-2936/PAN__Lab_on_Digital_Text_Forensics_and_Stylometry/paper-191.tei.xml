@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,375.57,15.42;1,89.29,106.66,234.46,15.42;1,89.29,129.00,157.29,11.96">Multi-label Style Change Detection by Solving a Binary Classification Problem Notebook for PAN at CLEF 2021</title>
+				<funder ref="#_JGe5sx8">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,154.90,64.09,11.96"><forename type="first">Eivind</forename><surname>Strøm</surname></persName>
+							<email>stromeivind@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Norwegian University of Science and Technology</orgName>
+								<address>
+									<addrLine>Høgskoleringen 1</addrLine>
+									<postCode>7491</postCode>
+									<settlement>Trondheim</settlement>
+									<country key="NO">Norway</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,375.57,15.42;1,89.29,106.66,234.46,15.42;1,89.29,129.00,157.29,11.96">Multi-label Style Change Detection by Solving a Binary Classification Problem Notebook for PAN at CLEF 2021</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">F70C6A40366D8692BD88E3E5EE4CAC89</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Style change</term>
+					<term>Multi-authorship</term>
+					<term>Binary classification</term>
+					<term>Stacking ensemble</term>
+					<term>BERT</term>
+					<term>NLP</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Style change detection is an important area of research with many applications, including plagiarism detection, digital forensics, and authorship attribution. This paper proposes a solution to the three sub-tasks for the PAN 2021 shared task on style change detection, featuring a challenging multi-label multi-output classification problem. We devise a pragmatic approach to the problem, solving it by binary classification before obtaining final predictions. A custom stacking ensemble is developed and trained separately on previously successful text embeddings and features for increased performance. Our solution achieves a macro-averaged F1-score of 0.7954 for single-and multi-author classification and is the best performing solution submitted for task 1. On task 2, we obtain a score of 0.7069 when detecting author change between paragraphs. For multi-label author attribution, our solution achieves a score of 0.4240 and performs significantly better than the random baseline. Being a pragmatic solution to a novel problem in the series of PAN tasks on style change detection, our approach offers several opportunities for further research.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The task of quantifying writing style has been a challenging task since the 19th century, beginning with the pioneering study by Mendenhall <ref type="bibr" coords="1,337.24,456.89,12.84,10.91" target="#b0">[1]</ref> on Shakespeare plays. This area of research, stylometry, has several modern-day applications, including forensics, plagiarism detection and the linking of social media accounts <ref type="bibr" coords="1,305.24,483.99,11.24,10.91" target="#b1">[2,</ref><ref type="bibr" coords="1,318.47,483.99,7.49,10.91" target="#b2">3]</ref>. In this paper, we examine a fundamental and challenging question within the field of stylometry: Given a document, can we find evidence for the document being written by multiple authors, and are we able to attribute paragraphs to respective authors based on their writing style?</p><p>Style change detection was introduced as a shared task for the PAN 2017 event, with the goal of identifying the border positions where authorship changes <ref type="bibr" coords="1,392.05,551.74,11.58,10.91" target="#b3">[4]</ref>. The results, however, proved the task to be extremely challenging. As a result, the task was significantly relaxed for the following years. First simplified as a binary classification task, the goal was detecting whether a document is single-or multi-authored <ref type="bibr" coords="1,315.07,592.38,11.58,10.91" target="#b4">[5]</ref>. As participants obtained encouraging results and accuracies of up to 0.8993, the task was further expanded to detecting the exact number of authors within a document <ref type="bibr" coords="2,254.39,86.97,12.69,10.91" target="#b5">[6]</ref> and identifying style changes between two consecutive paragraphs <ref type="bibr" coords="2,141.99,100.52,11.43,10.91" target="#b6">[7]</ref>.</p><p>This paper proposes a solution to the PAN 2021 shared task on style change detection, which has been steered back towards its original goal: detecting the position of authorship change and assigning each paragraph to its respective author <ref type="bibr" coords="2,328.45,141.16,11.37,10.91" target="#b7">[8]</ref>. We propose a pragmatic solution by which the multi-label multi-output classification problem is first solved by binary classification before recursively converted to its original formulation. For classification, we employ several custom-built stacking ensembles that are trained on textual features and embeddings that have been proven effective in previous tasks. Our solution is the best performing submitted solution to task 1 and the second best on task 2. On task 3, our model performs significantly better than random guesses. Lastly, we release our project code for reproducibility and aid in further research: https://github.com/eivistr/pan21-style-change-detection-stacking-ensemble</p><p>The rest of the paper is structured as follows. Section 2 provides an overview of the sub-tasks, dataset and evaluation. The methodology and details of our approach are presented in section 3. Section 4 and section 5 present the experimental setting and final results. Lastly, section 6 summarizes our findings and proposes directions for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background</head><p>The shared PAN 2021 style change detection task is split into three sub-tasks <ref type="bibr" coords="2,433.36,348.83,11.56,10.91" target="#b7">[8]</ref>:</p><p>1. Given a text, find out whether it is written by a single or multiple authors. 2. Given a multi-authored text that contains a number of style changes between paragraphs, find the position of the changes. 3. Given a multi-authored text, assign all paragraphs of the text uniquely to some author out of the number of authors you assume for the document.</p><p>Of these sub-tasks, task 1 and 2 are the same as the previous year's edition of the style change task <ref type="bibr" coords="2,110.82,459.93,11.58,10.91" target="#b6">[7]</ref>. However, this year the dataset provided is slightly different and does not contain a separation of wide and narrow topic collections. The overall structure of the task is illustrated by Figure <ref type="figure" coords="2,134.08,487.03,3.74,10.91" target="#fig_0">1</ref>.</p><p>The dataset consists of a single collection of documents, where each document is based on a user post (or concatenation of several user posts) from the StackExchange<ref type="foot" coords="2,411.85,512.38,3.71,7.97" target="#foot_0">1</ref> network, covering a wide range of topics. The dataset is split into a training and validation set comprising 11, 200 and 2, 400 documents, respectively. The documents in the training and validation set contain anywhere between 1 and 4 unique authors and the dataset is balanced in terms of number of authors per document.</p><p>Evaluation of the solution is performed on a test set consisting of 2, 400 documents and scored by the macro averaged F1-score. As we do not have the test set and test labels available during development, our solution is evaluated on the available validation set. Final test results are obtained through submission to the TIRA evaluation platform <ref type="bibr" coords="2,384.19,622.52,11.43,10.91" target="#b8">[9]</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methodology</head><p>This section describes the methodology of our proposed solution. First, we present the feature extraction process fundamental to our approach. Secondly, we describe the stacking ensemble classifier and our reasoning behind this choice of architecture. Lastly, we present our approach to solving the tasks as binary classification problems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Feature extraction</head><p>For feature extraction we rely on two methods that have been successfully applied in previous tasks: generating textual embeddings using Google AI's BERT transformer <ref type="bibr" coords="3,421.69,459.51,17.85,10.91" target="#b9">[10]</ref> and extracting textual features and statistics based on the winning submission of the PAN 2018 task <ref type="bibr" coords="3,465.75,473.06,16.17,10.91" target="#b10">[11]</ref>. Features are extracted in two rounds, firstly at the document level (for use in task 1) and secondly on the paragraph level, i.e., for each individual paragraph (task 2 and 3). In the following, we summarize the important points of the feature extraction approach, for further details we refer to the work of Iyer and Vosoughi <ref type="bibr" coords="3,239.29,527.25,17.91,10.91" target="#b11">[12]</ref> and Zuo et al. <ref type="bibr" coords="3,323.73,527.25,16.25,10.91" target="#b12">[13]</ref>.</p><p>Text embeddings: We follow the approach of Iyer and Vosoughi <ref type="bibr" coords="3,380.51,554.35,17.91,10.91" target="#b11">[12]</ref> for obtaining embedded text features. Firstly, tokenized sentences appropriate for generating embeddings using the BERT model are generated by splitting each paragraph into sentences before tokenizing. Prior to splitting, paragraphs are pre-processed by the removal of noisy '. ', '?' and '!' characters to ensure that prefixes, suffixes, website domains, acronyms, abbreviations, and digits do not introduce incomplete sentences. After processing, sentences are tokenized and embedded using the BERT Base Cased model, <ref type="foot" coords="3,170.31,633.89,3.71,7.97" target="#foot_1">2</ref>   length. We follow the recommended approach and sum the embeddings of the last four layers to obtain an 𝑙 × 768 tensor, and further sum over the first dimension to obtain sentence-level embeddings. While summing rather than averaging can lead to large discrepancies between sentences of different lengths, sentence length can be an important factor for style detection and is likely important to capture <ref type="bibr" coords="4,241.09,380.31,16.25,10.91" target="#b11">[12]</ref>.</p><p>Converting sentence embeddings to paragraphs is achieved by adding each sentence embedding to produce a final paragraph feature vector of size 1 × 768. Although, Iyer and Vosoughi <ref type="bibr" coords="4,89.29,420.95,17.91,10.91" target="#b11">[12]</ref> achieves best performance by normalizing paragraph embeddings by sentence count, we achieve slightly higher performance by simply summing each vector. Document embeddings are obtained by summation of the containing paragraph embeddings and normalization by the document sentence count.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Text features:</head><p>To extract text features that characterize writing style, we extract the same features as Zuo et al. <ref type="bibr" coords="4,184.22,502.25,17.91,10.91" target="#b12">[13]</ref> and Zlatkova et al. <ref type="bibr" coords="4,290.09,502.25,17.91,10.91" target="#b10">[11]</ref> on the paragraph level:</p><p>1. Character-based lexical features: The number of each distinct special character, spaces, punctuation, parentheses and quotation marks as separate features. 2. Sentence-and word-based features: Distribution of POS-tags, token length, number of sentences, sentence length, average word length, words in all-caps and counts of words above and below 2-3 and 6 characters as separate features.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Contracted word forms: Count of preference towards one type of contraction, e.g. "I'm"</head><p>versus "I am". The total number of occurrences of contractions and fully written forms are used as separate features. 4. Function words: The frequency of each function word is counted and used as a separate feature. We use the same list as Zuo et al. <ref type="bibr" coords="4,313.99,648.58,17.91,10.91" target="#b12">[13]</ref> which is a combination of previously by Hugging Face: https://huggingface.co/transformers/model_doc/bert.html defined words and the function word list from the NLTK<ref type="foot" coords="5,368.59,85.21,3.71,7.97" target="#foot_2">3</ref> library. 5. Readability indexes obtained using the Python Textstat<ref type="foot" coords="5,352.34,100.86,3.55,7.10" target="#foot_3">4</ref> library: Flesch reading ease score, Dale-Chall readability score, SMOG grade, Flesch-Kincaid grade, Coleman-Liau index, Gunning-Fog index, automated readability index and the Linsear Write readability metric. Additionally, we count the number of difficult words and keep all indexes as separate features.</p><p>Features are both extracted and saved per paragraph, before summed per document to obtain both paragraph-and document-level features. A total of 478 features per document and per paragraph.<ref type="foot" coords="5,137.41,201.73,3.71,7.97" target="#foot_4">5</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Stacking ensemble classifier</head><p>The idea behind using a stacking ensemble for classification is to combine the learning capabilities of multiple classifiers and reduce overall bias. Preliminary experiments showed that LightGBM, a state-of-the-art gradient boosting tree for classification <ref type="bibr" coords="5,403.09,280.31,16.41,10.91" target="#b13">[14]</ref>, trained on the extracted text features outperformed models trained on BERT-embeddings. Furthermore, training on both BERT-embeddings and text features did not improve upon solely using text features. We hypothesized that training two sets of classifiers separately on each feature vector would allow the classifiers to obtain more discriminatory power on each vector. Thus, we train classifiers on text features and BERT-embeddings separately and combine their predictions by a meta-learner, i.e., a stacking ensemble architecture. Figure <ref type="figure" coords="5,284.35,361.61,4.97,10.91" target="#fig_2">3</ref> presents an overview of the classification process for each task, and how the ensemble for each task consists of two sets of classifiers. More details on how each task is structured as binary classification is presented in the next subsection.</p><p>Our architecture is that of stacking with 𝑘-fold cross validation to avoid target leakage from base level classifiers to the meta-learner <ref type="bibr" coords="5,298.51,415.81,16.41,10.91" target="#b14">[15]</ref>. The meta-learner trains on 𝑘 out-of-fold predictions produced by the base level classifiers and is evaluated on the validation set. We use LightGBM as our state-of-the-art classifier in all ensembles and select the best three Scikitlearn classifiers for each feature vector on each task. The exact configuration of the ensemble architecture is dependent on the task and we describe it in further detail in section 4.</p><p>Stacking ensembles have frequently been the winner of Kaggle competitions, in which avoiding overfitting to the training set is crucial for winning chances. Our results on the test set show a marginal decrease in performance compared to the validation set on task 2 and 3, and even improved performance on task 1. This indicates that we have been successful in avoiding overfitting to the training data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Classification approach</head><p>With a pragmatic mindset we solve each task as binary classification. This requires some combination and processing of extracted text features and embeddings. An overview of the  approach is provided by Figure <ref type="figure" coords="6,230.20,425.20,3.74,10.91" target="#fig_2">3</ref>.</p><p>Task 1: Classifying single-or multi-author documents is achieved by classification on the document-level features already obtained in the feature extraction process. In this case, we have one feature vector per document and label and classify each document as being either single-or multi-authored. Previous research finds that classification on document-level features generally works very well when identifying the presence of style changes in documents <ref type="bibr" coords="6,487.96,506.50,18.02,10.91" target="#b10">[11]</ref> and multi-authored documents <ref type="bibr" coords="6,227.62,520.05,16.10,10.91" target="#b11">[12]</ref>. This is further supported by our high performance (macro F1-score of 0.7954) on task 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task 2:</head><p>To classify author change between two consecutive paragraphs, we combine the features of the two considered paragraphs to obtain the feature vector and classify an author change. This approach is similar to that of Iyer and Vosoughi <ref type="bibr" coords="6,326.54,587.79,16.25,10.91" target="#b11">[12]</ref>. Experimentation shows that, when considering text embeddings, addition of the two feature vectors yields the best result. For text features, we find that concatenating the arrays produce significantly better results than addition.</p><p>Reasons for this could be that addition of the feature vectors simply average out the differences in the paragraphs, while concatenation keeps the features for each paragraph separate and, thus, provide more discriminative power. Keep in mind that this doubles the text feature vector to a size of 1 × 956. This formulation results in a total of 𝑛 -1 cases for each document where  As a reviewer points out in retrospect, we could have used task 1 predictions to first predict whether a document is single-or multi authored before obtaining task 2 predictions, as we do on task 3. We find this would have resulted in a performance increase of roughly 0.02 on task 2. Unfortunately, we did not implement this before the submission deadline as our focus was on solving task 3, being the novel task on style change detection.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task 3 (binary):</head><p>To assign paragraphs uniquely to all authors, we realize that we can pose this as a binary classification problem by asking whether any pair of paragraphs in the same document are written by the same author. In other words, we need to compare each paragraph to every other paragraph in a document and convert the provided multi-author label into a binary label. This implies (︀ 𝑁</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>2</head><p>)︀ = 1 2 (𝑛 -1)𝑛 cases for a document with 𝑛 paragraphs. To classify two paragraphs, we combine their features in the same way as for task 2, i.e., addition of embeddings and concatenation of text features. The approach of classifying whether two paragraphs have the same author turns out to be very effective and achieves similar performance to that of task 2. However, the challenge becomes assigning each paragraph to its unique author in the multi-author multi-label setting.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task 3 (multi-label):</head><p>To obtain final multi-label predictions and assign each paragraph a unique author per document we devise a recursive strategy, using our task 1 and task 3 binary predictions. The process is detailed as an algorithm in Figure <ref type="figure" coords="7,376.95,652.72,3.81,10.91" target="#fig_4">4</ref>. Firstly, we use our task 1 classifier to determine whether we believe the document is single-or multi-authored. Documents classified as single-authored are assigned author 1 for all paragraphs. Secondly, in any given multi-authored document, the first paragraph is always assigned to author 1. Continuing, we compare the second paragraph with the first and determine the probability that it is authored by the same author, i.e., using our task 3 binary classification. If the probability is greater than 0.5, paragraph two is assigned to author 1, otherwise we assign it to author 2. Paragraph 3 is compared to both paragraph 1 and 2, and we assign its author to the most similar author that we previously determined. If it is unsimilar to both, we assign paragraph 3 to a new author. At some point we might have assigned paragraphs to all 4 authors, at which point we continue by assigning paragraphs by the most similar paragraph even though all previous paragraphs could have similarity scores below 0.5. This is a pragmatic approach, and there is certainly some information loss in this process. Especially for cases where there are errors on the first paragraphs as these will propagate and cause additional errors for later paragraphs. We did experiment with tuning the probability thresholds, however, this resulted in very minor performance improvements and we elected to keep similarity thresholds standard at 0.5. The improvement of this method is a suggested direction for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Experimental Setting</head><p>In this section we present details on the experimental setting. For training the ensemble we used 4-fold stratified cross validation. Processing the training dataset for binary classification yields a total of 8,400 positive (2,800 negative) training cases for task one, 35,416 positive (30,636 negative) cases for task 2 and 125,679 positive (154,082 negative) cases for task 3.</p><p>The stacking ensemble was trained with half of the base level classifiers on text embeddings and the other half on text features. The selection of classifiers for each task and feature vector was based on selecting the best performing classifiers with different underlying methods (not only tree and boosting methods). We relied on the scikit-learn library <ref type="bibr" coords="8,380.60,430.13,17.97,10.91" target="#b15">[16]</ref> for all classifiers except LightGBM and evaluated the following classifiers as candidates: Support Vector Machines, AdaBoost, Decision Trees, Random Forest, Extra Trees, Multi-layer Perceptron, k-Nearest Neighbors, Logistic Regression, Linear Discriminant Analysis and Bernoulli-and Gaussian Naive Bayes. Table <ref type="table" coords="8,176.38,484.32,5.08,10.91" target="#tab_2">1</ref> shows the final ensemble configuration and which classifiers are trained on each feature vector and each task. Note that we only used 6 classifiers for task 3 due to the larger dataset. Furthermore, due to initial size and performance restrictions using the TIRA submission platform <ref type="bibr" coords="8,185.99,524.97,11.58,10.91" target="#b8">[9]</ref>, we excluded the random forest classifier on task 3 which reduced validation performance by roughly 0.01. <ref type="foot" coords="8,269.04,536.76,3.71,7.97" target="#foot_5">6</ref>Hyperparameters was optimized for the LightGBM classifiers only, being the most important classifier in the ensemble. All other classifiers were trained with default parameters in the scikit-learn library, version 0.24.2. Given the large dataset, the tuning of 6-8 individual classifiers for each task was intractable given the scope and available resources. Furthermore, one could argue that optimization of each base level classifier is unnecessary as differences in bias is optimized by the meta-learner. LightGBM was optimized using the Optuna hyperparameter optimization framework <ref type="bibr" coords="8,197.85,633.36,16.08,10.91" target="#b16">[17]</ref>. We find that correcting for unbalanced datasets using LightGBMs "is_unbalance" parameter improves performance only on task 1 and 2. Preliminary experiments showed that reduction of the number of features based on LightGBMs feature importance reduced performance. Therefore, feature vectors were kept at their original size. Although common practice, we also found data scaling to reduce overall performance and was, thus, omitted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Results</head><p>In the following, we present the results obtained by our approach. In addition to the macro F1-score we provide the accuracy score to allow comparison of our results with the PAN 2020 style change detection sub-tasks. <ref type="foot" coords="9,235.64,410.28,3.71,7.97" target="#foot_6">7</ref>Table <ref type="table" coords="9,126.47,425.59,4.97,10.91" target="#tab_3">2</ref> shows the validation results for the best LightGBM and ensemble model on each task. The best validation scores are marked in bold, achieving a macro F1-score of 0.7828, 0.7107 and 0.4261 on task 1, 2, and 3, respectively. Our results indicate that the ensemble model is superior to the best LightGBM model for any combination of task and performance measure. On task 3, we compare the results to that of using a uniform random guesser instead of our binary classifier and find that the ensemble outperforms the random baseline by 0.1375 points. However, as expected there is a significant reduction in performance going from binary to multi-label predictions, especially in the macro F1-score. As for binary classification, the custom ensemble outperforms LightGBM. Note that the random guesser has slightly higher than 0.5 accuracy, as task 1 predictions are still used to classify single-authored documents and assign labels to these cases to obtain comparable results.</p><p>Table <ref type="table" coords="9,127.24,574.63,5.12,10.91" target="#tab_4">3</ref> shows our final test results after submitting and evaluating our model on the TIRA platform. We achieve final scores of 0.7954, 0.7069 and 0.4240 for tasks 1, 2, and 3, respectively. Our solution is the best performing solution among submitted solutions for task 1, and among top 3 for tasks 2 and 3. The test scores are similar to validation scores, and we observe a performance increase on task 1, indicating that our models have generalized well to the test set.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion and Future Work</head><p>In this paper, we propose a solution to the PAN 2021 shared task on style change detection, attempting to answer the question: Given a document, can we find evidence for the document being written by multiple authors, and are we able to attribute paragraphs to respective authors based on their writing style? Our solution provides encouraging results. We apply previously tested feature extraction methods and develop a custom stacking ensemble framework trained separately on different feature vectors. Furthermore, we propose a pragmatic solution to the difficult problem of multi-label multi-output classification by first solving a relaxed problem by binary classification.</p><p>We achieve macro F1-scores on the validation set of 0.7761 when classifying single-and multiauthored documents (task 1), and 0.7107 when detecting an author change between consecutive paragraphs (task 2). For multi-label author attribution (task 3), our solution achieves a score of 0.4261, significantly outperforming random guesses (0.2886). The relaxed formulation of task 3 achieves a macro F1-score of 0.7175. On the test set, our final submission scores are 0.7954, 0.7069, and 0.4240 for tasks 1, 2 and 3 respectively and our solution is the best performing solution on task 1 among other submitted solutions. Lastly, our results indicate that the use of stacking ensembles improves performance across reported metrics when compared to the optimized LightGBM model. We suggest interesting directions for future work:</p><p>1. The use of stacking ensembles yields small performance improvements considering the effort spent on building the models. Thus, we hypothesize that identifying additional key features is paramount for further improvements. 2. Given the reduced multi-label performance on task 3, there are likely opportunities to increase performance going from binary to multi-label predictions. Exploring the use of hierarchical classification or comparison of document paragraphs in unison (as opposed to recursive comparisons) would be interesting for further research and might significantly increase performance on task 3.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,293.67,290.27,8.93;3,89.29,84.19,416.69,196.91"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Illustration of PAN 2021 style change detection sub-tasks [8]</figDesc><graphic coords="3,89.29,84.19,416.69,196.91" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,288.51,216.12,8.93"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Overview of the feature extraction process</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="6,89.29,387.60,302.77,8.93"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Overview of the classification process using stacking ensembles</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="7,100.14,90.99,199.87,8.95;7,100.14,102.94,172.04,8.95;7,91.16,114.90,110.96,9.74;7,91.56,128.88,3.56,6.19;7,116.81,126.93,171.01,8.87;7,91.56,140.83,3.56,6.19;7,116.81,138.81,85.71,8.95;7,91.96,152.79,3.56,6.19;7,133.48,150.84,138.20,8.87;7,91.96,164.74,3.56,6.19;7,133.48,162.80,115.34,8.87;7,91.56,177.69,3.56,6.19;7,116.81,175.75,250.20,8.87;7,91.56,189.65,3.56,6.19;7,116.81,187.63,237.40,9.74;7,91.96,201.60,3.56,6.19;7,133.48,199.66,170.20,8.87;7,91.96,213.56,3.56,6.19;7,133.48,211.57,315.35,9.71;7,88.40,225.51,7.11,6.19;7,133.48,223.57,190.19,8.87;7,88.40,237.47,7.11,6.19;7,133.48,235.26,160.53,9.11;7,88.80,249.42,7.11,6.19;7,150.15,247.21,230.61,9.93;7,88.40,261.38,7.11,6.19;7,133.48,259.36,206.70,9.74;7,88.80,273.33,7.11,6.19;7,150.15,271.39,107.87,9.66;7,88.40,285.29,7.11,6.19;7,133.48,283.27,17.24,8.92;7,88.80,297.24,7.11,6.19;7,150.15,295.03,230.61,9.93;7,88.40,309.20,7.11,6.19;7,133.48,307.26,103.97,9.66;7,88.00,322.15,7.11,6.19;7,116.81,320.21,169.26,9.66"><head>Input: Binary predictions from task 1 and task 3 2 3 if single author then 4 Assign all paragraphs to author 1; 5 Continue to next document; 6 7 for 8 Initialize empty array of similarity scores; 9 Compare 16</head><label>32345678916</label><figDesc>Output: Multi-label predictions for task 3 1 for doc k in documents do Predict single-or multi-author document; Initialize empty array of paragraph labels, assign first label 1; each par i in doc k starting from the second paragraph do each prior paragraph with par i and predict same author probability; 10 Add probability prediction to similarity scores; 11 if 𝑚𝑎𝑥(𝑠𝑖𝑚𝑖𝑙𝑎𝑟𝑖𝑡𝑦𝑠𝑐𝑜𝑟𝑒𝑠) &gt; 0.5 then 12 Assign par i same author as arg max(𝑠𝑖𝑚𝑖𝑙𝑎𝑟𝑖𝑡𝑦𝑠𝑐𝑜𝑟𝑒𝑠); 13 else if number of assigned authors in doc k &lt; 4 then 14 Assign new author to par i ; 15 else Assign par i same author as arg max(𝑠𝑖𝑚𝑖𝑙𝑎𝑟𝑖𝑡𝑦𝑠𝑐𝑜𝑟𝑒𝑠); 17 Assign the author of par i ; 18 Save array of author predictions for doc k ;</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="7,89.29,344.13,302.12,8.93"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Recursive algorithm for obtaining task 3 multi-label predictions</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,177.22,635.65,328.77,10.91"><head></head><label></label><figDesc>generating a 12 × 𝑙 × 768 tensor for each sentence, where 𝑙 is the sentence</figDesc><table coords="4,93.99,88.78,403.32,172.40"><row><cell></cell><cell></cell><cell>12 x L x 768</cell><cell></cell><cell>1 x 768 vector per</cell></row><row><cell></cell><cell></cell><cell>tensor</cell><cell></cell><cell>sentence</cell></row><row><cell></cell><cell>Pre-process and split into sentences</cell><cell>BERT model</cell><cell cols="2">Sum over last 4 of 12 layers Sum over token count L</cell><cell>Sum sentence vectors per paragraph</cell><cell>Paragraph-level embeddings</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>Sum sentence</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>vectors per document</cell><cell>Document-level</cell></row><row><cell>Documents</cell><cell>Split into paragraphs</cell><cell></cell><cell></cell><cell></cell><cell>Normalize by sentence count</cell><cell>embeddings</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell>1 x 478 vector per</cell></row><row><cell></cell><cell></cell><cell cols="2">Text feature extraction</cell><cell>paragraph</cell><cell>Paragraph-level text features</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="2">Sum paragraph vectors</cell><cell>Document-level</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>per document</cell><cell>text features</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="9,88.99,90.49,418.53,158.96"><head>Table 1</head><label>1</label><figDesc>The stacking ensemble configuration for each task. Each stacking ensemble consists of 3-4 classifiers trained on embeddings and 3-4 classifiers trained on text features, i.e., 6-8 classifiers in each ensemble.</figDesc><table coords="9,124.41,134.06,340.48,115.39"><row><cell></cell><cell cols="4">LightGBM Random Forest MLP KNN BernoulliNB</cell></row><row><cell>Task 1 embeddings</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell></row><row><cell>Task 1 features</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell></row><row><cell>Task 2 embeddings</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell></row><row><cell>Task 2 features</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell><cell>✓</cell></row><row><cell>Task 3 embeddings</cell><cell>✓</cell><cell></cell><cell>✓</cell><cell>✓</cell></row><row><cell>Task 3 features</cell><cell>✓</cell><cell></cell><cell>✓</cell><cell>✓</cell></row><row><cell cols="4">Note: MLP: Multi-layer perceptron. KNN: k-nearest neighbors. NB: Naïve Bayes.</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="10,88.99,90.49,411.94,77.81"><head>Table 2</head><label>2</label><figDesc>Results on validation set. Task 3 binary results are preliminary to the final multi-label results.</figDesc><table coords="10,94.36,121.18,406.58,47.11"><row><cell></cell><cell>Task 1</cell><cell></cell><cell>Task 2</cell><cell cols="2">Task 3 (binary)</cell><cell cols="3">Task 3 (multi-label)</cell></row><row><cell cols="2">LGBM Ensemble</cell><cell cols="2">LGBM Ensemble</cell><cell cols="2">LGBM Ensemble</cell><cell cols="3">Random LGBM Ensemble</cell></row><row><cell>Macro F1 0.7761</cell><cell>0.7828</cell><cell>0.6783</cell><cell>0.7107</cell><cell>0.6968</cell><cell>0.7175</cell><cell>0.2886</cell><cell>0.4115</cell><cell>0.4261</cell></row><row><cell>Accuracy 0.8446</cell><cell>0.8475</cell><cell>0.6829</cell><cell>0.7141</cell><cell>0.7020</cell><cell>0.7209</cell><cell>0.5232</cell><cell>0.6232</cell><cell>0.6400</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="10,88.99,189.91,314.64,57.92"><head>Table 3</head><label>3</label><figDesc>Final results on the test set using the stacking ensembles on all tasks</figDesc><table coords="10,191.65,221.53,211.98,26.30"><row><cell></cell><cell>Task 1</cell><cell>Task 2</cell><cell>Task 3</cell></row><row><cell>Macro F1-score</cell><cell>0.7954</cell><cell>0.7069</cell><cell>0.4240</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,670.98,100.07,8.97"><p>https://stackexchange.com/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,108.93,660.07,397.06,8.97;3,89.29,671.03,416.69,8.97"><p>The BERT Base Cased model is case sensitive and configured with default parameters: layers=12, hidden size=768, self-attention heads=12, total parameters=110M. We use the transformers library for PyTorch provided</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="5,108.93,627.19,80.21,8.97"><p>https://www.nltk.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="5,108.93,638.15,118.72,8.97"><p>https://pypi.org/project/textstat/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="5,108.93,649.11,398.44,8.97;5,89.02,660.07,416.96,8.97;5,89.07,671.03,28.45,8.97"><p>We kindly thank a reviewer for pointing out that addition of readability indexes does not make intuitive sense. Thus, performance could potentially be further improved by more carefully combining the paragraph-level feature vectors.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="8,108.93,660.07,397.06,8.97;8,89.29,671.03,106.77,8.97"><p>Using random forest on task 3 resulted in model files upwards of 12GB and unreasonable memory usage due to the high dimensional data.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="9,108.93,660.06,397.29,8.97;9,89.29,671.02,85.35,8.97"><p>The PAN 2020 style detection tasks was evaluated by micro-averaged F1, which reduces to accuracy for binary classification problems.</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>This work was motivated by academic interests and undertaken as a project in the course <rs type="grantNumber">TDT4310</rs> -Intelligent Text Analytics and Language Understanding at the <rs type="institution">Norwegian University of Science and Technology in Trondheim</rs>. I would like to thank professor <rs type="person">Björn Gambäck</rs> for organizing a complete and well rounded course on natural language processing.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_JGe5sx8">
+					<idno type="grant-number">TDT4310</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="11,112.66,210.55,395.01,10.91;11,112.66,224.10,191.55,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="11,201.68,210.55,185.66,10.91">The characteristic curves of composition</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">C</forename><surname>Mendenhall</surname></persName>
+		</author>
+		<idno type="DOI">10.1126/science.ns-9.214S.237</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,399.60,210.55,33.92,10.91">Science</title>
+		<imprint>
+			<biblScope unit="page" from="237" to="246" />
+			<date type="published" when="1887">1887</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,237.65,393.33,10.91;11,112.66,251.20,397.48,10.91;11,112.66,267.19,97.35,7.90" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="11,336.56,237.65,169.42,10.91;11,112.66,251.20,147.45,10.91">Mining writeprints from anonymous e-mails for forensic investigation</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Iqbal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Binsalleeh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">C</forename><surname>Fung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Debbabi</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.diin.2010.03.003</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,268.46,251.20,92.93,10.91">Digital Investigation</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="56" to="64" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,278.30,394.52,10.91;11,112.66,291.85,394.51,10.91;11,112.66,307.84,129.02,7.90" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="11,246.31,278.30,256.01,10.91">Digital stylometry: Linking profiles across social networks</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vosoughi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Roy</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-319-27433-1_12</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,127.03,291.85,76.50,10.91">Social Informatics</title>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="164" to="177" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,318.95,394.53,10.91;11,112.66,332.50,393.33,10.91;11,112.28,346.05,393.70,10.91;11,112.66,359.59,394.52,10.91;11,112.66,373.14,248.17,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="11,112.66,332.50,393.33,10.91;11,112.28,346.05,77.55,10.91">Overview of the Author Identification Task at PAN 2017: Style Breach Detection and Author Clustering</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-1866/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,440.03,346.05,65.95,10.91;11,112.66,359.59,185.96,10.91">Working Notes Papers of the CLEF 2017 Evaluation Labs</title>
+		<title level="s" coord="11,379.57,360.61,127.61,9.72;11,112.66,373.14,21.79,10.91">CEUR Workshop Proceedings, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">1866</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,386.69,395.16,10.91;11,112.66,400.24,393.32,10.91;11,112.28,413.79,393.92,10.91;11,112.33,427.34,393.65,10.91;11,112.66,440.89,349.37,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="11,489.23,386.69,18.59,10.91;11,112.66,400.24,393.32,10.91;11,112.28,413.79,178.67,10.91">Overview of the Author Identification Task at PAN-2018: Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2125/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,143.14,427.34,257.11,10.91">Working Notes Papers of the CLEF 2018 Evaluation Labs</title>
+		<title level="s" coord="11,480.56,428.35,25.43,9.72;11,112.66,440.89,122.99,10.91">CEUR Workshop Proceedings, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J.-Y</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Soulier</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">2125</biblScope>
+		</imprint>
+	</monogr>
+	<note>Potthast</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,454.44,393.33,10.91;11,112.66,467.99,393.53,10.91;11,112.33,481.54,394.94,10.91;11,112.66,495.09,129.98,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="11,404.47,454.44,101.51,10.91;11,112.66,467.99,142.43,10.91">Overview of the Style Change Detection Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2380/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,144.33,481.54,147.13,10.91">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="11,301.14,481.54,107.84,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,508.64,393.33,10.91;11,112.66,522.18,393.59,10.91;11,112.66,535.73,395.01,10.91;11,112.66,549.28,63.56,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="11,369.41,508.64,136.58,10.91;11,112.66,522.18,118.60,10.91">Overview of the Style Change Detection Task at PAN 2020</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,482.55,522.18,23.69,10.91;11,112.66,535.73,115.10,10.91">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="11,236.02,535.73,105.29,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,562.83,393.33,10.91;11,112.33,576.38,394.86,10.91;11,112.66,589.93,22.69,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="11,321.82,562.83,184.17,10.91;11,112.33,576.38,55.38,10.91">Overview of the Style Change Detection Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,211.80,576.38,140.07,10.91">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="11,359.88,576.38,103.51,10.91">Notebook Papers, CEUR</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,603.48,394.53,10.91;11,112.66,617.03,393.33,10.91;11,112.66,630.58,394.51,10.91;11,112.66,646.57,123.08,7.90" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="11,327.46,603.48,175.13,10.91">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,240.99,617.03,264.99,10.91;11,112.66,630.58,123.97,10.91">Information Retrieval Evaluation in a Changing World, The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,657.68,393.33,10.91;12,112.66,86.97,393.33,10.91;12,112.66,100.52,393.32,10.91;12,112.66,114.06,370.25,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="11,323.15,657.68,182.83,10.91;12,112.66,86.97,181.57,10.91">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,317.59,86.97,188.40,10.91;12,112.66,100.52,333.60,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,127.61,393.33,10.91;12,112.66,141.16,393.61,10.91;12,112.66,154.71,393.33,10.91;12,112.66,168.26,394.53,10.91;12,112.66,181.81,248.17,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="12,492.22,127.61,13.76,10.91;12,112.66,141.16,393.61,10.91;12,112.66,154.71,96.85,10.91">An Ensemble-Rich Multi-Aspect Approach for Robust Style Change Detection-Notebook for PAN at CLEF 2018</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zlatkova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kopev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Mitov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Atanasov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hardalov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Koychev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2125/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,457.88,154.71,48.10,10.91;12,112.66,168.26,238.76,10.91">CLEF 2018 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J.-Y</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Soulier</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Avignon, France, CEUR-WS</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-09-14">10-14 September. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,195.36,394.53,10.91;12,112.66,208.91,394.53,10.91;12,112.66,222.46,329.43,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="12,202.11,195.36,300.63,10.91">Style Change Detection Using BERT-Notebook for PAN at CLEF 2020</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Iyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vosoughi</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,362.83,208.91,139.12,10.91">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="12,112.66,222.46,103.05,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,236.01,394.53,10.91;12,112.66,249.56,394.52,10.91;12,112.66,263.11,329.43,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="12,240.39,236.01,261.80,10.91">Style Change Detection with Feed-forward Neural Networks</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zuo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Banerjee</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2380/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,360.18,249.56,141.65,10.91">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="12,112.66,263.11,119.39,10.91">Notebook Papers, CEUR-WS</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,276.66,393.61,10.91;12,112.66,290.20,394.53,10.91;12,112.66,303.75,393.32,10.91;12,112.66,317.30,222.96,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="12,418.47,276.66,87.80,10.91;12,112.66,290.20,170.61,10.91">Lightgbm: A highly efficient gradient boosting decision tree</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Ke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Finley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Ye</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T.-Y</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="s" coord="12,314.47,303.75,191.52,10.91;12,112.66,317.30,33.92,10.91">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">I</forename><surname>Guyon</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">U</forename><forename type="middle">V</forename><surname>Luxburg</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Bengio</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Wallach</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Vishwanathan</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Garnett</surname></persName>
+		</editor>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<date type="published" when="2017">2017</date>
+			<publisher>Curran Associates, Inc</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,330.85,393.33,10.91;12,112.66,344.40,70.55,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="12,187.68,330.85,221.47,10.91">Data Classification: Algorithms and Applications</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">C</forename><surname>Aggarwal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<publisher>Chapman &amp; Hall/CRC</publisher>
+		</imprint>
+	</monogr>
+	<note>1st ed.</note>
+</biblStruct>
+
+<biblStruct coords="12,112.66,357.95,394.53,10.91;12,112.66,371.50,394.53,10.91;12,112.66,385.05,393.33,10.91;12,112.66,398.60,217.78,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="12,262.79,385.05,185.81,10.91">Scikit-learn: Machine learning in python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Édouard</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="12,460.22,385.05,45.77,10.91;12,112.66,398.60,123.70,10.91">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="12,112.66,412.15,395.17,10.91;12,112.66,425.70,393.32,10.91;12,112.66,439.25,393.33,10.91;12,112.66,452.79,389.06,10.91" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="12,340.16,412.15,167.68,10.91;12,112.66,425.70,140.88,10.91">Optuna: A next-generation hyperparameter optimization framework</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Akiba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Sano</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Yanase</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Ohta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koyama</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3292500.3330701</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="12,276.93,425.70,229.05,10.91;12,112.66,439.25,269.23,10.91">Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining, KDD &apos;19</title>
+		<meeting>the 25th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining, KDD &apos;19<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="2623" to="2631" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,237.68,73.10,138.17,15.65">YFilter at TREC-9</title>
+				<funder ref="#_zYTJrcQ">
+					<orgName type="full">Air Force Research Laboratory</orgName>
+				</funder>
+				<funder ref="#_RFBRSsw">
+					<orgName type="full">National Science Foundation</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,241.88,107.63,44.55,10.43"><forename type="first">Yi</forename><surname>Zhang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15232</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,307.64,107.63,64.11,10.43"><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+							<email>callan@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15232</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,237.68,73.10,138.17,15.65">YFilter at TREC-9</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">370468B110E8FAB57DDAADCA91363542</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Information Filtering</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We built a filtering system YFILTER this year, which we used for experiments on profile updating and thresholds setting. Our focus is using incremental Rocchio for introducing new query terms and term weighting. Although 1, 0.5, 0.25 is a widely used Rocchio ratio for query expansion based on relevance feedback, we found that the optimal setting for information filtering is corpus and profile dependent. In addition to a new Rocchio ratio, we tested a modified idf measure for term weighting (ydf) that is biased towards words with middle range term frequency.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Given an initial description of a profile, a filtering system must sift through a stream of information and deliver the most relevant documents to the profile <ref type="bibr" coords="1,271.63,422.41,14.54,8.43" target="#b19">[19]</ref>. Filtering is more like a classification problem than a traditional search problem, because of the threshold, which makes it a binary decision process. Many text classification algorithms, such as SVM, Rocchio, Boosting and Naive Bayes, can be applied to filtering <ref type="bibr" coords="1,77.59,488.65,70.33,8.43">[1, 4, 5, 6, 13, 15.</ref>..], especially for batch filtering and routing. However, as documents arrive sequentially over time, it is unrealistic to use time-consuming algorithms for online filtering. Our goal is to use a computation and storage efficient algorithm, thus making adaptive filtering possible in a normal environment, such as a PC, while still maintaining reasonably good accuracy. Our research interests caused us to adopt stricter constraints than those imposed by the Filtering task <ref type="bibr" coords="1,251.59,577.09,14.54,8.43" target="#b19">[19]</ref>. Our filtering system examines each document just once, accruing a small amount of statistical information in the process. The system does not accumulate or store batches of documents, so it requires only minimal storage and moderate computational resources.</p><p>A high performance information filtering system should be effective and efficient. Although this is a general requirement for all engineering systems, this year's 5000 MESH profiles make it a clear requirement. A system must handle a large number of user profiles (such as 5000) and a large volume of information efficiently. Previous experiments on text classification suggest that the performance of most text classification algorithms is relatively similar. We hypothesize this will also be true for information filtering. Our starting point, therefore, is to find an algorithm that can be implemented quickly and then to refine it to perform well. We tried several methods that can be implemented incrementally for profile updating (including Rocchio, mutual information and tf.idf). Based on experiments with TREC-8 and TREC-6 filtering data, we used a refined version of the Rocchio algorithm for our final run on this year's OHSUMED data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">SYSTEM DESCRIPTION</head><p>In order to achieve our goal, we built a new filtering system, called YFILTER. YFILTER is architecturally similar to InRoute <ref type="bibr" coords="1,395.71,384.49,11.04,8.43" target="#b3">[4]</ref> and consists of 3 major modules: YParser, YClipset and YLearner, which we used to support dealing with the input stream, filtering according to the profiles, and learning from relevance feedback, respectively. Different learning algorithms for profile updating can be implemented in the YLearner module.</p><p>YFILTER supports both structured Boolean and natural language descriptions of initial profiles. For natural language profiles, this system can automatically update the profile according to user relevance feedback.</p><p>YFILTER processes text first by removing useless symbols (such as punctuation, and special characters) and fields (such as the .P field), excluding the 418 highly frequent terms listed in the default INQUERY stop words list <ref type="bibr" coords="1,382.99,557.77,10.04,8.43" target="#b2">[3]</ref>, and then stemming using the Porter stemmer <ref type="bibr" coords="1,358.03,568.81,14.45,8.43" target="#b16">[16]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">ALGORITHM FOR TREC-9 FILTERING RUNS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Initial Profile Setting</head><p>In all of our experiments, the initial profile is a list of words from the Title and Description fields of the corresponding TREC topic. The weight of each word is its term frequency in the topic.</p><p>Given 2 initial relevant documents, we update the profile using the Rocchio algorithm <ref type="bibr" coords="2,219.19,361.33,14.54,8.43" target="#b17">[17]</ref>, and then use the new profile from these 2 initial documents to score other documents without relevance feedback in OHSUMED87. The initial threshold is set to allow the top</p><formula xml:id="formula_0" coords="2,93.32,402.59,36.96,12.77">) ( δ ϕ + M</formula><p>documents in the training dataset to pass. ϕ is an estimate of the expected minimum delivery ratio we want to achieve. δ is used to make the initial threshold a little lower, so that we can filter more at the beginning, thus obtain more feedback for learning. We arbitrarily set 2 = δ in our experiment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Scoring Method</head><p>We used the BM25 tf.idf formula <ref type="bibr" coords="2,206.12,527.05,15.84,8.43" target="#b18">[18]</ref> for scoring. Idf is initialized based on OHSUMED87 and updated over time as documents are filtered.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Profile Updating</head><p>YFILTER has profile-specific anytime updating. That is, it updates a profile immediately whenever feedback, positive or negative, is available for that profile (Figure <ref type="figure" coords="2,77.59,641.89,3.42,8.43" target="#fig_0">1</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">Threshold Updating</head><p>The TREC9 P 9 T metric is defined as ) ( , max( /</p><formula xml:id="formula_1" coords="2,79.64,709.39,150.70,13.77">+ + + + N R MinD R [19]. P T 9</formula><p>demands a minimum number of documents (MinD) be delivered to each profile. MinD is set at 50 documents over the 4year test period, thus approximately 1 per month. We set our delivery ratio ϕ accordingly. Each negative feedback increases the threshold. Otherwise, the threshold is always decreasing according to ϕ and the current profile's performance. The magnitude of an increase to a threshold is limited by maxstep , which is empirically set to 0.005, so that a non-relevant document with an extremely high score will not push the threshold too high. Thus, we can avoid undue influence of an outlier. For measuring the performance of a profile, we arbitrarily used the utility F2 used in TREC-8 <ref type="bibr" coords="2,330.92,501.49,10.04,8.43" target="#b8">[9]</ref>. If a profile's F2 utility is positive, we regard it as a good profile, and, therefore decrease its threshold comparatively faster (Figure <ref type="figure" coords="2,437.48,523.57,3.42,8.43" target="#fig_0">1</ref>). All of the parameters are set based on TREC8 and TREC6 data. The intuition is to filter more documents for good profiles, while keeping the delivery ratio for bad profiles at least meet the requirement set by the P T 9 measure.</p><formula xml:id="formula_2" coords="2,323.72,580.63,210.77,13.77">For the } ) * 2 ( * 2 { 9 MinU N R if N R U T &gt; - - = + + + +</formula><p>measure <ref type="bibr" coords="2,359.12,597.25,14.54,8.43" target="#b19">[19]</ref>, if we filter by estimated probability of relevance based on the score of the current document only, the linear component of U T 9 is equivalent to the retrieval rule:</p><formula xml:id="formula_3" coords="2,368.12,643.19,123.42,12.30">Retrieve if 33 . 0 ) | ( &gt; score rel P .</formula><p>Unfortunately, the sparsity of positive relevance feedback makes it hard to find the optimal threshold for most of the profiles, especially for online searching while doing information filtering.  accumulated documents, while the current profile is built from the same documents, we expect that the resulting threshold is biased. We prefer the P T 9 measure to the U T 9 measure, because when there are no positive utilities, filtering no documents is usually the best strategy. Our profile updating method is P T 9 oriented, and our submission of a U T 9 oriented run is just a small change of P T 9 optimization to make the minimum delivery ratio ϕ 50 times smaller and to decrease the threshold if the profile's precision is better than average.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Updating Terms and Term Weights</head><p>In all of our experiments, each time a positive relevance feedback arrives (including those in the training data), all words in that document are added to the profile's candidate list of terms. Then the weight of each word in the candidate list is calculated according to the incremental Rocchio formula:</p><formula xml:id="formula_4" coords="3,88.75,312.20,201.00,14.25">rel non rel q w w w Rocchio - ⋅ - ⋅ + ⋅ = γ β α<label>(1)</label></formula><p>Where ) (t w q : max( term frequency of word t in original topics, 0.5) </p><formula xml:id="formula_5" coords="3,102.44,380.00,155.37,27.21">∑ ∈ + = ) ( _ , , *<label>_ 1 ) ( _ 1 )</label></formula><p>The meanings of the above parameters are: In order to learn faster, we set a bigger β than usual in the relevance feedback formula to emphasize the importance of relevant documents, and changed ) (t rel w to emphasize the difference between important words and noisy words. Some researchers argue that words with middle range term frequencies are more informative than rare words and high frequency words <ref type="bibr" coords="3,424.99,93.01,14.54,8.43" target="#b22">[22]</ref>, so we introduced a new parameter ydf that favors those words. Ideally ydf is a convex function that reaches its maximum at the optimal query expansion zone. We arbitrarily calculate ydf based on idf using Formula 3 &amp; 4. Setting a different κ can move the query zone. Figure <ref type="figure" coords="3,504.20,153.25,4.68,8.43">2</ref> shows the effect of setting κ to 0.75 and to 1.0. We first introduced it while testing mutual information, because mutual information favors rare words <ref type="bibr" coords="3,479.60,186.37,14.45,8.43" target="#b23">[23]</ref>. We also found it helpful for Rocchio.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure 2: Using ydf to favor words with middle range term frequency: the relationship between document frequency and ydf</head><p>In order to avoid adding too many noisy words, especially at the early stage, the number of words added to a profile by its t th updating is at most γ / 7 . γ increases as the number of relevant documents increases. We also set the maximum number of words for each profile to 60, because our experiments on query expansion for routing task shows that adding more words than that does not improve the performance. Generally speaking, for the number ( kt N ) of key words in a profile ( k P ) after the t th updating, we have:</p><formula xml:id="formula_7" coords="3,323.72,580.69,212.24,52.25">) 60 , / 7 max( ) 1 ( λ + ≤ - t k kt N N 1 + = + R λ if current document that triggers profile updating is relevant, otherwise λ / 7</formula><p>was set to 0. + R is the number of relevant documents that have seen for this profile. , where 50000 is the approximate number of documents in OHSUMED87. We have not performed a thorough study of the relationship between ϕ and the actual delivery ratio based on our algorithm. For the P T 9 -oriented run, the delivery ratio is about 1/5000 on OHSU topics, and 1/4400 on MESH topics. This is not surprising, because we are expecting a higher delivery ratio for better profiles (Figure <ref type="figure" coords="4,139.87,492.37,3.38,8.43" target="#fig_0">1</ref>). So for MESH topics, which contain more relevant documents on average, the actual delivery ratio is higher than our target. But for the same topic, a higher delivery ratio usually results in lower precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">ANALYSIS OF RESULT</head><p>In our experiments with TREC-6 and TREC-8, we found that a higher β in the Rocchio formula results in higher performance on both corpora. We guessed that this is also true for other corpora if we have enough number of relevance feedback and the positive feedback itself best represents the corresponding topic. As a result we set</p><formula xml:id="formula_8" coords="4,132.80,606.11,75.12,12.77">2) 3.5, (1, = ) , , ( γ β α</formula><p>for the final run on TREC-9. After submitting our results, we did the same experiment on OHSU topics and the first 50 MESH terms to measure the relation between β and precision. The result confirmed our hypothesis (Figure <ref type="figure" coords="4,77.60,669.85,3.42,8.43">3</ref>), and we did not observe any decrease on precision as β increases. In fact our setting of the Rocchio ratio was a little conservative, although it is already quite different from the widely used 0.25) 0.5, <ref type="bibr" coords="4,159.92,705.50,10.12,8.41">(1,</ref> setting.  <ref type="figure" coords="4,406.52,661.21,4.68,8.43">5</ref> show our filtering performance using macro average precision and F1 metrics. The horizontal axis does not begin with 0 documents because at the early stage some profiles have no documents filtered to them, and thus the early stage is not comparable with later stages. It is obvious that filtering performance is improving during the whole process in both measurements. This indicates that the filtering system is learning while filtering. Notice that the performance in Figure <ref type="figure" coords="5,177.31,115.09,4.68,8.43">4</ref> and Figure <ref type="figure" coords="5,226.99,115.09,4.68,8.43">5</ref> is accumulated performance, so the actual snap shot of performance at difference stages is higher than that was showed here.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Overall Performance in TREC-9</head><p>Our results on OHSU are satisfying, while our results on MESH topics are not so good (Table <ref type="table" coords="5,242.47,207.85,3.42,8.43" target="#tab_2">1</ref> Further experiments show that a higher β setting, such as 9.7, has a very significant improvement on MESH topics (Figure <ref type="figure" coords="5,263.23,357.73,3.42,8.43">3</ref>). We believe for better performance, β should be set higher.</p><p>2. 7 groups submitted OHSU results, while only 4 groups submitted their MESH results.</p><p>3. In order to maintain a certain retrieval rate, we introduced a minimum delivery ratio ϕ for the threshold setting. But the actual delivery ratio is higher thanϕ , especially for good profiles, where the goodness is measure by the TREC-8 F2 metric. We have more good profiles in the MESH runs, so the actual delivery ratio is higher, thus a lower precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Defects and Explanation</head><p>Considering that there are too many non-relevant documents for MESH topics, we did not update the profile every time the system encountered a nonrelevant document. While the Rocchio accumulator is inside the profile-updating module, thus the filtering system did not accumulate information for non-relevant documents. The effect is equal to 0 = γ in Formula 1. In fact we want to use 2 for γ based on our experiments on TREC-6 and TREC-8. After submitting the official result, the bug was fixed, which improved recall from 0.363 to 0.376, and improved precision from 0.267 to 0.271 for OHSU. Further experiments show that when β is set bigger, such as 9, the change of γ has no significant impact. One possible explanation is that non-relevant documents are heterogeneous while relevant documents are homogeneous.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSIONS</head><p>We evaluated our new information filtering system YFILTER by participating in the TREC-9 Adaptive Filtering task. It takes about 10 minutes for YFilter to filter 4 years of MEDLINE dataset for 63 OHSU topics. The experimental results compared favorably with results from other filtering systems. In order to maintain a certain retrieval rate, we introduced a minimum delivery ratio ϕ for threshold setting, and automatically decreased the profile threshold if its delivery ratio is below that. We found the difference between the actual delivery ratio and ϕ is reasonable on TREC-6, TREC-8 and TREC-9 data, but further theoretical analysis is needed for a more justifiable threshold setting algorithm. We used incremental Rocchio with a quite different Rocchio ratio setting plus a ydf measure that favors middle range term frequency words for adding new terms and term weighting. According to further tests on OHSUMED data after submission of our runs, we find that although our new ratio setting has improved the system performance significantly, it is not optimal for TREC-9. Further experiments show that the optimal Rocchio ratio is corpus and profile dependant. For profiles with more relevance judgments, a higher β is much better, so we think a possible solution is to learn β adaptively. As for the TREC-9 run, we found that Rocchio ratios and the ϕ setting have a significant influence on system performance. We also believe that the idea of introducing ydf will improve performance as well, but our function of mapping from df to ydf is arbitrary, thus the improvement on TREC-9 runs is not obvious. Further experiments can be focused on finding more principled or more accurate functions for ydf calculation.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,202.15,329.05,203.28,8.43"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: An outline of profile updating algorithm</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,89.47,505.17,3.31,5.95;3,85.15,505.17,1.84,5.95;3,79.03,500.95,5.25,8.51;3,87.55,505.17,1.65,5.95;3,95.35,501.01,175.20,8.43;3,85.99,524.05,3.28,5.90;3,79.03,519.73,202.68,8.43;3,87.31,541.77,3.30,5.95;3,79.27,537.56,101.88,8.50;3,109.75,559.69,3.28,5.90;3,101.71,555.37,7.28,8.42;3,79.27,555.37,20.40,8.42;3,116.11,555.37,170.48,8.43;3,77.59,568.93,43.80,8.43;3,117.91,584.24,3.14,8.50;3,111.55,584.24,3.14,8.50;3,92.83,584.24,4.72,8.50;3,114.67,584.24,2.62,8.50;3,100.51,584.24,10.49,8.50;3,79.27,584.24,10.49,8.50;3,122.71,584.29,160.32,8.43;3,77.59,597.73,124.52,8.43;3,78.56,609.02,181.76,12.73"><head></head><label></label><figDesc>d t tf , : Number of times term t occurs in document d d C : Number of documents arrived before document d d dl : Length of document d after word t is added to the candidate list of the profile κ : Parameter used to monitoring the query zone</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,362.00,224.17,135.48,12.74"><head>Figure 5 :Figure 4</head><label>54</label><figDesc>Figure 3: Precision and β setting</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,79.04,387.57,210.72,75.30"><head></head><label></label><figDesc>(    </figDesc><table coords="3,79.04,387.57,210.72,75.30"><row><cell>w</cell><cell cols="5">rel</cell><cell></cell><cell>t</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="4">rel</cell><cell></cell><cell></cell><cell cols="4">set</cell><cell>t</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="2">d</cell><cell cols="3">rel</cell><cell>set tf</cell><cell>t</cell><cell>bel</cell><cell>t</cell><cell>d</cell><cell>ydf</cell><cell>t</cell><cell>b</cell><cell>(2)</cell></row><row><cell cols="3">ydf</cell><cell cols="2">t</cell><cell cols="2">,</cell><cell>d</cell><cell cols="2">=</cell><cell cols="2">-</cell><cell cols="3">idf</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell cols="2">⋅</cell><cell cols="6">log( idf</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell>)</cell><cell cols="2">-</cell><cell cols="2">1 (</cell><cell>-</cell><cell>idf</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell>)</cell><cell>⋅</cell><cell>1 log(</cell><cell>-</cell><cell>idf</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell>)</cell><cell>(3)</cell></row><row><cell cols="2">idf</cell><cell cols="2">t</cell><cell cols="2">,</cell><cell cols="2">d</cell><cell cols="2">=</cell><cell cols="3">κ</cell><cell>⋅</cell><cell cols="8">log(( C</cell><cell>d</cell><cell cols="2">+</cell><cell></cell><cell cols="5">) 5 . 0</cell><cell>/</cell><cell cols="2">df</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell>)</cell><cell>/</cell><cell>log( C</cell><cell>d</cell><cell>+</cell><cell>1</cell><cell>) 0 .</cell><cell>(4)</cell></row><row><cell>tf</cell><cell cols="4">_</cell><cell></cell><cell cols="3">bel</cell><cell>t</cell><cell>,</cell><cell cols="2">d</cell><cell cols="3">=</cell><cell cols="2">tf</cell><cell>t</cell><cell>,</cell><cell>d</cell><cell cols="3">/( tf</cell><cell>t</cell><cell>,</cell><cell cols="2">d</cell><cell></cell><cell>+</cell><cell cols="3">. 0</cell><cell>5</cell><cell>+</cell><cell>5 . 1</cell><cell>⋅</cell><cell>(</cell><cell>dl</cell><cell>d</cell><cell>/</cell><cell>avg</cell><cell>_</cell><cell>dl</cell><cell>d</cell><cell>))</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,332.96,287.90,172.80,132.27"><head>Table 1 : Submitted runs in TREC-9 4.1 Profile Updating</head><label>1</label><figDesc></figDesc><table coords="3,332.96,287.90,172.80,132.27"><row><cell>1.2</cell><cell>idf</cell></row><row><cell>1</cell><cell>ydf 1</cell></row><row><cell>0.8</cell><cell>ydf 0.75</cell></row><row><cell>0.6</cell><cell></cell></row><row><cell>0.4</cell><cell></cell></row><row><cell>0.2</cell><cell></cell></row><row><cell>0</cell><cell></cell></row><row><cell>0 0 . 1 5 1</cell><cell>0 . 2 7 0 . 3 7 6 0 . 4 7 7 0 . 5 7 8 0 . 6 7 8 0 . 7 7 8 0 . 8 7 8 0 . 9 7 8</cell></row><row><cell></cell><cell>log(df)/log(C)</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="6.">ACKNOWLEDGEMENTS</head><p>This material is based on work supported by <rs type="funder">National Science Foundation</rs> grant <rs type="grantNumber">IIS-9873009</rs> and <rs type="funder">Air Force Research Laboratory</rs> contract <rs type="grantNumber">F30602-98-C-0110</rs>. Any opinions, findings, conclusions or recommendations expressed in this paper are the authors', and do not necessarily reflect those of the sponsors.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_RFBRSsw">
+					<idno type="grant-number">IIS-9873009</idno>
+				</org>
+				<org type="funding" xml:id="_zYTJrcQ">
+					<idno type="grant-number">F30602-98-C-0110</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,340.64,692.53,195.36,8.43;5,340.64,703.57,190.14,8.43" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,398.48,692.53,137.52,8.43;5,340.64,703.57,77.97,8.43">Incremental Relevance Feedback for Information Filtering</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Allan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,424.40,703.57,102.12,8.43">Proceedings of SIGIR 1996</title>
+		<meeting>SIGIR 1996</meeting>
+		<imprint>
+			<date type="published" when="1996">1996</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.52,70.93,195.24,8.43;6,94.52,81.97,195.32,8.43;6,94.51,93.01,91.40,8.43" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,148.04,70.93,79.44,8.43">Alistair Moffat, 1996</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">A H</forename><surname>Bell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,245.60,70.93,44.16,8.43;6,94.52,81.97,195.32,8.43;6,94.51,93.01,91.40,8.43">Proc ACM-SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>ACM-SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,107.77,195.30,8.43;6,94.51,118.81,195.36,8.43;6,94.51,129.85,195.32,8.43;6,94.51,140.89,189.06,8.43" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,161.71,118.81,128.16,8.43;6,94.51,129.85,115.22,8.43">Document retrieval and routing using the INQUERY system</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Broglio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">W</forename><surname>Nachbar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,233.23,129.85,56.60,8.43;6,94.51,140.89,159.03,8.43">Proceeding of Third Text Retrieval Conference (TREC-3)</title>
+		<meeting>eeding of Third Text Retrieval Conference (TREC-3)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,155.77,195.32,8.43;6,94.51,166.81,195.32,8.43;6,94.51,177.85,195.24,8.43;6,94.51,188.89,162.42,8.43" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,156.79,155.77,133.04,8.43;6,94.51,166.81,34.19,8.43">Document Filtering With Inference Networks</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,145.99,166.81,143.84,8.43;6,94.51,177.85,195.24,8.43;6,94.51,188.89,158.74,8.43">Proceedings of the Nineteenth Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the Nineteenth Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1996">1996</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,203.65,195.36,8.43;6,94.51,214.69,195.36,8.43;6,94.51,225.73,195.32,8.43;6,94.51,236.77,91.40,8.43" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,171.07,203.65,100.05,8.43">Learning while Filtering</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,94.51,214.69,195.36,8.43;6,94.51,225.73,195.32,8.43;6,94.51,236.77,91.40,8.43">Proceedings of the 21st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 21st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,251.65,195.24,8.43;6,94.51,262.69,195.36,8.43;6,94.51,273.73,195.36,8.43;6,94.51,284.77,195.32,8.43;6,94.51,295.81,91.40,8.43" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,94.51,262.69,181.41,8.43">Boosting and Rocchio Applied to Text Filtering</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">E</forename><surname>Schapire</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Singer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Singhal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,94.51,273.73,195.36,8.43;6,94.51,284.77,195.32,8.43;6,94.51,295.81,91.40,8.43">Proceedings of the 21st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 21st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,310.57,195.30,8.43;6,94.51,321.61,195.30,8.43;6,94.51,332.65,195.32,8.43;6,94.51,343.81,64.86,8.43" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,118.75,321.61,167.01,8.43">Experiments on TheTREC-8 Filtering Track</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Hoashi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Matsumoto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Inoue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Hashimoto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,105.31,332.65,184.52,8.43;6,94.51,343.81,34.83,8.43">Proceeding of Eighth Text Retrieval Conference (TREC-8)</title>
+		<meeting>eeding of Eighth Text Retrieval Conference (TREC-8)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,358.57,195.30,8.43;6,94.51,369.61,195.36,8.43;6,94.51,380.65,195.32,8.43;6,94.51,391.69,47.22,8.43" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,126.67,369.61,163.20,8.43;6,94.51,380.65,119.81,8.43">Document Filtering Method Using Non-Relevant Information Profile</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Hoashi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Matsumoto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Inoue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Hashimoto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,226.63,380.65,63.20,8.43;6,94.51,391.69,42.96,8.43">Proceedings of SIGIR 2000</title>
+		<meeting>SIGIR 2000</meeting>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,406.45,195.24,8.43;6,94.51,417.49,195.32,8.43;6,94.51,428.53,191.82,8.43" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,238.87,406.45,50.88,8.43;6,94.51,417.49,115.22,8.43">The TREC-8 Filtering Track Final Report</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Hull</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,233.23,417.49,56.60,8.43;6,94.51,428.53,161.77,8.43">Proceeding of eighth Text Retrieval Conference (TREC-8)</title>
+		<meeting>eeding of eighth Text Retrieval Conference (TREC-8)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,443.41,195.32,8.43;6,94.51,454.45,195.24,8.43;6,94.51,465.49,165.90,8.43" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,168.31,443.41,121.52,8.43;6,94.51,454.45,94.48,8.43">The TREC-7 Filtering Track: Description and Analysis</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hull</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,206.83,454.45,82.92,8.43;6,94.51,465.49,135.75,8.43">Proceeding of Fourth Text Retrieval Conference (TREC-7)</title>
+		<meeting>eeding of Fourth Text Retrieval Conference (TREC-7)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,480.25,195.32,8.43;6,94.51,491.29,195.24,8.43;6,94.51,502.33,165.90,8.43" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,169.87,480.25,119.96,8.43;6,94.51,491.29,96.89,8.43">The TREC-6 Filtering Track: Description and Analysis</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Hull</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,211.63,491.29,78.12,8.43;6,94.51,502.33,135.75,8.43">Proceeding of Sixth Text Retrieval Conference (TREC-6)</title>
+		<meeting>eeding of Sixth Text Retrieval Conference (TREC-6)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,517.09,195.32,8.43;6,94.51,528.13,195.32,8.43;6,94.51,539.29,195.32,8.43;6,94.51,550.33,160.50,8.43" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,169.63,517.09,120.20,8.43;6,94.51,528.13,195.32,8.43;6,94.51,539.29,53.59,8.43">A Probabilistic Analysis of the Rocchio Algorithm with TFIDF for Text Categorization</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Joachims</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,172.87,539.29,116.96,8.43;6,94.51,550.33,156.10,8.43">Proceedings of International Conference on Machine Learning (ICML)</title>
+		<meeting>International Conference on Machine Learning (ICML)</meeting>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,565.09,195.32,8.43;6,94.51,576.13,195.36,8.43;6,94.51,587.17,195.36,8.43;6,94.51,598.21,195.32,8.43;6,94.51,609.25,91.40,8.43" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,272.59,565.09,17.24,8.43;6,94.51,576.13,179.82,8.43">Text Filtering by Boosting Naive Bayes Classifiers</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">H</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">Y</forename><surname>Hahn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">T</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,94.51,587.17,195.36,8.43;6,94.51,598.21,195.32,8.43;6,94.51,609.25,91.40,8.43">Proceedings of the 23st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 23st Annual International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,624.01,195.24,8.43;6,94.51,635.17,195.40,8.43;6,94.51,646.21,195.32,8.43;6,94.51,657.25,147.42,8.43" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,258.07,624.01,31.68,8.43;6,94.51,635.17,195.40,8.43;6,94.51,646.21,51.85,8.43">TREC-8 Ad-Hoc, Query and Filtering Track Experiments using PIRCS</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">L</forename><surname>Kwok</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Grunfeld</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,175.15,646.21,114.68,8.43;6,94.51,657.25,117.27,8.43">Proceeding of eighth Text Retrieval Conference (TREC-8)</title>
+		<meeting>eeding of eighth Text Retrieval Conference (TREC-8)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,111.43,672.01,178.38,8.43" xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">D</forename><surname>Lyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">D</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">E</forename><surname>Schapire</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,94.51,683.05,195.32,8.43;6,94.51,694.09,195.32,8.43;6,340.63,70.93,195.32,8.43;6,340.63,81.97,51.54,8.43" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,188.23,683.05,101.60,8.43;6,94.51,694.09,28.30,8.43">Boosting for Document Routing</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Singer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Singhal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,148.87,694.09,140.96,8.43;6,340.63,70.93,195.32,8.43;6,340.63,81.97,46.86,8.43">Proceeding of ninth International Conference on Information and Knowledge Management</title>
+		<meeting>eeding of ninth International Conference on Information and Knowledge Management</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,96.73,195.36,8.43;6,340.63,107.77,35.58,8.43" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="6,434.59,96.73,101.40,8.43;6,340.63,107.77,32.02,8.43">An algorithm for suffix stripping</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">F</forename><surname>Porter</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1980">1980</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,122.53,195.36,8.43;6,340.63,133.57,195.32,8.43;6,340.63,144.61,195.32,8.43;6,340.63,155.77,171.18,8.43" xml:id="b17">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">J</forename><surname>Rocchio</surname></persName>
+		</author>
+		<title level="m" coord="6,439.99,122.53,96.00,8.43;6,340.63,133.57,195.32,8.43;6,340.63,144.61,195.32,8.43;6,340.63,155.77,39.00,8.43">Relevance feedback in information retrieval in The SMART Retrieval System-Experiments in Automatic Document Processing</title>
+		<imprint>
+			<publisher>Prentice Hall Inc</publisher>
+			<date type="published" when="1971">1971</date>
+			<biblScope unit="page" from="313" to="323" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,170.53,195.24,8.43;6,340.63,181.57,195.30,8.43;6,340.63,192.61,195.32,8.43;6,340.63,203.65,64.86,8.43" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,453.91,181.57,77.14,8.43">A. Okapi at TREC-4</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">M</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gatford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Payne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,351.19,192.61,184.76,8.43;6,340.63,203.65,34.83,8.43">Proceeding of Fourth Text Retrieval Conference (TREC-4)</title>
+		<meeting>eeding of Fourth Text Retrieval Conference (TREC-4)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,218.41,195.36,8.43;6,340.63,229.45,109.98,8.43" xml:id="b19">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Hull</surname></persName>
+		</author>
+		<title level="m" coord="6,480.67,218.41,55.32,8.43;6,340.63,229.45,105.93,8.43">Guidelines for The TREC-9 Filtering Track</title>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,244.33,195.30,8.43;6,340.63,255.37,195.32,8.43;6,340.63,266.41,148.26,8.43" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="6,340.63,255.37,70.18,8.43">AT&amp;T At TREC-7</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Singhal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hindle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">D</forename><surname>Lewis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,429.55,255.37,106.40,8.43;6,340.63,266.41,118.08,8.43">Proceeding of Seventh Text Retrieval Conference (TREC-7)</title>
+		<meeting>eeding of Seventh Text Retrieval Conference (TREC-7)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,281.17,195.52,8.43;6,340.63,292.21,195.32,8.43;6,340.63,303.25,110.58,8.43" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="6,474.67,281.17,61.48,8.43;6,340.63,292.21,38.98,8.43">Okapi/Keenbow at TREC-8</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,398.11,292.21,137.84,8.43;6,340.63,303.25,80.53,8.43">Proceeding of Eighth Text Retrieval Conference (TREC-8)</title>
+		<meeting>eeding of Eighth Text Retrieval Conference (TREC-8)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,318.01,159.92,8.43" xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Rijsbergen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,418.75,318.01,81.80,8.43">Information Retrieval</title>
+		<imprint>
+			<date type="published" when="1979">1979</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,332.77,195.48,8.43;6,340.63,343.93,195.36,8.43;6,340.63,354.97,195.32,8.43;6,340.63,366.01,169.68,8.43" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="6,454.27,332.77,81.84,8.43;6,340.63,343.93,178.15,8.43">A Comparative Study on Feature Selection in Text Categorization</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Pedersen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,340.63,354.97,195.32,8.43;6,340.63,366.01,169.68,8.43">Proceedings of the Fourteenth International Conference on Machine Learning (ICML&apos;97)</title>
+		<meeting>the Fourteenth International Conference on Machine Learning (ICML&apos;97)</meeting>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,380.77,195.24,8.43;6,340.63,391.81,195.36,8.43;6,340.63,402.85,195.32,8.43;6,340.63,413.89,64.86,8.43" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="6,497.83,380.77,38.04,8.43;6,340.63,391.81,176.97,8.43">Threshold Calibration in CLARIT Adaptive Filtering</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Jansen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stoica</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,340.63,402.85,195.32,8.43;6,340.63,413.89,34.83,8.43">Proceeding of seventh Text Retrieval Conference (TREC-7)</title>
+		<meeting>eeding of seventh Text Retrieval Conference (TREC-7)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,340.63,428.65,195.40,8.43;6,340.63,439.81,195.30,8.43;6,340.63,450.85,195.32,8.43;6,340.63,461.89,64.86,8.43" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="6,364.51,439.81,167.97,8.43">Optimization in C LARIT Adaptive Filtering</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Jansen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Roma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stoica</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Evans</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,351.67,450.85,184.28,8.43;6,340.63,461.89,34.83,8.43">Proceeding of eighth Text Retrieval Conference (TREC-8)</title>
+		<meeting>eeding of eighth Text Retrieval Conference (TREC-8)</meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

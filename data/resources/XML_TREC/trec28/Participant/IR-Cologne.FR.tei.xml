@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,181.02,84.23,249.97,15.44;1,187.67,107.70,236.95,10.69">Fair ranking in academic search Notebook for the TREC 2019 Fair Ranking Track</title>
+				<funder ref="#_BSdeKFS">
+					<orgName type="full">Ministry of Culture and Science of the German State of North Rhine-Westphalia</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,274.51,133.04,63.98,10.59"><forename type="first">Malte</forename><surname>Bonart</surname></persName>
+							<email>malte.bonart@th-koeln.de</email>
+						</author>
+						<author>
+							<persName coords="1,247.46,158.25,117.78,8.83"><forename type="first">Technische</forename><forename type="middle">Hochschule</forename><surname>Köln</surname></persName>
+						</author>
+						<title level="a" type="main" coord="1,181.02,84.23,249.97,15.44;1,187.67,107.70,236.95,10.69">Fair ranking in academic search Notebook for the TREC 2019 Fair Ranking Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">817F34748C94A3E73541DEA186C7EF75</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>ranking</term>
+					<term>algorithmic fairness</term>
+					<term>learning-to-rank</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This notebook summarizes our participation in the first Fair Ranking Track at TREC 2019 <ref type="bibr" coords="1,148.65,201.31,9.52,7.94" target="#b1">[2]</ref>. We shortly introduce the problem setting, give an overview of the software framework, and discuss the task and the results of our two submissions.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The issue of algorithmic fairness has recently gained popularity in the IR community <ref type="bibr" coords="1,132.80,304.82,9.42,7.94" target="#b5">[6,</ref><ref type="bibr" coords="1,144.47,304.82,6.28,7.94" target="#b8">9]</ref>. In this year's Fair Ranking Track, the goal was to re-rank rankings of scholarly articles from a productive academic search engine such that groups of authors are 'fairly' exposed in the sequence of rankings. The data for this challenge was taken from the SemanticScholar open research corpus that contains around 47 million articles <ref type="bibr" coords="1,182.78,359.61,9.39,7.94" target="#b0">[1]</ref>.</p><p>It was assumed, that a fair exposure for a group of authors was satisfied if the group's д share of aggregated exposure E д equals a group's share of aggregated relevance R д , such that</p><formula xml:id="formula_0" coords="1,80.51,413.09,213.54,26.40">E д = a ∈A д π ∈Π e π a a ∈A π ∈Π e π a = a ∈A д π ∈Π r π a a ∈A π ∈Π r π a = R д ,<label>(1)</label></formula><p>with A the set of all authors, A д the set of authors in the group д, Π the set of all rankings, e π a the single exposure and r π a the individual relevance of author a in ranking π .</p><p>Individual exposure and relevance for a single ranking π and an author a was defined in the spirit of the Expected Reciprocal Rank metric <ref type="bibr" coords="1,79.57,498.66,10.55,7.94" target="#b6">[7]</ref> as</p><formula xml:id="formula_1" coords="1,96.56,512.58,197.48,63.18">e π a = |π | i=1 γ i-1 i-1 j=1 (1 -f (r π j )) I(π i ∈ D a ) r π a = |π | i=1 f (r π i ) I(π i ∈ D a ),<label>(2)</label></formula><p>where 0 &lt; γ &lt; 1 a discounting factor, f (r π i ) a monotonic transformation of the relevance r π i of document π i into a probability value and D a the set of documents from author a.</p><p>Note first, that an author's relevance metric is independent of the ranking. Second, an author's exposure metric at position i is independent of the relevance of the document at that specific position, but it depends on the relevance of the previous documents in the ranking. Exposure is high if the author's documents are at the beginning of the ranking or if the previously seen documents have a low relevance value.</p><p>Individual relevance and exposure metrics are summed up and normalized for each group. Unfairness for group д is then measured as the deviation from the ideal fairness condition given by (1). This approach resembles existing group fairness perspectives in the literature <ref type="bibr" coords="1,355.54,198.57,9.44,7.94" target="#b2">[3,</ref><ref type="bibr" coords="1,367.96,198.57,10.35,7.94" target="#b10">11,</ref><ref type="bibr" coords="1,381.29,198.57,10.21,7.94" target="#b11">12]</ref>. However, this setting is different from the usual fairness problems in IR, as we do not assume a particular 'protected' group but allow for various group definitions and sizes. Also, exposure and relevance are not measured for the ranked items themselves but the underlying authors of the items. Hence, ranked items can belong to several groups, and the effect of re-ranking a single item can have multiple opposing effects on the overall fairness of the system.</p><p>The system's overall unfairness ∆ was measured as the Euclidean norm over each group's unfairness,</p><formula xml:id="formula_2" coords="1,396.81,318.41,161.39,20.02">∆ = д ∈ G (E д -R д ) 2 ,<label>(3)</label></formula><p>and the system's overall relevance U for the users was measured as the average Reciprocal Rank metric for all rankings,</p><formula xml:id="formula_3" coords="1,353.42,376.25,204.78,29.23">U = 1 |Π| π ∈Π |π | i=1 γ i-1 i-1 j=1 (1 -f (r π j )) f (r π i ).<label>(4)</label></formula><p>The system has two objectives: Minimizing group unfairness ∆ for the authors of the ranked items while maximizing the users' relevance U . This can be formalized as a weighted sum optimization problem: min</p><formula xml:id="formula_4" coords="1,398.17,458.40,160.03,14.49">π i α ∆ -(1 -α)U<label>(5)</label></formula><p>As a further challenge, the authors of the Fair Ranking Track assumed that no information about author group relationships, A д for д ∈ G, was available during training time, e.g., before a ranking was submitted. The intention was that this restriction leads to systems that are robust against various changing group definitions. Therefore, direct optimization of ( <ref type="formula" coords="1,441.69,533.57,3.17,7.94" target="#formula_4">5</ref>) is not feasible without further knowledge of how authors are partitioned into groups.</p><p>In an initial attempt to study this problem and to provide a reference for more elaborated models, we asked: How well do already existing learning-to-rank retrieval systems and simple heuristic baselines perform in terms of fairness and relevance?</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">FRAMEWORK AND SUBMISSIONS</head><p>In the following, we describe the data pipeline and software framework that is publicly available and open-source <ref type="bibr" coords="1,492.17,635.74,9.35,7.94" target="#b3">[4]</ref>. Its modularity allows for the additional integration and evaluation of models without further effort. For this year's track, we created to submissions: First, a random shuffling of the documents in each ranking without considering further information and second, a ranking model based on the LambdaMart <ref type="bibr" coords="1,392.63,690.53,9.31,7.94" target="#b4">[5,</ref><ref type="bibr" coords="1,404.18,690.53,11.52,7.94" target="#b9">10]</ref> algorithm and several features that we constructed from the corpus. The SemanticScholar corpus has been downloaded from <ref type="bibr" coords="2,267.94,493.27,10.50,7.94" target="#b0">[1]</ref> and written into a local Elasticsearch database with integrated learning to rank plugin <ref type="bibr" coords="2,108.78,515.19,9.45,7.94" target="#b7">[8]</ref>. We wrote several modules that are outlined in figure <ref type="figure" coords="2,76.74,526.15,3.01,7.94">1</ref>. The Corpus class serves as an interface to the database. The FeatureEngineer class calculates a feature matrix given a query and a corresponding set of documents π . Table <ref type="table" coords="2,215.16,548.07,4.25,7.94" target="#tab_0">1</ref> lists the 10 features that are currently implemented.</p><p>The Model class serves as an interface to different model implementations, and it allows for the integration of further approaches. Given a group definition, the Evaluator class can be used to calculate the performance of a trained system in terms of searcher's relevance U and author's unfairness ∆. Finally, the InputOutputHandler class is used to handle and parse the various input files and to prepare a valid output file for submission. The system accepts a list of query sequences, a list of rankings, and a partition of authors into groups. Some of the assessed documents were not included in the corpus and have been removed. Further, as proposed by the organizers <ref type="bibr" coords="2,53.80,679.57,9.41,7.94" target="#b1">[2]</ref>, rankings with fewer than five entries were also removed. The removal resulted in a drop of 15% of the training queries and led to roughly 3800 documents with a relevance judgement.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">RESULTS</head><p>The test files consisted of 5 sequences of query-ranking pairs. Each sequence had 25000 entries, that consist of a query and a list of corresponding unlabelled documents. The query sequences were created by sampling queries with replacement from an original test set of 635 unique queries with around 4300 corresponding documents. The specific sampling process is not known.</p><p>The submissions' performance was assessed by calculating the aggregated relevance U and the aggregated unfairness ∆ based on two different author partitions: First, groups were calculated according to their productivity and impact, approximated by the h-index. And second, according to the economic level of their country of origin. Note that the group definitions were not known beforehand and were only revealed after the submission phase.</p><p>unfairness relevance Table <ref type="table" coords="2,350.27,392.68,4.23,7.94" target="#tab_2">2</ref> summarises the aggregated performance of all submissions. For better readability, results from the five query-sequences have been averaged as we did not find any large differences between the individual sequences.</p><formula xml:id="formula_5" coords="2,410.13,271.84,48.60,10.38">∆ hindex ∆ l</formula><p>Interestingly, our randomized submission has the lowest unfairness value for the h-index partition, and a below-average unfairness for the economic level group. It also performs worst for relevance. The second submission, the LambdaMart algorithm, optimized users' relevance. As expected, it performed above average and achieved a relevance score close to the maximum. In terms of unfairness, this method performs above average as well but does not come close to the maximum unfairness values observed. Therefore, as this method utilizes a known learning-to-rank retrieval framework, it provides a useful baseline for both unfairness and relevance. In addition, it shows the magnitude of unfairness that current systems, which solely optimize for relevance, produce.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">DISCUSSION</head><p>For the first Fair Ranking Track at TREC 2019, we utilized a basic learning-to-rank framework for solving this task. The main challenge was that multiple objectives (searchers' relevance and authors' group fairness) had to be optimized under the constraint of an unknown author-group-partition. This constraint seems not practicable, as one can presumably always find an arbitrary group definition that maximizes unfairness for a given list of rankings. Existing fairness frameworks in the literature require some group definitions during training time or, for post-processing methods, the group definitions are required for re-ranking a system's output before the final submission <ref type="bibr" coords="2,408.58,701.49,13.26,7.94" target="#b12">[13]</ref>. Further research should concentrate Fair ranking in search on first, exploring the solution space of the optimization problem and analytically study the trade-offs between high fairness and high relevance. Second, robust ranking models should be implemented. Ideally, they can be trained without requiring a specific group definition, but should later handle various group definitions when making actual ranking decisions.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,53.80,244.81,240.25,182.56"><head>1 :</head><label>1</label><figDesc>Class diagram that describes the software modules and their dependencies.</figDesc><table coords="2,96.10,296.30,155.64,131.08"><row><cell>level</cell><cell>feature</cell></row><row><cell cols="2">query-document (BM25) title</cell></row><row><cell></cell><cell>abstract</cell></row><row><cell></cell><cell>entities</cell></row><row><cell></cell><cell>venue</cell></row><row><cell></cell><cell>journal</cell></row><row><cell></cell><cell>authors' names</cell></row><row><cell>document</cell><cell>year</cell></row><row><cell></cell><cell>out-citations</cell></row><row><cell></cell><cell>in-citations</cell></row><row><cell>query</cell><cell>query length</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,99.13,433.89,149.28,7.70"><head>Table 1 :</head><label>1</label><figDesc>Features used for the system</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="2,317.66,272.75,240.79,92.39"><head>Table 2 :</head><label>2</label><figDesc>Aggregated test results, averaged over the five query sequences.</figDesc><table coords="2,459.49,272.75,45.06,9.46"><row><cell>evel</cell><cell>U</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>ACKNOWLEDGMENTS</head><p>This research was supported by the <rs type="programName">Digital Society research program</rs> funded by the <rs type="funder">Ministry of Culture and Science of the German State of North Rhine-Westphalia</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_BSdeKFS">
+					<orgName type="program" subtype="full">Digital Society research program</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,69.23,232.56,225.99,6.18;3,69.23,240.53,224.81,6.18;3,69.23,248.50,225.58,6.18;3,69.23,256.47,225.57,6.18;3,69.23,264.44,224.81,6.18;3,69.23,272.36,225.89,6.23;3,69.23,280.38,157.22,6.18" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="3,239.46,264.44,54.59,6.18;3,69.23,272.41,103.16,6.18">Construction of the Literature Graph in Semantic Scholar</title>
+		<author>
+			<persName coords=""><forename type="first">Waleed</forename><surname>Ammar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dirk</forename><surname>Groeneveld</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chandra</forename><surname>Bhagavatula</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iz</forename><surname>Beltagy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Miles</forename><surname>Crawford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Doug</forename><surname>Downey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jason</forename><surname>Dunkelberger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ahmed</forename><surname>Elgohary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sergey</forename><surname>Feldman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vu</forename><surname>Ha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodney</forename><surname>Kinney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Kohlmeier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyle</forename><surname>Lo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tyler</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Hsu-Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><surname>Ooi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joanna</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sam</forename><surname>Power</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lucy</forename><forename type="middle">Lu</forename><surname>Skjonsberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zheng</forename><surname>Wilhelm</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Madeleine</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oren</forename><surname>Van Zuylen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Etzioni</surname></persName>
+		</author>
+		<ptr target="https://www.semanticscholar.org/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,184.41,272.36,19.05,6.23">NAACL</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note>paper/09e3cf5704bcb16e6657f6ceed70e93373a54618</note>
+</biblStruct>
+
+<biblStruct coords="3,69.23,288.35,225.88,6.18;3,69.03,296.32,167.64,6.18" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Asia</forename><surname>Biega</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Ekstrand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Kohlmeier</surname></persName>
+		</author>
+		<ptr target="https://fair-trec.github.io/" />
+		<title level="m" coord="3,69.03,296.32,86.34,6.18">TREC 2019 Fair Ranking Track</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,69.23,304.29,224.81,6.18;3,68.99,312.21,225.06,6.23;3,69.23,320.18,224.81,6.23;3,68.49,328.15,225.55,6.23;3,333.39,89.10,95.72,6.18" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,266.49,304.29,27.56,6.18;3,68.99,312.26,152.49,6.18">Equity of Attention: Amortizing Individual Fairness in Rankings</title>
+		<author>
+			<persName coords=""><forename type="first">Asia</forename><forename type="middle">J</forename><surname>Biega</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Krishna</forename><forename type="middle">P</forename><surname>Gummadi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gerhard</forename><surname>Weikum</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3209978.3210063</idno>
+		<ptr target="https://doi.org/10.1145/3209978.3210063event-place" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,233.90,312.21,60.15,6.23;3,69.23,320.18,224.81,6.23;3,68.49,328.15,9.23,6.23">The 41st International ACM SIGIR Conference on Research &amp; Development in Information Retrieval (SIGIR &apos;18)</title>
+		<meeting><address><addrLine>New York, NY, USA; Ann Arbor, MI, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="405" to="414" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,97.07,225.63,6.18;3,333.17,105.04,94.69,6.18" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Malte</forename><surname>Bonart</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.3514668</idno>
+		<ptr target="https://doi.org/10.5281/zenodo.3514668" />
+		<title level="m" coord="3,395.92,97.07,133.92,6.18">irgroup/fair-trec: trec 2019 conference release</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,113.01,84.54,6.18;3,441.21,112.96,117.00,6.23;3,333.39,120.93,95.22,6.23;3,453.85,120.98,105.53,6.18" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="3,441.21,112.96,117.00,6.23;3,333.39,120.93,92.09,6.23">From RankNet to LambdaRank to LambdaMART: An Overview</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">C</forename><surname>Chris</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Burges</surname></persName>
+		</author>
+		<idno>MSR-TR-2010</idno>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="3,333.39,144.84,224.81,6.23;3,333.39,152.86,184.34,6.18" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,394.89,144.89,106.87,6.18">Fairness and Transparency in Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3308774.3308783</idno>
+		<ptr target="https://doi.org/10.1145/3308774.3308783" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,507.39,144.84,50.82,6.23">ACM SIGIR Forum</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page" from="64" to="71" />
+			<date type="published" when="2019-01">2019. Jan. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,160.83,224.81,6.18;3,333.39,168.75,224.81,6.23;3,333.39,176.72,225.58,6.23;3,333.39,184.74,150.03,6.18" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="3,532.70,160.83,25.50,6.18;3,333.39,168.80,103.44,6.18">Expected reciprocal rank for graded relevance</title>
+		<author>
+			<persName coords=""><forename type="first">Olivier</forename><surname>Chapelle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donald</forename><surname>Metlzer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ya</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierre</forename><surname>Grinspan</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1645953.1646033</idno>
+		<ptr target="https://doi.org/10.1145/1645953.1646033" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,449.19,168.75,109.02,6.23;3,333.39,176.72,152.64,6.23">Proceeding of the 18th ACM conference on Information and knowledge management -CIKM &apos;09</title>
+		<meeting>eeding of the 18th ACM conference on Information and knowledge management -CIKM &apos;09<address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page">621</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,192.71,225.63,6.18;3,333.17,200.68,226.21,6.18;3,333.39,208.65,39.14,6.18" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="3,430.07,192.71,101.49,6.18">o19s/elasticsearch-learning-to-rank</title>
+		<idno>date: 2016-12- 25T03:19:01Z</idno>
+		<ptr target="https://github.com/o19s/elasticsearch-learning-to-rank" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<publisher>OpenSource Connections</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,216.62,225.99,6.18;3,333.39,224.54,225.58,6.23;3,333.39,232.56,165.79,6.18" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="3,509.51,216.62,49.87,6.18;3,333.39,224.54,160.94,6.23">Fairness and Discrimination in Retrieval and Recommendation (SIGIR&apos;19)</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robin</forename><surname>Ekstrand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Diaz</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331380</idno>
+		<ptr target="https://doi.org/10.1145/3331184.3331380" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<publisher>ACM</publisher>
+			<biblScope unit="page" from="1403" to="1404" />
+			<pubPlace>New York, NY, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,240.53,225.63,6.18;3,333.39,248.50,63.32,6.18" xml:id="b9">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Jerry</forename><surname>Ma</surname></persName>
+		</author>
+		<idno>date: 2015-08-17T05:42:11Z</idno>
+		<ptr target="https://github.com/jma127/pyltr" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,256.47,225.88,6.18;3,333.39,264.39,224.81,6.23;3,333.39,272.36,225.26,6.23;3,333.39,280.38,100.83,6.18" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="3,464.84,256.47,91.38,6.18">Fairness of Exposure in Rankings</title>
+		<author>
+			<persName coords=""><forename type="first">Ashudeep</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thorsten</forename><surname>Joachims</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3219819.3220088</idno>
+		<idno type="arXiv">arXiv:1802.07281</idno>
+		<ptr target="https://doi.org/10.1145/3219819" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,333.39,264.39,224.81,6.23;3,333.39,272.36,90.66,6.23">Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining -KDD</title>
+		<meeting>the 24th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining -KDD</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018. 3220088</date>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="2219" to="2228" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,288.35,224.81,6.18;3,333.39,296.27,224.99,6.23;3,333.39,304.29,108.68,6.18" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="3,504.06,288.35,54.13,6.18;3,333.39,296.32,145.97,6.18">Reducing Disparate Exposure in Ranking: A Learning To Rank Approach</title>
+		<author>
+			<persName coords=""><forename type="first">Meike</forename><surname>Zehlike</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gina-Theresa</forename><surname>Diehn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1805.08716</idno>
+		<ptr target="http://arxiv.org/abs/1805.08716" />
+		<imprint>
+			<date type="published" when="2018-05">2018. May 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.39,312.26,225.63,6.18;3,333.15,320.18,226.13,6.23;3,333.39,328.20,141.73,6.18" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Meike</forename><surname>Zehlike</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tom</forename><surname>Sühr</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ivan</forename><surname>Kitanovski</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1905.13134</idno>
+		<idno>arXiv: 1905.13134</idno>
+		<ptr target="http://arxiv.org/abs/1905.13134" />
+		<title level="m" coord="3,527.84,312.26,31.19,6.18;3,333.15,320.23,127.88,6.18">FairSearch: A Tool For Fairness in Ranked Search Results</title>
+		<imprint>
+			<date type="published" when="2019-05">2019. May 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

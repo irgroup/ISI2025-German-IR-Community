@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,72.00,77.23,291.56,15.63;1,72.00,94.37,148.80,10.70">Siamese Networks In Trigger Detection Task Notebook for PAN at CLEF 2023</title>
+				<funder ref="#_QyyBk4M">
+					<orgName type="full">National Natural Science Foundation of China</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,72.00,120.03,50.08,11.62"><forename type="first">Yunsen</forename><surname>Su</surname></persName>
+							<email>suyunsen2023@gmail.com</email>
+						</author>
+						<author>
+							<persName coords="1,130.32,120.03,47.06,11.62"><forename type="first">Yong</forename><surname>Han</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,192.00,120.03,58.88,11.62"><forename type="first">Haoliang</forename><surname>Qi</surname></persName>
+							<email>qihaoliang@fosu.edu.cn</email>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">FoshanUniversity</orgName>
+								<address>
+									<settlement>Foshan</settlement>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="laboratory">CLEF</orgName>
+								<address>
+									<postCode>2023</postCode>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,72.00,77.23,291.56,15.63;1,72.00,94.37,148.80,10.70">Siamese Networks In Trigger Detection Task Notebook for PAN at CLEF 2023</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">00DD159DCB0FC1E98587A2E7285DA79D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:35+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Multi-Label Text Classification</term>
+					<term>Pre-trained language model</term>
+					<term>Siamese Networks</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The trigger detection task involves providing a piece of text and determining which warning labels it belongs to. In the PAN@CLEF 2023 competition, the trigger detection task requires analyzing a text segment ranging from 50 to 6000 words and identifying which of the 32 warning labels apply to that segment. To address this task, a method based on RoBERTabased Siamese networks and convolutional neural networks was proposed.The text is divided into two segments, with the first segment containing the first 505 words and the second segment containing the last 505 words. These segments are separately input into the Siamese RoBERTa models. The outputs of RoBERTa undergo pooling, resulting in two embeddings. These two embeddings are then subjected to one-dimensional convolutional operations. The convolutional results are fed into a classifier for multi-label classification. Using this approach, the method achieved the following results on the test dataset: mac_F1 = 0.35, mac_p = 0.544, mac_r= 0.298, mic_F1 = 0.753, mic_p = 0.798, mic_r = 0.712, and sub_acc = 0.622.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>In trigger detection, the goal is to assign trigger warning labels to documents that contain potentially distressing or painful (trigger) content <ref type="bibr" coords="1,298.68,449.81,11.70,10.70" target="#b0">[1]</ref>. The PAN@CLEF 2023 trigger detection task requires the development of software or models to determine whether a document contains trigger content. To increase the challenge, the PAN 2023 trigger detection task models the detector as a multi-label classification task, where each document is assigned all relevant trigger warnings. This task has wide applications in fields such as information retrieval <ref type="bibr" coords="1,388.44,500.45,11.94,10.70" target="#b1">[2,</ref><ref type="bibr" coords="1,400.38,500.45,7.96,10.70" target="#b2">3]</ref>, web mining, questionanswering systems, and sentiment analysis. However, due to the numerous label categories, complex relevance relationships, and imbalanced sample distributions, building a simple and effective multilabel text classifier presents significant challenges <ref type="bibr" coords="1,294.96,538.37,11.70,10.70" target="#b3">[4]</ref>.</p><p>For multi-label classification, there are four main methods <ref type="bibr" coords="1,356.16,550.97,11.93,10.70" target="#b4">[5]</ref>: problem transformation methods <ref type="bibr" coords="1,72.00,563.69,12.00,10.70" target="#b5">[6,</ref><ref type="bibr" coords="1,84.00,563.69,8.00,10.70" target="#b6">7]</ref>, algorithm adaptation methods <ref type="bibr" coords="1,233.16,563.69,11.79,10.70" target="#b7">[8]</ref>, ensemble methods <ref type="bibr" coords="1,336.12,563.69,12.60,10.70" target="#b8">[9,</ref><ref type="bibr" coords="1,348.72,563.69,12.60,10.70" target="#b9">10]</ref>, and neural network models <ref type="bibr" coords="1,490.80,563.69,17.52,10.70" target="#b10">[11,</ref><ref type="bibr" coords="1,508.32,563.69,13.14,10.70" target="#b11">12]</ref>. Researchers in the fields of machine learning and natural language processing have made significant efforts in developing MLTC (Multi-Label Text Classification) methods in each of these aspects <ref type="bibr" coords="1,501.84,589.01,16.90,10.70" target="#b12">[13]</ref>. Traditional machine learning algorithms for multi-label text classification can be primarily categorized into problem transformation and algorithm adaptation. The former transforms the multilabel classification problem into a series of single-label classification problems, while the latter improves existing single-label algorithms to make them applicable to multi-label data. However, traditional methods heavily rely on feature engineering and are susceptible to noise, resulting in suboptimal predictive performance <ref type="bibr" coords="1,235.32,664.85,17.28,10.70" target="#b13">[14]</ref>.In recent years, with the emergence of transformer-based deep learning models, significant contributions have been made in the field of natural language processing. More and more researchers are utilizing transformer-based models like BERT and GPT for multi-label classification tasks and achieving promising results. BERT-BCE <ref type="bibr" coords="2,429.72,87.53,18.44,10.70" target="#b14">[15]</ref> has shown good performance in multi-label classification tasks. It utilizes the pretrained language model BERT to encode input sentences and employs Binary Cross Entropy loss for multi-label classification <ref type="bibr" coords="2,480.72,112.85,16.90,10.70" target="#b12">[13]</ref>.</p><p>This article proposes improvements to BERT-BCE by addressing the issue of text length exceeding the input limit of ROBERTA. To overcome this limitation, the approach selects the first 505 words and the last 505 words of the text. This ensures that more semantic information from the text is captured.For the first 505 words and the last 505 words of the text, a pair of Siamese ROBERTA models are employed. The embeddings are obtained by taking the average of the last layer of ROBERTA. To better combine the embeddings, a one-dimensional convolutional neural network is applied to the embeddings, resulting in the final text embeddings. Finally, these embeddings are passed through a classifier for multi-label classification.By using this approach, the proposed method aims to leverage the benefits of BERT while accommodating longer texts by splitting them and using a siamese network with a convolutional layer for embedding aggregation. The final embeddings are then utilized for multi-label classification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Model framework</head><p>In this section we will discuss our model. Our base model is based on a Siamese network using ROBERTA. For a given text, we split it into two segments, which are separately input into ROBERTA. After applying pooling, we obtain embeddings for the two segments. These embeddings are then processed through convolution to generate the final embedding for the text. Finally, this embedding is fed into a classifier. The detailed diagram of the model is shown in Figure <ref type="figure" coords="2,253.44,373.01,4.14,10.70" target="#fig_0">1</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Text Processing</head><p>For the PAN@CLEF 2023 trigger detection task, each text segment is given with a total length of 50-6000 words, and the text content is provided in HTML format. First, I clean the HTML text content by removing the HTML tags, transforming the text provided by PAN into plain text format. Since the input limit of ROBERTA is 512 tokens, and most of the given texts have a total length greater than ROBERTA's input limit, I choose to truncate the text by selecting the first 505 words and the last 505 words. It's important to note that the total length of the text can be either less than or equal to 505 words or greater than 505 words but less than 1010 words. In the case where the total length is less than or equal to 505 words, I will generate two identical segments of the text and feed them into the Siamese network. In the case where the total length is greater than 505 words but less than 1010 words, there will be an overlap between the latter half of the first 505 words and the first half of the last 505 words, containing the same text content.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Pooling</head><p>When classifying tasks of ROBERTA, many people will directly take [cls] as the embedding of the entire text, but it may not achieve a good effect in many tasks. Therefore, this paper conducts a pooling on the output of the last layer of ROBERTA. The two most common operations of pooling are meanpooling and maxpooling. Meanpooling is adopted in this paper. Meanpooling is to calculate the average value of output corresponding to each token.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Convolutional neural network</head><p>The convolution neural network is mainly applied in the field of images, but it is also used in the field of text. Inspired by this, I did not directly add the two texts of the embedding or average of the two embedding, but convolved the two embedding into the one-dimensional convolution neural network for output. To represent the final embedding of the text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Classifier</head><p>Our classifier is composed of several simple linear layers and activation functions. The detailed composition order is linear layer, Tanh activation function layer, dropout layer, linear layer. A total of four layers make up the classifier.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Experimet</head><p>In this section I will describe our experiment. For this experiment, I used the hardware provided by the school, which is a shared server. The allocated time for using the school's public server is one day, so my model was trained for only 15 hours, completing a total of 4 epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data set</head><p>The trigger detection task for PAN@CLEF 2023 is given a data set containing fan fiction retrieved from archiveofourown.org (AO3). Each piece is between 50 and 6,000 words long and is assigned one to many trigger warnings. The tag set contains 32 different trigger warnings and has a long-tail frequency distribution, meaning that some tags are very common and most tags are increasingly rare.</p><p>Our training dataset contains 307,102 examples, 17,104 for validation and 17,040 for testing.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Detail of experiment</head><p>For the types of data sets given, the training set has 3070,12 examples, the verification set is 17,104 examples, and 17,040 are used for testing. Use the pre-trained ROBERTA to train on the training set and validate on the verification set.</p><p>Our code is implemented on pythorch and we use the huggingface architecture. roberta-base,the optimizer we used is the Adam optimizer. The learning rate of the optimizer is = 2 -5 . The loss function is pytorch's MultiLabelSoftMarginLoss, and the batch of size is 32. The experimental results of our proposed model are shown in Table <ref type="table" coords="3,261.36,717.89,4.35,10.70" target="#tab_0">3</ref>-1. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Ablation experiment 3.3.1. Cls as expression</head><p>To investigate whether the method used in this paper is effective for this task, it was used as a text expression for "cls", and the results are shown in Table <ref type="table" coords="4,317.88,184.13,4.88,10.70" target="#tab_0">3</ref>-2 below. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2.">One pooling</head><p>In order to verify the effectiveness of siamese networks and convolutional neural networks, we selected only the first 505 words of the text as input to the model for experimentation. The experimental results of One pooling are shown in Table <ref type="table" coords="4,319.68,339.53,4.35,10.70" target="#tab_0">3</ref>-3. Based on our ablation experiment results, it can be observed that without using pooling and without employing siamese networks and convolutional networks, the experimental results are inferior to the method proposed in this paper. Therefore, the method proposed in this paper is effective in improving the performance of multi-label tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusions</head><p>This paper proposes a method based on Siamese networks and convolutional neural networks to tackle the trigger detection task of PAN@CLEF 2023. We split a given text into two segments, which are then encoded by the Siamese ROBERTA network. The output from ROBERTA is fed into a onedimensional convolutional neural network to generate the final embedding for the text. This embedding is subsequently passed through a classifier for multi-label classification.</p><p>We have achieved better results than the baseline provided by the PAN@CLEF 2023 Trigger Detection task. I believe our model performs well on the dataset provided by the PAN@CLEF 2023 Trigger Detection task. Due to limited hardware resources, my model was trained for only 4 epochs. In the future, I will explore training for more epochs to observe if my model can further improve its performance.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,86.16,610.97,223.32,10.70;2,162.00,382.68,285.12,225.36"><head>Figure 1</head><label>1</label><figDesc>Figure 1 Model framework diagram of our method</figDesc><graphic coords="2,162.00,382.68,285.12,225.36" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,72.00,743.21,114.93,23.30"><head>Table 3 -</head><label>3</label><figDesc></figDesc><table coords="3,72.00,743.21,114.93,23.30"><row><cell>1</cell></row><row><cell>Experimental results table</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,72.00,209.45,434.13,53.90"><head>Table 3 -</head><label>3</label><figDesc></figDesc><table coords="4,72.00,209.45,434.13,53.90"><row><cell>2</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">"cls" Experimental results table</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>mac_f1</cell><cell>mac_p</cell><cell>mac_r</cell><cell>mic_f1</cell><cell>mic_p</cell><cell>mic_r</cell><cell>sub_acc</cell></row><row><cell>0.265</cell><cell>0.427</cell><cell>0.208</cell><cell>0.701</cell><cell>0.808</cell><cell>0.623</cell><cell>0.568</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,72.00,364.85,434.13,53.90"><head>Table 3 -</head><label>3</label><figDesc></figDesc><table coords="4,72.00,364.85,434.13,53.90"><row><cell>3</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">One pooling results table</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>mac_f1</cell><cell>mac_p</cell><cell>mac_r</cell><cell>mic_f1</cell><cell>mic_p</cell><cell>mic_r</cell><cell>sub_acc</cell></row><row><cell>0.269</cell><cell>0.504</cell><cell>0.206</cell><cell>0.711</cell><cell>0.816</cell><cell>0.63</cell><cell>0.578</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="5.">Acknowledgments</head><p>This work is supported by the <rs type="funder">National Natural Science Foundation of China</rs> (No.<rs type="grantNumber">62276064</rs>).</p></div>
+<div><head n="6.">References</head></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_QyyBk4M">
+					<idno type="grant-number">62276064</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,111.96,74.93,411.00,10.70;5,111.96,87.53,366.36,10.70" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,147.36,87.53,302.74,10.70">Trigger Warnings: Bootstrapping a Violence Detector for FanFiction</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Magdalena</forename><surname>Schr\"oder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Borchardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ole</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benno</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Martin</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,100.13,411.06,10.70;5,111.96,112.85,411.13,10.70;5,111.96,125.45,198.00,10.70" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,314.76,100.13,208.26,10.70;5,111.96,112.85,38.01,10.70">Multilabel Classification with Meta-Level Features</title>
+		<author>
+			<persName coords=""><forename type="first">Siddharth</forename><surname>Gopal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yiming</forename><surname>Yang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,154.72,112.85,368.37,10.70;5,111.96,125.45,166.10,10.70">Proceedings of the 33rd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 33rd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,138.17,411.06,10.70;5,111.96,150.77,373.80,10.70" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,262.44,138.17,260.58,10.70;5,111.96,150.77,192.94,10.70">Cross-domain sentiment classifification with bidirectional contextualized transformer language models</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Myagmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kimura</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,312.60,150.77,57.70,10.70">IEEE Access</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="163219" to="163230" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,163.37,411.12,10.70;5,111.96,176.09,411.05,10.70;5,111.96,188.69,133.19,10.70" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,385.92,163.37,137.16,10.70;5,111.96,176.09,262.79,10.70">Multilabel Text Classification Algorithm Based on Fusion of Two-Stream Transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Lihua</forename><surname>Duan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Qi</forename><surname>You</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xinke</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Sun</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/electronics11142138</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,384.96,176.09,47.96,10.70">Electronics</title>
+		<imprint>
+			<biblScope unit="page">2138</biblScope>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,201.41,411.00,10.70;5,111.96,214.01,411.06,10.70;5,111.96,226.73,211.68,10.70" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,158.40,214.01,299.13,10.70">SGM: Sequence Generation Model for Multi-label Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Pengcheng</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shuming</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Houfeng</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,466.80,214.01,56.22,10.70;5,111.96,226.73,184.70,10.70">International Conference on Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,239.33,411.12,10.70;5,111.96,251.93,386.51,10.70" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,483.24,239.33,39.84,10.70;5,111.96,251.93,134.90,10.70">Learning multi-label scene classification</title>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><forename type="middle">R</forename><surname>Boutell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiebo</forename><surname>Luo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xipeng</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.patcog.2004.03.009</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,253.68,251.93,84.53,10.70">Pattern Recognition</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,265.37,189.72,10.70" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="5,179.76,265.37,117.52,10.70">Multi-Label Classification</title>
+		<author>
+			<persName coords=""><forename type="first">An</forename><surname>Overview</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,278.93,411.12,10.70;5,111.96,291.53,411.06,10.70;5,111.96,304.13,103.32,10.70" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="5,111.96,291.53,362.14,10.70">Multi-label Text Categorization with Joint Learning Predictions-as-Features Metho</title>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wang</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Houfeng</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chang</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Baobao</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lei</forename><surname>Sha</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/d15-1099</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,316.85,411.12,10.70;5,111.96,329.45,411.08,10.70;5,111.96,342.17,225.71,10.70" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,323.40,316.85,199.68,10.70;5,111.96,329.45,126.82,10.70">Random k-Labelsets: An Ensemble Method for Multilabel Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Grigorios</forename><surname>Tsoumakas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ioannis</forename><surname>Vlahavas</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-540-74958-5_38</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,247.44,329.45,144.87,10.70">Machine Learning: ECML 2007</title>
+		<title level="s" coord="5,397.18,329.45,125.86,10.70;5,111.96,342.17,32.49,10.70">Lecture Notes in Computer Science</title>
+		<imprint>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,354.77,411.00,10.70;5,111.96,367.37,411.06,10.70;5,111.96,380.09,233.76,10.70" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="5,426.00,354.77,96.96,10.70;5,111.96,367.37,411.06,10.70;5,111.96,380.09,61.50,10.70">How is a data-driven approach better than random choice in label space division for multi-label classification</title>
+		<author>
+			<persName coords=""><forename type="first">Piotr</forename><surname>Szymański</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tomasz</forename><surname>Kajdanowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristian</forename><surname>Kersting</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/e18080282</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page">282</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,392.69,410.88,10.70;5,111.96,405.41,411.06,10.70;5,111.96,418.01,411.06,10.70;5,111.96,430.73,129.59,10.70" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,111.96,405.41,411.06,10.70;5,111.96,418.01,60.81,10.70">Ensemble application of convolutional and recurrent neural networks for multi-label text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">Guibin</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Deheng</forename><surname>Ye</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenchang</forename><surname>Xing</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jieshan</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Erik</forename><surname>Cambria</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/ijcnn.2017.7966144</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,207.12,418.01,266.21,10.70">International Joint Conference on Neural Networks (IJCNN</title>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,443.33,411.06,10.70;5,111.96,455.93,297.24,10.70" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="5,276.36,443.33,246.66,10.70;5,111.96,455.93,75.98,10.70">Initializing neural networks for hierarchical multi-label text classification</title>
+		<author>
+			<persName coords=""><forename type="first">Simon</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anna</forename><surname>Korhonen</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/w17-2339</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,194.64,455.93,36.74,10.70">BioNLP</title>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,468.65,411.06,10.70;5,111.96,481.25,272.28,10.70" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="5,385.20,468.65,137.82,10.70;5,111.96,481.25,245.85,10.70">Label Dependencies-aware Set Prediction Networks for Multi-label Text Classification</title>
+		<author>
+			<persName coords=""><forename type="first">Han</forename><surname>Quanjie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Du</forename><surname>Xinkai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sun</forename><surname>Yalin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lv</forename><surname>Chao</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,493.97,411.12,10.70;5,111.96,506.57,411.06,10.70;5,111.96,519.17,133.19,10.70" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="5,385.92,493.97,137.16,10.70;5,111.96,506.57,259.31,10.70">Multilabel Text Classification Algorithm Based on Fusion of Two-Stream Transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Lihua</forename><surname>Duan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Qi</forename><surname>You</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xinke</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Sun</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/electronics11142138</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,380.88,506.57,47.96,10.70">Electronics</title>
+		<imprint>
+			<biblScope unit="page">2138</biblScope>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,111.96,531.89,411.08,10.70;5,111.96,544.49,411.10,10.70;5,111.96,557.21,288.12,10.70" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="5,470.16,531.89,52.88,10.70;5,111.96,544.49,321.46,10.70">BERT: Pretraining of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chang</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei And</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/n19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,441.00,544.49,82.05,10.70;5,111.96,557.21,129.90,10.70">Proceedings of the 2019 Conference of the North</title>
+		<meeting>the 2019 Conference of the North</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

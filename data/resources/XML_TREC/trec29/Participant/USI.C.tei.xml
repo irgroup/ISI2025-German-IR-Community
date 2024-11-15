@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,165.81,115.96,283.73,12.62;1,179.67,133.89,256.02,12.62;1,229.46,151.82,156.44,12.62">Extending the Use of Previous Relevant Utterances for Response Ranking in Conversational Search</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,174.39,189.49,52.86,8.74"><forename type="first">Ivan</forename><surname>Sekulić</surname></persName>
+							<email>ivan.sekulic@usi.ch</email>
+							<affiliation key="aff0">
+								<orgName type="department">Faculty of Informatics Università della Svizzera italiana</orgName>
+								<address>
+									<settlement>Lugano</settlement>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,237.81,189.49,104.88,8.74"><forename type="first">Mohammad</forename><surname>Aliannejadi</surname></persName>
+							<email>m.aliannejadi@uva.nl</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,372.63,189.49,63.87,8.74"><forename type="first">Fabio</forename><surname>Crestani</surname></persName>
+							<email>fabio.crestani@usi.ch</email>
+							<affiliation key="aff0">
+								<orgName type="department">Faculty of Informatics Università della Svizzera italiana</orgName>
+								<address>
+									<settlement>Lugano</settlement>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,165.81,115.96,283.73,12.62;1,179.67,133.89,256.02,12.62;1,229.46,151.82,156.44,12.62">Extending the Use of Previous Relevant Utterances for Response Ranking in Conversational Search</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">29F445A0C4916923A1CAE5AA52717669</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Conversational Search</term>
+					<term>Multi-turn Conversations</term>
+					<term>Conversational Response Ranking</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This technical report describes the approach of the Università della Svizzera italiana and the University of Amsterdam to TREC CAsT 2020. TREC CAsT provides a reusable benchmark for open-domain conversational information-seeking dialogues. Our system first performs query expansion by concatenating raw, relevant previous utterances, as predicted by an independent model trained on CAsTUR, with the current utterance. Initial ranking is performed by BM25, followed by ALBERT re-ranker trained on MS MARCO passage ranking task. Modifications of the approach include two different methods for utilising context: i) feeding the previous utterance and its top response to the model alongside the current one; ii) feeding up to 3 relevant utterances to the model and performing an attentive-sum to aggregate context information. Our last run uses automatically rewritten queries without context utilisation.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Conversational search has been highlighted as an important research area in Information Retrieval (IR) in the SWIRL 2018 workshop and in the Dagstuhl seminar on Conversational Search <ref type="bibr" coords="1,290.67,560.48,9.96,8.74">[4]</ref>. Recent research efforts aim to provide resources and guidelines to facilitate research on conversational search <ref type="bibr" coords="1,448.49,572.43,10.52,8.74">[5,</ref><ref type="bibr" coords="1,460.67,572.43,7.75,8.74">3,</ref><ref type="bibr" coords="1,470.07,572.43,7.01,8.74" target="#b1">2]</ref>. TREC Conversational Assistance Track (CAsT) establishes large-scale reusable test collections for conversational search systems.</p><p>The task in CAsT is to satisfy user information need that can shift and change as the conversation evolves. More specifically, a system needs to retrieve passage-length texts that are relevant to the current query, given the conversation context. Context includes previous queries in the session and system responses to those queries. Challenges arise due to topical shifts as the conversation evolves, as well as zero anaphora when user implicitly refers to its previous queries or system responses.</p><p>The Motivation for our approach is based on two main ideas: i) context, i.e., previous conversation turns, is important; ii) neural re-ranking showed great success in passage retrieval tasks. To address the first point, we estimate which previous turns in the conversation are relevant to the current query. We then expand the current query with previous queries that are predicted to be relevant. This part of our system is described in detail in Section 2.1.</p><p>As for the second point, we follow recent advancements in usage of transformerbased neural networks for various IR tasks, e.g., <ref type="bibr" coords="2,350.26,226.59,41.70,8.74">BERT [6]</ref> for passage ranking <ref type="bibr" coords="2,134.77,238.55,9.96,8.74">[8]</ref>. The motivation also comes from CAsT 2019, where all of the top performing systems utilised transformer-based networks <ref type="bibr" coords="2,348.71,250.50,9.96,8.74">[5]</ref>. This part of our system is described in greater detail in Section 2.2. We further extend the BERT-based approach to make use of the context, which is described in Section 2.3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>We submitted four runs to TREC CAsT 2020. Three of them use raw utterances only and perform query expansions based on previous relevant utterances. In the first run, the expanded query is then fed to the initial retrieval step and to the re-ranking step, performed by BM25 and ALBERT, respectively. The next two runs expand this approach by making use of context from previous relevant utterances, combining both previous queries and system responses to that queries. The fourth run uses utterances automatically rewritten by GPT-2 [9], as provided by the organisers. This run has no further context utilisation. The runs and each of their elements are explained in more detail below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Predicting Previous Relevant Utterances</head><p>For the current turn, we predict previous relevant turns in a similar fashion to Aliennejadi et al. <ref type="bibr" coords="2,213.79,487.04,9.96,8.74" target="#b0">[1]</ref>. They created CAsTUR, a dataset that contains labels of relevant utterances in the conversations of TREC CAsT 2019. Labels determine which of the previous utterances in a conversation can be used to improve the current one. We train an independent ALBERT-based model on CAsTUR and use it to predict previous relevant utterances for each of the utterances in CAsT 2020 dataset. Current utterance is that expanded by concatenating it with the utterances that are predicted as relevant. Only raw utterances are used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Neural Re-ranking</head><p>Last year's CAsT showed the power of neural re-ranking models in conversational information seeking tasks. Given a query, the main idea is to first perform a computationally non-expensive initial retrieval with traditional IR models, like BM25 or query likelihood. Then, a computationally-heavy neural model re-ranks the top N results retrieved by the initial step.</p><p>We use ALBERT [7] as our neural re-ranker. We pre-train it on MS MARCO passage ranking task, following the approach of Nogueira and Cho <ref type="bibr" coords="3,426.52,130.95,9.96,8.74">[8]</ref>. The current query and a potentially relevant passage are fed to the model, producing a score of how relevant this passage is to the query. We also use the pre-trained AL-BERT as a query-passage pair encoder in runs that utilise context, as described in the next section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Runs</head><p>In this section, we describe the four runs submitted to TREC CAsT 2020.</p><p>Query expansion and re-ranking. Our first run, named castur albert, takes the expanded current utterance, generated as described in 2.1, and performs initial retrieval step with BM25. Top 1000 passages, as ranked by BM25, are then fed to a computationally-expensive ALBERT re-ranker, which then produces a new score for each passage in respect to the current query.</p><p>Getting context from previous utterance. Our second run, named hist concat, aims to utilise context by using a query from the current turn and a query and its top ranked passage, i.e., canonical response, from the previous turn. The queries used are again expanded, as described in 2.1. We first generate the representation of the query-passage pairs with ALBERT as encoder:</p><formula xml:id="formula_0" coords="3,254.05,394.16,226.54,9.65">Rep i = ALBERT (q i , p i )<label>(1)</label></formula><p>where q i and p i are the query and passage, respectively. Rep i is a neural representation of the query-passage pair in turn i.</p><p>In this run, we predict how relevant a passage p i is to the current query q i , given the context q i-1 and p i-1 , where q i-1 and p i-1 are the query and a passage with the highest score from the previous turn, respectively. Representations of the previous Rep i-1 and current utterance Rep i are then concatenated and fed through a one layer feed forward network to predict whether passage p i is relevant or not.</p><p>Using multiple previous utterances. This run, hist attention, extends the previous one by using multiple previous utterances, instead of just one. For the current query, we select up to three relevant previous turns, as predicted by our model described in 2.1. Relevant queries from history are again encoded together with their corresponding top-1 ranked passages with Equation <ref type="formula" coords="3,409.76,572.43,3.87,8.74" target="#formula_0">1</ref>.</p><p>We then perform a weighted sum of the query-passage representations Rep i , Rep 1 , Rep 2 , Rep 3 , where Rep i is the representation of the current turn, while the others are representations of the first, second, and third relevant turn. The weighted sum is also learnable through the self-attentive mechanism. The summed representation is then fed to a one layer feed forward network to predict the relevance of the passage p i , with respect to the current query and history context.</p><p>Automatically rewritten queries. Our last run, rewrite albert, uses automatically rewritten queries by GPT-2, instead of the raw queries. Rewritten queries are provided by the organisers. This run differs from the others in a way that there is no further query expansion, since the queries rewritten by GPT-2 should already have a sense of context embedded. We simply feed the rewritten current query q i and a potentially relevant passage p i to ALBERT re-ranker.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>Table <ref type="table" coords="4,164.97,248.66,4.13,7.89">1</ref>. Results on TREC CAsT 2020. Run y2 auto bertbase is the official baseline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run name</head><p>MAP MRR nDCG@3 nDCG@5 Table <ref type="table" coords="4,178.33,376.50,4.98,8.74">1</ref> shows the results of our four runs in TREC CAsT 2020. We see that rewrite albert run outperforms others by a significant margin. This run utilises queries rewritten by GPT-2, instead of performing query expansion with a model trained on CAsTUR. Our best run also significantly outperforms the official baseline y2 auto bertbase, provided by the organisers. Detailed analysis of the models remains for the future work.</p><formula xml:id="formula_1" coords="4,182.12,288.61,9.47,7.86">y2</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusions</head><p>We submitted four runs to TREC CAsT 2020. Best performance was achieved by using automatically rewritten utterances by GPT-2 and ALBERT-based reranking. Other three runs expand the query by concatenating it with previous relevant utterances. Two of them further utilise canonical responses with a goal of improving the retrieval results. However, this part of our approach requires additional work, as the improvements made by the use of canonical responses are insignificant. pp. 13-15 (2019) 6. Devlin, J., Chang, M.W., Lee, K., Toutanova, K.: Bert: Pre-training of deep bidirectional transformers for language understanding. arXiv preprint arXiv:1810.04805 (2018) 7. Lan, Z., Chen, M., Goodman, S., Gimpel, K., Sharma, P., Soricut, R.: Albert: A lite bert for self-supervised learning of language representations. arXiv preprint arXiv:1909.11942 (2019) 8. Nogueira, R., Cho, K.: Passage re-ranking with bert. arXiv preprint arXiv:1901.04085 (2019) 9. Radford, A., Wu, J., Child, R., Luan, D., Amodei, D., Sutskever, I.: Language models are unsupervised multitask learners (2019)</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,134.77,119.67,345.83,7.86;5,146.91,130.63,333.68,7.86;5,146.91,141.59,333.68,7.86;5,146.91,152.55,118.67,7.86;5,134.77,163.51,345.83,7.86;5,146.91,174.47,333.68,7.86;5,146.91,185.43,123.70,7.86;5,134.77,196.39,345.83,7.86;5,146.91,207.34,333.68,7.86"><head></head><label></label><figDesc>3. Aliannejadi, M., Zamani, H., Crestani, F., Croft, W.B.: Asking clarifying questions in open-domain information-seeking conversations. In: Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval. pp. 475-484 (2019) 4. Anand, A., Cavedon, L., Joho, H., Sanderson, M., Stein, B.: Conversational search (dagstuhl seminar 19461). In: Dagstuhl Reports. vol. 9. Schloss Dagstuhl-Leibniz-Zentrum für Informatik (2020) 5. Dalton, J., Xiong, C., Callan, J.: Cast 2019: The conversational assistance track overview. In: Proceedings of the Twenty-Eighth Text REtrieval Conference, TREC.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,138.35,613.31,342.25,7.86;4,146.91,624.27,333.68,7.86;4,146.91,635.23,317.90,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="4,397.08,613.31,83.51,7.86;4,146.91,624.27,220.33,7.86">Harnessing evolution of multi-turn conversations for effective answer retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Aliannejadi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chakraborty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">A</forename><surname>Ríssola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,386.63,624.27,93.97,7.86;4,146.91,635.23,243.37,7.86">Proceedings of the 2020 Conference on Human Information Interaction and Retrieval</title>
+		<meeting>the 2020 Conference on Human Information Interaction and Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="33" to="42" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,138.35,645.84,342.24,7.86;4,146.91,656.80,314.71,7.86" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="4,422.82,645.84,57.78,7.86;4,146.91,656.80,248.64,7.86">Convai3: Generating clarifying questions for open-domain dialogue systems</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Aliannejadi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiseleva</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Chuklin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dalton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Burtsev</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<publisher>ClariQ</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

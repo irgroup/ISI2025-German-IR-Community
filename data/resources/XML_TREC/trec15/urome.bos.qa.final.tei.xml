@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,114.52,79.53,382.97,12.91">The &quot;La Sapienza&quot; Question Answering system at TREC-2006</title>
+				<funder>
+					<orgName type="full">&quot;Rientro dei Cervelli</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,279.68,108.00,52.64,10.76"><forename type="first">Johan</forename><surname>Bos</surname></persName>
+							<email>bos@di.uniroma1.it</email>
+							<affiliation key="aff0">
+								<orgName type="department">Dept. of Computer Science</orgName>
+								<orgName type="institution">University of Rome &quot;La Sapienza&quot;</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,114.52,79.53,382.97,12.91">The &quot;La Sapienza&quot; Question Answering system at TREC-2006</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">F891426A2D202D0E162A5F01844A7A8B</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:03+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This report describes the system developed at the University of Rome "La Sapienza" for the TREC-2006 question answering evaluation exercise. The backbone of this QA system is linguistically-principled: Combinatory Categorial Grammar is used to generate syntactic analyses of questions and potential answer snippets, and Discourse Representation Theory is employed as formalism to match the meanings of questions and answers. The key idea of the La Sapienza system is to use semantics to prune answer candidates, thereby exploiting lexical resources such as WordNet and Nom-Lex to facilitate the selection of answers. The system performed reasonably well at TREC-2006: in the per-series evaluation it performed slightly above the median accuracy score of all participating systems.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The QA evaluation exercise at TREC consists in automatically finding answers for a collection of questions arranged by different topics, or targets in TREC parlance. Questions can be either factoid-questions, asking for a unique short answer, or list-questions, asking for a set of answers. Each series of questions ends with an otherquestion, which is a request of providing all relevant information about the target which was not already asked in the previous questions. An example of a target and its questions is shown in Figure <ref type="figure" coords="1,188.26,569.73,3.74,8.97" target="#fig_0">1</ref>.</p><p>The answers must be found in the Aquaint corpus, a collection of over a million articles in English prose from three different newspapers, dating from 1996-2000. A response is evaluated as correct only if it exactly answers the question (in an exhaustive but not overinformative way) and if it is accompanied by a document ID from the Aquaint corpus supporting the answer.</p><p>This paper contains a description of the TREC-2006 entry of the University of Rome "La Sapienza" for the question-answering evaluation exercise. Probably the most interesting aspect of the La Sapienza system is that it is linguistically principled, combining symbolic with statistical approaches. The system is very similar to the QED system described in <ref type="bibr" coords="1,419.82,200.50,89.23,8.97" target="#b7">(Leidner et al., 2003;</ref><ref type="bibr" coords="1,512.52,200.50,27.48,8.97;1,313.20,212.45,42.45,8.97" target="#b0">Ahn et al., 2004;</ref><ref type="bibr" coords="1,359.71,212.45,72.63,8.97" target="#b2">Ahn et al., 2005)</ref>, in that it also uses CCG (Combinatory Categorial Grammar) and DRT (Discourse Representation Theory) to generate meaning representations for questions and answer contexts, with the key idea that semantics helps to prune possible answer candidates.</p><p>2 The La Sapienza QA system</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Question Analysis</head><p>The question is tokenised and parsed (together with the target) with the wide-coverage CCG-parser of <ref type="bibr" coords="1,506.34,330.30,33.66,8.97;1,313.20,342.25,137.34,8.97" target="#b5">Clark &amp; Curran (Clark and Curran, 2004)</ref>. On the basis of the output of the parser, a CCG-derivation, a semantic representation is constructed in the shape of a Discourse Representation Structure (DRS), closely following Discourse Representation Theory <ref type="bibr" coords="1,406.72,390.07,99.05,8.97" target="#b7">(Kamp and Reyle, 1993)</ref>. This is done using the semantic construction method described in <ref type="bibr" coords="1,324.54,413.98,75.77,8.97">(Bos et al., 2004;</ref><ref type="bibr" coords="1,404.44,413.98,47.15,8.97">Bos, 2005)</ref>. The Question-DRS forms the basis for generating other pieces of information:</p><p>• an answer type, the answer cardinality, and tense (Section 2.2);</p><p>• background knowledge from lexical resources (see Section 2.3);</p><p>• a query for document retrieval (Section 2.4).</p><p>The idea is that the analysis of the question gives us all the information required later in the question answering process. For instance, not all of the available background knowledge is selected, but only those parts relevant for answering the question.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Answer Types</head><p>The La Sapienza system distinguishes fourteen main answer types (which are further divided into subtypes, but not discussed in this paper). The answer types play a role in extracting and selection of answers. The different types and examples of questions are shown in Table <ref type="table" coords="1,522.01,677.21,3.74,8.97" target="#tab_1">1</ref>.</p><p>The answer cardinality denotes a range expressed by an ordered pair of two numbers, the first indicating the mininal number of answers expected (the lower bound),  the second the maximal number of answers (the upper bound, which is set to 0 if unknown). For instance, 3-3 indicates that exactly three answers are expected, 2-0 means at least two answers. This information is used for determining the number of answers to be returned for list questions. Again, see Table <ref type="table" coords="2,184.09,312.65,4.98,8.97" target="#tab_1">1</ref> for examples.</p><p>Finally, the answer type is complemented with the tense in which the question is posed. This is a value of the set {past, present, future}. Currently this feature is only exploited for restricting potential answers that denote a temporal value. Once again, see Table <ref type="table" coords="2,226.43,373.80,4.98,8.97" target="#tab_1">1</ref> for examples.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Background Knowledge</head><p>The background knowledge for a question constitutes a list of axioms related to the question. It is gathered from lexical resources on the basis of the symbols that occur in the semantic representation of the question. Currently the following kinds of axioms are used:</p><p>• synonyms and hyponyms for nouns and verbs derived from WordNet (Fellbaum, 1998);</p><p>• hyponyms for nouns harvested from corpora using lexical patterns using techniques similar as in (Hearst, 1992);</p><p>• nominalisation rules generated from NomLex <ref type="bibr" coords="2,274.05,576.79,19.80,8.97;2,91.93,588.74,62.62,8.97" target="#b9">(Meyers et al., 1998)</ref>;</p><p>• specialised knowledge, such as attributes (colours, shapes), and geographical knowledge (continents, states, countries, capitals);</p><p>• a couple of hand-crafted general inference rules.</p><p>The background knowledge for a question is used when extracting potential answers from contexts, and in the answer reranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Document Retrieval</head><p>All documents in the Aquaint corpus were pre-processed: the XML was stripped off, and the sentences were split and tokenised. The documents were rearranged into smaller documents of two sentences each (taking a sliding window, so each sentence appeared in two minidocuments). These mini-documents were indexed with the Indri information retrieval tools <ref type="bibr" coords="2,460.95,340.66,79.05,8.97;2,313.20,352.62,21.45,8.97" target="#b8">(Metzler and Croft, 2004)</ref>.</p><p>Two kinds of queries are generated for each question: a complex query, based on the target and the information within the question; and a simple query which is just identical to the target. The different types of query were used in two different runs to find out whether one outperformed the other. It had been noticed already that simply using the target as query yields pretty good results <ref type="bibr" coords="2,519.52,436.58,20.47,8.97;2,313.20,448.53,48.29,8.97" target="#b2">(Ahn et al., 2005)</ref>.</p><p>The best 1,500 mini-documents are retrieved, again with the help of Indri <ref type="bibr" coords="2,401.02,472.71,104.22,8.97" target="#b8">(Metzler and Croft, 2004)</ref>. At this stage of processing, the aim is high recall at the expense of precision. By selecting a high number of documents, the pool of potential answers can be narrowed down as late as possible in the processing pipeline. Processing a high number of documents is certainly time-consuming, but since there are no important time-constraints in the TREC exercise, this is no big concern and advantage is taken of this situation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Document Analysis</head><p>Using the same wide-coverage parser as for parsing the question, all retrieved documents are parsed and for each of them a Discourse Representation Structure (DRS) is generated. The parser also performs basic named entity recognition for locations, persons, and organisations <ref type="bibr" coords="2,313.20,665.10,100.01,8.97" target="#b6">(Curran and Clark, 2003)</ref>. This information is used to assign the right semantic type to discourse referents in the DRS.</p><p>Each passage is translated into a single DRS; hence a DRS can span several sentences. A set of DRS nor- The resulting DRS is enriched with information about the original surface word-forms and parts of speech.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Answer Extraction</head><p>Given the DRS of the question (the Q-DRS), and a set of DRSs of the retrieved documents (the A-DRSs), each A-DRS is matched with the Q-DRS to find a potential answer. This process proceeds as follows: if the A-DRS contains a discourse referent of the answer type (see Section 2.2) matching will commence attempting to identify the semantic structure in the Q-DRS with that of the A-DRS. The result is a score between 0 and 1 indicating the amount of semantic material that could be matched. The background knowledge (such as hyponyms from Word-Net) generated by the Question Analysis (see Section 2.3) is used to assist in the matching.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7">Answer Selection</head><p>The Answer Extraction component yields a list of answers and a matching score. Answers that are semantically identical are grouped together. This gives a new list of answers, ranked on matching score and frequency. Two methods of reranking were employed at the TREC-2006 exercise:</p><p>1. simple: sort on matching score, use highest frequency as tie-breaker;</p><p>2. combined: rank on a combination of matching score and frequency, assigning a weight of 0.9 to the matching score, and 0.1 to frequency.</p><p>The answer cardinality (see Section 2.2) determines the number of answers that are generated by the system, with a maximum of 10 answers if the upper bound of the answer cardinality is unspecified. Following <ref type="bibr" coords="3,506.24,331.38,33.75,8.97;3,313.20,343.34,76.24,8.97" target="#b6">(Dalmas and Webber, 2006)</ref>, for some answer types (in particular TIME), answers that entail each other are identified and the answer with the most informative surface structure is ranked highest.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.8">Processing other-questions</head><p>Since other-questions do not appear as ordinarily formulated questions, but the QA system expects questions phrased in English as input, they are automatically transformed into definition questions. This is simply done by substituting the target for the empty slot in "What is ?" and assigning it the answer type DEFINITION with answer cardinality 1-0. The answer extraction component deals with definition questions by finding sentences with the target as agent of an event. A higher matching score is given to sentence that contain superlative or temporal expressions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Experimental Setup</head><p>Three runs were submitted, all with different parameters with respect to the treatment of factoids, list, and otherquestions. The parameters were the type of query: basic or complex (see Section 2.4), and reranking method: simple or combined (see Section 2.7). Table <ref type="table" coords="3,484.64,641.30,4.98,8.97" target="#tab_2">2</ref> summarises the runs and the parameters used.</p><p>This setup would tell us the following: (1) if Run 1 achieved higher results than Run 2, then the complex query method outperformed the basic one; (2) if Run 2 achieved higher results than Run 3, then the complex ranking methods would be better than the simple one.  basic simple</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">TREC-2006 Judgements</head><p>Factoid questions formed the majority of the questions at the TREC-2006 QA evaluation exercise. The results of the La Sapienza system over 403 factoid questions are listed in Table <ref type="table" coords="5,134.67,228.04,4.98,8.97" target="#tab_3">3</ref> below, where U is the number of unsupported (correct but without a supporting document), X the number of inexact, L the number of locally correct (a later document in the Acquint corpus contradicts the answer), and R the number of correct answers. The last two columns of Table <ref type="table" coords="5,213.77,404.87,4.98,8.97" target="#tab_3">3</ref> show the accuracy (calculated on the basis of R) and lenient accuracy (calculated on the basis of U+X+L+R). In addition, it shows the summed scores of all participating systems at TREC-2006, a total of 59 runs. As the figures of accuracy show, the La Sapienza system performed slightly under the averaged accuracy. This was slighly disappointing, nonetheless the third run of the La Sapienza system had one correct answer that no other participating system managed to find-this was the answer to 169.1, as shown in Figure <ref type="figure" coords="5,110.75,524.42,3.74,8.97" target="#fig_1">2</ref>. Table <ref type="table" coords="5,97.86,555.25,3.88,8.97">4</ref>: Results (average F-scores) for list and otherquestions, and per-series scores at TREC-2006.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run</head><p>List Other Series Run 1 0.12 0.14 0.14 Run 2 0.11 0.15 0.15 Run 3 0.13 0.16 0.16 median 0.09 0.13 0.13 best 0.43 0.25 0.39 There were 89 list-questions in total. These are evaluated by calculating the precision and recall for each question and then averaging their corresponding F-scores. The La Sapienza system achieved an average F-score higher than the median of all participating systems (Table 4). The results of the other-questions were encouraging, too: despite the fact that we didn't do anything sophisticated for dealing with other-questions, the obtained results were higher then the median of all 59 runs at TREC-2006. Also the per-series results were higher than the medium score of all participating systems.</p><p>Since for all types of questions Run 3 achieved the highest results, it can be concluded that the attempt to construct good queries failed, as it is outperformed by the baseline method, just using the target as query. Also the attempt on another reranking method, other than just using the question-answer matching score, but taking the frequency into account, didn't give better results. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">General Evaluation</head><p>The question analysis component of the La Sapienza system was evaluated by calculating the accuracy of answer type determination. Table <ref type="table" coords="5,419.93,544.55,4.98,8.97" target="#tab_4">5</ref> shows the distribution of all questions of the TREC-2006 test set over the inventory of answer types. The overall accuracy was 82% over 492 questions (both factoid and list-questions). This was lower then expected. The low score is partly due to failed or incorrect parses, and partly due to the lack of appropriate rules that determine the answer type. Table <ref type="table" coords="5,453.71,628.87,4.98,8.97" target="#tab_5">6</ref> lists the determination accuracy for the different types. For some frequent types, such as MEASURE, KIND and NAME, this is rather low.</p><p>Finally, the performance of the La Sapienza QA system with respect to different answer-types was investigated. If the system performs better or worse for some answer-types, then this could give an indication where  <ref type="table" coords="6,119.91,581.51,4.98,8.97">7</ref> clearly shows, the La Sapienza system performs reasonably well on TIME and LOCATION questions. A likely explanation is that for these answer types, the named entities (time expressions and locations) are easier to find in texts than those corresponding to persons, organisations, or creative works. The system scored relatively low on answers of type NUMERIC and MEASURE, which is partly due to unsolved problems in answer typing.</p><p>Compared to what other systems are capable of (see Table <ref type="table" coords="6,98.24,701.24,3.60,8.97" target="#tab_6">8</ref>), the La Sapienza system is particularly good at question with answer types TIME, CREATION, NAME, </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>The La Sapienza QA system is based on a deep linguistic analysis of question and potential answers contexts and uses semantics to narrow down the number of answer candidates. Compared to other QA systems at TREC-2006, it performed slightly under par for factoid-questions, but better than average for list and otherquestions.</p><p>The weak points of the La Sapienza system is the document retrieval (estimated loss of 20% of answers) and robust question analysis answer typing (looked particularly hard for some questions at this TREC) which probably caused another loss of around 20%.</p><p>The strong point of the system is that it performs really well on certain types of question, which probablt can be attributed to the ability of recognising the required type of named entities with high precision. A case in point are questions asking for temporal or locative expressions, for which the La Sapienza reaches relatively high accuracy scores.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,173.81,220.83,264.39,8.97"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Example of a TREC-2006 serie of questions for a target.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,146.08,702.57,319.85,8.97"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: System input and output for the factoid question 169.1 at TREC-2006.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,135.92,75.38,336.99,118.56"><head></head><label></label><figDesc>(factoid) When did the construction of stone circles begin in the UK? 169.2 (factoid) Approximately how many stone circles have been found in the UK?</figDesc><table coords="2,135.92,125.19,326.22,68.74"><row><cell cols="2">169.3 (factoid) When was Stonehenge built?</cell></row><row><cell cols="2">169.4 (factoid) In what county was Stonehenge built?</cell></row><row><cell>169.5 (list)</cell><cell>What are the locations or names of other stone circles in the UK?</cell></row><row><cell cols="2">169.6 (factoid) What is the oldest stone circle in the UK?</cell></row><row><cell>169.7 (other)</cell><cell></cell></row></table><note coords="2,136.17,75.38,88.78,8.97;2,135.92,95.30,22.42,8.97"><p>TARGET: stone circles 169.1</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,72.00,81.95,445.79,258.40"><head>Table 1 :</head><label>1</label><figDesc>Answer type, cardinality, and tense for some examples of the TREC-2006 test set.</figDesc><table coords="3,72.00,98.85,445.79,229.54"><row><cell cols="3">Answer Type Card Tense</cell><cell>ID</cell><cell>Example</cell></row><row><cell>DESCRIPTION</cell><cell>1-1</cell><cell cols="3">present 198.4 What is the claimed primary purpose of this facility?</cell></row><row><cell>ATTRIBUTE</cell><cell>1-1</cell><cell>past</cell><cell cols="2">165.2 What color was the dress that she wore at her birthday lunch?</cell></row><row><cell>NUMERIC</cell><cell>1-1</cell><cell>past</cell><cell cols="2">164.5 How many Oscars has she won?</cell></row><row><cell>MEASURE</cell><cell>1-1</cell><cell cols="3">present 167.2 How high is the Millennium Wheel?</cell></row><row><cell>TIME</cell><cell>1-1</cell><cell cols="3">future 192.5 What date will this cease-fire begin?</cell></row><row><cell>LOCATION</cell><cell>2-0</cell><cell>past</cell><cell cols="2">172.1 The WTO has held meetings in what countries?</cell></row><row><cell>ADDRESS</cell><cell>1-1</cell><cell cols="3">present 143.5 What is the zip code of the American Enterprise Institute?</cell></row><row><cell>NAME</cell><cell>1-1</cell><cell cols="3">present 172.3 What is Ben's last name?</cell></row><row><cell>LANGUAGE</cell><cell>1-1</cell><cell cols="3">present 192.1 What does the acronym ETA stand for?</cell></row><row><cell>CREATION</cell><cell>2-0</cell><cell>past</cell><cell cols="2">164.2 What movies did she play in?</cell></row><row><cell>INSTANCE</cell><cell>5-5</cell><cell>past</cell><cell cols="2">214.7 Who were the five finalists in the pageant?</cell></row><row><cell>KIND</cell><cell>1-1</cell><cell>past</cell><cell cols="2">104.2 What type of vehicle dominated the show?</cell></row><row><cell>PART</cell><cell>1-1</cell><cell cols="3">present 162.1 Myeloma is cancer in what part of the body?</cell></row><row><cell cols="5">malisation rules are applied in a post-processing step,</cell></row><row><cell cols="5">thereby dealing with active-passive alternations, inferred</cell></row><row><cell cols="5">semantic information, normalisation of temporal expres-</cell></row></table><note coords="3,72.00,331.38,226.80,8.97"><p>sions, and the disambiguation of noun-noun compounds.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,79.11,81.95,212.58,64.92"><head>Table 2 :</head><label>2</label><figDesc>Description of the three runs atTREC-2006.    </figDesc><table coords="5,94.53,98.85,181.74,48.02"><row><cell>Run</cell><cell cols="2">Query Type Reranking</cell></row><row><cell>Roma2006run1</cell><cell>complex</cell><cell>simple</cell></row><row><cell>Roma2006run2</cell><cell>basic</cell><cell>combined</cell></row><row><cell>Roma2006run3</cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,79.53,306.31,211.75,76.48"><head>Table 3 :</head><label>3</label><figDesc>Resultsfor factoid-questions,TREC-2006.    </figDesc><table coords="5,79.53,323.21,211.75,59.58"><row><cell>Run</cell><cell>U</cell><cell>X</cell><cell>L</cell><cell cols="2">R Acc. L.Acc.</cell></row><row><cell>Run 1</cell><cell>7</cell><cell>15</cell><cell>4</cell><cell>62 0.15</cell><cell>0.22</cell></row><row><cell>Run 2</cell><cell>16</cell><cell>15</cell><cell>4</cell><cell>68 0.17</cell><cell>0.26</cell></row><row><cell>Run 3</cell><cell>11</cell><cell>17</cell><cell>4</cell><cell>73 0.18</cell><cell>0.26</cell></row><row><cell>all</cell><cell cols="4">757 1163 151 4476 0.19</cell><cell>0.28</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="5,313.20,263.36,226.80,207.99"><head>Table 5 :</head><label>5</label><figDesc>Distribution of answer-types on the TREC-2006 test set, for both factoid-and list-questions.</figDesc><table coords="5,345.19,292.22,163.07,179.13"><row><cell cols="4">Answer-Type Factoid List Total</cell></row><row><cell>INSTANCE</cell><cell>104</cell><cell>52</cell><cell>156</cell></row><row><cell>LOCATION</cell><cell>64</cell><cell>20</cell><cell>84</cell></row><row><cell>TIME</cell><cell>80</cell><cell></cell><cell>80</cell></row><row><cell>NUMERIC</cell><cell>67</cell><cell></cell><cell>67</cell></row><row><cell>MEASURE</cell><cell>40</cell><cell></cell><cell>40</cell></row><row><cell>CREATION</cell><cell>17</cell><cell>14</cell><cell>31</cell></row><row><cell>KIND</cell><cell>11</cell><cell>3</cell><cell>14</cell></row><row><cell>NAME</cell><cell>11</cell><cell></cell><cell>11</cell></row><row><cell>LANGUAGE</cell><cell>4</cell><cell></cell><cell>4</cell></row><row><cell>DESCRIPTION</cell><cell>2</cell><cell></cell><cell>2</cell></row><row><cell>PART</cell><cell>1</cell><cell></cell><cell>1</cell></row><row><cell>ATTRIBUTE</cell><cell>1</cell><cell></cell><cell>1</cell></row><row><cell>ADDRESS</cell><cell>1</cell><cell></cell><cell>1</cell></row><row><cell></cell><cell>403</cell><cell>89</cell><cell>492</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="6,72.00,81.95,226.80,508.52"><head>Table 6 :</head><label>6</label><figDesc>Wrongly assigned and accuracy of answer type determination, for all TREC-2006 questions.</figDesc><table coords="6,72.00,110.81,226.80,479.67"><row><cell cols="5">Answer-Type Number Wrong Accuracy</cell></row><row><cell>INSTANCE</cell><cell></cell><cell>156</cell><cell>21</cell><cell>0.87</cell></row><row><cell>LOCATION</cell><cell></cell><cell>84</cell><cell>12</cell><cell>0.86</cell></row><row><cell>TIME</cell><cell></cell><cell>80</cell><cell>4</cell><cell>0.95</cell></row><row><cell>NUMERIC</cell><cell></cell><cell>67</cell><cell>10</cell><cell>0.85</cell></row><row><cell>MEASURE</cell><cell></cell><cell>40</cell><cell>18</cell><cell>0.55</cell></row><row><cell>CREATION</cell><cell></cell><cell>31</cell><cell>6</cell><cell>0.81</cell></row><row><cell>KIND</cell><cell></cell><cell>14</cell><cell>10</cell><cell>0.29</cell></row><row><cell>NAME</cell><cell></cell><cell>11</cell><cell>6</cell><cell>0.45</cell></row><row><cell>LANGUAGE</cell><cell></cell><cell>4</cell><cell>1</cell><cell>0.75</cell></row><row><cell>DESCRIPTION</cell><cell></cell><cell>2</cell><cell>0</cell><cell>1.00</cell></row><row><cell>PART</cell><cell></cell><cell>1</cell><cell>0</cell><cell>1.00</cell></row><row><cell>ATTRIBUTE</cell><cell></cell><cell>1</cell><cell>0</cell><cell>1.00</cell></row><row><cell>ADDRESS</cell><cell></cell><cell>1</cell><cell>1</cell><cell>0.00</cell></row><row><cell></cell><cell></cell><cell>492</cell><cell>89</cell><cell>0.82</cell></row><row><cell cols="5">the weaknesses or strong points of the overall system are.</cell></row><row><cell cols="3">Table 7 gives an impression.</cell><cell></cell><cell></cell></row><row><cell cols="5">Table 7: Number of unsupported (U), inexact (X), locally</cell></row><row><cell cols="5">correct (L), and correct (R) answers distributed over an-</cell></row><row><cell cols="5">swer types, together with the achieved accuracy and le-</cell></row><row><cell cols="3">nient accuracy, at TREC-2006.</cell><cell></cell><cell></cell></row><row><cell cols="5">Answer-Type U X L R Acc. L.Acc.</cell></row><row><cell>INSTANCE</cell><cell>6</cell><cell cols="2">2 2 15 0.14</cell><cell>0.24</cell></row><row><cell>LOCATION</cell><cell>2</cell><cell>6</cell><cell>16 0.25</cell><cell>0.38</cell></row><row><cell>TIME</cell><cell>2</cell><cell cols="2">7 1 23 0.29</cell><cell>0.41</cell></row><row><cell>NUMERIC</cell><cell>1</cell><cell>1</cell><cell>8 0.12</cell><cell>0.15</cell></row><row><cell>MEASURE</cell><cell></cell><cell></cell><cell>2 0.05</cell><cell>0.05</cell></row><row><cell>CREATION</cell><cell></cell><cell></cell><cell>4 0.24</cell><cell>0.24</cell></row><row><cell>KIND</cell><cell></cell><cell></cell><cell>0.00</cell><cell>0.00</cell></row><row><cell>NAME</cell><cell></cell><cell>2</cell><cell>2 0.18</cell><cell>0.36</cell></row><row><cell>LANGUAGE</cell><cell></cell><cell></cell><cell>2 0.50</cell><cell>0.50</cell></row><row><cell>DESCRIPTION</cell><cell></cell><cell></cell><cell>1 0.50</cell><cell>0.50</cell></row><row><cell></cell><cell cols="3">11 17 4 73 0.18</cell><cell>0.26</cell></row><row><cell>As Table</cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="6,313.20,81.95,226.80,282.31"><head>Table 8 :</head><label>8</label><figDesc>The average accuracy scores distributed over answer-types, for all 59 runs at TREC-2006. , and DESCRIPTION. This table also demonstrates that many of the QA systems at TREC-2006 had difficulties with questions with the common answer types such as NUMERIC, MEASURE, CREATION, KIND, NAME DESCRIPTION, PART, and ATTRIBUTE.</figDesc><table coords="6,327.69,110.81,198.07,166.77"><row><cell cols="4">Answer-Type Factoid Correct Accuracy</cell></row><row><cell>INSTANCE</cell><cell>104</cell><cell>1255</cell><cell>0.20</cell></row><row><cell>LOCATION</cell><cell>64</cell><cell>1007</cell><cell>0.27</cell></row><row><cell>TIME</cell><cell>80</cell><cell>1007</cell><cell>0.21</cell></row><row><cell>NUMERIC</cell><cell>67</cell><cell>590</cell><cell>0.15</cell></row><row><cell>MEASURE</cell><cell>40</cell><cell>267</cell><cell>0.11</cell></row><row><cell>CREATION</cell><cell>17</cell><cell>114</cell><cell>0.11</cell></row><row><cell>KIND</cell><cell>11</cell><cell>80</cell><cell>0.12</cell></row><row><cell>NAME</cell><cell>11</cell><cell>54</cell><cell>0.08</cell></row><row><cell>LANGUAGE</cell><cell>4</cell><cell>52</cell><cell>0.22</cell></row><row><cell>DESCRIPTION</cell><cell>2</cell><cell>20</cell><cell>0.17</cell></row><row><cell>PART</cell><cell>1</cell><cell>4</cell><cell>0.07</cell></row><row><cell>ATTRIBUTE</cell><cell>1</cell><cell>9</cell><cell>0.15</cell></row><row><cell>ADDRESS</cell><cell>1</cell><cell>17</cell><cell>0.28</cell></row></table><note coords="6,313.45,308.83,44.27,7.17"><p>LANGUAGE</p></note></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgements</head><p>Johan Bos is supported by a <rs type="funder">"Rientro dei Cervelli</rs>" grant (<rs type="person">Italian Ministry</rs> for Research). He would like to thank <rs type="person">Kisuh Ahn</rs>, <rs type="person">Stephen Clark</rs>, <rs type="person">James Curran</rs>, <rs type="person">Tiphaine Dalmas</rs>, <rs type="person">Dave Kor</rs>, <rs type="person">Jochen Leidner</rs>, <rs type="person">Diego Molla</rs>, <rs type="person">Roberto Navigli</rs>, <rs type="person">Malvina Nissim</rs>, <rs type="person">Mark Steedman</rs>, <rs type="person">Paola Verlardi</rs>, and <rs type="person">Bonnie Webber</rs> for their feedback and help.</p></div>
+			</div>
+			<listOrg type="funding">
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,72.14,94.23,226.66,8.97;7,81.96,105.19,216.83,8.97;7,81.96,116.14,216.83,8.97;7,81.96,127.10,216.83,8.97" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>Ahn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+	<note>Question answering with qed and wee at trec-2004</note>
+</biblStruct>
+
+<biblStruct coords="7,81.96,138.06,216.84,8.97;7,81.96,149.02,216.83,8.97;7,81.96,159.98,216.84,8.97;7,81.96,170.94,75.16,8.97" xml:id="b1">
+	<analytic>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>In</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lori</forename><forename type="middle">P</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Buckland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,280.99,138.06,17.81,8.97;7,81.96,149.02,216.83,8.97;7,81.96,159.98,55.12,8.97">Proceedings of the Thirteenth Text Retrieval Conference (TREC 2004)</title>
+		<meeting>the Thirteenth Text Retrieval Conference (TREC 2004)<address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<biblScope unit="volume">500</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,67.02,192.22,231.78,8.97;7,81.96,203.18,216.83,8.97;7,81.96,214.14,216.83,8.97" xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>Ahn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005">2005. 2005</date>
+		</imprint>
+	</monogr>
+	<note>Question answering with qed at trec-2005</note>
+</biblStruct>
+
+<biblStruct coords="7,81.96,225.10,216.84,8.97;7,81.96,236.06,216.84,8.97;7,81.96,247.02,216.83,8.97;7,67.02,268.30,231.78,8.97;7,81.96,279.26,216.83,8.97;7,81.96,290.22,216.83,8.97;7,81.96,301.18,216.83,8.97;7,81.96,312.14,216.84,8.97;7,81.96,323.10,50.08,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,236.43,279.26,62.37,8.97;7,81.96,290.22,193.15,8.97">Wide-Coverage Semantic Representations from a CCG Parser</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>In</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lori</forename><forename type="middle">P</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><forename type="middle">J</forename><surname>Buckland</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">R</forename><surname>Steedman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Hockenmaier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,283.86,225.10,14.94,8.97;7,81.96,236.06,216.84,8.97;7,81.96,247.02,135.02,8.97;7,81.96,301.18,216.83,8.97;7,81.96,312.14,174.58,8.97">Proceedings of the 20th International Conference on Computational Linguistics (COLING &apos;04)</title>
+		<meeting>the 20th International Conference on Computational Linguistics (COLING &apos;04)<address><addrLine>Gaithersburg, MD; Geneva, Switzerland</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+	<note>The Fourteenth Text Retrieval Conference (TREC 2005), NIST Special Publication 500-266</note>
+</biblStruct>
+
+<biblStruct coords="7,67.02,344.39,231.78,8.97;7,81.96,355.34,216.84,8.97;7,81.96,366.30,216.83,8.97;7,81.96,377.26,89.10,8.97" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,203.26,344.39,95.53,8.97;7,81.96,355.34,91.83,8.97">Towards wide-coverage semantic interpretation</title>
+		<author>
+			<persName coords=""><forename type="first">Johan</forename><surname>Bos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,198.19,355.34,100.61,8.97;7,81.96,366.30,216.83,8.97;7,81.96,377.26,29.17,8.97">Proceedings of Sixth International Workshop on Computational Semantics IWCS-6</title>
+		<meeting>Sixth International Workshop on Computational Semantics IWCS-6</meeting>
+		<imprint>
+			<date type="published" when="2005">Bos 2005. 2005</date>
+			<biblScope unit="page" from="42" to="53" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,67.02,398.55,231.78,8.97;7,81.96,409.51,216.83,8.97;7,81.96,420.47,216.84,8.97;7,81.96,431.42,216.84,8.97;7,81.96,442.38,70.56,8.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,81.96,409.51,216.83,8.97;7,81.96,420.47,10.17,8.97">Parsing the WSJ using CCG and Log-Linear Models</title>
+		<author>
+			<persName coords=""><forename type="first">Clark</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Curran</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">R</forename><surname>Curran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,110.24,420.47,188.56,8.97;7,81.96,431.42,213.02,8.97">Proceedings of the 42nd Annual Meeting of the Association for Computational Linguistics (ACL &apos;04)</title>
+		<meeting>the 42nd Annual Meeting of the Association for Computational Linguistics (ACL &apos;04)<address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,67.02,463.67,231.78,8.97;7,81.96,474.63,216.83,8.97;7,81.96,485.59,216.83,8.97;7,81.96,496.55,216.83,8.97;7,81.96,507.50,198.13,8.97;7,67.02,528.79,231.78,8.97;7,81.96,539.75,216.83,8.97;7,81.96,550.71,216.84,8.97;7,81.96,561.67,216.83,8.97;7,81.96,572.63,58.57,8.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,155.89,474.63,142.91,8.97;7,81.96,485.59,111.75,8.97">Language independent NER using a maximum entropy tagger</title>
+		<author>
+			<persName coords=""><forename type="first">Clark</forename><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><forename type="middle">R</forename><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><forename type="middle">T</forename><surname>Dalmas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Webber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,220.47,485.59,78.33,8.97;7,81.96,496.55,216.83,8.97;7,81.96,507.50,47.05,8.97;7,118.38,539.75,180.42,8.97;7,81.96,550.71,41.59,8.97">Proceedings of the Seventh Conference on Natural Language Learning (CoNLL-03)</title>
+		<meeting>the Seventh Conference on Natural Language Learning (CoNLL-03)<address><addrLine>Edmonton, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003. 2003. 2006. 2006</date>
+			<biblScope unit="page" from="164" to="167" />
+		</imprint>
+	</monogr>
+	<note>Answer Comparison in Automated Question Answering</note>
+</biblStruct>
+
+<biblStruct coords="7,67.02,626.16,231.78,8.97;7,81.96,637.12,216.84,8.97;7,81.96,648.07,216.83,8.97;7,81.96,659.03,185.69,8.97;7,67.02,680.32,231.78,8.97;7,81.96,691.28,216.83,8.97;7,81.96,702.24,216.83,8.97;7,81.96,713.20,142.27,8.97;7,308.22,75.16,231.78,8.97;7,323.16,86.12,216.83,8.97;7,323.16,97.08,216.83,8.97;7,323.16,108.03,216.83,8.97;7,323.16,118.99,216.84,8.97;7,323.16,129.95,216.83,8.97;7,323.16,140.91,216.83,8.97;7,323.16,151.87,41.41,8.97" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,233.12,626.16,65.68,8.97;7,81.96,637.12,175.95,8.97;7,72.55,680.32,64.60,8.97;7,377.92,108.03,162.08,8.97;7,323.16,118.99,90.72,8.97">The QED open-domain answer retrieval system for TREC 2003</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Marti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Hearst</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Kamp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Reyle ; Jochen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Johan</forename><surname>Leidner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tiphaine</forename><surname>Bos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><forename type="middle">R</forename><surname>Dalmas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Curran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Clark</surname></persName>
+		</author>
+		<idno>NIST Spe- cial Publication 500-255</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,280.99,637.12,17.81,8.97;7,81.96,648.07,216.83,8.97;7,81.96,659.03,117.10,8.97;7,81.96,691.28,216.83,8.97;7,81.96,702.24,216.83,8.97;7,81.96,713.20,92.33,8.97;7,433.53,118.99,106.47,8.97;7,323.16,129.95,163.53,8.97">From Discourse to Logic; An Introduction to Modeltheoretic Semantics of Natural Language, Formal Logic and DRT Kluwer</title>
+		<editor>
+			<persName><forename type="first">Colin</forename><forename type="middle">J</forename><surname>Bannard</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Mark</forename><surname>Steedman</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Bonnie</forename><surname>Webber</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Nantes, France; Dordrecht; Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1992">1992. 1992. 1993. 1993. 2003</date>
+			<biblScope unit="page" from="595" to="599" />
+		</imprint>
+	</monogr>
+	<note>Proceedings of the Twelfth Text Retrieval Conference (TREC 2003)</note>
+</biblStruct>
+
+<biblStruct coords="7,308.22,170.80,231.78,8.97;7,323.16,181.76,216.83,8.97;7,323.16,192.72,216.83,8.97;7,323.16,203.68,151.16,8.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,357.38,181.76,182.62,8.97;7,323.16,192.72,124.66,8.97">Combining the language model and inference network approaches to retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Croft</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,455.36,192.72,84.64,8.97;7,323.16,203.68,82.03,8.97">Information Processing and Management</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="735" to="750" />
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,308.22,222.61,231.78,8.97;7,323.16,233.56,216.83,8.97;7,323.16,244.52,216.83,8.97;7,323.16,255.48,216.83,8.97;7,323.16,266.44,216.83,8.97;7,323.16,277.40,152.97,8.97" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,436.30,244.52,103.69,8.97;7,323.16,255.48,199.86,8.97">Using nomlex to produce nominalization patterns for information extraction</title>
+		<author>
+			<persName coords=""><surname>Meyers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,323.16,266.44,216.83,8.97;7,323.16,277.40,114.68,8.97">Coling-ACL98 workshop Proceedings: the Computational Treatment of Nominals</title>
+		<imprint>
+			<date type="published" when="1998-08">1998. 1998. August</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

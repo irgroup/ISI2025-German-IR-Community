@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,166.13,115.90,283.09,12.90;1,272.75,133.83,69.85,12.90;1,223.43,153.86,168.50,10.75">An Open-Vocabulary Approach to Authorship Attribution Notebook for PAN at CLEF 2019</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,279.32,190.43,56.73,8.64"><forename type="first">Angelo</forename><surname>Basile</surname></persName>
+							<email>me@angelobasile.it</email>
+						</author>
+						<title level="a" type="main" coord="1,166.13,115.90,283.09,12.90;1,272.75,133.83,69.85,12.90;1,223.43,153.86,168.50,10.75">An Open-Vocabulary Approach to Authorship Attribution Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">81C52CE818BCB2BED7C1035CAD183326</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:59+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The PAN 2019 Authorship Attribution shared task presents the challenge of the open-set condition, i.e. given a text and a set of possible authors, we have to predict who is the true author, but there is no guarantee that she is among the candidates. In this paper we present our participation to this shared task. Our best performing system consists of a linear model using sparse features: in this notebook we present this system in detail. We found that including rare words as features helps our model. Furthermore, we present a series of models which did not outperform the submitted system. On the official test set we achieved 0.613 open-set F1-score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Authorship analysis goes back at least to the 15th century, when the Italian humanist Lorenzo Valla showed by means of a linguistic analysis that the Donation of Constantine was a forgery. Today it has several applications: history [15], history of philosophy [3], intelligence [1]; <ref type="bibr" coords="1,215.93,447.31,12.03,8.64" target="#b7">[8,</ref><ref type="bibr" coords="1,227.96,447.31,12.03,8.64" target="#b20">21]</ref> provide an exhaustive overview on the field and on the methods.</p><p>Authorship analysis covers different tasks: a) given a text, it is possible to predict the demographics of its authors (author profiling), b), verify if it was written by a specific author (author verification), c) compare its style to other texts (plagiarism detection) and d) if the author of said text is unknown, it can be possible to discover it (authorship attribution). We focus on this last task.</p><p>In this paper we present our participation to the Cross-domain Authorship Attribution shared task [9], part of the PAN Evaluation Forum [5]. This edition presents several challenges, as it includes texts written in four different languages (English, Italian, French and Spanish) and frames the task as an open-set problem, allowing for the possibility that the true author of a document is not among the candidates. Furthermore, the task organisers designed a cross-domain scenario by sampling the known and unknown texts for each problem from two different sources. All these challenges combined lead us to design a simple, lexical, profile-based model using sparse features.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We experimented with with no success with different stylometric features. In this paper we present our system together with an overview of a series of failed attempts to outperform it. The data released by the organisers of the tasks consists of fanfiction literature, written in four languages (i.e. English, French, Italian and Spanish). Table <ref type="table" coords="2,435.90,521.21,4.98,8.64" target="#tab_0">1</ref> shows an overview of the dataset. Fanfiction is a literary genre consisting of writings inspired by certain well-known authors or works, known as fandom. This task challenges participants by asking to predict the author of a text belonging to a given fandom, given only developments texts belonging to different fandoms, providing thus a cross-domain (or cross-fandom) condition. For the development of our system we only used the data released by the organisers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Submitted System</head><p>Our best system consists of a linear Support Vector Machine, fed with words and character penta-grams, including all the words, regardless of their frequency. We apply no pre-processing to the data. Instances assigned a probability lower than 0.1 are classified as written by an unknown author. The features are normalised using TF-IDF. The value of the C hyper-parameter of the SVM is 1. For the implementation we used scikit-learn <ref type="bibr" coords="3,209.55,155.18,15.27,8.64" target="#b15">[16]</ref>, starting from the baseline released by the task organisers. Although extremely simple, this system was not outperformed by more complex ones, as described in Section 4. We note that by allowing all the words occurring in the corpus to be part of the feature space, we outperform by 0.2 F1 points an identical system using only words occurring at least five times in the corpus. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Additional Experiments</head><p>This task presents several challenges, which all combined lead us to the choice of a simple system for the official submission. First, the evaluation platform limits the experimentation with large pre-trained neural models which are dependent on a GPU for running in a reasonable time: considering the reproducibility issues involved with neural models -as described in <ref type="bibr" coords="3,260.46,452.82,16.60,8.64" target="#b18">[19]</ref> -this is not necessarily a negative aspect for a shared task. Second, this being a multi-lingual task, we hypothesised that a system relying on linguistic knowledge would have been too dependent on the availability of specific resources (e.g. POS taggers, parsers, etc.). Third, considering that there is no overlap between the set of authors present in the development corpus and those present in the evaluation corpus, we could not rely on traditional techniques for fine-tuning the system. Given all these constraints, we experimented with language-neutral methods, mostly leveraging frequency-and surface-based features.</p><p>Compression A first language-independent method is the compression-based method described in <ref type="bibr" coords="3,186.01,572.75,15.49,8.64" target="#b21">[22]</ref>; we used the implementation based on <ref type="bibr" coords="3,361.22,572.75,15.27,8.64" target="#b16">[17]</ref>. Impostor A second language independent method, also used in an implementation released by the organisers of this shared task, is the Impostors method <ref type="bibr" coords="3,315.29,596.66,15.27,8.64" target="#b10">[11]</ref>. Ensemble We experimented with a majority-voting ensemble system, built from combining the submitted system with the Compression and Impostors system. Readability metrics We tried following <ref type="bibr" coords="3,448.62,620.57,15.27,8.64" target="#b11">[12]</ref>, by leveraging the readability of a text as a proxy for its true author: we used a battery of readability metrics <ref type="bibr" coords="3,212.33,644.48,11.72,8.64" target="#b6">[7,</ref><ref type="bibr" coords="3,224.05,644.48,11.72,8.64" target="#b19">20,</ref><ref type="bibr" coords="3,235.77,644.48,11.72,8.64" target="#b9">10,</ref><ref type="bibr" coords="3,247.49,644.48,7.81,8.64" target="#b3">4,</ref><ref type="bibr" coords="3,255.30,644.48,11.72,8.64" target="#b12">13,</ref><ref type="bibr" coords="3,267.02,644.48,7.81,8.64" target="#b1">2]</ref>, using the computed score as a feature in isolation and in combination with word n-grams: both approaches failed. Bleaching As shown in <ref type="bibr" coords="4,134.77,119.31,10.58,8.64" target="#b5">[6]</ref>, frequency and surface-level features can be useful for cross-lingual author profiling tasks, which are loosely related to authorship attribution. Table <ref type="table" coords="4,390.05,131.27,4.98,8.64">3</ref> shows an illustration of the bleaching feature abstraction method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>TOKEN FEATURE EXAMPLE</head><p>McDonald's shape CcCvcvcc'c alphanumeric True length 08 frequency 17 Table <ref type="table" coords="4,213.39,241.77,3.36,8.06">3</ref>. An illustration of the feature bleaching process from <ref type="bibr" coords="4,412.61,242.12,9.52,7.77" target="#b5">[6]</ref>.</p><p>We experimented with the bleaching approach of <ref type="bibr" coords="4,353.18,286.21,10.58,8.64" target="#b5">[6]</ref>, resulting in a lower performance when compared to the submitted system.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Evaluation</head><p>The official evaluation is conducted on the TIRA Platform <ref type="bibr" coords="4,379.93,355.71,15.27,8.64" target="#b17">[18]</ref>, using an F1 metric modified in order to account for the open-set scenario <ref type="bibr" coords="4,358.14,367.66,15.27,8.64" target="#b13">[14]</ref>. Here we present i) some development results obtained on the development data released by the organisers and ij) the official results obtained on the test set on the TIRA platform. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Development Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Official Results</head><p>Our submitted system scored 0.613 open-set macro F1, 0.8 points less than the bestperforming system, which scored an average 0.69 open-set F1.</p><p>In this paper we presented our participation to the PAN Authorship Attribution shared task. We showed that linear models combined with sparse features work well for this task, at least under the constraints of a) limited computing power, b) language independence and c) out-of-domain data. We report that combining different systems into an ensemble model does not help improving performance. We show that word and character n-grams are good features for this task, even though they might allow for interference with topic effects. For reproducibility, we release all the code used in this paper. Our official submission scored 0.613 open-f1 score; we note that our system is the fastest one among the submitted runs on the official test set (00:17:08).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,134.77,171.21,316.15,301.14"><head>Table 1 .</head><label>1</label><figDesc>An overview of the development data.</figDesc><table coords="2,134.77,171.21,316.15,277.21"><row><cell>2 Data</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="5">PROBLEM LANGUAGE KNOWN TEXTS VOCABULARY SIZE UNKNOWN TEXTS</cell></row><row><cell>1</cell><cell>en</cell><cell>63</cell><cell>4152</cell><cell>561</cell></row><row><cell>2</cell><cell>en</cell><cell>63</cell><cell>4176</cell><cell>137</cell></row><row><cell>3</cell><cell>en</cell><cell>63</cell><cell>4049</cell><cell>211</cell></row><row><cell>4</cell><cell>en</cell><cell>63</cell><cell>4255</cell><cell>273</cell></row><row><cell>5</cell><cell>en</cell><cell>63</cell><cell>4070</cell><cell>264</cell></row><row><cell>6</cell><cell>fr</cell><cell>63</cell><cell>3963</cell><cell>121</cell></row><row><cell>7</cell><cell>fr</cell><cell>63</cell><cell>4056</cell><cell>92</cell></row><row><cell>8</cell><cell>fr</cell><cell>63</cell><cell>4100</cell><cell>430</cell></row><row><cell>9</cell><cell>fr</cell><cell>63</cell><cell>4082</cell><cell>239</cell></row><row><cell>10</cell><cell>fr</cell><cell>63</cell><cell>4086</cell><cell>38</cell></row><row><cell>11</cell><cell>it</cell><cell>63</cell><cell>3085</cell><cell>139</cell></row><row><cell>12</cell><cell>it</cell><cell>63</cell><cell>3745</cell><cell>116</cell></row><row><cell>13</cell><cell>it</cell><cell>63</cell><cell>3569</cell><cell>196</cell></row><row><cell>14</cell><cell>it</cell><cell>63</cell><cell>3676</cell><cell>46</cell></row><row><cell>15</cell><cell>it</cell><cell>63</cell><cell>3663</cell><cell>54</cell></row><row><cell>16</cell><cell>sp</cell><cell>63</cell><cell>3930</cell><cell>164</cell></row><row><cell>17</cell><cell>sp</cell><cell>63</cell><cell>4070</cell><cell>112</cell></row><row><cell>18</cell><cell>sp</cell><cell>63</cell><cell>3885</cell><cell>238</cell></row><row><cell>19</cell><cell>sp</cell><cell>63</cell><cell>3929</cell><cell>450</cell></row><row><cell>20</cell><cell>sp</cell><cell>63</cell><cell>3874</cell><cell>170</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,233.87,241.28,147.62,81.86"><head>Table 2 .</head><label>2</label><figDesc>Details of the submitted system.</figDesc><table coords="3,268.85,241.28,77.65,66.40"><row><cell cols="2">PARAMETER VALUE</cell></row><row><cell>n-grams</cell><cell>5</cell></row><row><cell cols="2">normalisation tf-idf</cell></row><row><cell>lowercasing</cell><cell>false</cell></row><row><cell>min. freq</cell><cell>1</cell></row><row><cell>C</cell><cell>1.0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,180.12,467.97,255.11,102.46"><head>Table 4 .</head><label>4</label><figDesc>Overview of the cross-validated results from different models.</figDesc><table coords="4,261.09,467.97,93.17,78.53"><row><cell>model</cell><cell>open-f1 score</cell></row><row><cell>submitted</cell><cell>0.619</cell></row><row><cell>compressor</cell><cell>0.554</cell></row><row><cell>impostor</cell><cell>0.449</cell></row><row><cell>ensemble</cell><cell>0.618</cell></row><row><cell>readability</cell><cell>0.078</cell></row><row><cell>bleaching</cell><cell>0.133</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgement</head><p>The author is thankful to the three anonymous reviewers who helped improving the quality of this paper.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,142.61,361.47,303.32,7.77;5,150.95,372.43,203.72,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,230.89,361.47,215.04,7.77;5,150.95,372.43,32.10,7.77">Applying authorship analysis to extremist-group web forum messages</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Abbasi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Chen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,189.30,372.43,90.66,7.77">IEEE Intelligent Systems</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="67" to="75" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,383.36,337.71,7.77;5,150.95,394.32,81.43,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,200.76,383.36,205.42,7.77">Lix and rix: Variations on a little-known readability index</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Anderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,412.09,383.36,68.23,7.77">Journal of Reading</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="490" to="496" />
+			<date type="published" when="1983">1983</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,405.25,328.41,7.77" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Brandwood</surname></persName>
+		</author>
+		<title level="m" coord="5,209.64,405.25,128.57,7.77">The chronology of Plato&apos;s dialogues</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,416.18,324.44,7.77;5,150.95,427.14,177.07,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,242.94,416.18,220.53,7.77">A computer readability formula designed for machine scoring</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Coleman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">L</forename><surname>Liau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,150.95,427.14,111.33,7.77">Journal of Applied Psychology</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">283</biblScope>
+			<date type="published" when="1975">1975</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,438.07,312.25,7.77;5,150.95,449.03,301.85,7.77;5,150.95,459.99,316.87,7.77;5,150.95,470.95,321.36,7.77;5,150.95,481.91,323.61,7.77;5,150.95,492.87,329.64,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,150.95,459.99,316.87,7.77;5,150.95,470.95,140.81,7.77">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,407.83,481.91,66.74,7.77;5,150.95,492.87,229.80,7.77">Proceedings of the Tenth International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">2019. Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,503.80,334.24,7.77;5,150.95,514.76,215.28,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,389.82,503.80,87.03,7.77;5,150.95,514.76,153.61,7.77">Bleaching text: Abstract features for cross-lingual gender prediction</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Van Der Goot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ljubesic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Matroos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Nissim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Plank</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,322.52,514.76,17.57,7.77">ACL</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,525.69,327.97,7.77;5,150.95,536.65,44.08,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,199.78,525.69,115.35,7.77">The fog index after twenty years</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Gunning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,320.90,525.69,130.26,7.77">Journal of Business Communication</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="3" to="13" />
+			<date type="published" when="1969">1969</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,547.58,333.28,7.77;5,150.95,558.54,76.95,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,207.24,547.58,78.73,7.77">Authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Juola</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,291.50,547.58,184.39,7.77">Foundations and Trends R in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="233" to="334" />
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.61,569.47,321.69,7.77;5,150.95,580.43,319.94,7.77;5,150.95,591.39,313.95,7.77;5,150.95,602.35,124.47,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,150.95,580.43,260.37,7.77">Overview of the Cross-domain Authorship Attribution Task at PAN 2019</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,305.73,591.39,117.33,7.77">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="5,429.54,591.39,35.36,7.77;5,150.95,602.35,48.03,7.77">Notebook Papers. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.24,613.28,337.02,7.77;5,150.95,624.24,326.64,7.77;5,150.95,635.19,91.14,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="5,374.10,613.28,105.16,7.77;5,150.95,624.24,326.64,7.77;5,150.95,635.19,65.00,7.77">Derivation of new readability formulas (automated readability index, fog count and flesch reading ease formula) for navy enlisted personnel</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Kincaid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">P</forename><surname>Fishburne</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">L</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">S</forename><surname>Chissom</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1975">1975</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.24,646.13,317.48,7.77;5,150.95,657.08,101.08,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,237.17,646.13,219.02,7.77">Determining if two documents are written by the same author</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Winter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,150.95,657.08,27.86,7.77">JASIST</title>
+		<imprint>
+			<biblScope unit="volume">65</biblScope>
+			<biblScope unit="page" from="178" to="187" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,119.96,329.58,7.77;6,150.95,130.92,310.10,7.77;6,150.95,141.88,327.50,7.77;6,150.95,152.84,329.64,7.77;6,150.95,163.80,39.60,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,359.13,119.96,112.69,7.77;6,150.95,130.92,310.10,7.77;6,150.95,141.88,16.14,7.77">Complexity Measures and POS N-grams for Author Identification in Several Languages-Notebook for PAN at CLEF 2018</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>López-Anguita</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Montejo-Ráez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Díaz-Galiano</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,375.81,141.88,102.64,7.77;6,150.95,152.84,139.61,7.77">CLEF 2018 Evaluation Labs and Workshop -Working Notes Papers</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><forename type="middle">Y</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Soulier</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-09">10-14 September. Sep 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,174.76,211.68,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,221.93,174.76,63.66,7.77">Clearing the smog</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">H</forename><surname>Mclaughlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,292.16,174.76,35.61,7.77">J Reading</title>
+		<imprint>
+			<date type="published" when="1969">1969</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,185.71,333.31,7.77;6,150.95,196.67,305.05,7.77;6,150.95,207.63,262.47,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,391.01,196.67,64.99,7.77;6,150.95,207.63,113.49,7.77">Nearest neighbors distance ratio open-set classifier</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">R</forename><surname>Mendes-Junior</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">M</forename><surname>De Souza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>De Oliveira Werneck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">V</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">V</forename><surname>Pazinato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">R</forename><surname>De Almeida</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><forename type="middle">A B</forename><surname>Penatti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Da Silva Torres</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Rocha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,269.74,207.63,65.98,7.77">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page" from="359" to="386" />
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,218.59,316.19,7.77;6,150.95,229.55,221.14,7.77" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="6,254.74,218.59,203.68,7.77;6,150.95,229.55,59.59,7.77">Applied Bayesian and classical inference: the case of the Federalist papers</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Mosteller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">L</forename><surname>Wallace</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<publisher>Springer Science &amp; Business Media</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,240.51,338.35,7.77;6,150.95,251.47,301.05,7.77;6,150.95,262.43,321.71,7.77;6,150.95,273.39,192.98,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,295.94,262.43,144.22,7.77">Scikit-learn: Machine learning in python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,446.27,262.43,26.40,7.77;6,150.95,273.39,110.80,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,284.34,315.30,7.77;6,150.95,295.30,308.82,7.77;6,150.95,306.26,323.76,7.77;6,150.95,317.22,199.53,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,310.82,295.30,148.95,7.77;6,150.95,306.26,228.22,7.77">Who wrote the web? revisiting influential author identification research applicable to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Braun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Buz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Duffhauss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Friedrich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Gülzow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Köhler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Lötzsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">E</forename><surname>Müller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,396.79,306.26,77.93,7.77;6,150.95,317.22,87.48,7.77">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="393" to="407" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,328.18,335.40,7.77;6,150.95,339.14,309.15,7.77;6,150.95,350.10,209.02,7.77" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,333.86,328.18,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,259.53,339.14,200.58,7.77;6,150.95,350.10,144.92,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,361.06,323.23,7.77;6,150.95,372.02,314.17,7.77;6,150.95,382.97,23.90,7.77" xml:id="b18">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.09578</idno>
+		<title level="m" coord="6,248.09,361.06,217.37,7.77;6,150.95,372.02,189.72,7.77">Why comparing single performance scores does not allow to draw conclusions about machine learning approaches</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,142.24,393.93,316.78,7.77;6,150.95,404.89,159.86,7.77" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="6,237.77,393.93,101.04,7.77">Automated readability index</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">A</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Senter</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1967">1967</date>
+			<biblScope unit="page" from="1" to="14" />
+			<pubPlace>US</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Aerospace Medical Research Laboratories</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">AMRL-TR</note>
+</biblStruct>
+
+<biblStruct coords="6,142.24,415.85,302.64,7.77;6,150.95,426.81,295.21,7.77" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="6,207.24,415.85,182.01,7.77">A survey of modern authorship attribution methods</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,395.57,415.85,49.31,7.77;6,150.95,426.81,211.53,7.77">Journal of the American Society for information Science and Technology</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="538" to="556" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,437.77,290.64,7.77;6,150.95,448.73,312.44,7.77;6,150.95,459.69,23.90,7.77" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="6,249.48,437.77,183.40,7.77;6,150.95,448.73,49.38,7.77">Using compression-based language models for text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">J</forename><surname>Teahan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">J</forename><surname>Harper</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,218.30,448.73,159.49,7.77">Language modeling for information retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="141" to="165" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

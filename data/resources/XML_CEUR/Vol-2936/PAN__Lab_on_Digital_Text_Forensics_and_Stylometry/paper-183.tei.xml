@@ -1,0 +1,1038 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,346.92,15.42;1,89.29,106.66,73.22,15.43;1,88.93,129.00,164.42,11.96">Style change detection using Siamese neural networks (Notebook for PAN at CLEF 2021)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,154.90,68.85,11.96"><forename type="first">Sukanya</forename><surname>Nath</surname></persName>
+							<email>sukanya.nath@unine.ch</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Neuchâtel</orgName>
+								<address>
+									<addrLine>Avenue du 1er-Mars 26</addrLine>
+									<postCode>2000</postCode>
+									<settlement>Neuchâtel</settlement>
+									<country>Switzerland, Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,346.92,15.42;1,89.29,106.66,73.22,15.43;1,88.93,129.00,164.42,11.96">Style change detection using Siamese neural networks (Notebook for PAN at CLEF 2021)</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">C05B2E0B59080F8E66DF2426074FB26E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>style change detection</term>
+					<term>siamese neural network</term>
+					<term>multi-author detection</term>
+					<term>one shot learning</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Style change detection focuses on the intrinsic characteristics of a document to determine the location of authorship changes. In this paper, we describe how style change detection can be interpreted as a one shot learning task, which is a type of classification task where a single example of each class is given. For example, one shot learning image classification aims to train classifiers over a dataset, where only one image per class is available. While a large number of classes can be handled in such an approach, it is very difficult to train a neural network using only one sample per class. Siamese neural networks are one of the popular approaches for one shot learning tasks because they can learn the similarity between two object representations. Siamese neural networks have been shown to be useful for learning image similarity and semantic similarity between two texts. In this paper, we propose an end-to-end Siamese neural network approach for learning the stylistic similarity between two texts, even when the size of the texts are relatively short (mean text size of 50 words).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The goal of style change detection is to identify distinct changes of writing style in a document by focusing on its intrinsic characteristics and is closely related to intrinsic plagiarism. Intrinsic plagiarism detection examines the writing style consistency of the author over the length of the document and has the advantage of being independent of any other reference corpus. The techniques of style change detection could also be useful for fake news detection or other forensics purposes.</p><p>The PAN 2021 style change detection task presents three sub-tasks. The first sub-task is to find out if a document is authored by one or multiple authors. Secondly, if the document is authored by multiple authors, locate the style changes in the document. Thirdly, by using the knowledge of the style change locations, assign the texts uniquely to their respective authors. This paper focuses on the first two sub-tasks where we locate the style changes in the document but does not identify the number of distinct authors.</p><p>The rest of the paper is organized as follows. In Section 2, we discuss the background of the problem and the related work. Then, in Section 3, we describe the dataset and the preprocessing required for our models. Section 4 explains our method and architecture while Section 5 includes the evaluation and results. Finally, in Section 6, we draw our conclusions and outline the future work.</p><p>In this paper, we present an end-to-end Siamese neural network based approach for style change detection on short texts. The network architecture is based on Mueller <ref type="bibr" coords="2,447.90,168.26,11.58,10.91" target="#b0">[1]</ref>, however, the unidirectional LSTM is replaced with bidirectional LSTMs and GRUs. Moreover, we use the GloVe embedding <ref type="bibr" coords="2,170.42,195.36,12.84,10.91" target="#b1">[2]</ref> and Cosine distance function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related work and Background</head><p>A variety of stylometric features <ref type="bibr" coords="2,239.45,253.99,11.48,10.91" target="#b2">[3,</ref><ref type="bibr" coords="2,253.76,253.99,7.52,10.91" target="#b3">4,</ref><ref type="bibr" coords="2,264.11,253.99,7.52,10.91" target="#b4">5,</ref><ref type="bibr" coords="2,274.46,253.99,9.03,10.91" target="#b5">6]</ref> such as lexical, syntactic or structural have been introduced to study the style change variation in a document. Stamatatos in <ref type="bibr" coords="2,433.74,267.54,12.93,10.91" target="#b6">[7]</ref> used n-gram profiles to study intrinsic plagiarism.</p><p>More recently, approaches based on deep neural networks and word embeddings <ref type="bibr" coords="2,459.48,294.63,11.30,10.91" target="#b7">[8,</ref><ref type="bibr" coords="2,473.50,294.63,8.92,10.91" target="#b1">2]</ref> have been shown to be effective for authorship verification and attribution. Neural network based approaches have also been introduced in the PAN style change detection tasks. In PAN 2018, Schaetti <ref type="bibr" coords="2,127.74,335.28,12.88,10.91" target="#b8">[9]</ref> used Convolutional neural networks with a character embedding layer. However, in the PAN 2018 challenge, the style change detection task focussed only on finding out if a document is authored by one or multiple authors and not on the location of the changes. In PAN 2019, Zuo <ref type="bibr" coords="2,134.55,375.93,17.76,10.91" target="#b9">[10]</ref> used a feed forward neural network to classify the documents into single author or multiple author documents and further deployed an ensemble of clustering approaches to identify the number of authors. The PAN 2019 style change detection task focussed on finding out if a document is authored by one or multiple authors and the number of authors, but did not focus on the location of the changes. In PAN 2020, the participants were asked to detect if a document is written by one or multiple authors and the location of the changes at paragraphlevel. Iyer and Vosoughi <ref type="bibr" coords="2,200.49,457.22,17.98,10.91" target="#b10">[11]</ref> used a BERT <ref type="bibr" coords="2,280.77,457.22,17.99,10.91" target="#b11">[12]</ref> model to learn sentence level features in PAN 2020. The sentence level features were further assimilated into a paragraph level representation and fed into a random forest model as a classifier. In our knowledge, no complete end-to-end neural network based model has been used for locating style changes in a document.</p><p>The style change detection task may also be viewed as a formulation of the one shot learning problem where a prediction must be made, given that, only a single example of a new class is available. One shot learning has been used in the computer vision domain to identify if two given images are similar <ref type="bibr" coords="2,197.71,552.07,16.08,10.91" target="#b12">[13]</ref>. In case of style change detection, each pair of texts written by the same author can be considered as a new class. In other words, the one shot learning approach may be used to identify if two texts are similar in terms of style.</p><p>In the PAN data set, since the possibility of a style change occurs at the end of a paragraph, each document can be transformed such that any two consecutive paragraphs are paired as a single data point. The label of authorship corresponds to whether they were written by the same author or by two different authors. In this way, the style change detection problem can be transformed into the one shot learning problem.</p><p>Siamese neural networks are a widely used approach for the one shot learning problem. Koch <ref type="bibr" coords="3,89.29,86.97,17.79,10.91" target="#b12">[13]</ref> has shown the effectiveness of Convolutional Siamese neural networks for one shot image recognition. A Siamese neural network is composed of two identical twin neural networks with same weights which learn the hidden representation of two different input vectors. The output of both these twin networks is evaluated for similarity using a suitable distance measure. In other words, the two inputs have the same output label which indicates whether they belong to the same class. Similar approaches have been made for learning textual similarity. Mueller and Thyagarajan <ref type="bibr" coords="3,89.29,181.81,12.69,10.91" target="#b0">[1]</ref> have shown that Recurrent Siamese neural networks with LSTM (Long Short-Term Memory) cells can be used for learning sentence similarity using the SICK dataset <ref type="bibr" coords="3,403.06,195.36,16.09,10.91" target="#b13">[14]</ref>. Boenninghoff <ref type="bibr" coords="3,488.22,195.36,17.76,10.91" target="#b14">[15]</ref> achieved positive results with Hierarchical Recurrent Siamese neural networks for authorship verification with a small PAN dataset. Convolutional Siamese neural networks have also been used for large scale author identification in <ref type="bibr" coords="3,277.17,236.01,16.08,10.91" target="#b15">[16]</ref>. However, the length of the texts in their dataset (1000 words in BL2K dataset and 2000 words in the FF dataset) were larger as compared to PAN datasets. The mean number of words per document in the PAN 2021 style change detection dataset is 351, while the mean number of words per paragraph is only 51. This is important because smaller texts have limited contextual information and therefore, are more challenging than larger texts. Now, Recurrent neural networks (RNN) have internal states for processing variable length sequence data, making them useful in speech and text processing amidst other applications. However, the gradients tend to vanish for long term dependencies in RNNs making it difficult to retain information over several time steps. To solve this vanishing gradient problem <ref type="bibr" coords="3,459.26,357.95,16.09,10.91" target="#b16">[17]</ref>, gated neural networks such as LSTM <ref type="bibr" coords="3,233.52,371.50,18.06,10.91" target="#b17">[18]</ref> and GRU (Gated Recurrent Units) <ref type="bibr" coords="3,410.43,371.50,18.07,10.91" target="#b18">[19]</ref> were introduced which use gates to regulate the information flow through the network.</p><p>The LSTM unit has a cell and three gates, viz. the input, the output and the forget gates. The input gate determines the amount of content to be added to the cell while the forget gate determines the amount of information to be forgotten. On the other hand, the GRU unit contains a reset gate and an update gate but no hidden state. The update gate decides the amount of information to be updated, and the reset gate allows the unit to forget the previously computed state. In case of GRUs, the entire memory content is exposed. However, in LSTMs, the output gate controls the amount of memory content exposure. Since GRUs have a simpler design as compared to LSTMs, they have fewer parameters to calculate, thereby reducing training time. However, LSTMs have higher expressive power and may perform better than GRUs when the dataset is sufficiently large. A clear winner between the two architectures was not found during empirical evaluations conducted in <ref type="bibr" coords="3,280.11,534.09,17.91,10.91" target="#b18">[19]</ref> and <ref type="bibr" coords="3,319.91,534.09,16.25,10.91" target="#b19">[20]</ref>. Changing the hyperparameters such as batch-size and number of units can cause large oscillations as shown in <ref type="bibr" coords="3,421.45,547.64,16.25,10.91" target="#b20">[21]</ref>.</p><p>LSTMs (and GRUs) can be unidirectional or bidirectional. Unidirectional LSTMs preserve pre-word information but do not adequately consider the post-word information <ref type="bibr" coords="3,447.51,574.74,16.17,10.91" target="#b21">[22]</ref>. In other words, only the positive time direction is followed in such cases. Bidirectional LSTMs have been proposed to solve this problem. Two LSTM layers can be stacked together in bidirectional LSTMs, such that one layer is fed an as it is input sequence, while the other layer is fed a reversed input sequence. By training the layer in both positive and negative time directions, both the pre-word and the post-word contexts can be learned. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Dataset</head><p>The PAN 2021 SCD training dataset is based on StackExchange questions and answers which were combined into documents. The training set contained 11,200 documents while the validation set and the test set contained 2,400 documents each. Table <ref type="table" coords="4,370.15,398.65,5.05,10.91" target="#tab_0">1</ref> shows some statistics related to the dataset. The mean document length in characters of the training, validation and test sets were 1741, 1743 and 1737 respectively. Also, the mean document length in words of the training, validation and test sets were 351, 351 and 349 respectively. The mean number of paragraphs in a document is 7. We noted that the mean number of words per paragraph is 51 while the maximum number of words per paragraph is 1207 in our training set. Here we can observe that the length of the paragraphs which are the inputs to our models were relatively short, however there may be a few exceptions. The number of style changes ranged from 0 to 20. The number of authors per document ranged from 1 to 4. The proportion of authors over documents were equal, i.e. 25% of the documents were written by one author, another 25% were written by two authors and so on. Therefore, the percentage of single author documents is 25% while the percentage of multiauthor documents is 75%. Since the test set was released without the ground truth information, the analysis based on ground truth was not conducted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data Preprocessing for Siamese Neural Networks</head><p>As mentioned previously, each document is converted into a set of data points of consecutive paragraphs. It is assumed that each paragraph is written only by one author. This intermediate data representation is shown in Table <ref type="table" coords="4,259.03,651.61,3.74,10.91" target="#tab_1">2</ref>.</p><p>In this step the text of each paragraph is converted into a numeric representation format which is required for neural networks. At first, the text is transformed into lower case, then all punctuation (except the ' character) is removed. No stemming or lemmatization was performed. These sequences of words were tokenized and indexed, then converted to a sequence of integers (e.g., "because" = 01, "he"=02, etc.). The index created in this step represents the vocabulary.</p><p>Neural networks also require a fixed length input sequence but the length of the text in each paragraph is variable. Therefore, the maximum length threshold of the sequences needs to be set. Sequences having length less than the threshold are padded with zeroes, while sequences having length greater than the threshold are truncated. We have seen in Table <ref type="table" coords="5,397.21,375.36,4.97,10.91" target="#tab_0">1</ref> that the mean length of a paragraph is 51 words while the maximum length is 1207 words. Setting the maximum length threshold as 1207 would encourage a lot of sparse representation and increase the training time and was therefore, not considered reasonable. After some tuning, we found that the maximum length threshold of 300 words worked the best in our experiments. The final data representation is shown in Table <ref type="table" coords="5,168.44,443.11,3.66,10.91" target="#tab_2">3</ref>. Here, y = 1 indicates different writing style, i.e. different authors, while y = 0 indicates no change in style. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Method and Architecture</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Siamese Neural Network Architecture</head><p>In Figure <ref type="figure" coords="6,132.94,516.09,3.80,10.91">1</ref>, the Siamese neural network architecture is presented. The two paragraphs to be evaluated for similarity are converted into sequences of integers as described in Section 3.1. Here the inputs x1 and x2 are the vectors of sequences of integers representing the corresponding paragraphs 1 and 2. The maximum size of each sequence is 300 as mentioned in Section 3.1. Therefore, the shape of both the inputs are [(None, 300)].</p><p>The inputs are passed through a 50 dimensional GloVe embedding layer which embeds the inputs into their corresponding higher dimensional word vectors, resulting in an output shape of [(None, 300, 50)]. The next layer is the bidirectional LSTM (or GRU) layer containing n=50 units with the corresponding output shape as [(None,100)]. Then, a distance function computes the similarity between the outputs of the bidirectional LSTM (or GRU) layers and outputs the shape [(None,1)]. The last layer is a dense layer with sigmoid activation which outputs the label y. The binary cross entropy loss function is applied.</p><p>As mentioned, the embedding had 50 dimensions while the size of the indexed vocabulary was 55,904. As such, the number of parameters in the embedding layer was 2,795,200 (50 x 55,904). The number of parameters of the bidirectional LSTM layer was 40,400 while that of the bidirectional GRU layer was 30,600.</p><p>Adding another layer of bidirectional LSTM or increasing the number of units in the layer did not yield better results but increased the running time.</p><p>The total number of parameters in the Siamese neural network with bidirectional LSTM (SNN-LSTM) and the Siamese neural network with bidirectional GRU (SNN-GRU) was found to be 2,835,602 and 2,825,802 respectively.</p><p>We compared different distance functions such as Manhattan, Cosine and Matusita. However, the Cosine distance was found to perform slightly better than the others and was the chosen distance function for our models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Evaluation</head><p>The experiments were performed on an GPU enabled machine with 8 GB configuration. In Table <ref type="table" coords="7,115.54,308.03,3.70,10.91" target="#tab_4">4</ref>, the results of our experiments are presented. The PAN evaluation strategy used the F1 score for both the sub-tasks.</p><p>The SNN-LSTM model performed the best in both the sub-tasks across the training, validation and test sets. The SNN-GRU model performed almost as well as the SNN-LSTM. Both SNN-LSTM and SNN-LSTM performed much better than the random baseline. The training time for SNN-LSTM was found to be 1472.05 seconds, while that of SNN-GRU was found to be 1212.91 seconds.</p><p>The SNN-LSTM model performed slightly better than the SNN-GRU in our experiments. As LSTMs have higher expressive power than GRUs, owing to their more complex design and higher number of parameters, they might perform better than GRUs, given that sufficient data is available. However, due to the higher number of parameters, the training time of SNN-LSTM was somewhat higher than SNN-GRU.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>This paper has shown that the style change detection task may be cast as a one-shot learning task. We have presented a simple and effective Siamese neural network based approach for learning the location and number of style changes in a document. The proposed models clearly outperformed the random baseline even when the size of the texts were rather small. An advantage of using a neural network approach is that no explicit feature selection was required.</p><p>In the future work, more datasets will be included to check the robustness of the approach presented. One of the criticisms of using neural networks is the black box nature of modelling and the lack of explainability. Visualization techniques such as heatmap representations of features may also be used in the future work for increasing explainability. Recently, a lot of progress has been made with attention based networks in text processing. Hence, approaches involving attention mechanisms and siamese networks can be explored.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" coords="6,89.29,84.19,416.69,324.50"><head></head><label></label><figDesc></figDesc><graphic coords="6,89.29,84.19,416.69,324.50" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,88.99,90.49,393.36,232.39"><head>Table 1</head><label>1</label><figDesc></figDesc><table coords="4,89.29,102.49,393.06,220.39"><row><cell>Dataset statistics</cell><cell></cell><cell></cell><cell></cell></row><row><cell>Dataset statistics</cell><cell>Training</cell><cell>Validation</cell><cell>Test</cell></row><row><cell>Size</cell><cell>11200</cell><cell>2400</cell><cell>2400</cell></row><row><cell>Percentage of single author documents</cell><cell>25.00%</cell><cell>25.00%</cell><cell>NA</cell></row><row><cell>Percentage of multi author documents</cell><cell>75.00%</cell><cell>75.00%</cell><cell>NA</cell></row><row><cell>Number of authors</cell><cell>1-4</cell><cell>1-4</cell><cell>NA</cell></row><row><cell>Range of style changes</cell><cell>0-20</cell><cell>0-19</cell><cell>NA</cell></row><row><cell>Mean Document Length (in characters)</cell><cell>1741</cell><cell>1743</cell><cell>1737</cell></row><row><cell>Std. Dev. of Document Length (in characters)</cell><cell>825</cell><cell>872</cell><cell>856</cell></row><row><cell>Mean Document Length (in words)</cell><cell>351</cell><cell>351</cell><cell>349</cell></row><row><cell>Std. Dev. of Document Length (in words)</cell><cell>167</cell><cell>176</cell><cell>173</cell></row><row><cell>Mean number of paragraphs per document</cell><cell>7</cell><cell>7</cell><cell>7</cell></row><row><cell>Std. Dev. of number of paragraphs per document</cell><cell>3</cell><cell>3</cell><cell>3</cell></row><row><cell>Mean paragraph length (in words)</cell><cell>51</cell><cell>51</cell><cell>51</cell></row><row><cell>Std. Dev. of paragraph length (in words)</cell><cell>29</cell><cell>29</cell><cell>29</cell></row><row><cell>Maximum paragraph length (in words)</cell><cell>1207</cell><cell>445</cell><cell>385</cell></row><row><cell>Mean paragraph length (in characters)</cell><cell>252</cell><cell>253</cell><cell>254</cell></row><row><cell>Std. Dev. of paragraph length (in characters)</cell><cell>143</cell><cell>144</cell><cell>143</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,102.96,90.49,381.58,167.32"><head>Table 2</head><label>2</label><figDesc>Intermediate data representation of a document</figDesc><table coords="5,105.75,122.17,378.79,135.64"><row><cell>author paragr. 1</cell><cell>author paragr. 2</cell><cell>paragr. 1 text</cell><cell>paragr. 2 text</cell><cell>style</cell></row><row><cell>1</cell><cell>2</cell><cell cols="2">I kust * realized that some . . . Because he leased . . .</cell><cell>different</cell></row><row><cell>2</cell><cell>2</cell><cell>Because he leased . . .</cell><cell cols="2">In general, I advice . . . same</cell></row><row><cell>2</cell><cell>1</cell><cell>In general, I advice . . .</cell><cell>My mac is the . . .</cell><cell>different</cell></row><row><cell>1</cell><cell>3</cell><cell>My mac is the . . .</cell><cell>You should also . . .</cell><cell>different</cell></row><row><cell>3</cell><cell>4</cell><cell>You should also . . .</cell><cell>You're fine for . . .</cell><cell>different</cell></row><row><cell>4</cell><cell>1</cell><cell>You're fine for . . .</cell><cell>My modem was . . .</cell><cell>different</cell></row><row><cell>1</cell><cell>3</cell><cell>My modem was . . .</cell><cell>WPA (if possible, . . .</cell><cell>different</cell></row><row><cell>3</cell><cell>3</cell><cell>WPA (if possible, . . .</cell><cell>As to the host. . .</cell><cell>same</cell></row><row><cell cols="3">*The typographical error was present in the text.</cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,88.99,485.66,179.51,20.87"><head>Table 3</head><label>3</label><figDesc>Finished data representation of a document</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,172.67,513.70,249.93,107.75"><head>paragr. 1 text (x1) paragr. 2 text (x2) style</head><label></label><figDesc></figDesc><table coords="5,172.67,513.70,249.93,107.75"><row><cell>Figure 1: Siamese network architecture</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>(y)</cell></row><row><cell>[ 3, 24, 25, 26, 27. . . ]</cell><cell>[ 5, 6, 7, 0, 0. . . ]</cell><cell>1</cell></row><row><cell>[ 5, 6, 7, 0, 0. . . ]</cell><cell>[ 8, 9, 3, 10, 0. . . ]</cell><cell>0</cell></row><row><cell>[ 8, 9, 3, 10, 0. . . ]</cell><cell>[ 2, 11, 12, 4, 0. . . ]</cell><cell>1</cell></row><row><cell>[ 2, 11, 12, 4, 0. . . ]</cell><cell>[13, 14, 15, 0, 0. . . ]</cell><cell>1</cell></row><row><cell>[13, 14, 15, 0, 0. . . ]</cell><cell>[16, 17, 18, 0, 0. . . ]</cell><cell>1</cell></row><row><cell>[16, 17, 18, 0, 0. . . ]</cell><cell>[ 2, 19, 20, 0, 0. . . ]</cell><cell>1</cell></row><row><cell>[ 2, 19, 20, 0, 0. . . ]</cell><cell>[21, 22, 23, 0, 0. . . ]</cell><cell>1</cell></row><row><cell>[21, 22, 23, 0, 0. . . ]</cell><cell>[28, 29, 4, 30, 0. . . ]</cell><cell>0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="7,88.99,390.92,396.25,95.71"><head>Table 4</head><label>4</label><figDesc></figDesc><table coords="7,89.29,402.93,395.95,83.70"><row><cell>Results</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>Task 1</cell><cell></cell><cell></cell><cell>Task 2</cell><cell></cell></row><row><cell></cell><cell></cell><cell>F1 score</cell><cell></cell><cell></cell><cell>F1 score</cell><cell></cell></row><row><cell>Model</cell><cell>Training</cell><cell>Validation</cell><cell>Test</cell><cell>Training</cell><cell>Validation</cell><cell>Test</cell></row><row><cell>SNN-LSTM</cell><cell>0.75</cell><cell>0.71</cell><cell>0.70</cell><cell>0.70</cell><cell>0.65</cell><cell>0.65</cell></row><row><cell>SNN-GRU</cell><cell>0.73</cell><cell>0.69</cell><cell>0.70</cell><cell>0.68</cell><cell>0.64</cell><cell>0.64</cell></row><row><cell>Random Baseline</cell><cell>0.43</cell><cell>0.43</cell><cell>-</cell><cell>0.35</cell><cell>0.35</cell><cell>-</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,240.44,394.53,10.91;8,112.66,253.99,369.66,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,230.93,240.44,272.29,10.91">Siamese recurrent architectures for learning sentence similarity</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mueller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Thyagarajan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,127.29,253.99,274.44,10.91">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,267.54,394.61,10.91;8,112.66,281.08,393.33,10.91;8,112.33,294.63,136.87,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,290.62,267.54,197.56,10.91">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,112.66,281.08,393.33,10.91;8,112.33,294.63,37.99,10.91">Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP)</title>
+		<meeting>the 2014 conference on empirical methods in natural language processing (EMNLP)</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,308.18,393.33,10.91;8,112.66,321.73,131.95,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,170.58,308.18,232.20,10.91">The evolution of stylometry in humanities scholarship</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">I</forename><surname>Holmes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,410.03,308.18,95.96,10.91;8,112.66,321.73,48.01,10.91">Literary and linguistic computing</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="111" to="117" />
+			<date type="published" when="1998">1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,335.28,393.33,10.91;8,112.66,348.83,121.75,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,266.19,335.28,122.75,10.91">Intrinsic plagiarism analysis</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Lipka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,397.11,335.28,108.88,10.91;8,112.66,348.83,47.96,10.91">Language Resources and Evaluation</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="63" to="82" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,362.38,393.33,10.91;8,112.66,375.93,349.79,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,341.76,362.38,164.23,10.91;8,112.66,375.93,88.85,10.91">An integrated approach for intrinsic plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Alsallal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Iqbal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Palade</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Amin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Chang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,209.80,375.93,168.71,10.91">Future Generation Computer Systems</title>
+		<imprint>
+			<biblScope unit="volume">96</biblScope>
+			<biblScope unit="page" from="700" to="712" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,389.48,393.33,10.91;8,112.66,403.03,394.53,10.91;8,112.66,416.58,65.30,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,179.97,389.48,236.02,10.91">Plagiarism detection based on structural information</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,439.38,389.48,66.60,10.91;8,112.66,403.03,364.34,10.91">Proceedings of the 20th ACM international conference on Information and knowledge management</title>
+		<meeting>the 20th ACM international conference on Information and knowledge management</meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="1221" to="1230" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,430.13,393.32,10.91;8,112.33,443.67,29.19,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,178.12,430.13,267.87,10.91">Intrinsic plagiarism detection using character n-gram profiles</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,453.80,430.13,44.48,10.91">Threshold</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,457.22,393.33,10.91;8,112.66,470.77,348.25,10.91" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1310.4546</idno>
+		<title level="m" coord="8,346.62,457.22,159.37,10.91;8,112.66,470.77,171.09,10.91">Distributed representations of words and phrases and their compositionality</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,484.32,393.54,10.91;8,112.66,497.87,393.58,10.91;8,112.28,511.42,261.80,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,174.70,484.32,331.49,10.91;8,112.66,497.87,67.41,10.91">Character-based convolutional neural network and resnet18 for twitter authorprofiling</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Schaetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,210.35,497.87,295.90,10.91;8,112.28,511.42,106.35,10.91">Proceedings of the Ninth International Conference of the CLEF Association (CLEF 2018)</title>
+		<meeting>the Ninth International Conference of the CLEF Association (CLEF 2018)<address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="10" to="14" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,524.97,394.52,10.91;8,112.66,538.52,143.25,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,242.99,524.97,254.93,10.91">Style change detection with feed-forward neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zuo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Banerjee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,127.29,538.52,98.72,10.91">CLEF (Working Notes)</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,552.07,314.20,10.91" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="8,205.87,552.07,146.66,10.91">Style change detection using bert</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Iyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vosoughi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<publisher>CLEF</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,565.62,393.33,10.91;8,112.66,579.17,366.19,10.91" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="8,353.43,565.62,152.55,10.91;8,112.66,579.17,181.08,10.91">Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bert</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,592.72,395.16,10.91;8,112.66,606.27,281.56,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,278.72,592.72,229.10,10.91;8,112.66,606.27,24.93,10.91">Siamese neural networks for one-shot image recognition</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,160.30,606.27,133.01,10.91">ICML deep learning workshop</title>
+		<meeting><address><addrLine>Lille</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,619.81,393.33,10.91;8,112.66,633.36,394.53,10.91;8,112.66,646.91,80.57,10.91" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="8,457.92,619.81,48.07,10.91;8,112.66,633.36,294.66,10.91">A sick cure for the evaluation of compositional distributional semantic models</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Marelli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Menini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Baroni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bentivogli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Bernardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zamparelli</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<publisher>Lrec</publisher>
+			<biblScope unit="page" from="216" to="223" />
+			<pubPlace>Reykjavik</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,660.46,393.33,10.91;9,112.39,86.97,393.59,10.91;9,112.28,100.52,345.52,10.91" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="8,351.85,660.46,154.13,10.91;9,112.39,86.97,122.31,10.91">Similarity learning for authorship verification in social media</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Boenninghoff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">M</forename><surname>Nickel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zeiler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kolossa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,263.25,86.97,242.73,10.91;9,112.28,100.52,220.67,10.91">ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="2457" to="2461" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,114.06,393.33,10.91;9,112.66,127.61,107.17,10.91" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="9,194.67,114.06,237.29,10.91">Siamese networks for large-scale author identification</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Saedi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dras</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1912.10616</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,141.16,393.33,10.91;9,112.66,154.71,297.81,10.91" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="9,259.91,141.16,246.08,10.91;9,112.66,154.71,42.98,10.91">Learning long-term dependencies with gradient descent is difficult</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Simard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Frasconi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,163.23,154.71,168.37,10.91">IEEE transactions on neural networks</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="157" to="166" />
+			<date type="published" when="1994">1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,168.26,393.98,10.91;9,112.41,181.81,48.96,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="9,253.72,168.26,112.17,10.91">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,376.65,168.26,91.46,10.91">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,195.36,393.32,10.91;9,112.66,208.91,321.55,10.91" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="9,298.60,195.36,207.38,10.91;9,112.66,208.91,141.39,10.91">Empirical evaluation of gated recurrent neural networks on sequence modeling</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.3555</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,393.61,10.91;9,112.66,236.01,394.52,10.91;9,112.66,249.56,22.69,10.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="9,295.82,222.46,210.45,10.91;9,112.66,236.01,56.91,10.91">An empirical exploration of recurrent network architectures</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jozefowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Zaremba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,192.73,236.01,205.30,10.91">International conference on machine learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="2342" to="2350" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,263.11,393.33,10.91;9,112.66,276.66,227.70,10.91" xml:id="b20">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Kann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schütze</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1702.01923</idno>
+		<title level="m" coord="9,266.97,263.11,239.02,10.91;9,112.66,276.66,45.44,10.91">Comparative study of cnn and rnn for natural language processing</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,290.20,393.32,10.91;9,112.66,303.75,172.11,10.91" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="9,232.02,290.20,173.19,10.91">Bidirectional recurrent neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">K</forename><surname>Paliwal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,414.04,290.20,91.95,10.91;9,112.66,303.75,78.03,10.91">IEEE transactions on Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="2673" to="2681" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,317.30,394.53,10.91;9,112.66,330.85,395.17,10.91;9,112.66,344.40,393.33,10.91;9,112.66,357.95,393.33,10.91;9,112.66,371.50,222.66,10.91" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="9,194.78,344.40,311.21,10.91;9,112.66,357.95,221.30,10.91">Overview of PAN 2021: Authorship Verification,Profiling Hate Speech Spreaders on Twitter,and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L D L P</forename><surname>Sarracén</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wolska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,357.51,357.95,148.47,10.91;9,112.66,371.50,150.17,10.91">12th International Conference of the CLEF Association (CLEF 2021)</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,385.05,394.53,10.91;9,112.66,398.60,393.33,10.91;9,112.66,412.15,394.51,10.91;9,112.66,428.14,123.08,7.90" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="9,327.46,385.05,175.13,10.91">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,240.99,398.60,264.99,10.91;9,112.66,412.15,123.97,10.91">Information Retrieval Evaluation in a Changing World, The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,439.25,393.33,10.91;9,112.33,452.79,394.86,10.91;9,112.66,466.34,22.69,10.91" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="9,323.74,439.25,182.24,10.91;9,112.33,452.79,55.38,10.91">Overview of the Style Change Detection Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,211.80,452.79,140.07,10.91">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="9,359.88,452.79,103.51,10.91">Notebook Papers, CEUR</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,479.89,393.33,10.91;9,112.66,493.44,393.33,10.91;9,112.66,506.99,202.76,10.91" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="9,342.32,479.89,163.67,10.91;9,112.66,493.44,218.45,10.91">Explainable authorship verification in social media via attention-based similarity learning</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Boenninghoff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hessler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kolossa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">M</forename><surname>Nickel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,374.02,493.44,131.97,10.91;9,112.66,506.99,98.55,10.91">IEEE International Conference on Big Data (Big Data)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+			<biblScope unit="page" from="36" to="45" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,520.54,393.53,10.91;9,112.66,534.09,220.82,10.91" xml:id="b26">
+	<monogr>
+		<title level="m" type="main" coord="9,152.44,520.54,353.75,10.91;9,112.66,534.09,36.98,10.91">Machine Learning Methods for Stylometry: Authorship Attribution and Author Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<publisher>Springer International Publishing</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,547.64,393.33,10.91;9,112.66,561.19,152.30,10.91" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="9,208.21,547.64,171.03,10.91">Distance measures in author profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kocher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,388.65,547.64,117.34,10.91;9,112.66,561.19,58.22,10.91">Information Processing &amp; Management</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page" from="1103" to="1119" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,574.74,393.61,10.91;9,112.66,588.29,100.14,10.91" xml:id="b28">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<title level="m" coord="9,192.18,574.74,253.36,10.91">The secret life of pronouns: What our words say about us</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Bloomsbury Press</publisher>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,601.84,393.33,10.91;9,112.66,615.39,395.01,10.91;9,112.66,628.93,38.81,10.91" xml:id="b29">
+	<analytic>
+		<title level="a" type="main" coord="9,326.60,601.84,179.38,10.91;9,112.66,615.39,69.16,10.91">A decade of shared tasks in digital text forensics at pan</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,205.53,615.39,211.72,10.91">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="291" to="300" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,642.48,394.53,10.91;9,112.66,656.03,251.99,10.91" xml:id="b30">
+	<analytic>
+		<title level="a" type="main" coord="9,154.13,642.48,348.81,10.91">Comparative evaluation of term selection functions for authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,112.66,656.03,168.05,10.91">Digital Scholarship in the Humanities</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="page" from="246" to="261" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,669.58,393.33,10.91;10,112.66,86.97,218.93,10.91" xml:id="b31">
+	<analytic>
+		<title level="a" type="main" coord="9,151.87,669.58,316.73,10.91">Analysis of the style and the rhetoric of the 2016 us presidential primaries</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,476.27,669.58,29.72,10.91;10,112.66,86.97,135.00,10.91">Digital Scholarship in the Humanities</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="143" to="159" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,100.52,393.33,10.91;10,112.33,114.06,101.06,10.91" xml:id="b32">
+	<analytic>
+		<title level="a" type="main" coord="10,172.20,100.52,217.75,10.91">Machine learning in automated text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,397.63,100.52,108.36,10.91;10,112.33,114.06,32.35,10.91">ACM computing surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="1" to="47" />
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,127.61,393.33,10.91;10,112.66,141.16,135.70,10.91" xml:id="b33">
+	<analytic>
+		<title level="a" type="main" coord="10,159.98,127.61,213.94,10.91">Is Starnone really the author behind Ferrante?</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,386.85,127.61,119.14,10.91;10,112.66,141.16,51.76,10.91">Digital Scholarship in the Humanities</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="902" to="918" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,154.71,393.33,10.91;10,112.66,168.26,393.59,10.91;10,112.66,181.81,292.62,10.91" xml:id="b34">
+	<analytic>
+		<title level="a" type="main" coord="10,376.63,154.71,129.36,10.91;10,112.66,168.26,99.94,10.91">Overview of the Style Change Detection Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,482.41,168.26,23.84,10.91;10,112.66,181.81,112.59,10.91">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="10,233.24,181.81,103.05,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,195.36,394.52,10.91;10,112.66,208.91,393.33,10.91;10,112.66,222.46,393.33,10.91;10,112.66,236.01,394.53,10.91;10,112.66,249.56,393.33,10.91;10,112.66,263.11,288.02,10.91" xml:id="b35">
+	<analytic>
+		<title level="a" type="main" coord="10,425.62,208.91,80.36,10.91;10,112.66,222.46,393.33,10.91;10,112.66,236.01,106.57,10.91">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,338.86,249.56,167.13,10.91;10,112.66,263.11,191.18,10.91">Proceedings of the Tenth International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,276.66,394.61,10.91;10,112.66,290.20,393.32,10.91;10,112.66,303.75,208.61,10.91" xml:id="b36">
+	<analytic>
+		<title level="a" type="main" coord="10,319.39,276.66,168.40,10.91">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,224.46,290.20,281.52,10.91;10,112.66,303.75,135.13,10.91">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,317.30,393.33,10.91;10,112.66,330.85,173.80,10.91" xml:id="b37">
+	<monogr>
+		<title level="m" type="main" coord="10,372.11,317.30,133.87,10.91;10,112.66,330.85,92.73,10.91">Overview of the style change detection task at pan</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+		<respStmt>
+			<orgName>CLEF</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

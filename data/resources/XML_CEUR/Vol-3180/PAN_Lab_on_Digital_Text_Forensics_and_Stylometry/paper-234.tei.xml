@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,72.00,75.47,362.04,16.98;1,72.00,105.90,148.85,9.88">Style Change Detection Based On Bi-LSTM And Bert Notebook for PAN at CLEF 2022</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,72.00,128.00,50.04,12.20"><forename type="first">Jiayang</forename><surname>Zi</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Foshan University</orgName>
+								<address>
+									<settlement>Foshan</settlement>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,135.98,129.40,51.01,10.80"><forename type="first">Ling</forename><surname>Zhou</surname></persName>
+							<email>zhoulingfsu@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Foshan University</orgName>
+								<address>
+									<settlement>Foshan</settlement>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,201.98,129.40,67.67,10.80"><forename type="first">Zhengyao</forename><surname>Liu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Foshan University</orgName>
+								<address>
+									<settlement>Foshan</settlement>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="laboratory">CLEF</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,72.00,75.47,362.04,16.98;1,72.00,105.90,148.85,9.88">Style Change Detection Based On Bi-LSTM And Bert Notebook for PAN at CLEF 2022</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">72123F5B4FAC1BC7F276F65CE4D63806</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:26+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Style Change Detection</term>
+					<term>Bi-LSTM</term>
+					<term>Bert</term>
+					<term>CNN</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This article is an overview of PAN 2022's approach to the Style Change Detection task. The goal of this competition task is to identify the text positions for author switching in a given multi-author document. PAN helps us segment the tasks, respectively task1 finds paragraphs with two authors and cuts them into different texts; tesk2 finds paragraphs with two or more authors, finds the writing style happens changing location. tesk3 does a more fine-grained lookup on the task requirements of tesk2 to find where in the sentence the writing style changes. This paper designs a method to handle the task based on a model composed of convolutional neural networks, Bert and bidirectional long-short-term memory networks, using binary classification to judge style changes and author label problems. The f1 scores are obtained, which are 0.67 for task1 and 0.40 for task2 and 0.65 for tesk3.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.02" lry="841.98"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.02" lry="841.98"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.02" lry="841.98"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.02" lry="841.98"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.02" lry="841.98"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Today is an era that emphasizes intellectual property rights. There are many and secret means of plagiarism. It may be difficult to find out whether an article is suspected of plagiarism by manual work, and the labor efficiency is also very low. Using writing style detection makes the difficult task of detecting plagiarism much easier. By using writing style detection to screen articles, the problematic paragraphs in the article can be marked and then sent to manual detection, improving the detection efficiency and improving the detection accuracy to have the best of both worlds. In addition to detecting plagiarism, it can also classify according to different authors in the same article. This idea fits perfectly with task1 in Pan's 2022 Style Change Detection task <ref type="bibr" coords="1,389.62,493.84,11.69,9.88" target="#b0">[1]</ref>. Task 2 is to find all the positions where the writing style changes in the text written by two or more authors, and give the paragraph a corresponding author's number. Detecting author switching is to use the model to learn the characteristics of the training set and use this to judge whether the authors in the article have changed, and on this basis, count the numbers of different authors and assign them to the corresponding paragraphs. task3 is further screened and detected on the basis of task2. The position where the writing style changes may also appear between different sentences in the same paragraph. Task3 is to mark the position where the writing style changes between sentences [2] <ref type="bibr" coords="1,441.34,582.40,12.18,9.88" target="#b2">[3]</ref>.</p><p>After a comprehensive analysis of all tasks, this paper proposes a solution for the PAN 2022 Style Change Detection task, based on the BBCG model, which consists of BERT, Bi-LSTM, CNN and GlobalMaxPooling. Use BERT to encode the features in the text and convert them into word vectors to better express the relationship between words. Bi-LSTM solves the problem of context dependence to extract relevant features. CNN further extracts the associated features, avoids overfitting and improves the generalization ability of the model, and finally uses the Pooling layer to improve the running speed and accuracy of the model. The data text given by this PAN task can be used to effectively identify and judge the author, and finally, it has achieved good results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background</head><p>PAN 2022 Style Change Detection task is divided into three subtasks. 1. For a text written by two authors that contains a single style change only, find the position of this change.</p><p>2. For a text written by two or more authors, find all positions of writing style change.</p><p>3. For a text written by two or more authors, find all positions of writing style change, where style changes now not only occur between paragraphs, but at the sentence level.</p><p>In addition, PAN also provides three data sets for testing the algorithm, corresponding to three tasks, and each data set corresponds to three parts:</p><p>1. training set: Contains 70% of the whole dataset and includes ground truth data.</p><p>2. validation set: Contains 15% of the whole dataset and includes ground truth data.</p><p>3. test set: Contains 15% of the whole dataset, no ground truth data is given.</p><p>The method model in this paper is evaluated based on the above training set and validation set, and finally the test set is input into the model to obtain the experimental results. The generated results are submitted to the TIRA <ref type="bibr" coords="2,179.06,272.84,12.84,9.88" target="#b6">[7]</ref> platform, and finally the calculation and evaluation of the model in this paper is completed on the platform, and then the F1 score of the results is output. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Method</head><p>The neural network model proposed in the task is named BBCG model in this paper. It is a neural network structure composed of Bert <ref type="bibr" coords="2,241.76,712.38,12.18,9.88" target="#b3">[4]</ref>[5], Bi-LSTM, one-dimensional convolution layer, pooling layer and full connection layer, as shown in Figure <ref type="figure" coords="2,297.88,725.04,4.13,9.88">2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure2：Architecture diagram for model</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Word embedding layer</head><p>Word embedding is used as the data input layer of the model, and in this task, the pre-training model Bert model proposed in the past four years is first used. This model emphasizes that the traditional single-item language model or the shallow splicing of two one-way language models is no longer used as usual, but the new MLM technology is used <ref type="bibr" coords="3,334.84,334.94,11.69,9.88" target="#b5">[6]</ref>. Bert is a deep bidirectional pre-trained language model using Transformers as a feature extractor. The model is used to train the word vector model, that is, it has a deeper number of layers and better parallelism, and has achieved quite good results in various language tasks. the result of. In this layer, it is mainly the process of encoding the words in the text and the corresponding features, and converting them into the form of word vectors for input. Through the mapped word vector form, the vector form is used to better express the relationship between words.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Bi-LSTM layer</head><p>Long short-term memory network (LSTM) is a variant of RNN, which is mainly used to solve the problem of context dependence. Bi-LSTM (Bidirectional Long Short-term Memory) is composed of forward and reverse LSTM. Compared with one-direction LSTM, a single LSTM can only get past information, but it can't get future information. Therefore, bidirectional LSTM can extract more comprehensive features than unidirectional LSTM. As Bi-LSTM is composed of two LSTMs.</p><p>Therefore, LSTM is the state ℎ 𝑡 at the current time from the value 𝑓 𝑡 of the forgetting gate, the value 𝑖 𝑡 of the memory gate and the cell state 𝑐 𝑡 , the temporary cell state 𝑔 𝑡 and the output gate 𝑜 𝑡 . Finally, Bi-LSTM outputs the ℎ 𝑡 of two LSTMs in opposite directions respectively and combines them to obtain the output at time t The calculation formula is as follows：</p><formula xml:id="formula_0" coords="3,220.04,568.40,303.02,12.59">𝑓 (𝑡) = 𝛿(𝑊 𝑓 𝑥 (𝑡) + 𝑢 𝑓 ℎ (𝑡-1) + 𝑏 𝑓 ,<label>(1)</label></formula><formula xml:id="formula_1" coords="3,220.04,589.64,303.02,12.59">𝑖 (𝑡) = 𝛿(𝑊 𝑖 𝑥 (𝑡) + 𝑢 𝑖 ℎ (𝑡-1) + 𝑏 𝑓 ),<label>(2)</label></formula><p>𝑔 (𝑡) = tanh (𝑊 𝑔 𝑥 (𝑡) + 𝑢 𝑔 ℎ (𝑡-1) + 𝑏 𝑔 ) ,</p><p>𝑐 (𝑡) = 𝑓 (𝑡) × 𝑐 𝑡-1 + 𝑖 (𝑡) × 𝑔 (𝑡) ,</p><p>𝑜 (𝑡) = 𝛿(𝑊 𝑜 𝑥 (𝑡) + 𝑢 𝑜 ℎ (𝑡-1) + 𝑏 𝑜 ),</p><p>ℎ 𝑡 = 𝑜 (𝑡) × tanh (𝑐 𝑡 ),</p><p>Where 𝑊represents the weight and 𝑏 represents the offset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">CNN layer</head><p>Through the feature relationship extracted by Bi-LSTM, the convolution layer is used to further extract the features, thus reducing the parameter quantity and operation time of the model, and using this method to avoid over-fitting. Improve the generalization ability of the model.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,86.22,584.43,424.25,10.98;2,63.25,320.55,467.60,248.15"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Expected output of simulation scenarios and tasks of Style Change Detection tasks [1]</figDesc><graphic coords="2,63.25,320.55,467.60,248.15" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="3,82.85,85.05,428.15,170.95"><head></head><label></label><figDesc></figDesc><graphic coords="3,82.85,85.05,428.15,170.95" type="bitmap" /></figure>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Pooling, also known as downsampling layer, is used to extract the average or maximum value in the region (called average pooling and max pooling), and global pooling, which is used to reduce dimensions, such as reducing 3 dimensions to 1 dimension. The most important purpose of the pooling layer is to reduce the dimension, reduce the number of parameters, improve the running speed and accuracy of the model, and avoid overfitting. In the task, global pooling is used, which is used to perform ensemble max-pooling over multiple data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Full connection layer</head><p>In the fully connected layer, the nonlinear activation function "Relu" is used first, and the piecewise linear function is used for calculation. Finally, the "Sorftmax" function is used to calculate the output feature to obtain the probability of the input text sentence. The result of task 1 is not bad, but task 2 still has a lot of room for improvement. It may be that the initial prediction of whether the author has changed or not has been wrong, resulting in errors in assigning author numbers and the accumulation of errors. The type of task that needs to be judged is sentences. Need to judge whether author changes have been made between shorter texts, and can be done better</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Result</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>This paper proposes a neural network-based model to deal with the PAN 2022 Style Change Detection task, trying to answer the three tasks proposed in the task. Although the results obtained based on the model in this paper are better than the baseline, it does not achieve the desired effect, which also shows that for tasks 1 and 2, the model in this paper still has a lot of room for improvement. In task 2, it is necessary to find texts with two or more authors. If there are multiple authors in each paragraph, it will undoubtedly increase the difficulty of detecting the change of writing style between the entire text paragraphs. In the future, we will also consider how to reduce the occurrence of misjudgments due to style approximation in the style detection of long texts. At the same time, it also shows that the Style Change Detection task can have more interesting challenges, such as detecting whether a piece of text is deliberately imitated by other authors, so as to confuse the machine inspection, these tasks will be more challenging.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,72.00,105.73,450.63,9.98;5,72.00,120.31,431.41,9.98" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,329.48,105.73,193.15,9.98;5,72.00,120.31,79.30,9.98">Overview of the Style Change Detection Task at PAN 2022</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,175.26,120.31,144.60,9.98">CLEF 2022 Labs and Workshops</title>
+		<title level="s" coord="5,327.88,120.31,103.18,9.98">Notebook Papers. CEUR</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,134.96,450.74,9.88;5,72.00,147.62,120.64,9.88" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,231.79,134.96,274.31,9.88">Style Change Detection Based On Writing Style Similarity</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,510.26,134.96,12.48,9.88;5,72.00,147.62,36.09,9.88">J]. Training</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">17</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="1970">1970</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,160.22,451.00,9.88;5,72.00,172.88,450.77,9.88;5,72.00,185.54,292.17,9.88" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,215.08,160.22,273.53,9.88">Style Change Detection with Feed-forward Neural Networks</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zuo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Banerjee</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2380/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,315.22,172.88,153.89,9.88">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="5,479.39,172.88,43.38,9.88;5,72.00,185.54,75.43,9.88">Notebook Papers, CEUR-WS</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,198.20,450.91,9.88;5,72.00,210.86,450.80,9.88;5,72.00,223.52,292.14,9.88" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,168.77,198.20,322.54,9.88">Style Change Detection Using BERT-Notebook for PAN at CLEF 2020</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Iyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vosoughi</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,318.35,210.86,151.39,9.88">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="5,479.42,210.86,43.38,9.88;5,72.00,223.52,58.01,9.88">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Né Vé Ol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,236.12,450.87,9.88;5,72.00,248.78,309.41,9.88" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="5,315.53,236.12,207.33,9.88;5,72.00,248.78,118.38,9.88">Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bert</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,261.44,450.66,9.88;5,72.00,274.10,180.50,9.88" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1802.06893</idno>
+		<title level="m" coord="5,336.44,261.44,181.55,9.88">Learning word vectors for 157 languages</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,286.76,451.03,9.88;5,72.00,299.36,450.66,9.88;5,72.00,312.02,395.67,9.88" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,287.92,286.76,172.60,9.88">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,150.08,299.36,372.58,9.88;5,72.00,312.02,25.35,9.88">Information Retrieval Evaluation in a Changing World, The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

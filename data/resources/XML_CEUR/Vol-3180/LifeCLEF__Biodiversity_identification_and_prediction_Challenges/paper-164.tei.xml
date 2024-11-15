@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,366.62,15.42;1,89.29,106.66,370.11,15.42">Plant and Animal Species Prediction at Certain Locations with Convolutional Neural Networks</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.10,134.97,59.94,11.96"><forename type="first">Juntao</forename><surname>Jiang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Zhejiang University</orgName>
+								<address>
+									<addrLine>38 Zheda Rd</addrLine>
+									<postCode>310027</postCode>
+									<settlement>Hangzhou</settlement>
+									<region>Zhejiang</region>
+									<country>People Republic of China</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,366.62,15.42;1,89.29,106.66,370.11,15.42">Plant and Animal Species Prediction at Certain Locations with Convolutional Neural Networks</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">97F00E038C3C4F083997DA7D9C7670AF</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:24+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Localization</term>
+					<term>Prediction</term>
+					<term>Species</term>
+					<term>GeoLifeCLEF 2022</term>
+					<term>Remote sensing imagery</term>
+					<term>EfficientNet-b3</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Prediction of plant and animal species at a given location can give help to biodiversity management and conservation. GeoLifeCLEF 2022 competition at LifeCLEF lab aims to predict the species list with the top 30 frequencies' occurrence at a certain localization. This paper is a working note for this competition. We trained EfficientNet-b3 models on the remote sensing imagery with 256x256 RGB patches centered in France and US separately. We achieved 0.75686 top-30 error rate on private leaderboard and ranked at 7th place.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>As one of the most crucial topics in 21 𝑠𝑡 century, biodiversity management and conservation are related to the sustainable development of the economy, the protection of the environment and even the continuation of human civilization. Different species always appear at different frequencies in various regions, thus understanding the relationship between species and regions is a significant step in biodiversity conservation.</p><p>GeoLifeCLEF 2022 competition <ref type="bibr" coords="1,236.46,425.41,14.16,10.91" target="#b0">[1]</ref> at LifeCLEF lab <ref type="bibr" coords="1,321.06,425.41,12.98,10.91" target="#b1">[2]</ref> aims to predict the list of species most likely to be observed at a given location automatically with machine learning methods that can be used to improve species identification tools, develop location-based recommendation services and educational applications. Participants should predict the species list with top 30 frequencies' occurrence at a certain localization from remote sensing imagery, land cover data, altitude data, bioclimatic data as well as pedologic data. The remote sensing imagery is from NAIP for US and IGN for France respectively.</p><p>As a working note of this competition, this paper will give a simple solution by using convolutional neural networks (CNNs) with the top 30 frequencies' occurrence at a certain localization from remote sensing ima. Details of models design, data augmentation and implementation methods will be given. The results obtained by our method ranked at 7 𝑡ℎ place finally. We will also give a discussion of potential methods for further improvement.</p><p>The main points of this work are listed below:</p><p>• EfficientNet-b3 for RGB image classification; Due to the time limitation of the challenge, we failed to provide ablation studies for each part of our method, which will be done in further study. We hope this work can provide some hints for researchers to build stronger and more efficient baselines.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Data Selection and Analysis</head><p>Because of the limitation of time and computational power, we are only able to use parts of datasets. We focused on the remote sensing imagery with 256mx256m RGB patches centered at each observation. These images are in JPEG formats and with a resolution of 1 meter per pixel. The sources of these images are NAIP for US and IGN for France.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Observations in France:</head><p>There are 4858 species and 671244 observations in the dataset from France. That is, this is a classification problem for 4858 classes. There are 671244 images for training and validation.</p><p>• Observations in the United States: There are 14135 species and 956231 observations in the dataset from the United States. That is, this is a classification problem for 14135 classes. There are 956231 images for training and validation totally.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Data Augmentation</head><p>We applied several different data augmentation methods to make the model more generalizable. We implemented all augmentation methods based on Albumentations, an open-source library <ref type="bibr" coords="2,493.33,669.58,12.65,10.91" target="#b2">[3]</ref>  for data augmentation. All methods we used are listed in Table <ref type="table" coords="3,372.37,494.39,3.75,10.91" target="#tab_0">1</ref>. The specific details of these methods are listed in Table <ref type="table" coords="3,211.90,507.94,3.74,10.91" target="#tab_1">2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1.">Noising Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Gaussian Noising</head><p>Gaussian noise refers to a class of noise whose probability density function follows a Gaussian distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• ISO Noising</head><p>We also applied Poisson noise to image to simulate camera sensor noise. The noise's probability density function follows a Poisson distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2.">Dropout Methods</head><p>• Coarse Dropout:</p><p>Coarse Dropout <ref type="bibr" coords="4,185.37,119.77,15.14,10.91" target="#b3">[4]</ref> is a data augmentation method proposed in 2017, also called Cutout, which can achieve conversion by losing information on a rectangular area with selectable sizes and random locations. The loss of information produces black rectangular blocks in all channels, which also produces color noise in some channels. • Grid Dropout:</p><p>Grid Dropout <ref type="bibr" coords="4,176.69,187.10,15.40,10.91" target="#b4">[5]</ref> is a data augmentation method proposed in 2020, which drops out rectangular regions of an image in a grid fashion which is defined as a mask 𝑀 . Details of representation of 𝑀 and choice of parameters can be found in <ref type="bibr" coords="4,408.04,214.20,11.43,10.91" target="#b4">[5]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3.">Blurring Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Blurring</head><p>The Blur operation in Albumentations just takes the average of all pixels under the kernel area and replaces the center element.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Motion Blurring</head><p>The Motion Blurring operation is to simulate the blur of an object caused by movement.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Gaussian Blurring</head><p>The Gaussian blurring operation calculates the smoothing weight of each pixel through a two-dimensional Gaussian function, and can obtain a smoother blurred result. The 2D Gaussian function is shown as below:</p><formula xml:id="formula_0" coords="4,242.89,399.23,135.77,24.43">𝐺(𝑥, 𝑦) = 1 2𝜋𝜎 2 𝑒 -(𝑥 2 +𝑦 2 )/2𝜎 2</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Models</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1.">EfficientNet</head><p>The common operation to improve performance in deep learning tasks includes increasing the network width, depth, or input image resolutions. EfficientNet <ref type="bibr" coords="4,374.65,491.93,13.40,10.91" target="#b5">[6]</ref> used a compound scaling method, simultaneously scaled the depth, width and input resolution of the network to achieve a trade-off between accuracy and computational complexity.</p><p>We implemented EfficientNet-b3 model by using PyTorch-Image-Models library <ref type="bibr" coords="4,450.54,532.57,12.23,10.91" target="#b6">[7]</ref>. The pretrained weights on Imagenet <ref type="bibr" coords="4,215.92,546.12,14.89,10.91" target="#b7">[8]</ref> were also used. The final classification layer was customized, which was made of a linear layer, an activation layer, a dropout step, and the final linear layer.</p><p>The detailed architectures of the model are shown in Figure <ref type="figure" coords="4,368.92,573.22,5.07,10.91" target="#fig_1">2</ref> and<ref type="figure" coords="4,395.87,573.22,3.74,10.91" target="#fig_2">3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2.">Focal Loss</head><p>We applied Focal Loss <ref type="bibr" coords="4,186.17,621.93,14.00,10.91" target="#b8">[9]</ref> in our solution, which was proposed in 2017 to solve the problem of extreme sample imbalance. It can increase the weight of target categories with a small number of samples during training. The loss function can be represented as: where</p><formula xml:id="formula_1" coords="4,224.38,667.29,146.52,13.65">FL (𝑝 t ) = -𝛼 t (1 -𝑝 t ) 𝛾 log (𝑝 t )</formula><formula xml:id="formula_2" coords="5,238.46,495.64,114.44,30.47">𝑝 𝑡 = {︃ 𝑝 if 𝑦 = 1 1 -𝑝 otherwise</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Training Process</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.1.">Implementation Details</head><p>We trained, validated, and tested images obtained from US and France separately. We used StratifiedKFold scikit-learn <ref type="bibr" coords="5,209.61,598.99,16.99,10.91" target="#b9">[10]</ref> library to split the dataset as a training set and a validation set with the ratio of 3:1. For France's observation, the training set contains 503433 images and the validation set contains 167811 images. For US' observation, the training set contains 717174 images and the validation set contains 239057 images. For US's observation, we used the best model to test while for France's observation we used the last model to test. The deep learning framework used is PyTorch <ref type="bibr" coords="5,401.20,666.73,19.40,10.91" target="#b10">[11]</ref>, and the PyTorch- lightning framework is also used. We trained models on Titan RTX with 24G RAM. We used Adam optimizer <ref type="bibr" coords="6,158.60,459.52,18.34,10.91" target="#b11">[12]</ref> and used OnecycleLR <ref type="bibr" coords="6,270.29,459.52,20.00,10.91" target="#b12">[13]</ref> as scheduler. We used the valid loss as evaluation metric in the validation stage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.2.">Package Versions</head><p>The versions of some packages used in the experiments are shown in the Table <ref type="table" coords="6,443.22,522.39,3.74,10.91">3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.3.">Other Parameters' settings</head><p>The global seed is 42, the input image sizes are 256, the max learning rate is 1e-3 and the batch size is 32. The normalizing parameters are: mean=[0.485, 0.456, 0.406] and std=[0.229,0.224,0.225] respectively, for training, validation and test process.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Other Methods Tried in the Competition</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data Selection</head><p>We also tried to use latitude and longitude data to predict the observations. The data from the United States and France were used together, which are 1627475 observations totally. We split the dataset as training set and validation set, which are of 1587395 and 40080 observations respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Methods and Implementation</head><p>We implemented the 𝐾-Nearest Neighbor(KNN) method by using scikit-learn library. The general process is as below:</p><p>1. Given an unknown object in the test set, compute its distance from each sample in the training set.</p><p>2. Find the 𝑘 training samples that are closest to the unknown object.</p><p>3. Sort the frequency of each category in the 𝑘 nearest neighbors and return the 30 categories with the highest frequency.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Post-Processing</head><p>We removed species that are never predicted from training process and redid the 𝐾-Nearest Neighbor process. The new predictions would be regarded as the final results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Evaluation</head><p>For test stage, the evaluation metric for this competition is the top-30 error rate. Each observation 𝑖 is associated with a single ground-truth label 𝑦 𝑖 corresponding to the observed species. For each observation, the submissions will provide 30 candidate labels 𝑦 ˆ𝑖,1 , 𝑦 ˆ𝑖,2 , . . . , 𝑦 ˆ𝑖,30 . The top-30 error rate is then computed using Top-30 error rate: </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results and Comparison</head><p>Our method reached 0.75686 top-30 error rate in private leaderboard during the competition and ranked at 7th place. The comparison with other methods are shown in Table <ref type="table" coords="7,451.66,639.61,3.74,10.91" target="#tab_3">4</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion and Discussion</head><p>This paper gave a simple baseline of using CNNs to predict plant and animal species at a certain location. Although failed to give a competitive result, we still hope this work can give some hints to researchers who are interested in that.</p><p>Here are some potential directions to improve the results: a) Ensemble of different Models; b) Ensemble of results from remote sensing imagery, land cover data, altitude data, bioclimatic data and pedologic data. c) Semi-Supervised learning d) Metric loss</p><p>We believe that even with the results achieved in the first place, there is still a lot of potential for improvement, which will be left for continuing research.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,89.29,264.28,371.78,8.93"><head>CLEF 2022 :Figure 1 :</head><label>20221</label><figDesc>Figure 1: Samples of 256x256 RGB patches centered at a) France and b) the United States</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,89.29,448.74,210.72,8.93;5,97.97,84.19,505.15,357.12"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Architectures of Modules in EfficientNet</figDesc><graphic coords="5,97.97,84.19,505.15,357.12" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="6,89.29,268.41,214.95,8.93;6,97.97,84.19,450.16,176.80"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: The Architecture of EfficientNet-b3 Model</figDesc><graphic coords="6,97.97,84.19,450.16,176.80" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,88.99,90.49,405.05,177.47"><head>Table 1</head><label>1</label><figDesc>Data Augmentation Methods used for Prediction</figDesc><table coords="3,101.24,122.10,392.80,145.85"><row><cell>Composed Methods</cell><cell cols="2">Probability Submethods' Probability</cell></row><row><cell>RandomResizedCrop</cell><cell>0.5</cell><cell>/</cell></row><row><cell>Flip</cell><cell>0.5</cell><cell>/</cell></row><row><cell>RandomRotate90</cell><cell>0.5</cell><cell>/</cell></row><row><cell>ShiftScaleRotate</cell><cell>0.5</cell><cell>/</cell></row><row><cell>HueSaturationValue</cell><cell>0.5</cell><cell>/</cell></row><row><cell>One of</cell><cell></cell><cell></cell></row><row><cell>(RandomBrightnessContrast, RandomGamma)</cell><cell>0.5</cell><cell>0.5, 0.5</cell></row><row><cell>One of</cell><cell></cell><cell></cell></row><row><cell>(Blur, GaussianBlur, MotionBlur)</cell><cell>0.1</cell><cell>0.1, 0.1, 0.1</cell></row><row><cell>One of</cell><cell></cell><cell></cell></row><row><cell>(GaussNoise, ISONoise, GridDropout, CoarseDropout)</cell><cell>0.1</cell><cell>0.1, 0.1, 0.2, 0.2</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,88.99,290.21,459.23,177.47"><head>Table 2</head><label>2</label><figDesc>Specific Details of Some Data Augmentation Methods</figDesc><table coords="3,121.94,321.83,32.53,8.87"><row><cell>Method</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="8,88.99,90.49,477.86,139.38"><head>Table 4</head><label>4</label><figDesc>Results on the Private Leadrboard</figDesc><table coords="8,95.27,119.88,471.58,109.99"><row><cell>Method</cell><cell>Top-30 error rate</cell></row><row><cell>Top-30 most present species</cell><cell>0.94465</cell></row><row><cell>KNN on environmental vectors(the number of neighbors is 1800)</cell><cell>0.79954</cell></row><row><cell>KNN on environmental vectors(the number of neighbors is 1500)</cell><cell>0.79918</cell></row><row><cell>KNN on environmental vectors(the number of neighbors is 2100)</cell><cell>0.79820</cell></row><row><cell>Random Forest (100 trees of max depth 16) on environmental vectors</cell><cell>0.76153</cell></row><row><cell>CNN on RGB patches</cell><cell></cell></row><row><cell>(pretrained ResNet-50, learning rate = 0.01, batch size = 32, early stropping on top-30 error rate)</cell><cell>0.73659</cell></row><row><cell>Our Methods</cell><cell>0.75686</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>The author would like to thank iNaturalist, Pl@ntNet citizen and other science platforms in this competition to provide such a large and valuable dataset, as well as their continuing effort of scientific work on biodiversity management and conservation. We also thank <rs type="institution">LifeCLEF lab</rs> at CLEF2022 and FGVC9 at CVPR2022.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,533.63,394.62,10.91;8,112.66,547.18,393.33,10.91;8,112.66,560.73,394.53,10.91;8,112.66,574.28,22.69,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,359.16,533.63,121.10,10.91;8,112.66,547.18,393.33,10.91;8,112.66,560.73,17.41,10.91">Predicting species presence from multi-modal remote sensing, bioclimatic and pedologic data</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,154.12,560.73,347.69,10.91">Working Notes of CLEF 2022 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+	</monogr>
+	<note>Overview of GeoLifeCLEF</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,587.83,394.53,10.91;8,112.66,601.38,394.53,10.91;8,112.66,614.93,393.33,10.91;8,112.66,628.48,393.33,10.91;8,112.66,642.03,353.54,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,198.52,614.93,307.47,10.91;8,112.66,628.48,247.50,10.91">Overview of lifeclef 2022: an evaluation of machine-learning based species identification and species distribution prediction</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Picek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Durso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Navine</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Eggel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Šulc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hruz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,383.00,628.48,122.99,10.91;8,112.66,642.03,280.38,10.91">International Conference of the Cross-Language Evaluation Forum for European Languages</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,655.58,394.53,10.91;8,112.28,669.12,368.43,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,112.28,669.12,243.36,10.91">Albumentations: fast and flexible image augmentations</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Buslaev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><forename type="middle">I</forename><surname>Iglovikov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Khvedchenya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Parinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Druzhinin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">A</forename><surname>Kalinin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,364.46,669.12,53.51,10.91">Information</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page">125</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,86.97,393.33,10.91;9,112.66,100.52,208.77,10.91" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="9,224.87,86.97,281.12,10.91;9,112.66,100.52,26.61,10.91">Improved regularization of convolutional neural networks with cutout</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Devries</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">W</forename><surname>Taylor</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1708.04552</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,114.06,393.33,10.91;9,112.66,127.61,107.17,10.91" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jia</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.04086</idno>
+		<title level="m" coord="9,283.61,114.06,135.04,10.91">Gridmask data augmentation</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,141.16,394.53,10.91;9,112.66,154.71,346.82,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,178.42,141.16,323.86,10.91">Efficientnet: Rethinking model scaling for convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,127.29,154.71,202.02,10.91">International conference on machine learning</title>
+		<imprint>
+			<publisher>PMLR</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="6105" to="6114" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,168.26,8.98,10.91;9,139.08,168.26,51.02,10.91;9,211.20,168.26,35.67,10.91;9,264.31,168.26,27.43,10.91;9,309.18,168.26,34.80,10.91;9,365.09,168.26,141.60,10.91;9,112.66,181.81,281.70,10.91" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Wightman</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.4414861</idno>
+		<idno>doi:</idno>
+		<ptr target="10.5281/zenodo.4414861" />
+		<title level="m" coord="9,211.20,168.26,35.67,10.91;9,264.31,168.26,27.43,10.91;9,309.18,168.26,29.82,10.91">Pytorch image models</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,195.36,393.33,10.91;9,112.66,208.91,354.28,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,295.99,195.36,209.99,10.91;9,112.66,208.91,70.43,10.91">Imagenet classification with deep convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,191.91,208.91,230.24,10.91">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,394.61,10.91;9,112.66,236.01,395.01,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,327.53,222.46,159.84,10.91">Focal loss for dense object detection</title>
+		<author>
+			<persName coords=""><forename type="first">T.-Y</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Girshick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Dollár</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.66,236.01,299.48,10.91">Proceedings of the IEEE international conference on computer vision</title>
+		<meeting>the IEEE international conference on computer vision</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="2980" to="2988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,249.56,394.53,10.91;9,112.66,263.11,393.33,10.91;9,112.48,276.66,261.79,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,307.23,263.11,176.03,10.91">Scikit-learn: Machine learning in python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,492.05,263.11,13.94,10.91;9,112.48,276.66,167.70,10.91">the Journal of machine Learning research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,290.20,394.53,10.91;9,112.66,303.75,393.33,10.91;9,112.66,317.30,350.57,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,261.26,303.75,244.72,10.91;9,112.66,317.30,67.64,10.91">Pytorch: An imperative style, high-performance deep learning library</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Massa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lerer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Chanan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Killeen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Gimelshein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Antiga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,188.20,317.30,230.24,10.91">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,330.85,393.33,10.91;9,112.66,344.40,102.10,10.91" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<title level="m" coord="9,251.96,330.85,172.98,10.91">A method for stochastic optimization</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,357.95,393.33,10.91;9,112.66,371.50,393.33,10.91;9,112.66,385.05,394.53,10.91;9,112.66,398.60,74.01,10.91" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="9,215.55,357.95,290.43,10.91;9,112.66,371.50,87.23,10.91;9,225.36,371.50,280.63,10.91;9,112.66,385.05,104.24,10.91">Artificial intelligence and machine learning for multi-domain operations applications</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">N</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Topin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<publisher>International Society for Optics and Photonics</publisher>
+			<biblScope unit="volume">11006</biblScope>
+			<biblScope unit="page">1100612</biblScope>
+		</imprint>
+	</monogr>
+	<note>Super-convergence: Very fast training of neural networks using large learning rates</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

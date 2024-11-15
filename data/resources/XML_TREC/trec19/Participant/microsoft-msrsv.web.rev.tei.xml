@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,146.83,97.49,318.35,14.93">Microsoft Research at TREC 2010 Web Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,198.32,131.22,66.66,10.37"><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,273.02,131.22,71.88,10.37"><forename type="first">Dennis</forename><surname>Fetterly</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,352.27,131.22,61.41,10.37;1,282.43,155.97,47.15,10.37"><forename type="first">Marc</forename><forename type="middle">Najork</forename><surname>Microsoft</surname></persName>
+						</author>
+						<title level="a" type="main" coord="1,146.83,97.49,318.35,14.93">Microsoft Research at TREC 2010 Web Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">BD300B7596E2312761DC885F2D666C6E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our entry into the TREC 2010 Web track. We extracted and ranked results for both last year's and this year's topics from the ClueWeb09 corpus using a parallel processing pipeline that avoids the generation of an inverted file. We describe the components of the parallel architecture and the pipeline and how we ran the TREC experiments, and we present effectiveness results.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This paper describes our entry into the TREC 2010 Web track. Our team comprised members from Bing, Microsoft's search engine, and Microsoft Research, Silicon Valley. We used the DryadLINQ data-parallel processing system <ref type="bibr" coords="1,545.28,325.31,12.72,9.46" target="#b5">[6]</ref> on a cluster of about 220 machines to process the half-billion page English-language subset of the ClueWeb09 collection. We also used the Scalable Hyperlink Store <ref type="bibr" coords="1,294.52,352.41,12.72,9.46" target="#b3">[4]</ref> running on a cluster of 12 machines to compute SALSA scores for each topic. We computed five features (described below) for each candidate result and used a weighted linear combination to blend these features. We performed three runs, and submitted each run to both the ad-hoc task and the diversity task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Processing Pipeline</head><p>The processing pipeline we used to prepare this year's entry consisted of the following steps:</p><p>• Parsing: We used DryadLINQ to parse the HTML web pages, tokenizing them into individual words and hyperlinks. We associated each title and content word occurrence with the document containing it; in addition, we associated each anchor word occurrence with the document referenced by the anchor's hyperlink.</p><p>• Document Frequencies: We computed document frequencies for the union of all terms of the 100 (training and test) queries we were considering.</p><p>• BM25F score: We computed a BM25F score for each query and each document in the ClueWeb09 collection, retaining the top 5000 results per query.</p><p>• Span score: Still in DryadLINQ, we computed the size s (in words) of the minimum window in the document that would cover all of the terms in the query. For this feature, we did not consider anchor text terms to be part of the document. The "span score" is 1/(s -q + 1), where q is the length (in words) of the query. If any of the terms occurred only in anchors but not the document itself, the span score defaults to 1.</p><p>• SALSA score: Furthermore, we used SHS to run SALSA-SETR <ref type="bibr" coords="1,373.84,660.44,12.72,9.46" target="#b4">[5]</ref> on the top 5000 results of each query. SALSA-SETR is a variant of Lempel &amp; Moran's SALSA algorithm <ref type="bibr" coords="1,379.78,673.99,11.59,9.46" target="#b2">[3]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• Matching anchor count (MAC):</head><p>We resolved all the symbolic hostnames in ClueWeb09 page and link URLs into IP addresses. Then, using DryadLINQ, we identified unique s, t, a triples, where s is the first three octets of the IP address of a document, t is the target URL of a link within that document and a is the anchor text of that link. Then we built the MAC ranking feature for each query-target pair q, t , counting the number of source IPs that link to target t with anchor a = q.</p><p>• Extraction: For each query we identified a pool of documents and collated our ranking features. The resulting "extraction" file could be used for training or for generating submitted runs.</p><p>• Training: We combined evidence from the various features by applying ad-hoc transformations to each feature (identity or log) and then performing a weighted linear combination of the transformed features. We trained the weights using an extraction of the fifty 2009 topics and their official judgments.</p><p>• Runs: Using an extraction of the fifty 2010 topics, we ran our trained model to produce our submitted runs.</p><p>This pipeline differed from the approach we took last year <ref type="bibr" coords="2,310.64,209.05,12.72,9.46" target="#b1">[2]</ref> in the following ways:</p><p>• Query semantics: In our 2009 entry, we assumed a disjunctive semantics for multi-term queries, i.e. we would consider documents containing any of the query terms as result candidates. This year, we assumed a conjunctive semantics, i.e. we considered only documents containing all of the query terms as result candidates. Note that both years we considered the anchor text of hyperlinks pointing to a document to be part of the document.</p><p>• Omitted and added features: Our 2009 entry employed two query-independent link-based features, namely inter-domain in-degree and PageRank; our 2010 entry does not. Conversely, our 2010 entry employed two new features: The "spam score" provided by the University of Waterloo <ref type="bibr" coords="2,370.06,331.16,13.79,9.46" target="#b0">[1]</ref>, and a "span score" feature quantifying the length (in words) of the shortest window in the result document containing all the query terms.</p><p>• Training: Both our 2009 and 2010 entries combined individual features into an overall score using weighted linear combination. However, in 2009 we trained the weights based on our own judgments of 118 results from a search engine log; whereas in 2010 we trained based on the TREC 2009 diversity judgments. We chose the diversity judgments because they contain navigational subtopics, and this year both diversity and adhoc reward good navigational performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Web track submissions</head><p>We submitted three runs to both the ad-hoc task, and the diversity task. In all three runs the ranker is a simple linear combination of features. Runs msrsv1 and msrsv2 differed only in the way that MAC scores were computed: For msrsv1, we directly matched the anchor URL strings with page URL strings. For msrsv2 we first converted URL strings into URI objects (thereby normalizing escape sequences) and then matched anchor URIs with page URIs. The next table shows the performance of our three runs, according to a variety of different performance measures. These statistics are based on 48 topics for which judgments are available. Based on these numbers and the numbers in the Web Track overview, we can draw two observations: First, msrsv3 performed better than msrsv1 and msrsv2. In other words, the "span score" feature we introduced in this year's entry apparently did not improve performance. Second, relative to other groups we performed better on metrics that reward finding a navigational result near the top of the ranking, and worse on metrics that flatten such distinctions such as MAP. Good navigational performance may be consistent with our use of training data with navigational subtopics and our focus on link-based ranking features. runid ERR@20 nDCG@20 P@20 MAP </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusions</head><p>In preparing our entry this year, we utilized the same computational infrastructure we employed the previous year: the DryadLINQ data-parallel processing platform and the Scalable Hyperlink Store. We moved to a conjunctive query semantics (following the lead of virtually all commercial search engines), eliminated two of the three linkbased features we used last year and instead introduced two new features (one of them provided by the University of Waterloo), and used a smaller but standard data set for training. According to our performance results, one of our two new features ("span score") turned out to be counterproductive. Our best-performing run msrsv3 incorporates only four features into the overall score. According to the overview of the TREC 2010 Web Track and the primary effectiveness measures of the TREC 2010 Web Track (ERR@20 for the adhoc task and ERR-IA@20 for the diversity task), msrsv3 outperformed all competing runs.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,115.47,493.13,423.10,86.04"><head></head><label></label><figDesc>The following table shows the features, weights and transformations used in each run:</figDesc><table coords="2,115.47,514.72,381.07,64.45"><row><cell>Feature</cell><cell cols="5">BM25F MAC SpamScore-Fusion SALSA-SETR Span score</cell></row><row><cell cols="2">Transformation identity</cell><cell>log</cell><cell>log</cell><cell>log</cell><cell>identity</cell></row><row><cell>msrsv1</cell><cell>1</cell><cell>15</cell><cell>5</cell><cell>100</cell><cell>16</cell></row><row><cell>msrsv2</cell><cell>1</cell><cell>15</cell><cell>5</cell><cell>100</cell><cell>16</cell></row><row><cell>msrsv3</cell><cell>1</cell><cell>15</cell><cell>5</cell><cell>100</cell><cell>0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,165.69,79.34,280.62,133.39"><head>Table 1 :</head><label>1</label><figDesc>Adhoc task results.</figDesc><table coords="3,165.69,79.34,280.62,133.39"><row><cell cols="2">msrsv1</cell><cell>0.160</cell><cell>0.229</cell><cell cols="2">0.347 0.081</cell></row><row><cell cols="2">msrsv2</cell><cell>0.164</cell><cell>0.235</cell><cell cols="2">0.352 0.083</cell></row><row><cell cols="2">msrsv3</cell><cell>0.166</cell><cell>0.237</cell><cell cols="2">0.344 0.082</cell></row><row><cell>runid</cell><cell cols="5">ERR-IA@20 alpha-nDCG@20 NRBP MAP-IA</cell></row><row><cell>msrsv1</cell><cell cols="2">0.338</cell><cell>0.485</cell><cell>0.292</cell><cell>0.066</cell></row><row><cell>msrsv2</cell><cell cols="2">0.338</cell><cell>0.483</cell><cell>0.292</cell><cell>0.066</cell></row><row><cell>msrsv3</cell><cell cols="2">0.347</cell><cell>0.491</cell><cell>0.303</cell><cell>0.068</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,239.52,228.48,132.97,9.46"><head>Table 2 :</head><label>2</label><figDesc>Diversity task results.</figDesc><table /></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,77.63,454.91,480.37,9.46;3,77.63,468.46,331.48,9.46" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="3,288.19,454.91,269.81,9.46;3,77.63,468.46,54.03,9.46">Efficient and effective spam filtering and re-ranking for large web datasets</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1004.5168" />
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,77.63,490.98,480.37,9.46;3,77.63,504.34,358.22,9.64" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="3,354.91,490.98,203.09,9.46;3,77.63,504.53,119.60,9.46">Microsoft Research at TREC 2009 -Web and Relevance Feedback Tracks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Fetterly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,217.55,504.34,186.24,9.39">Proc. of the 18th Text Retrieval Conference</title>
+		<meeting>of the 18th Text Retrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,77.63,527.04,480.37,9.46;3,77.63,540.41,282.11,9.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,197.16,527.04,356.94,9.46">The stochastic approach for link-structure analysis (SALSA) and the TKC effect</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Lempel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Moran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,77.63,540.41,168.97,9.39">Computer Networks and ISDN Systems</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">1-6</biblScope>
+			<biblScope unit="page" from="387" to="401" />
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,77.63,562.92,480.37,9.64;3,77.63,576.66,84.84,9.46" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,129.88,563.11,122.11,9.46">The scalable hyperlink store</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,271.88,562.92,280.97,9.39">Proc of the 20th ACM Conference on Hypertext and Hypermedia</title>
+		<meeting>of the 20th ACM Conference on Hypertext and Hypermedia</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="89" to="98" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,77.63,599.17,480.37,9.46;3,77.63,612.54,480.37,9.64;3,77.63,626.27,68.18,9.46" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,274.66,599.17,283.34,9.46;3,77.63,612.72,69.73,9.46">Less is More: Sampling the neighborhood graph makes SALSA better and faster</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gollapudi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Panigrahy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,169.34,612.54,355.46,9.39">Proc of the 2nd ACM International Conference on Web Search and Data Mining</title>
+		<meeting>of the 2nd ACM International Conference on Web Search and Data Mining</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="242" to="251" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,77.63,646.41,480.37,11.84;3,77.63,662.15,480.37,9.64;3,77.63,675.70,356.77,9.64" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,441.82,648.79,116.18,9.46;3,77.63,662.34,349.28,9.46">DryadLINQ: a system for general-purpose distributed data-parallel computing using a high-level language</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Isard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Fetterly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Budiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ú</forename><surname>Erlingsson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">K</forename><surname>Gunda</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Currey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,448.86,662.15,109.14,9.39;3,77.63,675.70,269.91,9.39">Proc. of the 8th USENIX Symposium on Operating Systems Design and Implementation</title>
+		<meeting>of the 8th USENIX Symposium on Operating Systems Design and Implementation</meeting>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="page" from="1" to="14" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,114.34,101.17,383.32,15.48">Brown University at TREC Precision Medicine 2018</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,171.73,161.93,63.69,8.96"><forename type="first">Prakrit</forename><surname>Baruah</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Brown University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,242.85,161.93,53.65,8.96"><forename type="first">Riya</forename><surname>Dulepet</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Brown University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,303.45,161.93,43.01,8.96"><forename type="first">Kyle</forename><surname>Qian</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Brown University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,367.50,161.93,72.78,8.96"><forename type="first">Carsten</forename><surname>Eickhoff</surname></persName>
+							<email>carsten@brown.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Brown University</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,114.34,101.17,383.32,15.48">Brown University at TREC Precision Medicine 2018</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">19BF817EED23B333656D668A02FA3FF2</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes Brown University's submission to the TREC 2018 Precision Medicine (PM) track. This report details our efforts to query processing and retrieval modeling. As a key difference to last year's edition of the task, we are able to include supervised rankers based on existing patient-document relevance labels. We use this information in the form of cubic rank transformations between initial weak rankers and the final ranking. The empirical evaluation is based on 50 synthetic precision oncology patients and shows solid retrieval performance.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Precision medicine is a modern field of study that aims to use genomic information in finding more effective treatments for patients. Due to the popularity of the new paradigm, the volume of annually published scholarly precision medicine articles has been growing rapidly in recent years. While this considerable amount of scientific research holds a rich and ever increasing well of knowledge, its sheer scale makes it intractable for manual inspection and mandates the development of dedicated automatic retrieval facilities.</p><p>In this paper, we present a supervised modular patient-centric information retrieval system for use in precision oncology settings. Based on patient demographics as well as information regarding the type of tumor and its genetic composition, we rank scholarly articles as well as clinical trials with respect to their relevance for a range of reference patients.</p><p>While the previous edition of this task exclusively relied on unsupervised approaches, this year, explicit relevance judgments are available and have opened up a range of supervised learning to rank techniques. Eventually, in an attempt to retain retrieval model generality, we decided against the use of highly parametric end-to-end trained rankers and instead propose an ensemble of light-weight retrieval models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Methodology</head><p>We rely on literal as well as neural query expansion (Section 2.2) and ensembles of weak rankers whose initial rankings are transformed in a supervised manner using TREC PM 2017 data (Section 2.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Collection Indexing</head><p>The collections of scholarly abstracts and clinical trials, respectively, are indexed using Apache Lucene <ref type="bibr" coords="1,139.16,690.56,11.49,8.64" target="#b1">[2]</ref> and Elasticsearch <ref type="bibr" coords="1,223.56,690.56,10.44,8.64" target="#b2">[3]</ref>. We apply only standard processing and tokenization, stemming and stop word removal.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Query Processing</head><p>Before issuing queries to our retrieval system, all fields are projected to lower case characters and stemmed. Any punctuation characters and stop words are removed.</p><p>Next, we use two query expansion approaches to broaden the topical scope of the derived queries. The first approach involves gene name resolution using a thesaurus of HUGO Gene Nomenclature Committee (HGNC) data <ref type="bibr" coords="2,211.30,146.00,10.58,8.64" target="#b0">[1]</ref>, and Medical Subject Headers (MeSH) for diseases. From HGNC, we extract the "approved names" and "synonyms" fields. In the case of MeSH, we extract the "entry terms" field. The thus obtained thesauri are used to append synonyms for the individual terms in the "genes" and "diseases" categories. The second approach involves using a word2vec <ref type="bibr" coords="2,464.41,178.73,11.74,8.64" target="#b5">[6]</ref> model trained on medical literature that maps individual words of the corpus to dense vectors. Word2vec was applied to a corpus of 10,876,004 English abstracts of biomedical articles from PubMed <ref type="bibr" coords="2,471.81,200.55,10.44,8.64" target="#b6">[7]</ref>. The resulting vectors are then used to predict the single most similar word for each term in the query.</p><p>The above methods allow for the creation of three query expansion variants: (1) Thesaurus, (2) Word embeddings (3) Both. Section 3 will discuss which expansion scheme is used in our official runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Retrieval Models</head><p>To retrieve relevant clinical trials and scientific papers, we perform three weak ranking passes using BM25 <ref type="bibr" coords="2,137.24,299.12,10.72,8.64" target="#b7">[8]</ref>, a language model with Jelinek-Mercer smoothing and one with Dirichlet smoothing. These initial rankings can be refined by an optional re-ranking step in a cubic transformation whose parameters a 0 , a 1 , a 2 , a 3 are found via linear regression on TREC PM 2017 relevance judgments <ref type="bibr" coords="2,491.74,320.94,10.48,8.64" target="#b8">[9]</ref>. rank = a 0 + a 1 ln rank + a 2 ln rank 2 + a 3 ln rank 3   The rankings induced by our three constituent retrieval models are then fused using either the CombSUM or CombMNZ schemes <ref type="bibr" coords="2,252.46,389.10,10.58,8.64" target="#b3">[4]</ref>.</p><p>For scientific abstract searches, the contribution of the "title" field was boosted to twice the weight of the "abstract" field. For clinical trial searches, any trials not matching the patient's age and gender were removed. Here, the "official title" and "brief summary" fields were given twice the weight of any other fields.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>We submitted ten official TREC Precision Medicine 2018 runs for evaluation, five for scientific abstract retrieval and five for clinical trial retrieval. Table <ref type="table" coords="2,357.20,506.37,5.08,8.64" target="#tab_0">1</ref> lists the official abstract retrieval performance of each run in terms of inferred nDCG, precision at 10 retrieved documents and Rprecision.</p><p>mnzAbs combines raw retrieval model scores in a CombMNZ scheme. Queries are not expanded.</p><p>sumAbs combines raw retrieval model scores in a CombSUM scheme. Queries are not expanded.</p><p>sumEW combines raw retrieval model scores in a CombSUM scheme. Queries are expanded using both word embeddings and thesauri.</p><p>cubicmnzAbs applies the cubic rank transformation and fuses the rankings using CombMNZ.</p><p>Queries are not expanded.</p><p>cubicsumWAbs applies the cubic rank transformation and fuses the rankings using CombSUM. Queries are expanded via word embeddings.</p><p>We observe the scores of all five runs to lie close by each other with only mild differences between the rankings induced by individual runs. The relative ranking of runs is metric dependent, but there seems to be a weak signal in favor of query expansion to improve early precision. At the time of writing this report, no official evaluation results for the clinical trial task had been made available. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>This report describes Brown University's entry to the TREC 2018 Precision Medicine Track, ranking scientific abstracts and clinical trial descriptions in response to structured precision oncology patient profiles. Our method relies on neural, as well as literal query expansion, cubic score transformations and retrieval model fusion. The scientific abstract retrieval results indicate only a mild precisionfavoring effect when introducing query expansions. Future directions of inquiry include more aggressive expansion schemes <ref type="bibr" coords="3,230.57,266.49,11.59,8.64" target="#b4">[5]</ref> as well as weakly supervised variants of powerful neural retrieval models <ref type="bibr" coords="3,139.27,277.40,15.27,8.64" target="#b9">[10]</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,185.44,72.27,241.12,89.53"><head>Table 1 :</head><label>1</label><figDesc>Experimental results for scientific abstract retrieval.</figDesc><table coords="3,209.69,93.23,192.62,68.57"><row><cell cols="3">Run Identifier infnDCG P@10 R-Prec</cell></row><row><cell>mnzAbs</cell><cell>0.391</cell><cell>0.480 0.234</cell></row><row><cell>sumAbs</cell><cell>0.391</cell><cell>0.480 0.235</cell></row><row><cell>sumEW</cell><cell>0.400</cell><cell>0.496 0.231</cell></row><row><cell>cubicmnzAbs</cell><cell>0.391</cell><cell>0.480 0.234</cell></row><row><cell cols="2">cubicsumWAbs 0.374</cell><cell>0.498 0.207</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" xml:id="foot_0" coords="1,108.00,734.38,203.24,7.77"><p>27th Text Retrieval Conference (TREC) Notebook 2018.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,129.58,323.43,376.07,8.64;3,129.58,334.34,183.90,8.64;3,332.00,334.34,173.38,8.64;3,129.58,345.25,145.60,8.64" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="3,284.18,323.43,221.47,8.64;3,129.58,334.34,148.50,8.64">National library of medicine (us), national center for biotechnology information</title>
+		<ptr target="https://www.ncbi.nlm.nih.gov/gene/" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,129.58,323.43,21.44,8.64">Gene</title>
+		<imprint>
+			<date type="published" when="2004">2004. 2017 Oct 15</date>
+		</imprint>
+	</monogr>
+	<note>internet]. bethesda (md</note>
+</biblStruct>
+
+<biblStruct coords="3,129.58,364.13,375.66,8.64;3,129.58,375.04,255.95,8.64" xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Doug</forename><surname>Cutting</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Busch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Gospodnetic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Hatcher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hostetter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ingersoll</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mccandless</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Messer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Naber</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+	<note>et al. Apache lucene</note>
+</biblStruct>
+
+<biblStruct coords="3,129.58,393.92,157.42,8.64" xml:id="b2">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,129.58,393.92,128.52,8.64">BV Elasticsearch. Elastic search</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,412.62,374.42,8.82;3,129.33,423.53,58.39,8.82" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,269.95,412.80,130.13,8.64">Combination of multiple searches</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Edward</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joseph</forename><forename type="middle">A</forename><surname>Fox</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Shaw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,407.19,412.62,96.80,8.59;3,129.33,423.53,9.04,8.59">NIST special publication SP</title>
+		<imprint>
+			<biblScope unit="volume">243</biblScope>
+			<date type="published" when="1994">1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,442.58,374.42,8.64;3,129.58,453.31,374.42,8.82;3,129.33,464.22,374.67,8.82;3,129.58,475.31,178.24,8.64" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,201.63,453.49,185.18,8.64">Eth zurich at trec 2016 clinical decision support</title>
+		<author>
+			<persName coords=""><forename type="first">Simon</forename><surname>Greuter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Philip</forename><surname>Junker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lorenz</forename><surname>Kuhn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Felix</forename><surname>Mance</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Virgile</forename><surname>Mermet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Angela</forename><surname>Rellstab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carsten</forename><surname>Eickhoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,404.77,453.31,99.22,8.59;3,129.33,464.22,275.81,8.59">NIST Special Publication 500-321: The Twenty-Fifth Text REtrieval Conference Proceedings</title>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,494.19,376.07,8.64;3,129.58,504.92,374.42,8.82;3,129.58,515.83,178.03,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,433.80,494.19,71.85,8.64;3,129.58,505.10,230.39,8.64">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,378.30,504.92,125.69,8.59;3,129.58,515.83,74.02,8.59">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,534.89,374.42,8.64;3,129.33,545.80,320.57,8.64" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Ioannis</forename><surname>Pavlopoulos</surname></persName>
+		</author>
+		<title level="m" coord="3,217.19,534.89,286.81,8.64;3,129.33,545.80,292.19,8.64">Aris Kosmopoulos, and Ion Androutsopoulos. Continuous space word vectors obtained by applying word2vec to abstracts of biomedical articles</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,564.68,374.42,8.64;3,129.58,575.41,299.11,8.82" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="3,188.50,575.59,58.57,8.64">Okapi at trec-3</title>
+		<author>
+			<persName coords=""><forename type="first">Steve</forename><surname>Stephen E Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Susan</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Micheline</forename><forename type="middle">M</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Gatford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,254.33,575.41,107.66,8.59">Nist Special Publication Sp</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,594.46,374.42,8.64;3,129.58,605.37,128.10,8.64" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="3,165.63,594.46,101.57,8.64">Precision medicine track</title>
+		<author>
+			<persName coords=""><surname>Trec</surname></persName>
+		</author>
+		<ptr target="http://www.trec-cds.org/2017.html" />
+		<imprint>
+			<date type="published" when="2017-10-18">2017. 2017 Oct 18</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,129.58,624.07,374.73,8.82;3,128.97,634.98,333.25,8.82" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="3,260.38,624.25,202.37,8.64">Distant supervision in clinical information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Xing</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carsten</forename><surname>Eickhoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,480.59,624.07,23.72,8.59;3,128.97,634.98,304.21,8.82">AMIA Annual Symposium Proceedings. American Medical Informatics Association</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

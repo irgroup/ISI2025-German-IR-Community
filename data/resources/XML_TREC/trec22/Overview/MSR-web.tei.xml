@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,108.00,72.35,393.71,16.84">Crowdsourcing for Robustness in Web Search</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,132.02,118.05,53.16,11.06"><forename type="first">Yubin</forename><surname>Kim</surname></persName>
+							<email>yubink@cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Language Technologies Institute Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<region>PA</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,238.84,118.05,132.03,11.06"><forename type="first">Kevyn</forename><surname>Collins-Thompson</surname></persName>
+							<email>kevynct@umich.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">School of Information</orgName>
+								<orgName type="institution">University of Michigan</orgName>
+								<address>
+									<settlement>Ann Arbor</settlement>
+									<region>MI</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,414.74,118.05,72.75,11.06"><forename type="first">Jaime</forename><surname>Teevan</surname></persName>
+							<email>teevan@microsoft.com</email>
+							<affiliation key="aff2">
+								<orgName type="institution">Microsoft Research Redmond</orgName>
+								<address>
+									<region>WA</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,108.00,72.35,393.71,16.84">Crowdsourcing for Robustness in Web Search</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">7B9961689F453E0428CEE2E65DEB4EAA</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>crowdsourcing</term>
+					<term>slow search</term>
+					<term>risk-sensitive</term>
+					<term>robustness</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Search systems are typically evaluated by averaging an effectiveness measure over a set of queries. However, this method does not capture the the robustness of the retrieval approach, as measured by its variability across queries. Robustness can be a critical retrieval property, especially in settings such as commercial search engines that must build user trust and maintain brand quality. This paper investigates two ways of integrating crowdsourcing into web search in order to increase robustness. First, we use crowd workers in query expansion; votes by crowd workers are used to determine candidate expansion terms that have broad coverage and high relatedness to query terms mitigating the risky nature of query expansion. Second, crowd workers are used to filter the top ranks of a ranked list in order to remove nonrelevant documents. We find that these methods increase robustness in search results. In addition, we discover that different evaluation measures lead to different optimal parameter settings when optimizing for robustness; precisionoriented metrics favor safer parameter settings while recalloriented metrics can handle riskier configurations that improve average performance.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Traditionally, the effectiveness of search systems has been evaluated by computing an average performance measure over a set of queries. However, this may ignore critical differences in reliability if the improvements increase the variance of the performance measure. Some queries may perform much better at the expense of other queries that experience a significant decrease in performance compared to a baseline system (such as the search engine without the improvement). One of the reasons why academic research on query expansion has seen limited adoption in commercial systems is this increased risk. A commercial system cannot afford to de-TREC '13 Gaithersburg, MD, USA ploy unstable results that may create a negative experience for a significant percentage of searches even if the technique improves average performance overall.</p><p>One potential way of avoiding serious failures, and thus reducing risk, in search results is to consult human judgment: humans are often better than machines at tasks like understanding complex natural language and relevance. Crowdsourcing services such as Amazon Mechanical Turk are a recent development that allow people to easily enlist the services of many crowd workers to complete what are typically small, quick tasks. In this paper, we integrate crowdsourcing into the process of search with the goal of using human understanding to introduce robustness into risky methods such as query expansion, and to improve search quality in general.</p><p>Crowdsourcing by its very nature is a slow process that cannot hope to achieve the sub-second response times typical of modern search engines. However, recently, researchers are beginning to explore a space called slow search, where search systems deliberately relax the stringent time constraints of modern search in order to deliver better results and user experience. Teevan et al. <ref type="bibr" coords="1,427.36,450.66,14.31,7.86" target="#b14">[14]</ref> found that users are sometimes willing to wait significant amounts of time if the end experience is much better.</p><p>Crowdsourcing has already been used in complex tasks such as question answering <ref type="bibr" coords="1,408.71,502.97,9.72,7.86" target="#b9">[9]</ref> and query understanding <ref type="bibr" coords="1,526.98,502.97,9.20,7.86">[7]</ref>. By introducing crowdsourcing into web search, we hope to leverage human intelligence to gain a better understanding of the query and its relationship to relevant documents. We look at two ways of incorporating crowdsourcing into search. First, crowd workers are integrated into the query expansion process where we use people to determine what terms are most related to the query. Second, we explore filtering the top of the ranked list using crowd workers to provide robustness by removing non-relevant documents that were retrieved in earlier stages of search.</p><p>The rest of the paper is organized as follows. In Section 2 related literature is reviewed. Section 3 introduces the details of the crowdsourced components and experiments to investigate their properties are presented in Section 4. Finally, Section 5 evaluates the runs that were chosen to be submitted to TREC. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">RELATED WORK</head><p>We use crowdsourcing to increase the robustness of baseline query expansion techniques, and to filter an initial result list for more robust final result ranking. In this section, we first summarize the literature surrounding query expansion, and then discuss other ways crowdsourcing has been used in search.</p><p>There have been decades of research into query expansion. Pseudo-relevance feedback is one of the most popular forms of query expansion, using models such as Rocchio <ref type="bibr" coords="2,53.80,286.78,14.32,7.86" target="#b13">[13]</ref> and Lavrenko's relevance models <ref type="bibr" coords="2,210.93,286.78,14.32,7.86" target="#b10">[10]</ref> to calculate expansion terms. Although pseudo-relevance feedback often increases the average performance over a set of queries, it also typically increases the variance of query performance, which has helped restrict its use in real-world settings. Some efforts by researchers to address this issue include Collins-Thompson and Callan <ref type="bibr" coords="2,151.23,349.54,9.72,7.86" target="#b4">[4]</ref> and Crabtree et al. <ref type="bibr" coords="2,251.90,349.54,9.20,7.86" target="#b6">[6]</ref>. Both approaches used automated methods to increase query expansion robustness: Collins-Thompson and Callan achieved this through re-sampling while Crabtree targeted underrepresented query aspects discovered through issuing additional queries. In later work, Collins-Thompson <ref type="bibr" coords="2,231.29,401.85,9.72,7.86" target="#b2">[2]</ref> was able to significantly improve the robustness of existing query expansion methods by casting query expansion as a convex optimization problem over a graph of words, using a joint objective that maximized term relevance while minimizing term risk. In our work, human computation was used to increase robustness.</p><p>In interactive query expansion, researchers have investigated the usefulness of human feedback in query expansion with mixed results <ref type="bibr" coords="2,108.95,506.45,13.50,7.86" target="#b12">[12]</ref>. Diaz and Allan <ref type="bibr" coords="2,191.46,506.45,9.72,7.86" target="#b8">[8]</ref> explored the use of humans in selecting query expansion terms and found that human feedback can improve performance. Our research provides a stricter framework in which humans can contribute in an effort to better control the process. We also emphasize and analyze the gains in robustness rather than increases in average performance.</p><p>In broader uses of human elements in areas related to search, Demartini et al. <ref type="bibr" coords="2,120.63,600.60,9.71,7.86">[7]</ref> introduced CrowdQ, a system for understanding complex structured queries. Another related use of crowdsourcing for search-related tasks is presented by Bernstein et al. <ref type="bibr" coords="2,98.15,631.98,9.20,7.86" target="#b1">[1]</ref>, where they explore a method of automatically generating short "answers" offline by using crowdsourcing for uncommon queries where curated answers may not be available. Jeong et al. have used crowdsourcing to build an automated question answering service for public questions Twitter <ref type="bibr" coords="2,67.53,684.29,9.20,7.86" target="#b9">[9]</ref>. Very recently a crowd-powered toolkit for search was described by Parameswaran et al. <ref type="bibr" coords="2,192.52,694.75,14.31,7.86" target="#b11">[11]</ref> Our approach differs from these in that it uses crowdsourcing within an existing algorithmic search framework.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">METHOD</head><p>We experimented with two methods of utilizing crowdsourcing. The first introduced crowdsourcing into query expansion and used crowd judgments to select good expansion terms from an automatically generated candidate list. The second used the crowd to filter the final ranked list to remove non-relevant documents in the top ranks. With both methods, we used Microsoft's internal crowdsourcing platform, which draws workers from Clickworker.com.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Query Expansion</head><p>Typically, previous research has found that interactive query expansion (i.e., asking humans to pick expansion terms) does not improve average performance. People generally have difficulty in identifying terms with the best utility and often make sub-optimal decisions <ref type="bibr" coords="2,429.41,366.13,13.50,7.86" target="#b12">[12]</ref>. However, there is a lack of research in other benefits humans may bring to the process. Although improving upon the average performance of automated query expansion may be difficult, we hypothesized that using human intelligence to detect incongruous individual or collective choices of expansion terms, thus helping to avoid the worst expansion failures, would improve the robustness of query expansion.</p><p>Ruthven <ref type="bibr" coords="2,353.69,460.28,14.31,7.86" target="#b12">[12]</ref> found that simple term presentation interfaces are insufficient in soliciting good feedback from users. To combat this problem, we used a more structured approach to gathering user feedback. Rather than asking for terms related to a query as a whole, we solicited votes for expansion terms that are related to each individual query term. This procedure was informed by Collins-Thompson <ref type="bibr" coords="2,524.43,523.05,9.20,7.86" target="#b3">[3]</ref>, who found that using expansion terms that covered more aspects of the original query reduced risk. Given the votes by the crowd workers, we selected expansion terms that have good coverage and strong correlation with query terms.</p><p>The procedure for our crowdsourced query expansion was as follows. For a query q (where individual query terms are denoted with qi) a list of 10 candidate expansion terms c = {cj : j ∈ {1, . . . , 10}} was generated using the Indri search engine's<ref type="foot" coords="2,393.16,625.89,3.65,5.24" target="#foot_0">1</ref> built-in pseudo-relevance feedback algorithm. A recent snapshot of English Wikipedia was used as the expansion corpus.</p><p>Crowd workers were shown this list of candidate terms with a single term from the query qi and the entire query q for context. They were each asked to select up to terms from c that were related to the highlighted query term qi.</p><p>To ensure that the crowd workers understood the requirements of the task, only workers that passed a qualification test were allowed to complete the task. The qualification test was two manually created tasks with obvious answers; workers passed if their answers for both tests were correct.</p><p>The task for a single query term was completed by rn crowd workers. An example of the final voting data can be seen in Table <ref type="table" coords="3,89.54,254.41,4.61,7.86" target="#tab_0">1</ref> for the query 'computer programming' and seven candidate expansion terms.</p><p>From the results of the tasks, the probability p(cj|q) for each candidate term was calculated. By assuming the independence of query terms, p(cj|q) = i p(cj|qi), where p(cj|qi) = vj,i j vj,i vj,i is the number of crowd workers who responded that cj is related to qi. We then re-ranked the candidate terms cj by p(cj|q) and expanded the original query with the top r k candidate terms using the query template:</p><formula xml:id="formula_0" coords="3,53.80,390.87,238.03,18.58">#weight( wo #combine( q ) (1 -wo) #combine( c1...cr k ))</formula><p>In the example of Table <ref type="table" coords="3,148.45,411.79,3.58,7.86" target="#tab_0">1</ref>, the top 3 selected expansion terms were 'computer ', 'programming', and 'computing'.</p><p>The number of workers rn, the number of top candidate terms used r k , and the weight of the original query wo are adjustable parameters. In our experiments, we varied rn between 1 and 10, r k between 2 and 5, and wo between 0.8 and 0.98. The weights of the individual expansion terms were set as the weights originally generated from the expansion corpus.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Result Filtering</head><p>In addition to query expansion, we also briefly experimented with using the crowd to perform result filtering. It was hypothesized that the crowd could be used as quality control to filter out poor results, leading to higher ranking robustness.</p><p>In this component, each document in the top f k of the result list was judged by fn crowd workers. If the majority of workers indicated that the result is non-relevant, it was simply removed from the ranked list. The end result is that relevant documents are moved up higher in the list. The numbers fn and f k are parameters that can be adjusted. In our experiments, we set f k = 10 and varied fn between 1 and 5 to explore the effect of additional workers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">EXPERIMENTS</head><p>The two query sets used to evaluate the method were the TREC Web Track queries from 2012 and 2013, which were created for the ClueWeb09<ref type="foot" coords="3,428.49,55.87,3.65,5.24" target="#foot_1">2</ref> and ClueWeb12<ref type="foot" coords="3,501.76,55.87,3.65,5.24" target="#foot_2">3</ref> corpora respectively. Table <ref type="table" coords="3,390.29,68.10,4.61,7.86" target="#tab_1">2</ref> presents a summary of the query sets. There are 50 queries in each set, with the queries being 2 to 4 terms long on average. The corpora were searched using the Batch Query service provided by CMU <ref type="foot" coords="3,391.34,118.63,3.65,5.24" target="#foot_3">4</ref> . The indexes in the service were built using the Indri search engine with the Indri default list of stopwords removed and the terms were stemmed using the Krovetz stemmer.</p><p>The baselines to which the results were judged against for robustness were released by the TREC Web Track. They were created from spam-filtering the corpora using the Waterloo spam scores <ref type="bibr" coords="3,394.90,204.09,9.72,7.86" target="#b5">[5]</ref> and searching them with Indri using its default pseudo-relevance feedback.</p><p>The indexes we used were not spam-filtered. Therefore, to approximate the baseline retrieval environment, spam documents were removed from the search results. In the cases of runs where the result filtering crowdsourced module was used, the spam filtering was done prior to the crowdsourced filtering.</p><p>The metric used is the official metric for the TREC Web Track in 2013, intent-aware expected reciprocal rank at 20 (ERR-IA@20). α is the risk-aversion parameter, where larger values indicate a larger penalty for losses and with larger α, negative values for the metric are possible, even for systems that perform better on average. The 2012 query set was used to explore the range of the parameter settings and the 2013 query set was used to test the final results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Effect of Parameter Settings</head><p>Table <ref type="table" coords="3,343.45,441.19,4.61,7.86">3</ref> presents the risk-sensitivity results of the crowdsourced query expansion method compared against the organizer-provided baseline. The table shows various settings for r k , the number of terms used for query expansion, and wo, the weight of the original query on the 2012 query set. α is the risk-aversion parameter.</p><p>Two trends can be discerned from the above data. First, an increase in the weight given to the original query increases robustness. This is unsurprising as the robustness is measured against the baseline formed from the original query and any risk introduced by the expansion term may be mitigated by relying more heavily on the original query.</p><p>The second trend is that using more expansion terms increase robustness. This may seem counterintuitive at first glance, but has a reasonable explanation. Including only a few terms is an all-or-nothing approach in that if none of them are good terms, the query will do poorly, but if both are good, then the query will get a large boost. By increasing the number of expansion terms, we can be more certain that at least one of them is a good term that can lead to an increase in effectiveness and result in a smaller, but more w o r k α = 0 α = 1 α = 5 α = 10 0.80 2 -0.02792 -0.07333 -0.25499 -0.48206 3 -0.01375 -0.04732 -0.18159 -0.34942 4 -0.01216 -0.04293 -0.16601 -0.31986 5 -0.00358 -0.03075 -0.13944 -0.27529 0.90 2 -0.01647 -0.04914 -0.17981 -0.34314 3 -0.01504 -0.04704 -0.17503 -0.33502 4 -0.01086 -0.04039 -0.15852 -0.30617 5 -0.01008 -0.03859 -0.15259 -0.2951 0.95 2 -0.00666 -0.03187 -0.13271 -0.25877 3 -0.00922 -0.03562 -0.14125 -0.27328 4 -0.00489 -0.02863 -0.12359 -0.24229 5 -0.00487 -0.02861 -0.12357 -0.24226 0.98 2 -0.00585 -0.02995 -0.12637 -0.24689 3 -0.00659 -0.031 -0.12865 -0.25071 4 -0.00587 -0.02965 -0.12477 -0.24368 5 -0.00556 -0.02942 -0.12488 -0.24421 Table <ref type="table" coords="4,79.50,267.36,3.58,7.86">3</ref>: Effects of different parameter settings for original query weight wo (0.8-0.98) and number of expansion terms, r k (2-5) on the risk-adverseness of ERR-IA@20 for a range of α, the risk-aversion parameter, on the 2012 query set. Number of crowd workers used rn = 10. even boost across queries.</p><p>One may notice that the numbers for α = 0 are negative, indicating that the crowdsourced query expansion did worse than the provided baseline on average. However, this is due to the differences in the indexing environments of our set up and that of the provided baseline; in Table <ref type="table" coords="4,228.37,403.45,3.58,7.86">4</ref>, the 0 workers run is the basic Indri pseudo-relevance feedback run and would be identical to the baseline if the index environment was the same, i.e., the metric would equal 0.0. However, due to the differences in indexing procedures, the metric is negative. When compared to an Indri pseudo-relevance feedback run (0 workers) and the run of the raw original query (no exp) from the same index enviornment set up, the crowdsourced method improves the average performance by a small amount (α = 0). Table <ref type="table" coords="4,79.76,518.51,4.61,7.86">4</ref> also explores the effect of adding more workers to the query expansion task. As expected, as the number of workers increase, robustness and average performance both increase because the additional opinions mitigate poor, outlier judgments. Because of the virtuous effect of adding additional crowd workers, we use rn = 10 for all remaining experiments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Effect of Evaluation Metrics</head><p>It has been long recognized in TREC that different systems perform best for different metrics. Corroborating this observation, we saw that the optimal parameter settings for risk-sensitivity were affected by the type of evaluation measure used. Table <ref type="table" coords="4,123.22,658.88,4.61,7.86">5</ref> summarizes our findings.</p><p>The columns in Table <ref type="table" coords="4,141.87,679.80,4.61,7.86">5</ref> are organized left to right from more precision-oriented to more recall-oriented metrics. When organized as such, the distribution of dark blue cells (which indicate the best parameter setting) create a diagonal pat-workers α = 0 α = 10 no exp -0.00740 -0.25857 0 -0.00663 -0.25209 1 -0.00618 -0.24713 2 -0.00618 -0.24714 3 -0.00620 -0.24730 4 -0.00617 -0.24700 5 -0.00617 -0.24700 6 -0.00625 -0.24708 7 -0.00541 -0.24294 8 -0.00537 -0.24253 9 -0.00552 -0.24388 10 -0.00556 -0.24421 Table <ref type="table" coords="4,341.14,217.76,3.58,7.86">4</ref>: Effects of increasing number of workers, rn on ERR-IA@20 for wo = 0.98 and r k = 5. 0 workers indicate an unmodified Indri pseudo-relevance feedback run. Table <ref type="table" coords="4,342.62,476.93,3.58,7.86">5</ref>: Different metrics and their effects on the optimal parameter settings (in bold). α = 10 but other values of α had similar effects.</p><p>tern from the bottom left to the top right. This indicates that more precision-oriented metrics favor "safer" parameter settings and cannot tolerate risk, while recall-oriented metrics produce riskier parameter settings that can deliver larger gains.</p><p>This phenomenon is easily explained by the fact that recalloriented metrics such as MAP consider a much larger set of documents than ERR. In ERR, because only the top few results contribute to the scores, the quality of every document matters and a single non-relevant result causes a large penalty. However, in MAP, the penalty of a single nonrelevant result is reduced and thus a retrieval system can make riskier decisions when optimizing for this metric.</p><p>This further suggests that systems should use different robustness settings depending on the type of query and search needs of the user. A typical navigational query calls for workers ERR-IA@5 ERR-IA@20 ERR-IA@5 ERR-IA@20 0 -0. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Effect of Result Filtering</head><p>The results of the crowdsourced result filtering are presented in Table <ref type="table" coords="5,92.57,298.87,3.58,7.86">6</ref>, showing the effects of varying the number of crowd workers for two settings of α = {0, 10}.</p><p>Overall, the result filtering component increased the robustness of the run. Its effects were especially pronounced at higher α values (higher risk-aversion) for ERR-IA@5. However, because filtering only affects the top 10 results, the increase is only present in metrics at smaller ranks, e.g., ERR-IA@5. In metrics at deeper ranks such as ERR-IA@20, the benefits of result filtering are no longer seen. In fact, the result filtering run does worse than the run without any filtering in α = 10, indicating that some relevant results were removed during the filtering process. The reason for this is discussed further in Section 5.</p><p>Another item to note is that the result filtering run does very poorly with only a single crowd worker: much worse than the run without filtering. This is unsurprising as there was no quality control in this component; results only improve after having sufficient votes to mitigate the lower-quality votes.</p><p>Despite the large gains in robustness seen in ERR-IA@5 for high α values, we did not use the filtering component in any of our submitted runs due to its lackluster performance at deeper ranks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">SUBMITTED RUNS</head><p>From the above experiments, the following parameter settings were chosen for the 2013 query set and were submitted to TREC:</p><p>• msr alpha0: wo = 0.8, r k = 5</p><p>• msr alpha1: wo = 0.95, r k = 5</p><p>• msr alpha5: wo = 0.98, r k = 2</p><p>• msr alpha10: wo = 0.98, r k = 5</p><p>In addition, the following two runs were also submitted as runs for the adhoc task of the Web Track:</p><p>• msr alpha0: wo = 0. • msr alpha0 95 4: wo = 0.95, r k = 4, another run that performed well</p><p>The results for the submitted runs are presented in Table <ref type="table" coords="5,333.85,383.75,3.58,7.86" target="#tab_3">7</ref>, where ERR-IA@20 is reported for four values of α = 0, 1, 5, 10. The best run for all α values was msr alpha1, which was better than the participants' median for 17/50 queries for all α. In addition, the relative ordering of the runs are mostly the same for all ranges of α (msr alpha5 and 10 switch ranks, but the differences are small). This indicates that the crowdsourced query expansion method was stable in robustness and the differences in accuracy are accounted by evenly distributed gains rather than from large variance.</p><p>As mentioned previously, the crowdsourced result filtering was not submitted as a run, but we choose to present the results for it in Table <ref type="table" coords="5,406.40,519.74,3.58,7.86" target="#tab_4">8</ref>. The results for the 2013 query set differs from the results of the 2012 query set (Table <ref type="table" coords="5,517.65,530.20,3.58,7.86">6</ref>). While we saw that the result filtering was not effective at deeper ranks for the 2012 query set, in the 2013 query set it gives a boost to robustness at both ERR-IA@5 and ERR-IA@20.</p><p>A possible reason for this may be due to the differences in the queries; the 2012 query set included many intentionally ambiguous queries for the diversity task such as 'kcs'. This may have caused difficulties for the crowd workers to accurately judge relevance and relevant documents may have been removed from the ranked list as a result. The 2013 query set has fewer ambiguous queries and thus may have been easier to assess leading to more accurate judgments and increased robustness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">CONCLUSIONS</head><p>In this paper, two methods of integrating crowdsourcing into web search was discussed. The first method introduced crowd workers into the query expansion process and used their judgments to select expansion terms that are strongly related to many query terms. The second used crowd workers to filter the top ranks of a ranked list to prevent nonrelevant documents from being shown by collecting relevance judgments from the crowd.</p><p>We found that both methods increased robustness and that the crowdsourced query expansion produced stable results. However, the result filtering component was less effective in the 2012 query set which contained many ambiguous queries due to the difficulty in making relevance judgments.</p><p>When experimenting with parameters, it was found that increasing the number of crowd workers per task increased robustness in both methods and in addition, giving more weight to the original query and using more expansion terms increased robustness further in crowdsourced query expansion.</p><p>It was also observed that the optimal parameters for robustness of the crowdsourced query expansion were dependant on the retrieval metric used. In general, precision-oriented metrics preferred safer parameter settings while riskier parameter settings could be used in recall-oriented metrics. This observation leads to the implication that robustness should be situationally optimized depending on the information need of the user, based on whether it is precisionoriented (e.g., navigation queries) or recall-oriented (e.g., patent search).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,337.40,267.43,188.06,10.37;4,339.23,280.59,196.20,8.83;4,360.46,292.22,174.96,8.83;4,360.46,303.83,174.96,8.83;4,360.46,315.45,174.96,8.83;4,339.23,327.07,196.20,8.83;4,360.46,339.26,174.96,8.83;4,360.46,350.87,174.96,8.83;4,360.46,362.49,174.96,8.83;4,339.23,374.11,196.20,8.83;4,360.46,385.72,174.96,8.83;4,360.46,397.34,174.96,8.83;4,360.46,408.95,174.96,8.83;4,339.23,420.59,196.20,8.83;4,360.46,432.21,174.96,8.83;4,360.46,443.83,174.96,8.83;4,360.46,455.44,174.96,8.83"><head></head><label></label><figDesc>w o r k ERR-IA@10 P-IA@5 P-IA@20 MAP-IA 0.80 2 -0.48183 -0.44993 -0.28740 -0.10681 3 -0.34680 -0.36653 -0.26670 -0.07670 4 -0.31259 -0.28187 -0.25377 -0.07601 5 -0.27000 -0.21653 -0.24887 -0.07238 0.90 2 -0.34530 -0.26720 -0.23230 -0</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,53.80,55.49,502.13,92.54"><head>Table 1 :</head><label>1</label><figDesc>Example of data collected for the query 'computer programming'. Columns are candidate expansion terms and the numbers in the row indicate the number of workers who responded that the expansion term was related to the query term indicated by the first column of the row. Expansion terms are ranked based on query term coverage and query term relatedness; in this example, the top three terms are 'computer ', 'programming', and 'computing'.</figDesc><table coords="2,117.16,55.49,375.41,31.08"><row><cell></cell><cell cols="7">programming computer languages object computing oriented java</cell></row><row><cell>computer</cell><cell>2</cell><cell>9</cell><cell>0</cell><cell>0</cell><cell>6</cell><cell>0</cell><cell>0</cell></row><row><cell>programming</cell><cell>9</cell><cell>3</cell><cell>3</cell><cell>0</cell><cell>1</cell><cell>0</cell><cell>1</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,508.27,690.42,47.66,7.86"><head>Table 2 :</head><label>2</label><figDesc>Summary of query statistics.</figDesc><table coords="2,508.27,690.42,47.66,7.86"><row><cell>3 expansion</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,158.15,57.09,391.87,662.44"><head>Table 7 :</head><label>7</label><figDesc>Results for submitted runs using ERR-IA@20.</figDesc><table coords="5,158.15,711.19,34.33,8.35"><row><cell>8, r k = 5</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="5,316.81,263.20,239.11,49.71"><head>Table 8 :</head><label>8</label><figDesc>Crowdsourced result filtering combined with crowdsourced query expansion. Parameters for the query expansion component are r k = 5, rn = 10, wo = 0.98. 0 worker is the run with crowdsourced query expansion, but without any result filtering.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,321.42,711.19,100.04,7.86"><p>http://lemurproject.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,321.42,690.52,145.30,7.86"><p>http://lemurproject.org/clueweb09/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,321.42,700.86,145.30,7.86"><p>http://lemurproject.org/clueweb12/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,321.42,711.19,154.58,7.86"><p>http://boston.lti.cs.cmu.edu/Services/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,58.28,389.26,96.81,10.75" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,401.85,207.36,7.86;6,72.59,412.31,208.49,7.86;6,72.59,422.77,220.31,7.86;6,72.59,433.23,208.65,7.86;6,72.59,443.69,200.77,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,138.18,412.31,142.90,7.86;6,72.59,422.77,48.07,7.86">Direct answers for search queries in the long tail</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">S</forename><surname>Bernstein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Teevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Dumais</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Liebling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Horvitz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,138.00,422.77,154.90,7.86;6,72.59,433.23,205.07,7.86">Proceedings of the SIGCHI Conference on Human Factors in Computing Systems, CHI &apos;12</title>
+		<meeting>the SIGCHI Conference on Human Factors in Computing Systems, CHI &apos;12<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="237" to="246" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,455.15,198.73,7.86;6,72.59,465.61,200.34,7.86;6,72.59,476.07,220.31,7.86;6,72.59,486.53,210.95,7.86;6,72.59,496.99,101.26,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,164.22,455.15,107.10,7.86;6,72.59,465.61,184.75,7.86">Reducing the risk of query expansion via robust constrained optimization</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,72.59,476.07,220.31,7.86;6,72.59,486.53,210.95,7.86;6,72.59,496.99,10.74,7.86">Proceedings of the Eighteenth International Conference on Information and Knowledge Management, CIKM &apos;09</title>
+		<meeting>the Eighteenth International Conference on Information and Knowledge Management, CIKM &apos;09</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="837" to="846" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,508.45,216.60,7.86;6,72.59,518.91,215.30,7.86;6,72.59,529.37,20.96,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,221.60,508.45,67.59,7.86;6,72.59,518.91,105.45,7.86">Query expansion using random walk models</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,196.95,518.91,22.41,7.86">CIKM</title>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="704" to="711" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,540.82,211.06,7.86;6,72.59,551.29,204.96,7.86;6,72.59,561.75,202.52,7.86;6,72.59,572.21,203.92,7.86;6,72.59,582.67,215.92,7.86;6,72.59,593.13,117.12,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,221.60,540.82,62.05,7.86;6,72.59,551.29,189.33,7.86">Estimation and use of uncertainty in pseudo-relevance feedback</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,72.59,561.75,202.52,7.86;6,72.59,572.21,203.92,7.86;6,72.59,582.67,128.70,7.86">Proceedings of the 30th annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;07</title>
+		<meeting>the 30th annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;07<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="303" to="310" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,604.59,203.18,7.86;6,72.59,615.05,220.31,7.86;6,72.59,625.51,169.30,7.86;6,72.59,635.97,102.74,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,72.59,615.05,220.31,7.86;6,72.59,625.51,72.66,7.86">Efficient and effective spam filtering and re-ranking for large web datasets</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Clarke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,152.24,625.51,85.82,7.86">Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="441" to="465" />
+			<date type="published" when="2011-10">Oct. 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,647.42,213.25,7.86;6,72.59,657.89,209.72,7.86;6,72.59,668.35,213.99,7.86;6,72.59,678.81,210.71,7.86;6,72.59,689.27,220.31,7.86;6,72.59,699.73,72.87,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,244.04,647.42,41.80,7.86;6,72.59,657.89,209.72,7.86;6,72.59,668.35,38.02,7.86">Exploiting underrepresented query aspects for automatic query expansion</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">W</forename><surname>Crabtree</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Andreae</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Gao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,129.38,668.35,157.20,7.86;6,72.59,678.81,210.71,7.86;6,72.59,689.27,88.84,7.86">Proceedings of the 13th ACM SIGKDD international conference on knowledge discovery and data mining, KDD &apos;07</title>
+		<meeting>the 13th ACM SIGKDD international conference on knowledge discovery and data mining, KDD &apos;07<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="191" to="200" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.59,711.19,195.79,7.86;6,335.61,57.64,220.09,7.86;6,335.61,68.10,206.76,7.86;6,335.61,78.56,154.15,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,456.86,57.64,98.84,7.86;6,335.61,68.10,85.18,7.86">CrowdQ : Crowdsourced Query Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Demartini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Trushkowsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kraska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">J</forename><surname>Franklin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><forename type="middle">C</forename><surname>Berkeley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,439.75,68.10,102.62,7.86;6,335.61,78.56,125.29,7.86">Conference on Innovative Data Systems Research (CIDR)</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,90.02,208.05,7.86;6,335.61,100.48,208.16,7.86;6,335.61,110.94,202.81,7.86;6,335.61,121.40,210.10,7.86;6,335.61,131.86,192.35,7.86;6,335.61,142.32,55.72,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,424.18,90.02,119.48,7.86;6,335.61,100.48,208.16,7.86;6,335.61,110.94,38.26,7.86">When less is more: Relevance feedback falls short and term expansion succeeds at hard 2005</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Allan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,368.40,121.40,141.02,7.86">TREC, volume Special Publication</title>
+		<editor>
+			<persName><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><forename type="middle">P</forename><surname>Buckland</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="500" to="266" />
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,153.78,204.78,7.86;6,335.61,164.24,216.64,7.86;6,335.61,174.70,141.35,7.86" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,533.47,153.78,6.91,7.86;6,335.61,164.24,200.81,7.86">A Crowd-powered Socially Embedded Search Engine</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jeong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Morris</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Teevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Liebling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,335.61,174.70,113.06,7.86">Proceedings of ICWSM 2013</title>
+		<meeting>ICWSM 2013</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,186.15,189.97,7.86;6,335.61,196.62,207.98,7.86;6,335.61,207.08,205.73,7.86;6,335.61,217.54,219.65,7.86;6,335.61,228.00,200.77,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,460.17,186.15,65.40,7.86;6,335.61,196.62,64.47,7.86">Relevance based language models</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lavrenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,418.98,196.62,124.60,7.86;6,335.61,207.08,205.73,7.86;6,335.61,217.54,216.07,7.86">Proceedings of the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;01</title>
+		<meeting>the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;01<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="120" to="127" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,239.45,214.57,7.86;6,335.61,249.92,194.52,7.86;6,335.61,260.38,217.10,7.86;6,335.61,270.84,202.24,7.86;6,335.61,281.30,20.96,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,380.99,249.92,149.13,7.86;6,335.61,260.38,116.40,7.86">Datasift: An expressive and accurate crowd-powered search toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Parameswaran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">H</forename><surname>Teh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Garcia-Molina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Widom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,470.21,260.38,82.50,7.86;6,335.61,270.84,177.60,7.86">1st Conf. on Human Computation and Crowdsourcing (HCOMP)</title>
+		<imprint>
+			<date type="published" when="2013">2013. 2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,292.75,220.31,7.86;6,335.61,303.22,220.07,7.86;6,335.61,313.68,194.18,7.86;6,335.61,324.14,202.91,7.86;6,335.61,334.60,219.59,7.86;6,335.61,345.06,24.30,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,384.07,292.75,171.84,7.86;6,335.61,303.22,108.89,7.86">Re-examining the potential effectiveness of interactive query expansion</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ruthven</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,463.28,303.22,92.39,7.86;6,335.61,313.68,194.18,7.86;6,335.61,324.14,202.91,7.86;6,335.61,334.60,39.56,7.86">Proceedings of the 26th annual international ACM SIGIR conference on Research and development in informaion retrieval, SIGIR &apos;03</title>
+		<meeting>the 26th annual international ACM SIGIR conference on Research and development in informaion retrieval, SIGIR &apos;03<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="213" to="220" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,356.52,134.69,7.86;6,335.61,366.98,213.58,7.86;6,335.61,377.44,208.38,7.86;6,335.61,387.90,62.76,7.86" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Salton</surname></persName>
+		</author>
+		<title level="m" coord="6,379.63,356.52,90.66,7.86;6,335.61,366.98,213.58,7.86;6,335.61,377.44,40.16,7.86">The SMART Retrieval System&amp;#8212;Experiments in Automatic Document Processing</title>
+		<meeting><address><addrLine>Upper Saddle River, NJ, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Prentice-Hall, Inc</publisher>
+			<date type="published" when="1971">1971</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,335.60,399.36,175.52,7.86;6,335.61,409.82,213.75,7.86;6,335.61,420.28,214.40,7.86;6,335.61,430.74,219.57,7.86;6,335.61,441.20,188.64,7.86;6,335.61,451.66,195.93,7.86;6,335.61,462.12,24.30,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,436.00,409.82,113.35,7.86;6,335.61,420.28,214.40,7.86;6,335.61,430.74,18.83,7.86">Slow Search or: How Search Engines Can Learn to Stop Hurrying and Take Their Time</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Teevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Dumais</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,373.70,430.74,181.47,7.86;6,335.61,441.20,188.64,7.86;6,335.61,451.66,78.81,7.86">Proceedings of the 7th Annual Symposium on Human-Computer Interaction and Information Retrieval, HCIR &apos;13</title>
+		<meeting>the 7th Annual Symposium on Human-Computer Interaction and Information Retrieval, HCIR &apos;13<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

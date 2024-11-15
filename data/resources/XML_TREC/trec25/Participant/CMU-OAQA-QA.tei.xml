@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,169.43,111.03,273.14,15.48;1,118.78,130.96,374.45,15.48;1,231.14,150.88,149.72,15.48">CMU OAQA at TREC 2016 LiveQA: An Attentional Neural Encoder-Decoder Approach for Answer Ranking</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,251.58,211.65,37.27,8.96"><forename type="first">Di</forename><surname>Wang</surname></persName>
+							<email>diwang@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Language Technologies Institute Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,308.22,211.65,52.19,8.96"><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Language Technologies Institute Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,169.43,111.03,273.14,15.48;1,118.78,130.96,374.45,15.48;1,231.14,150.88,149.72,15.48">CMU OAQA at TREC 2016 LiveQA: An Attentional Neural Encoder-Decoder Approach for Answer Ranking</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">3340909B464AE30CCD295E528C330A92</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we present CMU's question answering system that was evaluated in the TREC 2016 LiveQA Challenge. Our overall approach this year is similar to the one used in 2015. This system answers real-user submitted questions from Yahoo! Answers website, which involves retrieving relevant web pages, extracting answer candidate texts, ranking and selecting answer candidates. The main improvement this year is the introduction of a novel answer passage ranking method based on attentional encoder-decoder recurrent neural networks (RNN). Our method uses one RNN to encode candidate answer passage into vectors, and then another RNN to decode the input question from the vectors. The perplexity of decoding the question is then used as the ranking score. In the TREC 2016 LiveQA evaluations, human assessors gave our system an average score of 1.1547 on a three-point scale and the average score was .5766 for all the 26 systems evaluated.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Similar to the inaugural running of the LiveQA track in 2015 <ref type="bibr" coords="1,363.80,509.18,10.58,8.64" target="#b0">[1]</ref>, the main objective of LiveQA 2016 was to provide automatic answers for real-user questions in real time. The test collection was simply questions that freshly submitted to the Yahoo! Answers website and have not been previously answered by humans. Participant systems need to return answer texts with no more than 1000 characters in length and within 1 minute. System responses were then judged by TREC assessors on a 4-level Likert scale. CMU's Open Advancement of Question Answering (OAQA) group continued the work from last year's LiveQA submission. We improved the real-time web-based Question Answering (QA) system, and submitted a run to 2016 evaluation. Our QA pipeline begins with candidate passages retrieval and extraction, then answer passages ranking and tiling. In this paper, we focus on discussing our recent development on the answer passages ranking module. Being considered as a key challenge of developing effective QA system, the answer passages ranking and selection is to identify the answer-bearing passages from all candidate passages. The selected passage should contains useful information, and answer the input question. Since there is no official training corpus associated with the challenge, our approach leveraged the vast amount of previously-answered questions from Yahoo! Answers that are available online. During the official run, our QA server received one question per minute for 24 hours and provided answers within one minute for 94% of the input questions. On a normalized three-point average score metric, CMU-OAQA received a score of 1.1547, which was significantly higher than the average score of 0.5766 over all systems. In the rest of this paper, we describe the OAQA LiveQA system in more details. Our overall system architecture remains the same to the one used in 2015 <ref type="bibr" coords="2,420.59,244.82,10.58,8.64" target="#b1">[2]</ref>. The pipeline is briefly described here for completeness, please refer to our last year's report for a more complete description. As illustrated in Figure <ref type="figure" coords="2,254.51,266.74,3.74,8.64" target="#fig_0">1</ref>, the architecture of our system decomposes the solution into three major processing phases:</p><p>1. Clue Retrieval. Given a question title and its full text description, we formulate search engine queries and issue them to different search engines (Bing Web Search, Yahoo! Answers) in order to retrieve web pages related to the question.</p><p>2. Answer Ranking. Answer candidates (title/body/answer tuples that represent either conceptional questions or answer texts) are extracted from web pages, and ranked based on a relevance estimator. The most effective relevance estimator we found was a heuristicallyweighted combination of: a) optimized BM25 similarity scoring over the title and body texts, and b) a novel attentional encoder-decoder recurrent neural networks model that estimates the relevance of a candidate answer text given a question text.</p><p>3. Answer Passage Tiling. Finally, a simple greedy algorithm is used to select a subset of highest-ranked answer candidates; these are simply concatenated without further processing in order to produce the final answer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Answer Ranking with Attentional Encoder-Decoder Neural Networks</head><p>RNN-based encoder-decoder models have been applied to machine translation and quickly achieved state-of-the-art results <ref type="bibr" coords="2,199.11,492.24,10.79,8.64" target="#b2">[3,</ref><ref type="bibr" coords="2,212.85,492.24,7.19,8.64" target="#b3">4]</ref>. Since RNN models do not depend on any external feature or knowledge, we adopted a such neural encoder-decoder model, and trained it to "translate" from an answer passage to the question. We later used the trained model to provide the relevance score between a question and answer based on the likelihood of their "translation".</p><p>In last year's submission, we employed a recurrent neural network based approach <ref type="bibr" coords="2,444.09,542.06,10.79,8.64" target="#b4">[5,</ref><ref type="bibr" coords="2,457.79,542.06,8.30,8.64" target="#b5">6]</ref> that uses a multi-layer stacked bidirectional Long-Short Term Memory (BLSTM) network to sequentially read words from question and answer passages, and then output their relevance scores. Because training this BLSTM model requires both positive and negative examples, we followed the same data preparation procedure described by Surdeanu et al. <ref type="bibr" coords="2,310.71,585.89,11.62,8.64" target="#b6">[7]</ref> to generate negative labels by retrieving other answer passages from the collection. However, since the generated labels contain false negatives, the model may potentially learn low weights for instances with false negative training labels and decrease overall performance. On the other hand, training attentional neural encoder-decoder model needs only positive pairs, therefore this model will not suffer from above problem anymore.</p><p>A basic encoder-decoder neural translation model from <ref type="bibr" coords="2,336.16,646.66,11.62,8.64" target="#b7">[8]</ref> suffers from translating a long source sequence efficiently. This is largely due to the fact that the encoder of this basic approach needs to compress the whole source sequence's information into a vector of a fixed dimensionality. Motivated by this, the attention mechanism enables the decoder to revisits the input sequence's hidden states and dynamically collects information needed for each decoding step. Specifically, our new answer passage ranking model is based on a combination of the models of <ref type="bibr" coords="2,379.52,701.46,11.62,8.64" target="#b2">[3]</ref> and <ref type="bibr" coords="2,411.21,701.46,11.62,8.64" target="#b3">[4]</ref> that we found to be effective. Here we describe the attention-based neural encoder-decoder model we used for ranking in greater detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Model Structure</head><p>In general, our neural encoder-decoder model aims at generating a target sequence Y = y 1 , . . . , y Ty given a source sequence X = (x 1 , . . . , x Tx ). Each word in both source and target sentences, x t or y t , belongs to the source vocabulary V x , and the target vocabulary V y respectively.</p><p>First, an encoder converts the source sequence X into a set of context vectors C = {h 1 , h 2 , . . . , h Tx }, whose size varies w.r.t. the length of the source passage. This context representation is generated using a multi-layered recurrent neural network (RNN). The encoder RNN reads the source passage from the first token until the last one, where</p><formula xml:id="formula_0" coords="3,257.10,194.67,246.90,9.68">h i = Ψ (h i-1 , E x [x t ]) .<label>(1)</label></formula><p>Here E x ∈ R |Vx|×d is an embedding matrix containing vector representations of words, and Ψ is a recurrent activation unit that we used the Long Short-Term Memory (LSTM) <ref type="bibr" coords="3,416.64,224.78,11.62,8.64" target="#b8">[9]</ref> in our submission.</p><p>The decoder, which is implemented as an RNN as well, generates one word at a time, based on the context vectors set returned by the encoder. The decoder's hidden state ht is a fixed-length continuous vector that updated in the same way as Eq. ( <ref type="formula" coords="3,339.06,263.64,3.53,8.64" target="#formula_0">1</ref>). At each time step t in the decoder, a time-dependent attentional context vector c t is computed based on the current hidden state of the decoder ht and the whole context set This starts by computing the content-based score of each context vector as:</p><formula xml:id="formula_1" coords="3,272.81,318.12,231.19,13.25">e t,i = h t W a h i .<label>(2)</label></formula><p>This relevance score measures how helpful the i-th context vector of the source sequence is in predicting next word based on decoder's current hidden state h t . These relevance scores are further normalized by the softmax function:</p><formula xml:id="formula_2" coords="3,223.06,383.17,280.94,26.56">α t,i = softmax(e t,i ) = exp(e t,i ) Tx j=1 exp(e t,j ) ,<label>(3)</label></formula><p>and we call α t,i the attention weight.</p><p>The time-dependent context vector c t is then the weighted sum of the context vectors with their attention weights from above:</p><formula xml:id="formula_3" coords="3,273.28,462.52,230.72,30.43">c t = Tx i=1 α t,i h i .<label>(4)</label></formula><p>With the context vector c t and the hidden state h t , we then combine the information from both vectors to produce an attentional hidden state as follow:</p><formula xml:id="formula_4" coords="3,257.67,534.51,246.33,9.68">z t = tanh(W c [c t ; h t ]).<label>(5)</label></formula><p>The probability distribution for the next target symbol is computed by -log p(y t = y</p><formula xml:id="formula_5" coords="3,218.15,575.35,281.98,9.68">p(y t = k|y &lt;t , X) = softmax(W s z t + b t ).<label>(6</label></formula><formula xml:id="formula_6" coords="3,341.74,657.56,72.80,13.74">(n) t |y (n) &lt;t , X (n) ; θ),</formula><p>where the log probability inside the inner summation is from Eq. ( <ref type="formula" coords="3,372.00,687.90,3.53,8.64" target="#formula_5">6</ref>). It is important to note that the ground-truth target words y</p><formula xml:id="formula_7" coords="3,218.27,698.01,11.15,6.12">(n)</formula><p>&lt;t is used as input during training. Because the entire model is end-toend differentiable, so the gradient of the log-likelihood function with respect to all the parameters θ can be computed efficiently by back-propagation. Our encoder and decoder RNNs contains two-layer stacked LSTMs. Each layer of LSTM has a memory size of 500. The network weights are randomly initialized using a uniform distribution (-0.08, 0.08), and are trained with the ADAM optimizer <ref type="bibr" coords="4,336.63,227.86,15.27,8.64" target="#b9">[10]</ref>, with an initial learning rate of 0.002. Gradients were clipped so their norm does not exceed 5. Each mini-batch contains 200 answer and question pairs. We use the Yahoo! Answers Comprehensive Questions and Answers dataset <ref type="foot" coords="4,420.03,265.05,3.49,6.05" target="#foot_0">1</ref> for training, which contains around 4.4 million Yahoo! Answers questions and their best answers. The words of input sentences were first converted to 300-dimensional vector representations learned from RNN based language modeling tool word2vec <ref type="bibr" coords="4,248.14,299.59,15.27,8.64" target="#b10">[11]</ref>. Each passage's beginning and end are also padded with a special boundary symbol, &lt;S&gt;.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Ranking</head><p>At test time, instead of finding the best-scoring "translation", the decoder is fed with original question as input, and calculate the perplexity that the model predicts regarding question words:</p><formula xml:id="formula_8" coords="4,181.32,383.65,249.37,31.28">score(X, Y ) = exp(- 1 T y Ty t=1 log p(y t = y (n) t |y (n) &lt;t , X (n) ; θ)).</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Development Set Analysis</head><p>The LiveQA organizers provided scored answers from all TREC 2015 LiveQA submissions<ref type="foot" coords="4,471.01,453.95,3.49,6.05" target="#foot_1">2</ref> , which we used as a development dataset for analyzing the performance of answer passage ranker. Since we are only evaluating ranker's performance, questions with only negative candidate answer passages are removed from evaluation. This development dataset contains 949 questions. On average, there are 19.5 answer passage candidates for each question and 32% of candidates' score are above "Fair".</p><p>In order to validate our new ranker's performance with this dataset, we re-rank above development dataset with our ranker and a BM25 baseline ranker. NDCG (Normalized Discounted Cumulative Gain) with graded relevance scale 0-3, MAP (Mean average precisionk), and MRR (Mean Reciprocal Rank) were then used as evaluation metrics (calculated using the official trec eval evaluation scripts).</p><p>Table <ref type="table" coords="4,132.52,577.17,4.98,8.64" target="#tab_0">1</ref> summarizes our preliminary experimental results on the Yahoo! Answers question retrieval and ranking task. Although good performance on this dataset does not necessarily correlate to good performance on the LiveQA 2016 challenge, it does demonstrate the necessity of developing nontrivial candidate retrieval and answer ranking methods for any LiveQA-related task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Official Evaluation Results</head><p>In this year's LiveQA evaluation, 1015 questions (out of 1088 submitted questions) were judged and scored using a 4-level Likert scale: • 3: Good: "partially answers the question"</p><p>• 2: Fair: "marginally useful information"</p><p>• 1: Bad: "contains no useful information for the question"</p><p>• -2: "the answer is unreadable (only 15 answers from all runs in 2015)"</p><p>The evaluation measures used are:</p><p>• avg-score (0-3): "average score over all queries (transferring 1-4 level scores to 0-3, hence comparing 1-level score with no-answer score, also considering -2-level score as 0)"</p><p>• succ@i+: "number of questions with i+ score (i=1..4) divided by number of all questions"</p><p>• prec@i+: "number of questions with i+ score (i=2..4) divided by number of answered only questions"</p><p>Table <ref type="table" coords="5,132.89,343.93,4.98,8.64" target="#tab_1">2</ref> summarizes the results of our system run and average scores from all submitted runs. We believe the overall performance of our system to be encouraging, as it suggests that our system can provide a useful answer (fair, good, or excellent) for more than 56% of the questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion and Future Work</head><p>This paper presented our improvements and evaluation results for our LiveQA 2016 system. Although this system performed significantly better than average of the 26 systems evaluated, the low absolute evaluation values indicate that there is still much room for improvement. In the future, we want to further utilize redundancy in answer passage for better answer ranking and tiling.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,188.06,187.76,235.87,8.64"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Architecture of the CMU-OAQA LiveQA system</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,500.13,575.69,3.87,8.64;3,108.00,600.22,211.49,8.96;3,108.00,620.81,396.00,8.96;3,108.00,632.09,284.60,8.64;3,198.28,658.06,49.69,11.37;3,229.83,671.17,3.79,6.12;3,253.60,650.28,6.31,6.12;3,249.63,674.37,15.01,6.12;3,268.98,649.20,8.35,6.12;3,266.95,674.37,13.10,6.12"><head>) 3 . 2</head><label>32</label><figDesc>Parameter Optimization and Network Setup If we define all the parameters in this model as θ, training this attention-based model can be done by minimize the negative conditional log-likelihood of the training data θ = arg min</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,132.73,86.63,346.35,95.45"><head>Table 1 :</head><label>1</label><figDesc>Results on re-ranking submitted answers from TREC LiveQA 2015</figDesc><table coords="4,132.73,86.63,346.35,72.02"><row><cell></cell><cell>NDCG</cell><cell>2+</cell><cell>MAP@ 3+</cell><cell>4+</cell><cell>2+</cell><cell>MRR@ 3+</cell><cell>4+</cell></row><row><cell>Lower Bound</cell><cell cols="7">0.3924 0.2225 0.1232 0.0519 0.0800 0.0524 0.0274</cell></row><row><cell>Upper Bound</cell><cell cols="7">1.0000 1.0000 0.7977 0.4668 1.0000 0.7977 0.4668</cell></row><row><cell>BM25</cell><cell cols="7">0.5636 0.4307 0.2631 0.1205 0.4303 0.2555 0.1174</cell></row><row><cell cols="8">Encoder-Decoder 0.6346 0.5124 0.3390 0.1657 0.5645 0.3672 0.1779</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,133.90,693.44,350.40,9.03"><head>Table 2 :</head><label>2</label><figDesc>Official TREC 2016 LiveQA track evaluation results.</figDesc><table coords="5,113.98,86.63,399.10,46.52"><row><cell>System ID</cell><cell>Avg score (0-3)</cell><cell>#Answers</cell><cell>2+</cell><cell>Success@ 3+</cell><cell>4+</cell><cell>2+</cell><cell>Precision@ 3+</cell><cell>4+</cell></row><row><cell>Avg of all runs</cell><cell>0.5766</cell><cell cols="7">771.0385 0.3042 0.1898 0.0856 0.3919 0.2429 0.1080</cell></row><row><cell>CMU-OAQA</cell><cell>1.1547</cell><cell>954</cell><cell cols="6">0.5606 0.3951 0.1990 0.5964 0.4203 0.2117</cell></row></table><note coords="4,133.90,693.44,350.40,9.03"><p>• 4: Excellent: "a significant amount of useful information, fully answers the question"</p></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,124.14,713.99,301.27,6.31"><p>http://webscope.sandbox.yahoo.com/catalog.php?datatype=l</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,126.38,724.02,332.01,7.77"><p>https://sites.google.com/site/trecliveqa2016/liveqa-qrels-2015/LiveQA2015-qrels-ver2.txt.gz</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,129.58,499.48,374.42,8.64;5,129.58,510.26,374.42,8.82;5,129.58,521.22,296.06,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,454.30,499.48,49.70,8.64;5,129.58,510.44,109.89,8.64">Overview of the TREC 2015 liveqa track</title>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Agichtein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Pelleg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuval</forename><surname>Pinter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,257.38,510.26,242.26,8.59">Proceedings of The Twenty-Fourth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fourth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-11-17">2015. November 17-20, 2015, 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,536.80,374.43,8.64;5,129.58,547.58,374.42,8.82;5,129.58,558.54,244.30,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,241.04,536.80,262.96,8.64;5,129.58,547.76,40.69,8.64">CMU OAQA at TREC 2015 liveqa: Discovering the right answer with clues</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,194.13,547.58,250.73,8.59">Proceedings of The Twenty-Fourth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fourth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-11-17">2015. November 17-20, 2015, 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,574.11,374.42,8.64;5,129.58,584.89,267.58,8.82" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,379.12,574.11,124.88,8.64;5,129.58,585.07,145.80,8.64">Neural machine translation by jointly learning to align and translate</title>
+		<author>
+			<persName coords=""><forename type="first">Dzmitry</forename><surname>Bahdanau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>CoRR, abs/1409.0473</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,600.47,374.42,8.64;5,129.58,611.25,374.42,8.82;5,129.58,622.21,374.42,8.59;5,129.58,633.35,97.40,8.64" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,367.46,600.47,136.55,8.64;5,129.58,611.43,129.83,8.64">Effective approaches to attentionbased neural machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">Thang</forename><surname>Luong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hieu</forename><surname>Pham</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,277.76,611.25,226.24,8.59;5,129.58,622.21,142.75,8.59">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-09-17">2015. September 17-21, 2015. 2015</date>
+			<biblScope unit="page" from="1412" to="1421" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,648.75,374.43,8.64;5,129.58,659.53,374.42,8.82;5,129.58,670.66,87.44,8.64" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,244.35,648.75,259.66,8.64;5,129.58,659.70,86.67,8.64">A long short-term memory model for answer sentence selection in question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,237.27,659.53,262.88,8.59">Annual Meeting of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="707" to="712" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,686.06,374.42,8.64;5,129.58,696.84,374.42,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,242.49,686.06,261.51,8.64;5,129.58,697.02,75.19,8.64">A recurrent neural network based answer ranking model for web question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,222.99,696.84,252.17,8.59">SIGIR Workshop on Web Question Answering: Beyond Factoids</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,712.42,374.42,8.64;5,129.58,723.20,374.42,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,390.25,712.42,113.75,8.64;5,129.58,723.38,170.41,8.64">Learning to rank answers to non-factoid questions from web collections</title>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Massimiliano</forename><surname>Ciaramita</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,306.93,723.20,104.44,8.59">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="351" to="383" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,85.34,374.42,8.64;6,129.58,96.12,374.42,8.82;6,129.58,107.08,315.73,8.82" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,316.78,85.34,187.23,8.64;6,129.58,96.30,22.28,8.64">Sequence to sequence learning with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oriol</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Quoc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,169.87,96.12,334.13,8.59;6,129.58,107.08,69.21,8.82">Proceedings of the 27th International Conference on Neural Information Processing Systems, NIPS&apos;14</title>
+		<meeting>the 27th International Conference on Neural Information Processing Systems, NIPS&apos;14<address><addrLine>Cambridge, MA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="3104" to="3112" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,122.02,374.42,8.82;6,129.58,133.16,72.23,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,305.40,122.20,98.64,8.64">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,414.37,122.02,62.53,8.59">Neural Comput</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,147.92,374.42,8.82;6,129.58,159.06,85.79,8.64" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="6,283.30,148.10,183.35,8.64">Adam: A method for stochastic optimization</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Diederik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Ba</surname></persName>
+		</author>
+		<idno>CoRR, abs/1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,174.01,374.42,8.64;6,129.58,184.79,374.42,8.82;6,129.58,195.75,192.69,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,432.91,174.01,71.09,8.64;6,129.58,184.97,229.37,8.64">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,376.40,184.79,127.60,8.59;6,129.58,195.75,77.86,8.59">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

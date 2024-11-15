@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,393.32,15.42;1,89.29,106.66,199.23,15.42">Zero-shot Hybrid Retrieval and Reranking Models for Biomedical Literature</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.10,134.97,33.06,11.96"><forename type="first">Jing</forename><surname>Lu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Google Research</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,133.41,134.97,25.57,11.96"><forename type="first">Ji</forename><surname>Ma</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Google Research</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,186.43,134.97,49.66,11.96"><forename type="first">Keith</forename><surname>Hall</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Google Research</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,393.32,15.42;1,89.29,106.66,199.23,15.42">Zero-shot Hybrid Retrieval and Reranking Models for Biomedical Literature</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">BABE3C06A6B258339BEF67C5AFA563ED</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:21+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>document retrieval</term>
+					<term>reranking</term>
+					<term>question generation</term>
+					<term>BioASQ</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We describe our participating system in the document retrieval sub-task (Task B Phase A) at the 10th BioASQ challenge. We designed and implemented a zero-shot hybrid model using only synthetic training data. The model consists of two stages: retrieval and reranking. The retrieval model is a hybrid of sparse and dense retrieval models, which is an extension of our participating system at 8th BioASQ challenge. We improved the dense retrieval model with a T5-based synthetic question generation model and an iterative training strategy involving techniques to filter low-quality synthetic data. In the second stage, we proposed a hybrid reranking model, which is trained using the candidates retrieved from the first stage. We further explored whether the knowledge from the hybrid reranking model can be transferred to the dense retrieval model through distillation. Our experiments show the proposed hybrid ranking model is effective even when applied to different first-stage retrieval models. Furthermore, we explored the combination of different systems via reciprocal rank fusion and achieved additional accuracy gains. Evaluation shows that our model compares favorably with the top participating system, achieving MAP scores of 0.4696, 0.3984, 0.4586, 0.4089, 0.4065 and 0.1704 on six batches.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>We participated in the document retrieval sub-task (Task B Phase A) at the 10th BioASQ challenge. The task aims to retrieve relevant articles from PubMed 1 to biomedical questions constructed by a team of biomedical experts. In this paper, we present our system developed for this task. We designed and implemented a zero-shot hybrid model which consists of two stages: retrieval and reranking, and uses only synthetic training data. Our contributions in this paper are three-fold. First, we show the effectiveness of a zero-shot model which doesn't need any labeled data from the biomedical domain. Second, many prior works explore the two-stage models <ref type="bibr" coords="1,166.30,529.22,14.61,10.91" target="#b0">[1,</ref><ref type="bibr" coords="1,184.11,529.22,7.52,10.91" target="#b1">2,</ref><ref type="bibr" coords="1,194.83,529.22,7.65,10.91" target="#b2">3]</ref>, but they use either a sparse model (e.g., BM25) or a dense model (e.g., a dense neural retriever) to generate training data for training the reranker. We show that by training a reranker from a hybrid retriever, the reranker not only performs better when presented with results from a hybrid retriever, but it performs very well with results from other retrievers. The observed effect is that the reranker is able to capture both term matching as well CLEF 2022: Conference and L of the Evaluation Forum, September 5-8, 2022, Bologna, Italy email: ljwinnie@google.com (J. Lu); maji@google.com (J. Ma); kbhall@google.com (K. Hall) orcid: 0000-0003-1076-7662 (J. Lu); 0000-0001-8577-175X (J. Ma); 0000-0002-0977-6572 (K. Hall) as semantic matching. Results on 3 out of 6 test batches outperform other participating systems showing the effectiveness of our proposed model. Third, we investigate the distillation of the hybrid reranking model to a dense retrieval model. The distilled dense model outperforms the non-distilled dense model and sparse model on the development set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Model</head><p>In this section, we describe our system, which consists of two stages: retrieval and reranking. In both stages, our model relies on language models pretrained on PubMed articles (Section 2.1). In the retrieval stage, we use a model which is a hybrid of BM25 and a dual encoder model (Section 2.2). In the reranking stage, we use a cross-attention model with ranking loss, which is trained using the candidates retrieved from the first stage (Section 2.3). In addition, we explore transferring the knowledge from the reranking model to the dual encoder model through distillation (Section 2.4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Pretrained Language Model</head><p>Language models such as GPT <ref type="bibr" coords="2,221.27,317.26,15.70,10.91" target="#b3">[4,</ref><ref type="bibr" coords="2,239.69,317.26,7.49,10.91" target="#b4">5,</ref><ref type="bibr" coords="2,249.90,317.26,7.60,10.91" target="#b5">6]</ref>, BERT <ref type="bibr" coords="2,292.30,317.26,12.88,10.91" target="#b6">[7]</ref> and T5 <ref type="bibr" coords="2,336.96,317.26,14.72,10.91" target="#b7">[8]</ref> pre-trained on large scale corpora provide rich knowledge for many downstream NLP tasks. For the biomedical domain, previous research shows that language models adapted on biomedical corpora can bring further improvement on biomedical NLP tasks <ref type="bibr" coords="2,265.54,357.91,11.49,10.91" target="#b8">[9]</ref>. In this work, we use domain adapted BERT-based and T5-based models for retrieval and reranking models.</p><p>The BERT-based model is pre-trained from scratch using PubMed abstracts along with the commercial Open-Access PubMed Central corpus as distributed by the National Library of Medicine; we refer it as PubMed_BERT. We created a specialized wordpiece vocabulary from the training corpus containing 107137 entries. The PubMed_BERT model consists of 12 transformer <ref type="bibr" coords="2,89.29,439.20,18.07,10.91" target="#b9">[10]</ref> layers, each with hidden size 1024 and 16 attention heads. We use the same sentence sampling procedure as reported in the original BERT paper, e.g., the combined sequence has length no longer than 512 tokens, and we uniformly mask 15% of the tokens from each sequence for masked language model prediction. We update the next sentence prediction task with softmax cross-entropy loss. We use the same hyper-parameter values for BERT pretraining except that the learning rate is set 2e-5, and the model is trained for 300,000 steps.</p><p>We also fine-tune a T5 model on PubMed abstracts using the span corruption task <ref type="bibr" coords="2,472.80,520.50,11.54,10.91" target="#b7">[8]</ref>. We refer it as PubMed_T5. Specifically, we set the max input and target length to 512 and 114 respectively. We tune the T5.1.1.xl model<ref type="foot" coords="2,274.26,545.84,3.71,7.97" target="#foot_0">2</ref> for 1 million steps with a learning rate of 0.01 and dropout rate 0.1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Hybrid Retrieval Model</head><p>We extend our hybrid first-stage retrieval model used in the 8th BioASQ challenge <ref type="bibr" coords="2,451.74,610.87,16.09,10.91" target="#b10">[11]</ref>. Specifically, we use a BM25 model as the sparse retrieval model and a dual encoder model as the dense retrieval model. We cast both models as vector similarity via nearest neighbor search and create hybrid encodings which are a concatenation of the BM25 and dual encoder encodings. We refer the reader to the original paper for more details. We briefly describe the model and focus on the extension in this section.</p><p>For the BM25 model, we represent each question as a |𝑉 |-dimensional binary encoding q bm25 , where q bm25 [𝑖] is 1 if the i-th entry of vocabulary 𝑉 is in the question, 0 otherwise. We represent each passage as a sparse real-valued vector p bm25 :</p><formula xml:id="formula_0" coords="3,198.54,177.42,193.97,28.35">p bm25 𝑖 = IDF(𝑝 𝑖 ) * cnt(𝑝 𝑖 , 𝑃 ) * (𝑘 + 1) cnt(𝑝 𝑖 , 𝑃 ) + 𝑘 * (1 -𝑏 + 𝑏 * 𝑚 𝑚avg )</formula><p>.</p><p>where 𝑝 𝑖 are tokens from passage 𝑃 , cnt(𝑝 𝑖 , 𝑃 ) is 𝑝 𝑖 's term frequency in 𝑃 , 𝑘/𝑏 are BM25 hyperparameters, IDF is the term's inverse document frequency from the document collection, 𝑚 are the number of tokens in 𝑃 , and 𝑚 avg is the collection's average passage length. We use vector dot-product to measure the question and passage relevance.</p><p>Our dual encoder model is based on BERT <ref type="bibr" coords="3,293.25,272.26,11.54,10.91" target="#b6">[7]</ref>. To encode a question, we feed the question text to the BERT model and apply a fully-connected (FC) layer of size 768 to the [CLS] token embedding. The output of the FC layer is used as the question encoding q de . A passage encoding p de is generated in a similar way but we concatenate the document and corresponding document title as the input to the BERT model: [CLS] title [SEP] passage <ref type="bibr" coords="3,368.22,326.45,22.96,10.91">[SEP]</ref>. The question to passage relevance is computed by the cosine similarity of their vectors.</p><p>Following our previous work <ref type="bibr" coords="3,237.13,353.55,16.42,10.91" target="#b11">[12]</ref>, we train our dual encoder models using synthetically generated questions. We apply a question generation model (QGen) to the abstracts of PubMed articles to generate (synthetic question, passage) pairs. We then use these data to train a dual encoder model 𝐷𝐸 0 . To filter low quality questions, we adapt the roundtrip consistency <ref type="bibr" coords="3,473.37,394.20,16.30,10.91" target="#b12">[13,</ref><ref type="bibr" coords="3,492.03,394.20,13.95,10.91" target="#b13">14]</ref> idea to retrieval. Given a synthetic question in the training data, we run 1-nearest neighbor search based on scores between the question and all passages using 𝐷𝐸 0 . If the neighbor is the one from which the question is generated, we keep that (question, passage). Otherwise, the (question, passage) pair is filtered. With the filtered data, we continue fine tune 𝐷𝐸 0 to get the final dual encoder model 𝐷𝐸 1 .</p><p>We use two QGen models in this work, namely NQ_QGen and SQuAD_QGen, created by finetuning a general T5 model using the question and passage pairs from Natural Question(NQ) <ref type="bibr" coords="3,486.34,489.04,19.65,10.91" target="#b14">[15]</ref> and SQuAD <ref type="bibr" coords="3,137.71,502.59,22.07,10.91" target="#b15">[16]</ref>, respectively. Particularly, we form the input as "Generate question &gt;&gt;&gt; title.passage &gt;&gt;&gt; target sentence", and the output is the corresponding question. Here "target sentence" is the sentence that contains the short answer span, and "passage" corresponds to long answer and the passage of NQ and SQuAD respectively. At inference time, given a PubMed abstract, we iterate over every sentence as the target to generate diverse questions. We generate synthetic questions from each of the QGen models and our preliminary experiment shows that mixing them as the training data for dual encoder models result in better performance than using synthetic training data from each individual model.</p><p>To benefit from both sparse model and dense neural model, we create the hybrid model by combining the encodings from two models in a principled way: sim(q hyb , p hyb ) = ⟨q hyb , p hyb ⟩ = ⟨[q bm25 , 𝜆q de ], [p bm25 , p de ]⟩ = ⟨q bm25 , p bm25 ⟩ + 𝜆⟨q de , p de ⟩, where q hyb and p hyb are the hybrid encodings that concatenate the BM25 (q bm25 /p bm25 ) and the dual encoder encodings (q de /p de described above; and 𝜆 is an interpolation hyperparameter that trades-off the relative weight of BM25 versus the dual encoder models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Hybrid Reranking Model</head><p>Our reranking model is a listwise model. To train the model, for each question, we generate a list of 1 positive example and N negative examples. We randomly sample negative examples from top retrieved results from rank 𝑖 to rank 𝑗 using the hybrid retrieval model described in Section 2.2. We skip the first 𝑖 results to avoid false negatives. In addition, we ignore questions whose gold passage is below rank 𝑘. We use 15, 100, 5 for 𝑖, 𝑗 and 𝑘 in this work. We experiment with two ranking models: BERT-based reranking model and T5-based reranking model.</p><p>BERT-based reranking model is based on TFR-BERT model <ref type="bibr" coords="4,372.87,270.65,16.41,10.91" target="#b16">[17]</ref>. The passage for a given question is represented as "[CLS] question [SEP] passage [SEP]". The pooled BERT output is used as the ranking score. For all passages retrieved for a question, the ranking result is obtained by sorting the passages based on their ranking scores. The model is trained with softmax loss of list size 50. The model is implemented using the TFR-ranking package <ref type="foot" coords="4,413.22,323.09,3.71,7.97" target="#foot_1">3</ref> .</p><p>For T5-based reranking model, we only use the encoder and discard the decoder. We represent the question-passage pair as input sequence "Query: {question} Document: {passage}" and feed it into the encoder. The output of the encoder is the encodings of the input sequence. We then apply a projection layer on the encoding of the first token and the output is used as the ranking score. As with the BERT-based model, the ranking result of a given question is obtained by sorting the passages based on their ranking scores. We optimize the model using the listwise softmax cross entropy loss function. We implement the model using T5X <ref type="foot" coords="4,407.42,417.94,3.71,7.97" target="#foot_2">4</ref> and we also use RAX <ref type="bibr" coords="4,89.29,433.24,16.25,10.91" target="#b17">[18]</ref>, a learning-to-rank framework for implementing the ranking loss.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Distillation</head><p>The hybrid reranking model learns both the term matching and semantic similarity between question and passage pairs. We apply distillation to transfer the knowledge learned by the reranking model to the dual encoder model. We first train a T5-based dual encoder model <ref type="bibr" coords="4,89.29,523.62,17.92,10.91" target="#b18">[19]</ref> using synthetic training data and then run inference over the same synthetic dataset. We sample negative examples from the top K retrieved passages for each question. We then use the T5-based reranking model as the teacher and score each question-passage pair. To train the student dual encoder model, we use the weighted sum of batch softmax loss computed on in-batch negatives and ranking cross-entropy loss computed on sampled negatives using scores from the teacher model as soft labels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Evaluation</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data</head><p>We use the articles from the PubMed Annual Baseline Repository for 2021 <ref type="foot" coords="5,424.46,130.49,3.71,7.97" target="#foot_3">5</ref> as the document collection. During preprocessing, we break each article into passages of 300 tokens. For each passage in the article, we iterate over every sentence in the passage as target and generate one synthetic question from each target. We generate around 25 million unique synthetic questions in total. After filtering, around 7 million synthetic questions are left. We use the 5 test batches from BioASQ9b as the development set for hyperparameter tuning. It has 497 questions in total. We use the official 6 test batches for evaluation and each test batch is released every two weeks. Batch 1-5 contain 90 questions in each batch and batch 6 contains 37 questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Systems</head><p>We experiment with five retrieval models: BM25, which is a unigram model using the wordpiece tokenizer and the vocabulary of PubMed_BERT as described in section 2.1. Its IDF values are computed on the document collection. BERT DE, which is the BERT-based dual encoder model described in section 2.2. It is initialized from the pre-trained PubMed_BERT model. Hybrid, which is the hybrid of BM25 and BERT DE with 𝜆 = 50 which is achieved by running a grid search on the development set. Distill T5 DE is the distilled T5-based dual encoder model described in section 2.4. It is initialized from the PubMed_T5. Distill Hybrid is also a hybrid model of BM25 and Distill T5 DE with 𝜆 = 100.</p><p>In order to understand how the hybrid reranking model HybridRR performs on different retrieval models, we submitted three systems that use the same T5-based HybridRR model trained with the candidates generated from Hybrid retrieval model. We apply this reranking model on BM25, BERT DE and Hybrid respectively. We also submitted one system that uses BERT-based HybridRR model to understand how different pre-trained models affect the reranking model. In the later batches, we submitted two systems that use the reranking model Distill HybridRR trained from Distill Hybrid to understand the effectiveness of distillation. We apply this reranking model on Hybrid and Distill Hybrid separately. Finally, we submitted an ensemble system following the reciprocal rank fusion method (RRF) <ref type="bibr" coords="5,406.69,493.61,18.13,10.91" target="#b19">[20]</ref>. We compute the RRF score for a document 𝑑 as follows:</p><formula xml:id="formula_1" coords="5,241.11,529.46,111.86,29.64">𝑅𝑅𝐹 (𝑑) = ∑︁ 𝑟∈𝑅 1 𝑘 + 𝑟(𝑑)</formula><p>where 𝑟(𝑑) is the rank of document 𝑑 from system 𝑟, and we set 𝑘 = 0, after searching from [0, 100] with a step size 10.</p><p>We tried different combinations of above mentioned systems, and the ensemble of three systems that use the same T5-based HybridRR model outperforms other combinations when we evaluate on the development set. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Results and Analysis</head><p>Table <ref type="table" coords="6,118.69,493.93,5.11,10.91" target="#tab_0">1</ref> shows the official results of submitted systems. Not all systems were submitted to all batches as we updated models while the challenge was underway. We report the mean average precision (MAP) which is the official metric used in the task. The ensemble model showed in row 7 always outperforms the single models except on Batch 6. Our two-stage hybrid model in row 3 outperforms other single models; it achieves the best result among all participating systems in Batch 6.</p><p>After Batch 5, we noticed that some abstracts were missing after the prepossessing. We fixed the issue and re-evaluated Batch 1-5. Table <ref type="table" coords="6,310.89,588.77,5.04,10.91">2</ref> shows the updated results. Row 1-5 shows the results of first-stage retrieval systems. Row 6-10 shows the reranking results of different combinations of retrieval models and reranking models. As we can see, our two-stage hybrid model in row 8 outperforms the best reporting system and ensemble model (row 11). Comparing row 1,2 and 3, we can see that the hybrid retrieval model outperforms single retrieval models by 0.0375-0.052 points in average MAP. After applying the hybrid reranking model as shown in</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,88.99,90.49,416.99,355.37"><head>Table 1</head><label>1</label><figDesc>Mean average precision (MAP) official results for batches 1-6. "-" indicates that we did not submit those systems for official evaluations.</figDesc><table coords="6,88.99,131.73,416.99,314.13"><row><cell>Systems</cell><cell></cell><cell cols="6">Batch 1 Batch 2 Batch 3 Batch 4 Batch 5 Batch 6</cell></row><row><cell>1 BM25 + T5 HybridRR</cell><cell></cell><cell>-</cell><cell>0.3629</cell><cell>0.4087</cell><cell>0.3782</cell><cell>0.3675</cell><cell>0.1677</cell></row><row><cell>2 BERT DE + T5 HybridRR</cell><cell></cell><cell>-</cell><cell>0.3647</cell><cell>0.4151</cell><cell>0.3864</cell><cell>0.3593</cell><cell>0.1698</cell></row><row><cell>3 Hybrid + T5 HybridRR</cell><cell></cell><cell>-</cell><cell>0.3666</cell><cell>0.4256</cell><cell>0.3904</cell><cell>0.3687</cell><cell>0.1704</cell></row><row><cell>4 Hybrid + BERT HybridRR</cell><cell></cell><cell>0.4154</cell><cell>0.3506</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell></row><row><cell>5 Hybrid + Distill HybridRR</cell><cell></cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.3588</cell><cell>0.1553</cell></row><row><cell cols="2">6 Distill Hybrid + Distill HybridRR</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.3778</cell><cell>0.3572</cell><cell>0.1551</cell></row><row><cell>7 RRF (1, 2, 3)</cell><cell></cell><cell>-</cell><cell>-</cell><cell>0.4304</cell><cell>0.3913</cell><cell>0.3757</cell><cell>0.1657</cell></row><row><cell>Best Reporting System</cell><cell></cell><cell>0.4805</cell><cell>0.3977</cell><cell>0.5063</cell><cell>0.4058</cell><cell>0.4154</cell><cell>0.1704</cell></row><row><cell>Table 2</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="8">Mean average precision (MAP) results for development set (DEV) and updated results for test batches</cell></row><row><cell>1-5 and their AVG MAP.</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>Systems</cell><cell>DEV</cell><cell cols="5">Batch 1 Batch 2 Batch 3 Batch 4 Batch 5</cell><cell>AVG</cell></row><row><cell>1 BM25</cell><cell>0.3514</cell><cell>0.3722</cell><cell>0.3054</cell><cell>0.3558</cell><cell>0.2852</cell><cell>0.3214</cell><cell>0.3280</cell></row><row><cell>2 BERT DE</cell><cell>0.3262</cell><cell>0.3357</cell><cell>0.2740</cell><cell>0.3432</cell><cell>0.2977</cell><cell>0.3172</cell><cell>0.3136</cell></row><row><cell>3 Hybrid</cell><cell>0.4113</cell><cell>0.4121</cell><cell>0.3197</cell><cell>0.3820</cell><cell>0.3522</cell><cell>0.3615</cell><cell>0.3655</cell></row><row><cell>4 Distill T5 DE</cell><cell>0.3524</cell><cell>0.3167</cell><cell>0.2917</cell><cell>0.3141</cell><cell>0.3394</cell><cell>0.2972</cell><cell>0.3118</cell></row><row><cell>5 Distill Hybrid</cell><cell>0.4163</cell><cell>0.3944</cell><cell>0.3291</cell><cell>0.3885</cell><cell>0.3544</cell><cell>0.3620</cell><cell>0.3657</cell></row><row><cell>6 BM25 + T5 HybridRR</cell><cell>0.4563</cell><cell>0.4451</cell><cell>0.3946</cell><cell>0.4493</cell><cell>0.3963</cell><cell>0.3972</cell><cell>0.4165</cell></row><row><cell>7 BERT DE + T5 HybridRR</cell><cell>0.4492</cell><cell>0.4524</cell><cell>0.3940</cell><cell>0.4506</cell><cell>0.4054</cell><cell>0.3996</cell><cell>0.4204</cell></row><row><cell>8 Hybrid + T5 HybridRR</cell><cell>0.4633</cell><cell>0.4542</cell><cell>0.3984</cell><cell>0.4568</cell><cell>0.4093</cell><cell>0.3994</cell><cell>0.4236</cell></row><row><cell>9 Hybrid + DistillHybRR</cell><cell cols="2">0.4661 0.4696</cell><cell>0.3918</cell><cell>0.4439</cell><cell>0.4089</cell><cell>0.3898</cell><cell>0.4208</cell></row><row><cell cols="2">10 DistillHyb + DistillHybRR 0.4609</cell><cell>0.4685</cell><cell>0.3902</cell><cell>0.4480</cell><cell>0.4070</cell><cell>0.3911</cell><cell>0.4210</cell></row><row><cell>11 RRF (6, 7, 8)</cell><cell>0.4643</cell><cell>0.4571</cell><cell>0.3973</cell><cell>0.4586</cell><cell>0.4087</cell><cell cols="2">0.4065 0.4256</cell></row><row><cell>Best Reporting System</cell><cell></cell><cell>0.4805</cell><cell>0.3977</cell><cell>0.5063</cell><cell>0.4058</cell><cell>0.4154</cell><cell>0.4411</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,108.93,671.01,143.82,8.97"><p>gs://t5-data/pretrained_models/t5.1.1.xl   </p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="4,108.93,659.97,141.03,8.97"><p>https://github.com/tensorflow/ranking</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="4,108.93,670.93,143.00,8.97"><p>https://github.com/google-research/t5x</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3" coords="5,108.93,670.98,167.89,8.97"><p>https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"> <ref type="table" coords="7,211.45,283.62,5.12,10.91">2</ref> <p>and report the performance of each question type and weighted average (WAVG) since the number of questions for each question type is different in each batch. There are four question types, namely factoid, list, Yes/No and summary. For factoid type questions, an entity name, a number or a short answer span is expected in the retrieved passages. For list type questions, a list of entity names, numbers or answer spans is expected in the retrieved passages. For Yes/No type questions, "Yes" or "No" answers are expected to be derived from the retrieved passages. For summary type questions, it contains questions that can not be categorized as the above three types. As we can see from Table <ref type="table" coords="7,406.48,378.47,3.75,10.91">3</ref>, the performance for each type varies between different batches. In general, the set achieving higher recall always achieves higher MAP. When examining the set that has the worst performance, summary questions from Batch 1, factoid questions from Batch 2 and 4, Yes/No questions from Batch 3 and 5, and List questions from Batch 6, we notice that List type questions are more difficult than the other three types as knowledge aggregation from different documents is usually expected. From the example in Table <ref type="table" coords="7,182.68,459.76,4.97,10.91">4</ref> it shows that the expected passages should contain answer snippets that are names of specific tools to predict protein structure and they are from different documents. While the top retrieved passages except P4 contain only high level descriptions instead of specific tools. In addition, we also note that for many questions, predictions are actually correct, but due to the annotation sparsity, they are counted as incorrect, especially for Factoid and Yes/No types questions (i.e., there are many false-negatives in the gold dataset). A metric that can evaluate whether the retrieved passages contain the answer spans may be more ideal for those two types of questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusion</head><p>We presented our participating system in the 10th BioASQ challenge document retrieval subtask. We implemented a zero-shot two-stage hybrid model that includes a hybrid retrieval model consisting of BM25 and a dual encoder model, and a reranking model trained with the candidates retrieved from the first stage. Our hybrid retrieval model combined with T5-based reranking model outperforms best reporting system on test Batch 2, 4, and 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 4</head><p>An example of "List" type question in Batch 6 and top predictions from our model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Question</head><p>Are there any tools that could predict protein structure considering amino acid sequence? Answer Snippets A1: PredictProtein (https://predictprotein.org) is a one-stop online resource for protein sequence analysis A2: Jpred (http://www.compbio.dundee.ac.uk/jpred) is a secondary structure prediction server A3: The recently updated Jnet algorithm provides a three-state (alpha-helix, beta-strand and coil) prediction of secondary structure at an accuracy of 81.5% A4: Porter 4.0 and PaleAle 4.0. Porter 4.0 predicts secondary structure correctly for 82.2% of residues A5: The PSIPRED Workbench is a web server offering a range of predictive methods Predictions P1: ... To deal with the overwhelming data, a collection of automated methods as bioinformatics tools which determine the structure of a protein from its amino acid sequence have emerged. The aim of this paper is to provide the experimental biologists with a set of cutting-edge, carefully evaluated, user-friendly computational tools for protein structure prediction ... P2: In principle, it is possible to predict theoretically the three-dimensional structure of a protein from its amino acid sequence. Recently substantial progress towards this goal has been made by the use of simple models to ... P3: Methods of predicting protein conformation from amino acid sequence are reviewed. Several widely used algorithms to predict local secondary structure are first discussed. Four general approaches to predict the tertiary structure are then described: ... Throughout this review, the likely success of these methods is considered. P4: Protein tertiary structure prediction algorithms aim to predict, from amino acid sequence, the tertiary structure of a protein. ... Here we briefly discuss protein tertiary structure prediction, the biennial competition for the Critical Assessment of Techniques for Protein Structure Prediction (CASP) and its role in shaping the field. We also discuss, in detail, our cutting-edge web-server method IntFOLD2-TS for tertiary structure prediction. Furthermore, we provide a step-by-step guide on using the IntFOLD2-TS web server....</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,567.84,394.61,10.91;8,112.66,581.39,144.07,10.91" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="8,272.72,567.84,180.04,10.91">Multi-stage document ranking with BERT</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/1910.14424" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,594.94,393.33,10.91;8,112.66,608.49,394.53,10.91;8,112.66,622.04,395.00,10.91;8,112.66,635.59,228.79,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,232.07,594.94,273.92,10.91;8,112.66,608.49,33.23,10.91">Rethink training of BERT rerankers in multi-stage retrieval pipeline</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-72240-1_26</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-72240-1_26" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,167.48,608.49,339.70,10.91;8,112.66,622.04,43.41,10.91">Advances in Information Retrieval: 43rd European Conference on IR Research, ECIR 2021</title>
+		<meeting><address><addrLine>Virtual Event</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021-04-01">March 28 -April 1, 2021. 2021</date>
+			<biblScope unit="page" from="280" to="286" />
+		</imprint>
+	</monogr>
+	<note>Part II</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,649.14,393.33,10.91;8,112.26,662.69,395.41,10.91" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/2101.05667" />
+		<title level="m" coord="8,254.01,649.14,251.98,10.91;8,112.26,662.69,197.89,10.91">The expando-mono-duo design pattern for text ranking with pretrained sequence-to-sequence models</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,86.97,395.17,10.91;9,112.66,100.52,394.04,10.91;9,112.66,114.06,268.34,10.91" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Narasimhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<ptr target="https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf" />
+		<title level="m" coord="9,377.84,86.97,129.99,10.91;9,112.66,100.52,156.85,10.91">Improving language understanding by generative pre-training</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,127.61,395.17,10.91;9,112.66,141.16,394.03,10.91;9,112.66,154.71,270.34,10.91" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="9,385.43,127.61,122.40,10.91;9,112.66,141.16,119.98,10.91">Language models are unsupervised multitask learners</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<ptr target="https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,168.26,394.53,10.91;9,112.66,181.81,393.33,10.91;9,112.66,195.36,394.62,10.91;9,112.31,208.91,389.60,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,272.86,181.81,168.81,10.91">Language models are few-shot learners</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">D</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Neelakantan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Shyam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Askell</surname></persName>
+		</author>
+		<ptr target="https://proceedings.neurips.cc/paper/2020/file/1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,463.76,181.81,42.23,10.91;9,112.66,195.36,186.76,10.91">Advances in neural information processing systems</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="1877" to="1901" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,393.33,10.91;9,112.66,236.01,393.33,10.91;9,112.66,249.56,393.32,10.91;9,112.66,263.11,393.33,10.91;9,112.66,276.66,394.03,10.91;9,112.66,290.20,93.34,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,323.15,222.46,182.83,10.91;9,112.66,236.01,186.91,10.91">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/N19-1423" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,327.87,236.01,178.11,10.91;9,112.66,249.56,393.32,10.91;9,112.66,263.11,99.97,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Long and Short Papers</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,303.75,394.53,10.91;9,112.66,317.30,393.33,10.91;9,112.66,330.85,394.04,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,112.66,317.30,341.66,10.91">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<ptr target="http://jmlr.org/papers/v21/20-074.html" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,462.63,317.30,43.36,10.91;9,112.66,330.85,123.70,10.91">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,344.40,393.33,10.91;9,112.66,357.95,394.53,10.91;9,112.41,371.50,252.83,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,355.95,344.40,150.04,10.91;9,112.66,357.95,251.54,10.91">BioBERT: a pre-trained biomedical language representation model for biomedical text mining</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yoon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">H</forename><surname>So</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kang</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/bioinformatics/btz682</idno>
+		<ptr target="https://doi.org/10.1093/bioinformatics/btz682" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,372.87,357.95,64.30,10.91">Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page" from="1234" to="1240" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,385.05,394.53,10.91;9,112.66,398.60,393.33,10.91;9,112.66,412.15,394.03,10.91;9,112.41,425.70,158.18,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,178.36,398.60,109.20,10.91">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">U</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/7181-attention-is-all-you-need.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,311.09,398.60,194.89,10.91;9,112.66,412.15,33.44,10.91">Advances in neural information processing systems</title>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,439.25,393.33,10.91;9,112.66,452.79,393.33,10.91;9,112.66,466.34,273.20,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,294.45,439.25,211.54,10.91;9,112.66,452.79,39.08,10.91">Hybrid first-stage retrieval models for biomedical literature</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Korotkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">T</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/paper_92.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,182.34,452.79,323.65,10.91;9,112.66,466.34,26.38,10.91">Working Notes of CLEF 2020 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,479.89,393.33,10.91;9,112.39,493.44,393.60,10.91;9,112.66,506.99,394.53,10.91;9,112.66,520.54,313.65,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,354.47,479.89,151.52,10.91;9,112.39,493.44,217.50,10.91">Zero-shot neural passage retrieval via domain-targeted synthetic question generation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Korotkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">B</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">T</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<ptr target="https://aclanthology.org/2021.eacl-main.92/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,351.87,493.44,154.11,10.91;9,112.66,506.99,355.88,10.91">Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</title>
+		<meeting>the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="1075" to="1088" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,534.09,393.32,10.91;9,112.66,547.64,393.53,10.91;9,112.66,561.19,395.00,10.91;9,112.66,574.74,61.46,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,338.19,534.09,167.79,10.91;9,112.66,547.64,94.04,10.91">Synthetic QA corpora generation with roundtrip consistency</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Alberti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Andor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Pitler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Collins</surname></persName>
+		</author>
+		<ptr target="https://aclanthology.org/P19-1620" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,229.58,547.64,276.61,10.91;9,112.66,561.19,114.34,10.91">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="6168" to="6173" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,588.29,393.33,10.91;9,112.66,601.84,393.33,10.91;9,112.28,615.39,395.39,10.91;9,112.66,628.93,221.78,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,470.88,588.29,35.11,10.91;9,112.66,601.84,296.24,10.91">PAQ: 65 million probably-asked questions and what you can do with them</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Minervini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Küttler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Piktus</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Stenetorp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Riedel</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/tacl_a_00415</idno>
+		<ptr target="https://aclanthology.org/2021.tacl-1.65.doi:10.1162/tacl_a_00415" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,418.40,601.84,87.58,10.91;9,112.28,615.39,187.73,10.91">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="1098" to="1115" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,642.48,394.53,10.91;9,112.66,656.03,393.33,10.91;9,112.66,669.58,393.57,10.91;10,112.33,86.97,250.71,10.91" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="9,296.27,656.03,209.72,10.91;9,112.66,669.58,87.05,10.91">Natural questions: a benchmark for question answering research</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kwiatkowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Palomaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Redfield</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Collins</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Alberti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Epstein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<ptr target="https://aclanthology.org/Q19-1026" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,211.10,669.58,286.47,10.91">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="453" to="466" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,100.52,393.33,10.91;10,112.66,114.06,393.33,10.91;10,112.66,127.61,394.52,10.91;10,112.66,141.16,273.09,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="10,320.68,100.52,185.30,10.91;10,112.66,114.06,98.54,10.91">SQuAD: 100,000+ questions for machine comprehension of text</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rajpurkar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lopyrev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Liang</surname></persName>
+		</author>
+		<ptr target="https://aclanthology.org/D16-1264" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,233.64,114.06,272.35,10.91;10,112.66,127.61,324.64,10.91">Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing, Association for Computational Linguistics</title>
+		<meeting>the 2016 Conference on Empirical Methods in Natural Language Processing, Association for Computational Linguistics<address><addrLine>Austin, Texas</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="2383" to="2392" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,154.71,394.52,10.91;10,112.66,168.26,194.16,10.91" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="10,308.07,154.71,194.06,10.91">Learning-to-rank with BERT in TF-Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bendersky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/2004.08476" />
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,181.81,355.69,10.91;10,487.58,181.81,19.70,10.91;10,112.66,195.36,198.63,10.91;10,331.28,195.36,174.71,10.91;10,112.66,208.91,308.11,10.91;10,440.44,208.91,66.75,10.91;10,112.66,222.46,394.04,10.91;10,112.66,236.01,222.62,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="10,487.58,181.81,19.70,10.91;10,112.66,195.36,193.36,10.91">Rax: Composable learning-to-rank using JAX</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jagerman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhuang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bendersky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+		<ptr target="https://storage.googleapis.com/pub-tools-public-publication-data/pdf/585d520959bb08dbb25b8dc60ff6aeb6eadc59dd.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,354.96,195.36,151.03,10.91;10,112.66,208.91,308.11,10.91;10,440.44,208.91,61.69,10.91">Proceedings of the 28th ACM SIGKDD International Conference on Knowledge Discovery Data Mining</title>
+		<meeting>the 28th ACM SIGKDD International Conference on Knowledge Discovery Data Mining</meeting>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,249.56,394.53,10.91;10,112.34,263.11,394.35,10.91;10,112.66,276.66,50.45,10.91" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="10,149.86,263.11,208.36,10.91">Large dual encoders are generalizable retrievers</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">H</forename><surname>Ábrego</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><forename type="middle">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">B</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/2112.07899" />
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,290.20,393.33,10.91;10,112.66,303.75,393.33,10.91;10,112.66,317.30,394.53,10.91;10,112.28,330.85,395.00,10.91;10,112.31,344.40,154.13,10.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="10,305.76,290.20,200.23,10.91;10,112.66,303.75,169.31,10.91">Reciprocal rank fusion outperforms condorcet and individual rank learning methods</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Buettcher</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1571941.1572114</idno>
+		<ptr target="https://doi.org/10.1145/1571941.1572114" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,307.29,303.75,198.70,10.91;10,112.66,317.30,390.58,10.91">Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;09</title>
+		<meeting>the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;09<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="758" to="759" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

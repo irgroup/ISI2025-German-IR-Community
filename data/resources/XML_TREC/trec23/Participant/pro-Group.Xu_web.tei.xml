@@ -1,0 +1,707 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,126.40,91.09,344.29,12.90">Towards a Simple and Efficient Web Search Framework</title>
+				<funder ref="#_pxG3VHd">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,249.61,119.70,25.79,10.29"><forename type="first">Di</forename><surname>Xu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution" key="instit1">Language Technologies Institute</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,283.81,119.70,63.67,10.29"><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+							<email>callan@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution" key="instit1">Language Technologies Institute</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,126.40,91.09,344.29,12.90">Towards a Simple and Efficient Web Search Framework</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CEEF8F5EF7E955EA52A367BD6CD6C6EA</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:08+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Information retrieval</term>
+					<term>search engine</term>
+					<term>language Model</term>
+					<term>learning to rank</term>
+					<term>machine learning</term>
+					<term>data fusion</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The Web Track of 2014 Text REtrieval Conference (TREC) addresses the most fundamental problem of Information Retrieval. We did not intend to craft a system that beats the state-of-the-art search engines, but to design a light weight and cost-effective system with comparable performances. We introduce a twopass retrieval framework, with the first pass consisting of a simple and efficient retrieval model that focuses on recall, and the second pass a wave of feature extraction algorithms run on the set of top ranked documents, followed by Learning to Rank (LETOR) algorithms that provide different precision oriented rankings, and their outputs are combined using data fusion. We have focused on using statistical Language Models with novel and well-known smoothing techniques, different LETOR methods, and various data fusion techniques. In addition, we have also tried using topic modelling with Hierarchical Dirichlet Allocation for query expansion in the hope of improving diversity of our results. However, the topic modelling approach has turned out to be unsuccessful, and we have not been able to spot the problem and benefit from it in this work. In addition, we also present some further analyses demonstrating that our approach is robust against overfitting, and some general studies on overfitting in the context of LETOR.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Ad-hoc retrieval addresses the most fundamental problem of Information Retrieval (IR) and has been studied extensively for decades. Cliche as the topic sounds to most IR researchers, there has been no single retrieval model proposed in the past that consistently out performs others in general, and none of the existing approaches has the performance that is close to human. In essence, the task requires the machine to be equipped with the ability to accurately rank a document among others according to its relevance to a given query, which requires a high level of algorithmic approximation to human intelligence. The algorithm not only needs to be able to understand the content of a document and compare it with other candidates, but also to interpret a query and enumerate multiple topics that the query may address. Therefore, as long as Artificial Intelligence remains under study, the fundamental problem of IR will continue to remain unsolved.</p><p>The introduction of the well-known retrieval models introduced in the past decades can be found in many well written literatures such as <ref type="bibr" coords="1,141.91,692.65,9.52,7.77" target="#b0">[1]</ref>, thus we will skip the introduction of those well-known retrieval methods such as BM25, Vector Space Models and Language Modelling approaches. In short, the methods that have proved to be effective eventually come to an agreement when calculating the statistics from documents. It is remarkable that tf-idf heuristics still lies in the hard of most retrieval methods, although they may be developed upon different theories and assumptions.</p><p>Various applications of Machine Learning (ML) methods in IR tasks has been proposed and studied extensively in the past decade. It is becoming even more popular nowadays with the advancement of ML techniques, bringing IR up to a new level. The typical form of applying ML techniques in retrieval tasks is Learning to Rank (LETOR). One advantage of LETOR is that it allows incorporating features that addresses various characteristics of a document and its relevance to a topic. Many of such features cannot be easily integrated in the formulae of conventional retrieval models due to lack of theoretical foundations. Therefore, leaving them to a regression model can at least harvest some benefits, even though we do not know the exactly correct way of calculating the relevance scores.</p><p>In spite of the abundant works done in the past, most works were validated on relatively small datasets and failed to address the scalability issue in the scale of the web. Web scale applications impose challenges upon the original ad-hoc retrieval problem, as the number of documents to be ranked is magnitudes larger for some existing system to handle. This is particularly important as web services are meant to be fast and reliable. Another important aspect of web search is that a significant portion of web texts are spam that seriously affects the retrieval quality, while most retrieval models are quite vulnerable to spam. Therefore, the precision of web search is typically low. On the other hand, diversity has also been regarded as an important aspect of web search quality, because many top ranked documents tend to suffer from redundancy issues.</p><p>People participated in previous years' Web Tracks have tried improving retrieval performances from many aspects. Some tried enhancing the low-level knowledge representation of text, such as using Latent Semantic Indexing. More recently, in <ref type="bibr" coords="1,322.60,566.18,9.52,7.77" target="#b1">[2]</ref>, Quantum Language Models were used, and documents and queries were associated with a density matrix. Some other works such as <ref type="bibr" coords="1,365.65,587.00,9.52,7.77" target="#b2">[3]</ref>, where clustering was performed on the documents to exploit document wise distance and semantic relationships to improve document ranking. To tackle with noisy web text, <ref type="bibr" coords="1,347.80,618.23,10.45,7.77" target="#b3">[4]</ref> tried utilizing the name entities from the Freebase Dump provided by Google Inc., which was reported to be effective in enhancing precision. Moreover, in their work, term proximity was also considered beyond the bag-of-words representation, and a modified version of BM25 was used to incorporate phrase frequencies when computing document scores. Apart from those, there are many other promising approaches presented in the past. However, very few of them are promising in a practical sense, because most of them rely heavily on sophisticated document representations and machine learning algorithms, which are not scalable in real world web search applications.</p><p>We aim to design a simple precision oriented system that does not rely on external resources such as spam ranking scores or introduce extra processing engines such as name entity recognizer. We expect our system to be able to retrieve documents as efficient as possible, without sacrificing too much of the performance and still achieve competent precision and normalized Discounted Cumulative Gain (nDCG).</p><p>In the rest of this paper, we will introduce the general pipeline of our retrieval system in Section 2, followed by an introduction to novel Language Modelling approaches in Section 3 that were used to generate features, and later in Section 4 we introduce all other features and the LETOR algorithms. In addition, we also introduce our failed attempt of using topic models to perform query expansion to capture documents of multiple topics in section 5, and a brief reflection on why this approach did not work. Finally in section 7 we report and discuss the evaluation results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">General Pipeline</head><p>Our goal is set to design a system as simple as possible, without using any external processing engine or resources, other than the standard Indri toolkit and a third party LETOR toolkit. We have implemented most of our ranking algorithms implemented using Lucene.</p><p>We introduce a two-pass retrieval framework, where in the first pass we aim to retrieve as many relevant document as possible to ensure a reasonable level of recall, and in the second pass we process all the retrieved documents in the first pass and extract features. Those features are then piped into different LETOR algorithms to produce several rank lists, and eventually all the rank lists are merged using the conventional Reciprocal Rank based data fusion method.</p><p>In detail, in the first pass we use the standard Indri retrieval algorithm and BM25 with pseudo relevance feedback on the top 10 highest ranked documents. The parameters of the two-stage smoothing used by Indri and BM25 were tuned to optimize recall instead of precision, since the goal in the first pass is to secure the recall of the final ranking. The goal of using both Language Model based two-stage smoothing and tf-idf based BM25 is that although they have demonstrated the same level of performance empirically, the two methods are complimentary as they tend to retrieve different sets of relevant documents. Therefore by merging the results returned by both rankers, we can harvest more relevant documents for further processing and re-ranking. The implementation of Indri's Search Engine allows fast and parallel search over the entire ClueWeb12 corpus. After we obtain the two rank lists generated using Indri, we fuse them using the Reciprocal Rank method to generate a baseline rank list, which is the final product of the first pass. In the fused rank list, we reserve only the top 100,000 documents for each query.</p><p>In the second pass, we extract various features that address the relevance of a document to the query, and also some other features that independently reflects the document's characteristics. In particular, the features we have extracted consists of document-level and field-level relevance scores computed using some well-known and novel ranking methods, and some simple heuristic statistics that are likely to be associated to spam, and other basic features such as document length. We have also studied some less recognized but interesting language models in Section 3. A more detailed summary of all features used in this stage and the ensuing LETOR algorithms are presented in Section 4. Multiple LETOR algorithms were used in this stage to provide different rank lists for the same query. To properly merge these results, we have compared several data fusion techniques, including Reciprocal Rank, Borda Count and Condorcet method, and have found that Reciprocal Rank is more effective than the other two methods. A brief introduction and comparison of the three methods will be discussed in Section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Discriminative Language Models</head><p>There have not been many efforts invested recently in the development of statistical language models (LM) and smoothing techniques applied in Information Retrieval. One important reason is that the assumption on the distribution of token types that most LMs are based does not hold noisy data such as web text or twitter data. In web text, the type-token curve is less linear comparing to those of standard text corpus such as Wall Street Journal where most LMs and smoothing techniques were validated. LMs need to be able to evaluate query terms in a discriminative manner in order to do better in web search.</p><p>One simple idea is to introduce a Negative Language Model (NLM) that accounts for common terms that are less meaningful and mostly useless. This is analogous to idf heuristics, but has better statistical foundations in the domain of statistical LMs. One interesting work on NLM that we consider is "Negative Query Generation" proposed by Zhai and Lv in <ref type="bibr" coords="2,526.79,325.61,9.52,7.77" target="#b4">[5]</ref>.</p><p>In their work, a denominator is introduced which addressed the generation probability of a "negative query" from a document, which they interpret as the probability that a user who dislikes the document would choose to use this query. Intuitively, this can be regarded as measuring how far the query is from the document in terms of the distance between their corresponding LMs. With this idea, they have extended the traditional Dirichlet Smoothing to discriminate documents based on the corresponding query likelihood with negative query generation. Their reported results on WT10G have demonstrated a certain level of success. Therefore, we have implemented their proposed LM with negative query generation, denoted as Dir-XQL.</p><p>Motivated by XQL, we have also come up with a similar discriminative model based on Jelinek-Mercer Smoothing, denoted by JM-XQL.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Features and Learning to Rank</head><p>Apart from Indri, BM25, Dir-XQL and JM-XQL, we have also implemented some other smoothing techniques such as Good Turing and Absolute Discounting, and different similarity measures such as cosine similarity and KL divergence. In addition to the scores of the document given by different rankers, we have also computed the scores particularly for the body and anchor text of the documents, as they are likely to contain information about the topic if the document is relevant. Moreover, we have also recorded the corresponding scores for each query term, and on top of that, computed the harmonic mean, geometric mean, variance and skewness. Our assumption is that if a document is relevant to the query, it should address as many of the query terms as possible.</p><p>We have also designed some heuristics features. We have introduced a binary value addressing if at least one of the query terms appeared in the title and URL, as we assume some of the relevant documents may have parts of the query in their title and URL. Moreover, the contextual distribution of the query terms are investigated and for terms that appear more than once in a document, we measure the mean, variance and skewness of the contextual distance between their occurrences, normalized by the length of the document. These features are designed to target some query terms that appear too frequently, thus are less meaningful and more likely to associate with spam.</p><p>Nonetheless, we also included some basic document statistics such as the document vocabulary size, field lengths, and skewness of document term frequencies. These features are helpful in lowering the score for very long and potentially spam documents. There are also features taken from the query that are independent from documents, including query length, the average, minimum, maximum of the collection frequencies of the query terms.</p><p>Multiple LETOR methods have been tried, which are different in many ways and we expect them to be complimentary during the final fusion.</p><p>Simple K-nearest neighbour (KNN) with K set to 20 and Regression Tree was used to perform point-wise LETOR. They are expected to works well when the features independently address different aspects of the documents, but are more sensitive to noises and less effective when the dimension of the feature vector is too high. Our intuition is that rank lists generated by point-wise methods are better at the top potions, but the precision drops quickly if we go further down the list, as they are prone to over-fit to certain features that are most dominating.</p><p>We have tried using Support Vector Regression (RankSVM) with linear kernel for pairwise LETOR, and were trained on a set of error pairs collected using the "web2013" relevance judgments file. We expect the pairwise methods to perform better than point-wise approaches, as the features collected from the error pairs are more meaningful as they define relative distances.</p><p>For list-wise LETOR, we are using ListNet <ref type="bibr" coords="3,229.79,390.45,9.52,7.77" target="#b5">[6]</ref>, which uses a simple one layer Neural Network with Gradient Decent to optimize a defined list-wise loss function based on "top one probability". The list-wise approach was proved to be more effective than pairwise and point-wise approaches, as its optimization criterion is closer to the actual evaluation metrics. According to <ref type="bibr" coords="3,67.31,452.91,61.76,7.77" target="#b5">Cao et al. (2007)</ref>, the loss function of the pairwise LETOR methods are not inversely correlated with NDCG or other precision oriented metrics, whereas the loss function for list-wise LETOR methods was demonstrated to be completely inversely correlated to those metrics. They also pointed out that pairwise methods converge more slowly than list-wise methods, making it more difficult to train and reach an optimal solution. For both RankSVM and ListNet, we have adopted the implementations from RankLib, which is part of the Lemur Project <ref type="bibr" coords="3,238.40,536.20,9.52,7.77" target="#b6">[7]</ref>.</p><p>In addition, we have also tried using Genetic Programming (GP) <ref type="bibr" coords="3,77.72,557.02,10.45,7.77" target="#b7">[8]</ref> based LETOR, which is a new generation of LETOR approaches. The implementation of the GP learner was provided by "the Learning to Rank Library" from Yandex School of Data Analysis <ref type="bibr" coords="3,110.40,588.25,9.52,7.77" target="#b8">[9]</ref>. According to the authors, GP based LETOR was able to achieve competitive performance with RankSVM and RankBoost, but its computational cost is higher. The nature of GP algorithms is also prone to overfitting.</p><p>All of the eager learning models were trained with 10-fold cross validation.</p><p>It is also worth noticing that even though most of these features are directly consistent to the relevance of a document to a query, none of our LETOR methods include diversity into account. This is because we were counting on topic modelling based query expansion to improve diversity performance, such that we have not defined a dedicated list-wise optimization criterion on top of the rank list that addresses diversity. How to optimize towards diversity under the context LETOR is yet another problem to be studied in future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Query Expansion with Topic Modelling</head><p>Topic models have been widely studied for a long time <ref type="bibr" coords="3,509.55,93.73,14.94,7.77" target="#b9">[10]</ref> and has proved to be useful in many applications <ref type="bibr" coords="3,476.41,104.15,13.74,7.77" target="#b10">[11]</ref>, even for applications that does not deal with natural languages at all <ref type="bibr" coords="3,522.31,114.56,13.74,7.77" target="#b11">[12]</ref>. Latent Dirichlet Allocation (LDA) <ref type="bibr" coords="3,442.11,124.97,14.94,7.77" target="#b12">[13]</ref> is one popular implementation of topic models and have demonstrate its effectiveness in many tasks <ref type="bibr" coords="3,381.82,145.79,14.94,7.77" target="#b13">[14]</ref>  <ref type="bibr" coords="3,399.00,145.79,13.74,7.77" target="#b14">[15]</ref>.</p><p>We have tried query expansion based on topic models to address the diversity issue which is natural to web search. The intuition is to use LDA to identify potential topics from the top ranked documents. Originally, this was performed after the first pass when most of the relevant documents are assumed to be retrieved by using BM25 and Indri with pseudo relevance feedback. And we hopped to be able to generate weighted distribution of words that could potentially identify multiple topics of a query from the top ranked documents, and by using these approximations of multiples topics, we can perform multiple searches for the same query with different expansions, followed by separate LETOR for each expanded query, and eventually merge the results with data fusion.</p><p>Unfortunately, the LDA based topic mining approach has failed in this task. The resulting topics generated by the topic model did not carry any useful information about the various aspects of a topic. For example, for the query "raspberry pi", it covers topics such as "what is raspberry pi", "making a raspberry pi". However, the topics generated based on the 10 top ranked documents do not make much sense to us in terms of their keywords, as presented in Table <ref type="table" coords="3,459.22,364.42,3.36,7.77">1</ref>. It is obvious that the "topics" generated by LDA do not really characterize the real topics of relevance, and were completely overwhelmed by words that have nothing to do with the query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Topic</head><p>Key terms in topic 1 blog,fedora,boards,35,manufacture,march,price 2 jacob,colours,cut,acrylic,related,blogthi,twitter 3 hardware,high,finally,propaganda,suede,batch,vodka Table <ref type="table" coords="3,335.93,470.26,3.49,7.77">1</ref>: Top terms (with the highest weights) for the topics generated by the LDA topic model for query "raspberry pi".</p><p>One simple explanation is that web texts are too noisy and unfocused for the LDA process to stabilize on the real topics that we are interested. This makes sense because most web documents does not focus on one specific topic, the vocabulary is large, and thus the LDA requires more documents of the same topic to take effect. However, under the context of web search, this is not feasible because very few documents are as focused as what the LDA model expects. In order for the topic modelling approach to work as we expect, the first pass rank list must already have a high precision in the top of the list, but this is not feasible in the first pass as our first pass retrieval focuses on recall instead of precision. Therefore, we can conclude that in the context of web search, we cannot use topic modelling approach to extract topics in an early stage.</p><p>One potential alternative is to use the Dominating Set Approximation method (DSPapprox) <ref type="bibr" coords="3,436.71,659.20,14.94,7.77" target="#b15">[16]</ref> on the top portion of the first pass rank list iteratively, which is yet another problem to be studied in future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Data Fusion</head><p>Data fusion has been proved useful in improving retrieval performances, especially when the systems to be combined carry different sources of information and are complimentary to each other. Data fusion algorithms can be divided into two groups, with one utilizes the scores of the posting lists during the combination, while the other considers only the rank positions. Many previous studies on Data fusion <ref type="bibr" coords="4,177.74,119.76,14.94,7.77" target="#b16">[17]</ref> [18] <ref type="bibr" coords="4,214.12,119.76,14.94,7.77" target="#b18">[19]</ref> suggested that when the scores of the systems to be combined are commensurable, using score based fusion methods are better than using only the rank positions, but when the scores are incompatible or if the systems generate different rank-score curves, rank based fusion techniques are better. The latter is typical in our case because the scores generate by different LETOR algorithms are different in terms of scale and rank-score curves.</p><p>In particular, we have compared Reciprocal Rank, Borda Count <ref type="bibr" coords="4,82.51,213.46,14.94,7.77" target="#b19">[20]</ref> and Condorcet method <ref type="bibr" coords="4,186.58,213.46,13.74,7.77" target="#b20">[21]</ref>. The latter two methods came from social theory of voting. On the Web Track 2013 query set, we performed data fusion on the posting lists generated by some of the LETOR algorithms mentioned above. We chose to only use the top ranked 100 documents to perform the experiments because Condorcet method requires global ranking information and does not scale with much longer posting lists.</p><p>We have observed that Reciprocal Rank significantly outperformed Borda Count and Condorcet method by more than 0.03 absolute in prec@30 and more than 0.05 in nDCG@30, whereas the performance of the latter two were very similar. This observation is similar to that in <ref type="bibr" coords="4,191.74,327.98,13.74,7.77" target="#b21">[22]</ref>, and it is likely to be the case that false positives that are common in all 4 posting lists will likely to receive higher ranking than true positives that are supported by a subset of posting lists. Our LETOR algorithms behave differently on some topics, but Condorcet method tends to ignore high votes from the minority, but instead prefer weak votes from the majority. Therefore, we have adopted Reciprocal Rank as the data fusion techniques in our final submissions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Evaluation Results and Analyses</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1.">Submission Results</head><p>The evaluation results for our submissions on Web Track 2014 are shown in Table <ref type="table" coords="4,126.40,466.16,4.48,7.77" target="#tab_0">2</ref> and<ref type="table" coords="4,147.83,466.16,3.36,7.77" target="#tab_1">3</ref>. We have submitted 3 runs. Zerg run came from a primitive system that does not perform LETOR, and instead performs data fusion directly on posting lists generated by different rankers such as BM25, Indri, XQL, etc., which we regard as our baseline performance since LETOR was not applied. Protoss run was generated exactly by our two-pass retrieval and ranking system introduced in this paper. Terran was a slight modification of Protoss, and it did not involve KNN during the data fusion stage. We excluded KNN for the consideration because it is a lazy learning algorithm which contradicts to our goal of generating a simple and efficient retrieval framework, and also for the fact that KNN is unstable and sensitive to noises.  shown to be significantly better with strong evidence. This also suggests that our LETOR framework is effective in improving the overall precision.</p><p>We are not surprised that our systems did not work well on diversity metrics as shown in Table <ref type="table" coords="4,454.56,230.88,3.36,7.77" target="#tab_1">3</ref>, because the diversity module of our system was not functioning as we expected and eventually we chose to not to include it in our pipeline. Still, at least we are not significantly worse than the median.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.2.">Overfitting Analyses</head><p>We are interested in whether our features are effective and to see if the LETOR models trained on top of those features are robust against overfitting. We have conducted several sensitivity analyses on the learning curve of ListNet on both the training (Web 2013) and testing (Web 2014) query sets. Our assumption is that if our features are effective and not random there is less chance for the model to overfit to randomness in the training data, thus its performance on the training query set is supposed to be close to that on the testing query set. It can be observed through Figure <ref type="figure" coords="4,452.77,619.78,4.48,7.77" target="#fig_1">1</ref> that our features work well with ListNet in terms of robustness against overfitting. This experiment indicates that our features are not sensitive to the queries because we are validating on a different query set. This suggests that our features are stable with respect to different kinds of queries.</p><p>Following this intuition, we are also interested in whether our features are still robust when the underlying dataset has changed. To simulate such condition, we took one step further and re-performed the feature extractions on the ClueWeb12-B13 dataset, which is a small sample (50 million documents) of the full dataset (733 million documents). We then observed again how the LETOR performance differs on the two query sets. According to Figure <ref type="figure" coords="5,149.82,313.63,3.36,7.77" target="#fig_2">2</ref>, it appears that the performance of ListNet on Web 2013 and 2014 are still consistent with respect to the number of iterations used for the NN training, even if for Web 2014 the features were extracted based on a much smaller dataset. This also suggests that our features are not sensitive to the change of dataset, and they reflect general characteristics of a document being relevant or irrelevant to a general query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.3.">Reflections</head><p>In table 4, we compare our gdeval results with some well-known teams who have participated in the Web Track in the past. It is remarkable that top ranked teams such as ICTNET udel fang and uogTr all featured in using the provided Freebase entity annotations to achieve impressive performances.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Group</head><p>Run ERR@20 nDCG@20 ICTNET ICTNET14ADR1 0.208 ( Comparing to all automatic runs, our Terran run won the 3rd place in the list in terms of both ERR@20 and nDCG@20, according to Table <ref type="table" coords="5,129.36,637.88,4.48,8.06" target="#tab_0">2</ref> of the TREC 2014 Web Track Overview <ref type="bibr" coords="5,57.60,648.64,13.74,7.77" target="#b23">[24]</ref>. This suggests that our approach works reasonably well and our goal of constructing an low-cost and effective retrieval framework was a partial success, in terms of non-diversity metrics. We have chosen not to use the provided Freebase entity annotations because it contradicts to our goal of keeping the system simple, because entity annotations are not always available in real world and real time web search.</p><p>Of course, our goal has not been completely fulfilled yet because our diversity performance was mediocre at best. We were not surprised because we eventually gave up on improving the diversity performance, as we also need to submit our result for the Contextual Suggestion Track. It is worth noticing that the teams that achieved good diversity performance all featured in using entity based query expansion techniques. Therefore, improving diversity without explicit entity recognition will be our challenge in future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Conclusions</head><p>We can conclude that our precision oriented system works well in generating ranked lists with competitive precision, and is much simpler comparing to many more sophisticated systems in the pass since it does not require any extra resources or external tool-kits. Our designed features and the LETOR framework have achieved a level of success in dealing with spam texts and improving the overall ranking quality, and we have demonstrated the effectiveness of our features which incur limited effects of overfitting when learned with ListNet. We regret that we could not get our LDA based topic model to work in mining different themes of a query. In future, we plan to introduce simpler and more effective strategies to improve the diversity performance, such as DSPApprox <ref type="bibr" coords="5,439.12,304.79,14.94,7.77" target="#b15">[16]</ref> and maximum entropy methods. We would also explore new document level features to make the ranking system less sensitive to spam documents.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,117.50,610.68,127.68,7.93;4,86.71,621.65,60.45,7.77;4,167.38,621.65,2.99,7.77;4,193.58,621.65,24.66,7.77;4,241.44,621.65,2.99,7.77;4,86.71,632.46,16.77,7.77;4,122.50,632.46,132.76,7.77;4,86.71,643.27,168.55,7.77;4,86.71,653.73,168.55,8.12"><head></head><label></label><figDesc>1968 0.0098 0.2864 0.0092 Terran 0.2043 0.0090 0.2940 0.0064</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,312.72,556.27,226.77,7.77;4,312.72,566.68,226.77,7.77;4,312.72,577.09,226.77,7.77;4,312.72,587.50,226.77,7.77;4,312.72,597.91,218.15,7.77;4,312.72,401.94,226.78,139.79"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The learning curve of ListNet in the first 3000 iterations, with learning rate set to 0.01. The X-axis is the number of iterations for the training of the 1-layer neural network (NN), the Y-axis is the optimization criterion correlated to MAP. The features were collected based on the full ClueWeb12 dataset.</figDesc><graphic coords="4,312.72,401.94,226.78,139.79" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,57.60,249.50,226.77,7.77;5,57.60,259.91,226.77,7.77;5,57.60,270.32,226.77,7.77;5,57.60,280.73,226.77,7.77;5,57.60,291.14,159.65,7.77;5,57.60,107.42,226.77,127.54"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: The learning curve of ListNet in the first 1000 iterations, with learning rate set to 0.1. The X-axis and Y-axis are the same as in Figure 1. The features for Web 2013 were collected based on the full ClueWeb12 dataset, but those for Web 2014 are collected on ClueWeb-B13 dataset.</figDesc><graphic coords="5,57.60,107.42,226.77,127.54" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,57.60,75.55,475.38,662.33"><head>Table 2 :</head><label>2</label><figDesc>Results for standard gdeval metrics. P-values were computed using directional Paired t-Test against Median.It can be observed from Table2that our systems are generally better than the median in terms of gdeval metrics where diversity is ignored, especially for Protoss and Terran, which are ERR-IA@20 p P-IA@20 p α nDGC@20 p</figDesc><table coords="4,315.11,86.30,217.87,40.55"><row><cell>median</cell><cell>0.5747</cell><cell>-</cell><cell>0.4364</cell><cell>-</cell><cell>0.6592</cell><cell>-</cell></row><row><cell>Zerg</cell><cell>0.5360</cell><cell cols="3">.06 0.4364 .50</cell><cell>0.6289</cell><cell>.06</cell></row><row><cell>Protoss</cell><cell>0.5693</cell><cell cols="3">.42 0.4461 .24</cell><cell>0.6398</cell><cell>.19</cell></row><row><cell>Terran</cell><cell>0.5779</cell><cell cols="3">.45 0.4529 .12</cell><cell>0.6467</cell><cell>.27</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,312.72,139.52,226.77,28.75"><head>Table 3 :</head><label>3</label><figDesc>Results for standard ndeval (diversity) metrics. Pvalues were computed using directional Paired t-Test against Median.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,57.60,485.31,226.78,117.51"><head>Table 4 :</head><label>4</label><figDesc>This table documents the officially released evaluation results for our (Group.Xu) submission Terran and the best submission from some of the "well-known" participants in the Web Track. The number inside the parenthesis after each fraction is their ranking among all the participants.</figDesc><table coords="5,59.99,485.31,214.46,55.27"><row><cell></cell><cell></cell><cell>1 st ) 0.261 (6 th )</cell></row><row><cell>udel fang</cell><cell cols="2">UDInfoWebAX 0.207 (2 nd ) 0.307 (2 nd )</cell></row><row><cell>Group.Xu</cell><cell>Terran</cell><cell>0.204 (3 rd ) 0.294 (3 rd )</cell></row><row><cell>uogTr</cell><cell>uogTrDwl</cell><cell>0.195 (4 th ) 0.324 (1 st )</cell></row><row><cell cols="2">UMASS CIIR CiirAll1</cell><cell>0.153 (11 th ) 0.250 (10 th )</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="9.">Acknowledgements</head><p>This work was supported in part by the <rs type="institution">Language Technologies Institute of Carnegie Mellon University</rs>. We would like to thank <rs type="person">David Pane</rs> for providing the ClueWeb12 datasets and the <rs type="institution">Indri index</rs> for both ClueWeb12 and <rs type="grantNumber">ClueWeb12-B13</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_pxG3VHd">
+					<idno type="grant-number">ClueWeb12-B13</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,330.98,432.37,208.51,7.05;5,330.98,441.36,208.51,7.05;5,330.98,450.48,39.91,6.91" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Raghavan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schütze</surname></persName>
+		</author>
+		<title level="m" coord="5,490.42,432.37,49.07,6.86;5,330.98,441.36,66.46,6.86">Introduction to information retrieval</title>
+		<imprint>
+			<publisher>Cambridge university press Cambridge</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="volume">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,463.46,208.51,6.91;5,330.98,472.45,208.51,6.91;5,330.98,481.44,172.67,6.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,451.19,463.46,88.30,6.91;5,330.98,472.45,208.51,6.91;5,330.98,481.44,14.93,6.91">Universit de montral at trec 2013: Experiments with quantum language models in the web track</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Sordoni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-Y</forename><surname>Nie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,447.54,481.44,32.82,6.91">Tech. Rep</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+		<respStmt>
+			<orgName>DIRO, Universit de Montral</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,494.42,208.51,6.91;5,330.98,503.41,208.51,6.91;5,330.98,512.40,208.51,6.91;5,330.98,521.39,56.11,6.91" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,421.01,494.42,118.49,6.91;5,330.98,503.41,103.90,6.91">The technion at trec 2013 web track: Cluster-based document retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Raiber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Kurland</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+		<respStmt>
+			<orgName>Faculty of Industrial Engineering and Management Technion Israel Institute of Technology, Tech. Rep.</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,534.37,208.51,6.91;5,330.98,543.36,208.51,6.91;5,330.98,552.35,129.15,6.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,480.77,534.37,58.73,6.91;5,330.98,543.36,10.16,6.91">Ictnet at web track 201</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Xue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Cheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,404.02,552.35,32.82,6.91">Tech. Rep</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+		<respStmt>
+			<orgName>Chinese Academy of Sciences and University of Chinese Academy of Sciences</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,565.33,208.51,6.91;5,330.98,574.18,208.51,7.05;5,330.98,583.18,208.51,7.05;5,330.98,592.30,37.86,6.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,397.30,565.33,142.19,6.91;5,330.98,574.32,14.94,6.91">Query likelihood with negative query generation</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lv</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,363.13,574.18,176.36,6.86;5,330.98,583.18,141.30,6.86">Proceedings of the 21st ACM international conference on Information and knowledge management</title>
+		<meeting>the 21st ACM international conference on Information and knowledge management</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="1799" to="1803" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,605.28,208.51,6.91;5,330.98,614.13,208.51,7.05;5,330.98,623.13,208.51,7.05;5,330.98,632.25,61.77,6.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,484.95,605.28,54.54,6.91;5,330.98,614.27,142.14,6.91">Learning to rank: from pairwise approach to listwise approach</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T.-Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-F</forename><surname>Tsai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,491.30,614.13,48.19,6.86;5,330.98,623.13,176.13,6.86">Proceedings of the 24th international conference on Machine learning</title>
+		<meeting>the 24th international conference on Machine learning</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="129" to="136" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,330.98,645.23,208.51,6.91;5,330.98,654.22,208.51,6.91;5,330.98,663.08,208.51,7.05;5,330.98,672.07,208.52,7.05;5,330.98,681.06,188.33,7.05" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,362.36,663.21,177.13,6.91;5,330.98,672.20,62.90,6.91">The lemur toolkit for language modeling and information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Fisher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Larkey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">N</forename><surname>Truong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Ogilvie</surname></persName>
+		</author>
+		<ptr target="http://lemurproject.org" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,406.54,672.07,76.84,6.86">The Lemur Project</title>
+		<imprint>
+			<date type="published" when="2003">January 2012. 2003</date>
+		</imprint>
+	</monogr>
+	<note>WWW document</note>
+</biblStruct>
+
+<biblStruct coords="5,330.98,694.17,208.51,6.91;5,330.98,703.03,208.51,7.05;5,330.98,712.02,208.51,6.86;5,330.98,721.01,111.45,7.05" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,486.13,694.17,53.36,6.91;5,330.98,703.16,162.63,6.91">Learning to rank for information retrieval using genetic programming</title>
+		<author>
+			<persName coords=""><forename type="first">J.-Y</forename><surname>Yeh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-Y</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H.-R</forename><surname>Ke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Yang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,510.64,703.03,28.85,6.86;5,330.98,712.02,208.51,6.86;5,330.98,721.01,43.49,6.86">Proceedings of SIGIR 2007 Workshop on Learning to Rank for Information Retrieval</title>
+		<meeting>SIGIR 2007 Workshop on Learning to Rank for Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+	<note>LR4IR 2007</note>
+</biblStruct>
+
+<biblStruct coords="5,330.98,734.12,178.96,6.91" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="5,348.11,734.12,136.20,6.91">Learning to rank library</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">S</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note>of Data Analysis</note>
+</biblStruct>
+
+<biblStruct coords="6,75.86,78.77,208.51,6.91;6,75.86,87.62,208.52,7.05;6,75.86,96.61,208.51,7.05;6,75.86,105.74,161.84,6.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,218.38,78.77,66.00,6.91;6,75.86,87.76,85.24,6.91">Studying the history of ideas using topic models</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Jurafsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,178.30,87.62,106.07,6.86;6,75.86,96.61,159.38,6.86">Proceedings of the conference on empirical methods in natural language processing</title>
+		<meeting>the conference on empirical methods in natural language processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="page" from="363" to="371" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,118.72,208.51,6.91;6,75.86,127.71,208.51,6.91;6,75.86,136.56,208.51,7.05" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,79.80,127.71,189.20,6.91">Comparing twitter and traditional media using topic models</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">X</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Weng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-P</forename><surname>Lim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,75.86,136.56,107.75,6.86">Advances in Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="338" to="349" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,149.68,208.51,6.91;6,75.86,158.53,208.51,7.05;6,75.86,167.52,208.51,7.05;6,75.86,176.65,37.86,6.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,235.89,149.68,48.48,6.91;6,75.86,158.67,131.11,6.91">Expression microarray classification using topic models</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bicego</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lovato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Oliboni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Perina</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,224.58,158.53,59.79,6.86;6,75.86,167.52,145.18,6.86">Proceedings of the 2010 ACM Symposium on Applied Computing</title>
+		<meeting>the 2010 ACM Symposium on Applied Computing</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="1516" to="1520" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,189.63,208.51,6.91;6,75.86,198.48,208.51,7.05;6,75.86,207.61,37.86,6.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,210.76,189.63,73.62,6.91;6,75.86,198.62,11.58,6.91">Latent dirichlet allocation</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">Y</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">I</forename><surname>Jordan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,95.40,198.48,133.23,6.86">the Journal of machine Learning research</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="993" to="1022" />
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,220.58,208.51,6.91;6,75.86,229.44,208.51,7.05;6,75.86,238.43,208.51,6.86;6,75.86,247.42,134.12,7.05" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,158.92,220.58,125.45,6.91;6,75.86,229.58,141.23,6.91">Model-based feedback in the language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,235.54,229.44,48.83,6.86;6,75.86,238.43,208.51,6.86;6,75.86,247.42,38.69,6.86">Proceedings of the tenth international conference on Information and knowledge management</title>
+		<meeting>the tenth international conference on Information and knowledge management</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="403" to="410" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,260.53,208.51,6.91;6,75.86,269.53,208.51,6.91;6,75.86,278.38,208.51,7.05;6,75.86,287.37,193.91,7.05" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,79.72,269.53,197.65,6.91">Mining eclipse developer contributions via author-topic models</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Linstead</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rigor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bajracharya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lopes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Baldi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,83.74,278.38,200.63,6.86;6,75.86,287.37,98.94,6.86">Mining Software Repositories, 2007. ICSE Workshops MSR&apos;07. Fourth International Workshop</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="30" to="30" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,300.48,208.51,6.91;6,75.86,309.34,208.51,7.05;6,75.86,318.33,208.51,6.86;6,75.86,327.32,203.16,7.05" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,219.76,300.48,64.61,6.91;6,75.86,309.48,97.94,6.91">Finding topic words for hierarchical summarization</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lawrie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Rosenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,192.84,309.34,91.53,6.86;6,75.86,318.33,208.51,6.86;6,75.86,327.32,108.70,6.86">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="349" to="357" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,340.43,74.79,6.91;6,194.91,340.43,89.46,6.91;6,75.86,349.29,208.51,7.05;6,75.86,358.28,128.35,7.05" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,194.91,340.43,89.46,6.91;6,75.86,349.43,149.96,6.91">rank and score combination methods for data fusion in information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">F</forename><surname>Hsu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Taksa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,233.37,349.29,51.00,6.86;6,75.86,358.28,19.85,6.86">Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="449" to="480" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,371.39,208.51,6.91;6,75.86,380.25,208.51,7.05;6,75.86,389.24,127.14,7.05" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,148.77,371.39,135.60,6.91;6,75.86,380.38,82.89,6.91">Automatic ranking of information retrieval systems using data fusion</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nuray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Can</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,167.99,380.25,116.38,6.86;6,75.86,389.24,13.99,6.86">Information Processing &amp; Management</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="595" to="614" />
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,402.35,208.51,6.91;6,75.86,411.34,208.51,6.91;6,75.86,420.20,176.86,7.05" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,193.66,402.35,90.72,6.91;6,75.86,411.34,194.55,6.91">A comparison of score, rank and probability-based fusion methods for video shot retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">Mc</forename><surname>Donald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">F</forename><surname>Smeaton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,75.86,420.20,81.08,6.86">Image and video retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="61" to="70" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,433.18,208.51,7.05;6,75.86,442.30,95.70,6.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="6,110.74,433.31,118.24,6.91">Partial justification of the borda count</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Black</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,237.26,433.18,43.61,6.86">Public Choice</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="15" />
+			<date type="published" when="1976">1976</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,455.28,208.51,6.91;6,75.86,464.13,208.51,7.05;6,75.86,473.13,208.51,7.05;6,75.86,482.25,29.89,6.91" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="6,183.93,455.28,100.45,6.91;6,75.86,464.27,25.47,6.91">Condorcet fusion for improved retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Montague</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">A</forename><surname>Aslam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,116.93,464.13,167.44,6.86;6,75.86,473.13,141.30,6.86">Proceedings of the eleventh international conference on Information and knowledge management</title>
+		<meeting>the eleventh international conference on Information and knowledge management</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="538" to="548" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,495.23,208.51,6.91;6,75.86,504.22,208.51,6.91;6,75.86,513.08,208.51,7.05;6,75.86,522.07,208.51,6.86;6,75.86,531.19,83.59,6.91" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="6,233.36,495.23,51.02,6.91;6,75.86,504.22,208.51,6.91;6,75.86,513.21,9.63,6.91">Reciprocal rank fusion outperforms condorcet and individual rank learning methods</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Buettcher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,103.23,513.08,181.14,6.86;6,75.86,522.07,205.61,6.86">Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 32nd international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="758" to="759" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,544.17,208.51,6.91;6,75.86,553.03,152.63,7.05" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="6,125.52,544.17,158.85,6.91;6,75.86,553.16,26.94,6.91">From ranknet to lambdarank to lambdamart: An overview</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">J</forename><surname>Burges</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,111.53,553.03,27.75,6.86">Learning</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="23" to="581" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,75.86,566.14,208.51,6.91;6,75.86,575.13,208.51,6.91;6,75.86,584.12,106.81,6.91" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="6,113.89,575.13,97.40,6.91">Trec 2014 web track overview</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Collins-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,220.97,575.13,63.40,6.91;6,75.86,584.12,83.52,6.91">MICHIGAN UNIV ANN ARBOR</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note>Tech. Rep.</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

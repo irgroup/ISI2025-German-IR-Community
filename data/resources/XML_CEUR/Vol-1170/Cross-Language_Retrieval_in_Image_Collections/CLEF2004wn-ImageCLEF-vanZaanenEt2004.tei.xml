@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,176.04,148.63,250.88,15.51">FINT: Find Images aNd Text</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,252.72,181.18,56.48,10.87"><forename type="first">Menno</forename><surname>Van</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,313.16,181.18,37.05,10.87;1,289.56,195.10,17.90,10.87"><forename type="first">Zaanen</forename><surname>Ilk</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution">Tilburg University</orgName>
+								<address>
+									<country key="NL">the Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Guido de Croon Computer Science</orgName>
+								<orgName type="institution">Universiteit Maastricht</orgName>
+								<address>
+									<country key="NL">the Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,176.04,148.63,250.88,15.51">FINT: Find Images aNd Text</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">6339EA59299EBF5B7075BFD31BA453FE</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:06+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this article, we describe the FINT system, which stands for Find Images aNd Text. This system is built within the VindIT project, that focuses on handling large amounts of multi-media data. The current approach concentrates on searching in a combination of textual and visual data. The system described here is an iterative system that computes distances between the images. From each image (and corresponding case), a feature vector is extracted. The distances are now computed using these feature vectors. The distance computation can be different in each step of the iterative system. Here we will describe the system and settings that were used in the medical retrieval task of the ImageCLEF 2004 competition.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The research described in this article is done in the context of the VindIT project<ref type="foot" coords="1,446.04,479.13,3.95,5.54" target="#foot_0">1</ref> , which is part of the ToKeN2000 research programme<ref type="foot" coords="1,260.88,491.01,3.95,5.54" target="#foot_1">2</ref> .</p><p>The goal of the ToKeN2000 research programme is "to focus on fundamental problems of interaction between a human user and a knowledge and information system". The research programme contains many different projects, of which VindIT is one.</p><p>The VindIT project concentrates on handling large collections of multi-media data. This includes clustering, indexing, retrieving, and navigating mainly textual and visual information. The project is a co-operation between researchers of the universities of Maastricht, Nijmegen and Tilburg, all in the Netherlands.</p><p>The ImageCLEF competition was taken to be a first test case of the implemented system. Entering the competition allowed us to test the system, even though the actual setup of the problem does not completely match the original idea behind FINT, it showed the flexibility of the system and indicated the current problems of the system and also what specific directions should be taken as future work.</p><p>In the rest of the article, we will give a brief description of the task of the ImageCLEF competition including the information that has been used in the FINT system. Next, the system will be described in detail. Both the visual and textual features that are incorporated in the system are described. The implementation is discussed next, followed by the conclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Task description</head><p>The goal of the medical information retrieval task given in the ImageCLEF competition is to find similar images in a given set of images starting from an image that is not in the given set. The underlying idea here is that a doctor who has, for example, an image of an x-ray, can find similar images of known cases.</p><p>The dataset is taken from the CasImage medical database and is developed by the University Hospitals Geneva. It consists of images and corresponding (textual) case information. All images are linked to a case, but some cases contain no real information. A case may be linked to several images, but this is not necessarily the case.</p><p>The 8,725 images contained in the database are mainly x-rays, scans and some photos. All images are encoded using the JPG format. The size of the images is not always the same, which introduces some problems as will be discussed below.</p><p>The database consists of 2,078 XML encoded cases. A case has several entries containing plain text. Not all fields contain information (and some cases are completely empty apart from a case number). We store all information of the cases in our own database, but we only use the following information per case:</p><p>File This field contains the filename of the case;</p><p>Description This field contains general information on the case;</p><p>Diagnosis Here, the diagnosis of the case is given; ClinicalPresentation More information on the case is given in this field. It may be more general information on the case or on the patient;</p><p>Commentary In this field, general comments can be given;</p><p>Chapter This indicates a certain subset in the database. Related cases are stored in the same chapter;</p><p>The information contained in other fields in the database might provide additional information, but since they are often empty, we decided not to incorporate them in the current system. Note that there is also a "Language" field in the XML entries, but this is often empty or incorrect. We will discuss this further in section 3.2.1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">System Overview</head><p>Within the VindIT project, we have developed a relatively generic multi-modal IR system. It is completely feature-based, which allows for the integration of all types of data as long as features of the data can be extracted.</p><p>The advantages of using features are manifold. Many types of multi-modal data can be represented in a simple way, the system remains relatively simple and fast, and feature vectors can be applied to machine learning techniques. <ref type="foot" coords="2,262.56,613.53,3.95,5.54" target="#foot_2">3</ref>The flexibility of the system is actually used in this task, because the system has originally been developed to take textual (or a combination of textual and visual) information as input. Effectively, this is a similar task considering that all this information is encoded in (numeric) features. Note that the system can handle both numeric and symbolic features, however, only numeric features are used in this specific task.</p><p>Figure <ref type="figure" coords="2,137.25,686.13,5.03,9.96" target="#fig_0">1</ref> gives an overview of the FINT system. The upper row illustrates the initial step. First of all, the search information (in this case a search image) is handed to the feature extractor. This outputs a feature vector representing the original data. The lower row shows the iterative phase of the system. It uses a database containing the feature vectors from the images and corresponding cases in the database provided for the competition. These feature vectors are generated similarly to the way the feature vector is generated in the second step in the upper row.</p><p>The iterative phase starts with a feature vector (in the first iteration, this is the feature vector from the original data). This feature vector is compared to all feature vectors in the database. The best feature vector (one or more) from the database are returned. This contains information on the best matching image and possibly case information with respect to the search feature vector. These feature vectors can again be used to search the database.</p><p>The iterative nature of the system allows for the use of different features. In the first iteration, only visual features are present in the feature vector, because the system was started with a search image and the search image is not present in the database, so no corresponding case information can be found. At the end of the first iteration, visual and textual features can be found, because only feature vectors from the database are returned. These contain visual and textual information.</p><p>Selecting the best feature vectors is done by computing the distance between the search feature vector and the feature vectors in the database. The feature vectors are then sorted on distance and the ones with the shortest distance are returned. Note that feature weighting can also be used to give certain features a bigger influence in the distance.</p><p>Next, we will describe the features have been implemented in the system. We will start with a discussion of the visual features, followed by the textual features.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Visual Features</head><p>The medical database offered by the University Hospitals of Geneva contains X-rays, scans, and normal pictures. Therefore, the contents of the image-database are rather specific. We have based our image retrieval techniques on the specific properties of the database. We use three types of features for the image retrieval part of the system: color features, principal components of the images, and intensity grid features. We discuss these three types of features in the following subsections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Color</head><p>There are two reasons why color is rather irrelevant for the medical retrieval task. First, the amount of color images in the medical database is almost negligible. Most of the images in the database are gray-value images. In fact, most images represent X-rays or black-and-white scans. Second, the medical image retrieval task demands some color-insensitivity. If the query to the image database consists of a color photo of a leg, we do not want to exclude black-and-white photos from the result set.</p><p>Because of the relatively low importance of color in the medical database, the simplest of color features adequately captures the necessary color information. We use three features to code the </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Principal components</head><p>The shape of the 'object' in the image is much more important to image retrieval in the medical database. How can we measure the shape of an object? The gray-values of the image contain all shape-information, but it would be too cumbersome to use all gray-values as features for retrieving images from the database. Principal component analysis (PCA) is a technique that reduces data dimensionality, while retaining as much information as possible. PCA searches for orthogonal eigenvectors that capture as much variance of the data as possible. PCA is often used in image analysis, for example in facial expression recognition [CBM + 01, DCPA02]. Hereafter we explain how we applied PCA to the medical database.</p><p>PCA can only be applied to images of the same size. Therefore, the first step in PCA is to resize all images from the database to the same size, in our case to a 40 x 40 pixel format. Naturally, this results in some information-loss. In particular, the ratio of width and height of an object is neglected. After resizing, an image can be represented by a vector of 1600 gray-values. We constructed the data-matrix for PCA by combining such vectors of all images in the database. With the help of the data matrix, 20 principal components were obtained. Since the principal components are also vectors of size 1600, we can visualize them to illustrate the shape-information that they capture. Figure <ref type="figure" coords="4,207.26,515.85,5.03,9.96" target="#fig_1">2</ref> shows the first 20 principal components. The principal components capture some 'elementary' shapes occurring in the medical database. A clear example is the 14th principal component that seems to represent pictures of multiple X-rays on the same sheet.</p><p>After PCA, every picture in the medical database can be represented by its projection on the principal components shown in figure <ref type="figure" coords="4,254.05,563.61,3.90,9.96" target="#fig_1">2</ref>. We normalize the resulting 20 feature values so that they are in [-1, 1]. The calculation of the projection on the 20 principal components comes down to a multiplication of the image vector with the matrix containing all principal components. Hence, projecting a query image on these components is computationally cheap.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.3">Intensity grid</head><p>The final type of visual features that we extract from the images also captures shape information. The shape of an object is partly determined by the overall intensity-distribution in the images. We measure the intensity-distribution by placing a grid over each image in the database and determining the average intensity per grid cell. This average value is divided by 255, so that the values will be in [0, 1]. In the implementation of the FINT-system we have chosen for a grid of 5 x 5, as a trade-off between the number of features and the results that the method yields. In consequence, the number of features per image is 25. This is comparable to the 20 features resulting from the principal component analysis. The intensity grid is important, because it complements the principal-component approach to shape representation. Both type of features lead to different retrieved images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Textual Features</head><p>The textual information, contained in the cases, created some problems that had to be solved beforehand. The texts contained a lot of errors. First of all, the original text was not proper UNICODE, so accented characters needed to be converted into their proper codes. Fortunately, a straightforwards mapping to UNICODE could be found.</p><p>Once the proper UNICODE encoding of the text was created, we tried to do more complex language handling. However, we noticed that the text contains many spelling errors, non-accented characters that should have been accented, unexpected punctuation marks, incorrect or incomplete abbreviations, ungrammatical and incomplete sentences. This made the linguistic tools we have available (such as stemmers, taggers, chunkers, etc.) almost unusable.</p><p>Additionally, the multi-lingual aspect of the competition, discussed in the next section, made the task even more difficult. Whereas the focus of the VindIT system is mainly to search in multimodal information, multi-lingual information can be incorporated, but it is not an important aspect of our current research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">Languages</head><p>A case may contain English or French text. The "Language" field in the case should indicate what language is used in that particular case. Unfortunately, we found that some cases even contained both English and French fields. Additionally, deciding the language of a case, is quite difficult, because the "Language" field of a case is often incorrect or empty.</p><p>We have tried to figure out in what language a field is by handing it to van Noord's implementation<ref type="foot" coords="5,146.76,416.25,3.95,5.54" target="#foot_3">4</ref> of the TextCat Language Guesser <ref type="bibr" coords="5,307.17,417.09,27.95,9.96" target="#b1">[CT94]</ref>. Unfortunately, this did not work well, since most fields do not contain enough text to decide on which language it is. Also, the words are mainly medical terms, which look similar in English and French. The language models used by the guesser are build on "standard" English and French. However, even with specially built language models, the language guesser cannot be certain in which language certain fields are. <ref type="foot" coords="5,497.04,464.13,3.95,5.54" target="#foot_4">5</ref>Since the focus of the project is not really on solving multi-lingual retrieval, we have effectively given up on performing complex linguistic feature extraction methods. We could not easily find in which language a piece of text was. Also, the fact that (especially the French texts) contained a lot of errors, which made an extremely simple word-for-word translation of the texts difficult. Not to forget that the actual text consists of mainly highly specific medical terms, for which we could not find an electronic dictionary. We decided on taking a generic approach to try and incorporate English and French texts together in one cluster of features.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">Infomap</head><p>The text contained in the cases need to be encoded in the form of feature values. Of course, there are many different ways this can be accomplished. The actual FINT system can incorporate features (numeric and symbolic), so the decisions made here are not restricted by the FINT system. Here we chose to use relatively simple features, because the focus of the VindIT project is not directed towards multi-lingual information retrieval. We expect that selecting better textual features will improve the results of the system.</p><p>We have extracted plain text from the "Description", "Diagnosis", "ClinicalPresentation", "Commentary", and "Chapter" fields. These fields are often filled with a varying amount of text. Next, we removed the most obvious errors from the text. This included removing all punctuation, correcting some abbreviations, expanding all truncated words (such as converting "l' " to "le" in French and "doesn't" to "does not" in English). Also, dates, ranges, percentages, numbers, units and words containing numbers are grouped together in their respective class (e.g., denoted by "[DATE]"). We argue that, for example, specific numbers are not very important, but the fact that there is a number present is indeed important.</p><p>The cleaned-up plain text excerpts are used as input of the infomap system. <ref type="foot" coords="6,440.64,158.37,3.95,5.54" target="#foot_5">6</ref> This system is developed by Schütze <ref type="bibr" coords="6,183.87,171.09,30.69,9.96" target="#b4">[Sch97]</ref> and uses frequency of co-occurring words in the context. When words are often used in the same context, this indicates that they share a similar meaning. Clustering words together gives some sort of semantic clusters. This is generalized between the texts per case, showing how similar cases are conceptually.</p><p>Infomap has been applied in several systems. Interesting applications (and related to this research) is the use of infomap in multi-lingual information retrieval systems <ref type="bibr" coords="6,431.26,230.85,43.06,9.96" target="#b3">[MFKP99]</ref>. Multilingual, aligned corpora are used to find semantically similar clusters, that can be used to handle the texts or queries in the different languages.</p><p>Unfortunately, we do not have aligned corpora here, so we simply treat all the data as similar. In effect this will probably result in a strong preference for texts that are in the same language as the query. Of course, this is not preferable, but at least texts within languages are grouped according to semantic content.</p><p>Applying the infomap system to the texts extracted from the cases, resulted in 33 numeric features (ranging between -1 and 1).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Implementation</head><p>The implementation of the FINT system is currently divided over several components, that run on different computers (although that is not necessary). The user interface is implemented using PHP to work over the web. This has several advantages. Firstly, it allows for easy access for the members of the project, who are working in different locations, using different operating systems. Secondly, it is easy to display the graphical content of the database. Thirdly, specific system settings and selections can be made using forms that can be linked to underlying software. Output can again easily be feed back to the user.</p><p>Once the user has made a selection of the test image, the distance function, the features that need to be used combined with their weights, the FINT program is started. This program extracts the correct feature vector of the test image and computes the distances of all the similar feature vectors in the database. The images of the best feature vectors are returned to the user. The case information attached to the images can be reached by clicking on the images. This allows for an easy way to get all the information related to an image.</p><p>Next, the user can continue with the new images and perform a next iteration of the system. Again, the settings can be adjusted. In the final iteration, the user can specify that TREC output is needed. This will generate a web-page with the TREC output of the current image ordering with their distances.</p><p>The database is implemented in MySQL <ref type="bibr" coords="6,285.36,584.61,32.11,9.96" target="#b5">[Wid02]</ref>. It is extremely flexible in that the features themselves are encoded in the database as well. This means that using information taken from the database, select statements are created dynamically. This allows the entire system to be reused with a different dataset without any reimplementation. All parts that need to be changed can be found in the database itself.</p><p>The interface between the web interface and the database is a program that computes the distances between feature vectors and returns this information to the user. Effectively, the PHP page starts this program with the settings given by the user, the program connects to the database to retrieve the correct feature vectors and computes distances between them. These are then ordered and the images belonging to the best feature vectors are put in a new PHP page that is presented to the user again. The computation of the current results is done in two iterations. The first iteration is based on all visual features, with weight 10 for the red, green, and blue features, and 1 for the other visual features. From this iteration we only select the best image. This is the image from the database that looks most similar to the original search image. The second iteration uses only the image from the first iteration and including the textual infomap features (all 33) with weight 30 combined with the visual features (with the same weights) the distances from all images in the database are computed. These results have been submitted to the competition. Several distance functions have been implemented. We have used a weighted numeric Euclidean distance here. This is computed between two vectors V 1 = (i 1 , i 2 , . . . , i n ) and V 2 = (j 1 , j 2 , . . . , j n ) and weight vector W = (w 1 , w 2 , . . . , w n ) as follows:</p><formula xml:id="formula_0" coords="7,217.20,385.16,167.99,29.27">d(V 1 , V 2 , W ) = n l=1 (w l * i l -w l * j l ) 2</formula><p>The main problem with this current approach is that the distance computation is in fact broken. The problem is illustrated in figure <ref type="figure" coords="7,289.07,437.49,3.90,9.96" target="#fig_2">3</ref>. The first iteration finds the image that is most similar to the original search image. There is of course a distance between these feature vectors, in the image, this distance is d. In the next iteration, this image is taken as the seed to find similar images. This means that the distances of the final images after two iterations are computed with respect to the best image of the first iteration. Of course, the result image of the first iteration is in the set of final images (because the distance is 0).<ref type="foot" coords="7,320.88,496.41,3.95,5.54" target="#foot_6">7</ref> Since the distances of the other images of the final result are computed with respect to the image of the first iteration, this can be seen as e, whereas to correctly compare the distances of all the final images, distance f should have been computed. However, it is only possible to compute f with respect to visual features, because the search image does not have any case information associated with it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion and Future Work</head><p>This competition allowed us to apply the FINT system to real data for the first time. It showed that the system is flexible and usable with different datasets. Multiple iterations allowed for different visual and textual features to be used, even when these features cannot be found in the initial search data.</p><p>The application of the system also revealed problems and shortcomings of the system. The main problem is the incorrect distance calculations (as described above). This will need to be solved in future versions of the system. Additionally, certain implementation problems had to be solved. The speed of the current system could be improved by moving functionality to different parts of the system (such as moving the distance computation to the database itself).</p><p>In the future, we would also like to evaluate many different settings. In addition to varying weights, multiple iterations can be used with different feature combinations. Also, the amount of images that are retained after each iteration can be modified. Adjusting these parameters may result in a wide range of results.</p><p>The main problem we encountered when generating the results was that evaluation of the results is (nearly) impossible without annotated data. No (annotated) training data was given, which meant that no machine learning approaches could be incorporated (as was originally intended in the FINT system). When annotated data becomes available, more and more interesting approaches can be evaluated.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,214.56,243.33,173.83,9.96"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Overview of the FINT system</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,232.80,236.49,137.29,9.96;4,90.00,161.45,423.00,50.59"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Principle components</figDesc><graphic coords="4,90.00,161.45,423.00,50.59" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="7,184.32,225.69,234.30,9.96"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Distance computation in multiple iterations</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,105.24,702.63,346.73,7.43"><p>See http://www.niwi.knaw.nl/en/oi/nod/onderzoek/OND1297559/toon for more information.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,105.24,712.11,326.13,7.43"><p>See http://www.ins.cwi.nl/projects/Token2000/index-en.html for more information.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,105.24,729.39,407.28,7.24;2,90.00,738.87,326.86,7.24"><p>In this particular case, no annotated data was provided, so supervised machine learning techniques could not be used. We expected that unsupervised techniques would not provide adequate results.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="5,105.24,720.51,315.77,7.43"><p>This implementation can be found at http://odur.let.rug.nl/~vannoord/TextCat/.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="5,105.24,729.99,407.28,7.24;5,90.00,739.47,160.63,7.24"><p>We have also tried to annotate language information semi-automatically, but often even humans could not decide in what language certain cases were.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="6,105.24,723.51,406.61,7.43;6,90.00,733.07,19.17,7.35"><p>The implementation and documentation of the infomap system can be found at http://infomap.stanford. edu/.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="7,105.24,737.43,407.24,7.24;7,90.00,746.79,310.29,7.24"><p>To handle distances over several iterations, we add the distances of the separate iterations. This means that the distance of the image of the first iteration still has distance d in the final result.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,140.50,237.81,372.36,9.96;8,140.52,249.81,343.90,9.96" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,462.49,237.81,50.37,9.96;8,140.52,249.81,173.14,9.96">A principal component analysis of facial expressions</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">J</forename><surname>Calder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Burton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">W</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Akamatsu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,322.15,250.15,67.88,9.18">Vision Research</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page" from="1179" to="1208" />
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,140.49,269.73,372.01,9.96;8,140.52,282.07,372.14,9.18;8,140.52,293.61,372.32,9.96" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,291.33,269.73,146.54,9.96">N-gram-based text categorization</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Cavnar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Trenkle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,463.01,270.07,49.50,9.18;8,140.52,282.07,348.08,9.18">Proceedings of Third Annual Symposium on Document Analysis and Information Retrieval</title>
+		<meeting>Third Annual Symposium on Document Analysis and Information Retrieval<address><addrLine>Las Vegas:NV, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>UNLV Publications/Reprographics</publisher>
+			<date>April 11-13 1994</date>
+			<biblScope unit="page" from="161" to="175" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,140.47,313.53,372.29,9.96;8,140.52,325.53,331.80,9.96" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,390.48,313.53,122.29,9.96;8,140.52,325.53,145.42,9.96">EMPATH: A neural network that categorizes facial expressions</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">N</forename><surname>Dailey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">W</forename><surname>Cottrell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Pradgett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Adolphs</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,294.44,325.87,147.07,9.18">Journal of Cognitive Neuroscience</title>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,140.60,345.45,372.19,9.96;8,140.52,357.45,372.14,9.96;8,140.52,369.67,371.99,9.18;8,140.52,381.33,237.02,9.96" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,485.82,345.45,26.97,9.96;8,140.52,357.45,265.17,9.96">Query translation method for cross language information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Hiroshi</forename><surname>Masuichi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raymond</forename><surname>Flournoy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Kaufmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stanley</forename><surname>Peters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,432.11,357.79,80.55,9.18;8,140.52,369.67,371.99,9.18;8,140.52,381.67,50.65,9.18">Proceedings of the Workshop on Machine Translation for Cross Language Information Retrieval, MT Summit VII</title>
+		<meeting>the Workshop on Machine Translation for Cross Language Information Retrieval, MT Summit VII<address><addrLine>Singapore</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1999-09">September 1999</date>
+			<biblScope unit="page" from="30" to="34" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,140.50,401.25,372.20,9.96;8,140.52,413.25,175.52,9.96" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,217.01,401.59,193.55,9.18">Ambiguity Resolution in Language Learning</title>
+		<author>
+			<persName coords=""><forename type="first">Hinrich</forename><surname>Schüte</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="s" coord="8,490.15,401.25,22.55,9.96;8,140.52,413.25,58.96,9.96">CSLI Lecture Notes</title>
+		<imprint>
+			<biblScope unit="volume">71</biblScope>
+			<date type="published" when="1997">1997</date>
+			<publisher>CSLI Publications</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,140.49,433.17,372.42,9.96;8,140.52,445.05,22.88,9.96" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="8,268.92,433.51,112.82,9.18">MySQL Reference Manual</title>
+		<author>
+			<persName coords=""><forename type="first">Monty</forename><forename type="middle">"</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Widenius</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+			<publisher>O&apos;Reilly Community Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,100.80,107.19,340.04,15.60">Lessons Learned from Indexing Close Word Pairs</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2010-11">November 2010</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,100.80,137.24,63.72,9.19"><forename type="first">Leonid</forename><surname>Boytsov</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Gaithersburg</settlement>
+									<region>Maryland</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,186.27,137.24,52.86,9.19"><forename type="first">Anna</forename><surname>Belova</surname></persName>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Gaithersburg</settlement>
+									<region>Maryland</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,100.80,107.19,340.04,15.60">Lessons Learned from Indexing Close Word Pairs</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2010-11">November 2010</date>
+						</imprint>
+					</monogr>
+					<idno type="MD5">8792B6C75D0305C594F54D08BDE25D70</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We describe experiments with proximity-aware ranking functions that use indexing of word pairs. Our goal is to evaluate a method of "mild" pruning of proximity information, which would be appropriate for a moderately loaded retrieval system, e.g., an enterprise search engine. We create an index that includes occurrences of close word pairs, where one of the words is frequent. This allows one to efficiently restore relative positional information for all non-stop words within a certain distance. It is also possible to answer phrase queries promptly. We use two functions to evaluate relevance: a modification of a classic proximity-aware function and a logistic function that includes a linear combination of relevance features. Additionally, we use the spam scores provided by the University of Waterloo.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Incorporating word proximity into relevance ranking is a well-known method to improve the retrieval effectiveness. A classic approach to computation of proximity scores involves intersection of word positional postings. Lengths of positional postings of common (non-stop) words are orders of magnitude larger than a number of documents in the collection. Because common words often appear in user queries, evaluation of proximity scores is computationally intensive.</p><p>A straightforward solution to this problem consists in indexing word pairs that occur in the documents. Yet, due to the ginormous index size it is not feasible for all but very small document collections. It is possible to build an index of manageable size by including only adjacent words <ref type="bibr" coords="1,100.80,426.48,90.29,9.96">[Williams et al. 1999</ref>], but it would not adequately capture proximity information. A more practical approach consists in pruning word pairs that have little potential to influence result rankings. Even though static (index time) pruning adversely affects retrieval quality, it is often justified by shorter retrieval time.</p><p>One well-known implementation of this idea consists in indexing of all pairs where the distance between words does not exceed a threshold L. Such pairs are often referred to as close pairs. It is commonly believed that words located far from each other are less likely to represent a relevant document. Thus, in most suggested proximity scoring functions, a contribution of a word pair in an overall score significantly decreases as the distance between words increases (typically, inversely proportional to the distance to the power of α 1 <ref type="bibr" coords="1,419.66,535.45,93.58,9.96;1,100.80,547.41,22.68,9.96" target="#b3">[Clarke and Cormack 2000;</ref><ref type="bibr" coords="1,126.67,547.41,110.20,9.96" target="#b8">Rasolofo and Savoy 2003;</ref><ref type="bibr" coords="1,240.06,547.41,112.89,9.96" target="#b1">Büttcher and Clarke 2005]</ref>). Consequently, exclusion of distant pairs does not significantly affect relevance scores and associated document rankings.</p><p>Even with a limit on the distance between indexed pairs, a corresponding index would be too big. It is estimated to be more than 20 times larger than a non-positional classic inverted index with precomputed BM25 scores <ref type="bibr" coords="1,243.82,596.62,88.65,9.96" target="#b11">[Schenkel et al. 2007</ref>] (See <ref type="bibr" coords="1,363.01,596.62,69.55,9.96" target="#b9">[Robertson 2004</ref>] for a description of BM25). <ref type="bibr" coords="1,150.66,608.57,92.55,9.96" target="#b11">Schenkel et al. [2007]</ref> propose to further prune word pair postings by keeping only approximately 1000 entries with highest scores.</p><p>Such aggressive pruning is justifiable in case of a highly loaded Web search engine, but it may be excessive in case of a smaller and less loaded system, e.g., in the corporate environment. We suggest a "milder" pruning strategy that produces an index capable of restoring relative positional information for all (non-stop) words within the short distance L: in our experiments • L = 10. Our indexing approach is similar to the approach of <ref type="bibr" coords="2,360.54,120.38,75.33,9.96" target="#b0">Bahle et al. [2002]</ref>, who proposed to index only those adjacent words where one of the words is frequent. To evaluate the effectiveness and efficiency of our approach, we participated in ad hoc web-track 2010.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">EXPERIMENTAL SETUP</head><p>We index a smaller subset of ClueWeb09 collection that contains 50 million web-pages, mostly English. A search index is created on a 2Ghz dual-core Dell laptop running Linux. The computer has 3Gb of RAM and uses a pair of USB-connected external hard drives with bulk transfer speed of approximately 30 MByte/sec.</p><p>The indexing consists of four stages:</p><p>(1) Conversion of WARC files into text;</p><p>(2) Collecting information on word occurrences and compiling a dictionary;</p><p>(3) Creating a set of temporary inverted files;</p><p>(4) Merging inverted files.</p><p>Completion of each stage requires about one week. Indexing can be restarted from any stage. We use a hybrid index that includes positional postings of infrequent words, non-positional postings of frequent words, as well as positional postings of real and surrogate word pairs (see Section 4). During indexing we exclude stop words (though it is not essential to the method). The remaining words are normalized: different grammatical forms of the same word are indexed as a single word. HTML structure is taken into account by repeating title words 4 times as described by <ref type="bibr" coords="2,158.73,389.99,116.81,9.96" target="#b1">Büttcher and Clarke [2005]</ref>.</p><p>Because we are unaware of any software that can efficiently index close pairs on a commodity hardware, we have created a custom implementation in C++. The implemented application has been cross validated against another custom-written sequential search application.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">RANKING FUNCTIONS</head><p>For the following discussion, we let d = (w 1 , w 2 , . . . , w n ) be a document containing terms w i and q = (q 1 , q 2 , . . . , q m ) be a query containing terms q i (stop words are excluded).</p><p>All our ranking functions use the following relevance features:</p><p>• The contribution of the word q i in the overall BM25 score of the document d, which is denoted by score BM 25 (d, q i ) (see Section 3.1);</p><p>• The spam score of the document d is a percent of documents that are considered less "spammy" in comparison to d. It is denoted by SpamScore(d) and is equal to 99-CormackRank, where CormackRank is the score provided by <ref type="bibr" coords="2,311.77,561.81,91.73,9.96" target="#b4">Cormack et al. [2010]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Okapi BM25</head><p>Implemented ranking algorithms employ the classic Okapi BM25 ranking function <ref type="bibr" coords="2,465.75,599.16,47.49,9.96;2,100.80,611.12,16.96,9.96" target="#b9">[Robertson 2004</ref>], which is a generalization of BM11 and BM15 <ref type="bibr" coords="2,323.84,611.12,123.18,9.96" target="#b10">[Robertson and Walker 1994]</ref>. This function is also used as a comparison baseline. Given a query q, the BM25 score of the document d is computed as</p><formula xml:id="formula_0" coords="2,136.31,652.76,376.94,27.87">score BM 25 (d, q) = 1≤i≤m score BM 25 (d, q i ) = 1≤i≤m IDF(q i ) (k 1 + 1) 1 + K(TF(d, q i )) -1 ,<label>(1)</label></formula><p>•</p><formula xml:id="formula_1" coords="3,244.95,95.63,268.30,46.04">3 K = k 1 (1 -b) + b |d| avgdl ,</formula><p>where |d| is the length of the document d (in words) and avgdl is the average length of documents in a collection; b and k 1 are parameters. TF(d, q i ) is a frequency of the term q i in the document d (i.e., the number of occurrences). IDF(q i ) is the inverse document frequency of the word q i , which may be computed in several ways. We use the following non-skewed formula for IDF:</p><formula xml:id="formula_2" coords="3,263.85,205.14,249.40,10.46">IDF(q i ) = log N/n i ,<label>(2)</label></formula><p>where N is a number of documents in the collection and n i is the number of documents that contain q i .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Pairwise Inverse Squared Distance Function</head><p>A pairwise inverse squared distance function is based on the formula proposed by <ref type="bibr" coords="3,457.09,276.30,56.18,9.96;3,100.80,288.25,54.20,9.96" target="#b8">Rasolofo and Savoy [2003]</ref> and modified by <ref type="bibr" coords="3,233.23,288.25,117.55,9.96" target="#b1">Büttcher and Clarke [2005]</ref>, <ref type="bibr" coords="3,358.47,288.25,91.00,9.96" target="#b11">Schenkel et al. [2007]</ref>. However, we calculate a score of each pair independently.</p><p>The scoring function additionally incorporates the Okapi BM25 and is calculated as follows:</p><formula xml:id="formula_3" coords="3,135.61,332.80,377.64,53.58">score(d, q) = score BM 25 (d, q)+ +γ × 1≤i&lt;j≤m (k 1 + 1) min(1, IDF(w i )) 1 + K(acc i,j IDF(w j )) -1 + min(1, IDF(w j )) 1 + K(acc i,j IDF(w i )) -1 ,<label>(3)</label></formula><p>where the value of acc i,j is equal to:</p><formula xml:id="formula_4" coords="3,244.84,412.23,124.37,28.32">|ρ-τ |≤L,wρ=qi,wτ =qj 1 (ρ -τ ) 2 .</formula><p>The summation above is carried out through all occurrences of close word pairs (w i , w j ) in the document d. Parameters k 1 = 1.2 and b = 0.3 have been tuned using TREC 2009 relevance assessments. The parameter γ has been set to 1.</p><p>In addition, we embed spam scores into Equation (3) through multiplying the relevance score by:</p><formula xml:id="formula_5" coords="3,257.49,517.20,251.52,9.96">1 -α × SpamScore(d), (<label>4</label></formula><formula xml:id="formula_6" coords="3,509.01,517.20,4.24,9.96">)</formula><p>where α is an empirically determined constant equal to 0.00025.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Logistic Function</head><p>To construct a logistic relevance function we assume that there is a probabilistic relationship between the document relevance, which is a binary variable, and several independent relevance features. This relationship is often modeled using the logistic regression. The proximity between query words q i and q j in the document d is represented by the relevance feature P75(d, q i , q j |L). This feature is equal to a 75th percentile of the distribution of distances between words q i and q j in the document d. In that, only distances less than or equal to L (i.e., only distances between words in close pairs) are considered.</p><p>In Section 3.3.1, which can be skipped in a first read, we describe this approach in more detail. The ranking function itself is presented in Section 3.3.2.</p><p>• 3.3.1 Statistical Rationale. The logistic regression models the relationship between a binary outcome variable and independent explanatory variables x 1 , x 2 , . . . , x m through the logistic function:</p><formula xml:id="formula_7" coords="4,207.23,156.37,306.02,30.61">p(x 1 , x 2 , . . . , x m ) = e z e z + 1 , z = β 0 + n i=1 β i x i ,<label>(5)</label></formula><p>where β i are regression coefficients. The value of the logistic function is interpreted as a probability of success in a series of Bernoulli trials. The regression coefficients are determined using the maximum likelihood method, see, e.g., a book by <ref type="bibr" coords="4,336.96,215.36,65.57,9.96" target="#b6">Maddala [1999]</ref>. The likelihood function is given by the expression:</p><formula xml:id="formula_8" coords="4,262.53,243.30,93.16,22.87">k p rel k k (1 -p k ) 1-rel k ,</formula><p>where rel k is a binary relevance indicator (equal to one if the k-th trial produces a relevant document) and p k is a probability of relevance. To compute p k one has to "plug" values of relevance features (x 1 , x 2 , . . . , x m ) observed in the k-th trial into Equation (5).</p><p>For each query q used in the TREC 2009 web-track, we obtain the set of documents D(q) = {d k } that is an intersection of the following sets:</p><p>• the set of documents that contain all query words; • the set of documents whose relevance to the query q was judged by assessors.</p><p>Each query is associated with a series of trials. A trial outcome associated with a document d ∈ D(q) is successful if and only if d was judged as relevant. Depending on the properties of the query and documents in D(q), these trials are modeled using different sets of explanatory variables.</p><p>Single-word queries are modeled using two explanatory variables: score BM 25 (d, q 1 ) and SpamScore(d). Each document from D(q) represents one trial. In the case of multi-word queries we essentially stack m(m-1)/2 series of trials each of which corresponds to a pair of query words (q i , q j ), i.e., one document may correspond to several trials. Although trials that correspond to different pairs occurring in the same document have the same outcome (because the document is judged only once), for simplicity, we assume that these trials are independent.</p><p>Two cases are possible:</p><p>• The set of retrieved documents D(q) does not contain documents where (q i , q j ) is a close pair;</p><p>• D(q) contains a document where (q i , q j ) is a close pair.</p><p>In the first case, all documents from D(q) participate in modeling. The explanatory variables include: score BM 25 (d, q i ), score BM 25 (d, q j ), and SpamScore(d).</p><p>In the second case, the modeling is based on a subset of documents from D(q) that contain at least one close pair (q i , q j ). The explanatory variables include: score BM 25 (d, q i ), score BM 25 (d, q j ), SpamScore(d), and an additional variable P75(d, q i , q j |L).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Description of Logistic Ranking</head><p>Function. An argument of the logistic function is a linear combination of relevance features. For one-word queries, the only features are the BM25 score and the spam score. For queries containing two or more words, the values of the logistic function are summed up across all query pairs: d,qi,qj )  1 + e f (d,qi,qj )  (6)</p><formula xml:id="formula_9" coords="4,168.13,651.33,241.40,29.24">score(d, q) = 1≤i&lt;j≤m [(q i , q j )is a close pair in d] + e f (</formula><p>The first term under the summation is equal to 1 if and only if (q i , q j ) is a close pair in the document d. Otherwise, this term is zero. If (q i , q j ) is a close pair, f (d, q i , q j ) is a linear combination of the document spam score, the sum of BM25 scores for q i and q j in d, as well as of the 75th percentile of distances between q i and q j in d (when those distances do not exceed L):</p><formula xml:id="formula_10" coords="5,176.24,186.76,261.58,35.20">f (d, q i , q j ) = β 0 + β 1 (score BM 25 (d, q i ) + score BM 25 (d, q j )) + +β 2 P75(d, q i , q j |L) + β 3 SpamScore(d)</formula><p>If (q i , q j ) is not a close pair, then the function is represented by a linear combination with different values for parameters β i . Because the document d does not contain (q i , q j ) as a close pair, this linear combination omits the 75th percentile.</p><p>Initially, we attempted to estimate parameters β i through the logistic regression (see Section 3.3.1), using TREC 2009 relevance rankings as a training dataset. To this end, we chose parameters that optimized a likelihood function for each query separately. Then we used the Monte-Carlo method to combine query-specific estimates. The results are depicted in Figure <ref type="figure" coords="5,505.51,300.99,3.88,9.96" target="#fig_0">1</ref>.</p><p>Although this approach has not produced an effective retrieval method, we have learned that existence of a close pair in a document was a strong and statistically significant predictor of relevance. In particular, whenever a set of documents retrieved for a specific multi-word query contains documents with and without close pairs (q i , q j ), the documents without close pairs are almost never relevant. This is the rationale for including an indicator of a close pair in Equation ( <ref type="formula" coords="5,147.72,372.74,3.87,9.96">6</ref>). In addition, we have found the following associations (see Figure <ref type="figure" coords="5,448.09,372.74,3.87,9.96" target="#fig_0">1</ref>):</p><p>• a positive correlation between the document relevance and BM25 scores of query words; • a negative correlation between the document relevance and the distances between query words in the document; • a negative correlation between the document relevance and the document spam score.</p><p>Therefore, one may expect that all three relevance features (BM25 scores of query words, document spam scores, and distances between query words) should be predictors of the document relevance. However, the experiments have shown that word proximity information has only little effect on the retrieval effectiveness.</p><p>In order to obtain a competitive relevance function, we employ direct optimization using the method by <ref type="bibr" coords="5,150.04,510.97,101.54,9.96" target="#b7">Nelder and Mead [1965]</ref>. An objective function is the mean average precision, which is computed using the standard TREC utility trec eval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">INDEXING APPROACH</head><p>This simple folklore approach should have been described in the literature, but we are unaware of exact references. It is similar to the method by <ref type="bibr" coords="5,330.10,573.98,81.26,9.96" target="#b0">Bahle et al. [2002]</ref> and is inspired by the following assumptions and observations:</p><p>• If we choose only several hundred most frequent words, the number of pairs where both words are frequent would not be excessively large. The set of such word pairs would be small and could be easily kept in RAM; • All other (i.e., infrequent) words would have relatively short posting lists. Therefore, we can keep full positional information for these words; • One-word queries do not require positional information. Beta SPAMRANK Beta SPAMRANK    </p><formula xml:id="formula_11" coords="6,139.09,187.51,233.97,154.90">• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • 0.00 0.</formula><formula xml:id="formula_12" coords="6,131.87,187.51,361.32,345.08">• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • 0.</formula><formula xml:id="formula_13" coords="6,137.68,377.69,254.80,154.90">• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • 0.0 0.</formula><formula xml:id="formula_14" coords="6,338.64,377.69,154.55,138.48">• • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • • •</formula><p>Notes: Beta BM25Pair represents score BM 25 (d, q i )+score BM 25 (d, q j ) for some not necessarily close pair (q i , q j ).</p><p>Therefore, proximity queries can be efficiently satisfied if the following indices are created:</p><p>• A non-positional index of frequent words;</p><p>• A positional index of the remaining (infrequent) words;</p><p>• A positional index of pairs occurring within distance L = 10, where both words are frequent;</p><p>• A positional index of pairs occurring within distance L = 10, where only one word is frequent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• 7</head><p>The indices of the first three types are implemented as classic inverted files with a dictionary of unique entries and posting lists that encode entry occurrences. To decrease space requirements and improve retrieval time, postings are encoded using byte-aligned codes of variable length <ref type="bibr" coords="7,100.80,156.26,112.59,9.96">[Williams and Zobel 1999]</ref>.</p><p>For the index of the fourth type, i.e., the index of pairs containing an infrequent word w j , a straightforward inversion of quadruplets in the form (w i , w j , pos j , L i,j ), where w i is a frequent word and L i,j is the distance between w i and w j , may be infeasible because:</p><p>• It is hard to manage a dictionary containing hundred million (if not billion) word pairs (w i , w j ). For instance, it cannot be loaded into RAM;</p><p>• The index would contain many short postings, which have poor compression ratio.</p><p>Therefore, we opt for indexing surrogate pairs. This method consists in dividing all infrequent words into a small number of groups with the help of a hash function h(w). Then, we create an inverted file of the following quadruplets: (w i , h(w j ), pos j , L i,j ). Note that such quadruplets should always include a position of an infrequent word. In our experiments, the number of frequent words is 500 and the number of groups containing infrequent words is 100.</p><p>Our current implementation ignores stop words, but it is also possible to index them. Had decided to index "stop pairs" (i.e., word pairs where at least one word is a stop word) we would have used a specific distance threshold, which is much smaller than L. Perhaps, a good idea is to choose L = 1, i.e., to include only those stop pairs where words are adjacent. In addition, we would not create a non-positional index of stop words.</p><p>During retrieval time, we compute the BM25 score and adjust it using positional information. Consider for example a pair of query words q 1 and q 2 . If, both words are infrequent, we retrieve their (full) positional posting lists and create an intersection. If, both words are frequent, we retrieve a positional posting for the pair (q 1 , q 2 ), which was precomputed at the indexing step.</p><p>If only q 1 is frequent, we retrieve a positional posting of the surrogate pair (q 1 , h(q 2 )). Because several real pairs are mapped into a single surrogate pair, this posting may contain spurious entries that do not represent occurrences of the pair (q 1 , q 2 ). To eliminate these excess entries, we need to retrieve the full positional posting of the infrequent word q 2 and intersect it with the posting of the surrogate pair (q 1 , h(q 2 )).</p><p>It can be seen that, unlike the method by <ref type="bibr" coords="7,303.41,485.76,95.44,9.96" target="#b11">Schenkel et al. [2007]</ref>, this method can answer any phrase query (if stop pairs are indexed). It may also answer queries in the form "find documents containing q 1 and q 2 that occur within a user-specified distance", but full recall is not guaranteed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">DISCUSSION</head><p>We have submitted two official runs: blv79y00shnk and blv79y00prob. The respective ranking functions are described in Sections 3.2 and 3.3. Additionally, we have evaluated several other methods using TREC 2010 queries and relevance judgements. The goal of this evaluation is to investigate how spam scores and proximity scores influence the retrieval effectiveness.</p><p>Performance measures of the retrieval effectiveness are computed using the standard TREC utilities trec eval and gdeval. These measures include: the mean average precision, the precision at 5 and 15 (P@5 and P@15), the normalized discounted cumulative gain at 20 (NDCG@20) and the expected reciprocal rank at 20 (ERR@20) <ref type="bibr" coords="7,303.42,645.82,90.48,9.96" target="#b2">[Chapelle et al. 2009]</ref>. For some of the methods, we measure retrieval time and time to calculate proximity scores (if applicable). The results are presented in Table <ref type="table" coords="7,184.46,669.72,3.18,9.96" target="#tab_4">I</ref>, p. 8.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>•</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Retrieval Effectiveness</head><p>We have evaluated the following additional methods (which represent unofficial runs):</p><p>• BM25 is a baseline method that evaluates the standard BM25 score with k 1 = 1.2, b = 0.3, and the non-skewed formula for IDF, see Equation ( <ref type="formula" coords="8,338.86,167.47,3.87,9.96" target="#formula_2">2</ref>). • BM25 (+close pairs) is the extended BM25 method, where scores of documents that contain at least one close pair are increased by some large constant. As a result, all documents without close pairs are ranked lower than documents with close pairs. • BM25 (+spamrank) is the BM25 method extended with spam scores. To this end, each relevance score is multiplied by a factor given by Equation ( <ref type="formula" coords="8,373.48,232.79,3.87,9.96" target="#formula_5">4</ref>). • BM25 (+close pairs +spamrank) is a modification of the spamrank-enhanced BM25, i.e, BM25 (+spamrank), where all documents with close pairs are ranked higher than documents without close pairs. • blv79y00shnk γ = 0.3 is a variant of blv79y00shnk that uses the proximity weight equal to 0.3; • blv79y00shnk (-spamrank) γ = 1 is a variant of blv79y00shnk that does not use spam scores.</p><p>The proximity weight is equal to 1; • blv79y00shnk (-spamrank) γ = 0.3 is a variant of blv79y00shnk that does not use spam scores.</p><p>The proximity weight is equal to 0.3;</p><p>Note that we evaluate methods blv79y00shnk and blv79y00shnk (-spamank) using three different proximity scores γ, see Equation <ref type="formula" coords="8,246.33,370.24,3.87,9.96">(</ref>3). In Table <ref type="table" coords="8,306.35,370.24,3.60,9.96" target="#tab_4">I</ref> we present results only for γ = 1 and γ = 0.3: γ = 1 was used in official runs and γ = 0.3 yielded the best results for 2010 queries.</p><p>Table <ref type="table" coords="8,139.76,394.19,3.60,9.96" target="#tab_4">I</ref> shows that the best official run is blv79y00shnk, which outperforms the baseline (BM25 ) by 10-50 percent according to all measures. It can be seen that this improvement is largely due to using spam scores. Had not we used the spam scores, blv79y00shnk with γ = 1 would have been worse than BM25 with respect to both ERR@20 and the mean average precision. Yet, it would have had a slightly better values of P@5, P@15, and NDCG@20. Furthermore, the unofficial run BM25 (+spamrank) outperforms the official run blv79y00shnk with respect to all measures.</p><p>In addition to the pairwise inversed square distance proximity function, we have evaluated a simpler approach in which proximity is taken into account by sorting documents with close pairs higher than documents without close pairs. It is interesting that the use of close pairs has not improved BM25. However, the method BM25 (+close pairs +spamrank) that combines BM25 scores, spam scores, and close pairs has the best performance overall. Note that the proximity weight γ = 1 is not optimal: blv79y00shnk (-spamrank) γ = 0.3 outperforms BM25 according to all measures. The values of P@5 and P@15 of BM25 are also somewhat worse than those of BM25 (close pairs). However, none of the proximity-aware ranking functions without spam scores is better than BM25 by more than 10 percent: in most cases the improvement is much smaller. This result is consistent with evidence reported by other researchers <ref type="bibr" coords="9,177.67,204.09,118.08,9.96" target="#b1">[Büttcher and Clarke 2005;</ref><ref type="bibr" coords="9,299.09,204.09,84.40,9.96" target="#b12">Tao and Zhai 2007;</ref><ref type="bibr" coords="9,386.83,204.09,83.09,9.96" target="#b11">Schenkel et al. 2007</ref>].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Efficiency</head><p>Two most important efficiency benchmarks are retrieval time and index size. Because we index occurrences of numerous pairs, the total size of the index is about 284 percent of an original text collection size after conversion from HTML (see Table <ref type="table" coords="9,392.69,264.36,7.06,9.96" target="#tab_5">II</ref>). The index of pairs itself uses space equal to 260 percent of the original text collection size. Even though the size of the index is 5-10 times the size of a state-of-the-art compressed positional index (without stop words), this is still a tolerable overhead. It is an order of magnitude smaller than the estimate by <ref type="bibr" coords="9,197.16,336.12,91.98,9.96" target="#b11">Schenkel et al. [2007]</ref>. Furthermore, because word postings do not contain positional information for frequent words, they require less space and can use the existing memory better.</p><p>Note that evaluation of proximity scores in our implementation takes less time than computation of BM25 scores (see Table <ref type="table" coords="9,224.60,419.83,3.41,9.96" target="#tab_4">I</ref>). Preliminary estimates show that our mild pruning method should be at least twice as fast as a method that uses a complete positional index. Yet, thorough experiments are needed to verify our calculations. It is also noteworthy that a simpler proximity evaluation method: BM25 (+close pairs), is even more efficient. In comparison to blv79y00shnk, it requires about half of the time to compute proximity scores.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Failure Analysis</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.1">Statistical</head><p>Learning. The logistic-function based method has a good retrieval effectiveness with appropriate parameters β i (see Table <ref type="table" coords="9,303.87,527.92,3.18,9.96" target="#tab_4">I</ref>, row blv79y00prob). However, these parameters have been obtained through direct optimization of the mean average precision and not through statistical analysis. This may have happened because:</p><p>• For some queries, the information contained in the relevance judgments is not sufficient to make adequate inference; • Statistical methods may not work well for indicators, such as the mean average precision, because they optimize a different objective function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5.3.2</head><p>Queries that Performed Poorly. A quick review of the results showed that there were several queries that had zero value for ERR@20.</p><p>• In case of topics 70 ("to be or not to be the question is"), 72 ("the sun") and 92</p><p>("the wall"), no relevant documents have been found. The obvious reason: we do not index • stop words. • In case of queries 74 ("kiwi") and 94 ("titan"), at least half of all relevant documents have been identified, but not ranked high enough. The exact reasons are yet to be determined.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5.3.3</head><p>Choice of Optimal Parameters. We have not properly tuned the weight of the proximity score γ. Had we used γ ≈ 0.3, blv79y00shnk would have improved by 2-3 percent with respect to all performance measures except P@15.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4">Conclusions and Future Work</head><p>We have presented results of experiments with proximity-aware ranking functions that use close word pair statistics and spam scores. Both spam scores and proximity-aware ranking improve the retrieval effectiveness, however, use of spam scores is the major contributor to this improvement.</p><p>We have also learned that incorporating proximity into a ranking formula does not improve the search quality in all cases. For most queries, taking proximity into account leads only to small improvement of the effectiveness. To achieve this improvement, parameters have to be carefully tuned. In certain experimental setups, the retrieval effectiveness would not be improved at all. Consider, for instance, results reported by <ref type="bibr" coords="10,316.84,310.18,90.79,9.96" target="#b5">Craswell et al. [2010]</ref> in the notebook version of TREC 2010 proceedings. <ref type="bibr" coords="10,226.41,322.14,91.75,9.96" target="#b5">Craswell et al. [2010]</ref> calculate proximity as an inverse size of the span (the minimum window in a document that contains all query words), which results in a method that is even less effective than a method that does not take proximity into account.</p><p>Our statistical analysis has shown that if two query words occur closely in a document (a close pair), this is a strong indicator of relevance. We have conjectured that a simplified proximity ranking function that places documents with close pairs above documents without close pairs, should be a reasonable replacement for a computationally intensive ranking function (based on calculation of distances between words). However, this conjecture has been only partially confirmed by experiments: extending BM25 to account for close pairs improves P@5, P@15, and NDCG@20, in all cases, but not ERR@20 and the mean average precision (compare BM25 against BM25 (+close pairs) and BM25 (+spamrank) against BM25 (+close pairs +spamrank) in Table <ref type="table" coords="10,139.83,453.68,3.41,9.96" target="#tab_4">I</ref>).</p><p>We have also shown that it is possible to index all close word pairs that occur in a quarterterabyte text collection using commodity hardware, namely, our personal laptop. The resulting index of pairs moderately improves retrieval time, in comparison to a full positional index. This improvement comes at the price of longer indexing time and a larger index, which is around 280 percent of the original text size.</p><p>In the future we plan to investigate the following:</p><p>• How does the choice of L -the maximum value for the distance between words in indexed pairs -affect the retrieval effectiveness? In particular, it would be useful to learn how to obtain word-specific values of L: for less frequent words, one may want to include pairs where words are far from each other, while in the case of stop pairs (at least one word in a pair is a stop word) it may be reasonable to choose L = 1. • Can a simplified relevance ranking that does not take the distance between words in close pairs into account be an effective proxy for more computationally intensive proximity ranking functions (e.g., based on computation of inverse squared distances)? • How the index on word pairs can help pruning of the non-positional index effectively? Evaluation of BM25 scores takes long time. There are quite a few methods that improve time to retrieve top-k results using impact-sorted indices. We, however, do not know any method that compensates for pruning of non-positional postings by memorizing occurrences of word pairs. In particular, if the word-pair index is available, it may be possible to store postings of frequent words in the form of bit vectors (i.e., omitting frequency information) without sacrificing retrieval effectiveness. This may be useful if one has to compute accurate number of documents found for each query.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="6,125.59,128.85,362.82,7.97"><head>•Fig. 1 :</head><label>1</label><figDesc>Fig.1: Averaging parameters obtained through logistic regression using the Monte-Carlo method.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="8,106.78,534.93,402.98,140.48"><head>Table I :</head><label>I</label><figDesc>Method performance.</figDesc><table coords="8,106.78,546.69,402.98,128.72"><row><cell>Run name</cell><cell>Retrieval</cell><cell>ERR@20</cell><cell>NDCG@20</cell><cell>Mean</cell><cell>P@5</cell><cell>P@15</cell></row><row><cell></cell><cell>time (sec)</cell><cell></cell><cell></cell><cell>average</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell>precision</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>TREC 2010</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">blv79y00shnk (official run) γ = 1 1.72/0.48</cell><cell>0.10935</cell><cell>0.18772</cell><cell>0.1334</cell><cell>0.3500</cell><cell>0.3444</cell></row><row><cell>blv79y00shnk (-spamrank) γ = 1</cell><cell></cell><cell>0.06413</cell><cell>0.12876</cell><cell>0.1079</cell><cell>0.2042</cell><cell>0.2417</cell></row><row><cell>blv7900shnk γ = 0.3</cell><cell></cell><cell>0.11332</cell><cell>0.19829</cell><cell>0.1371</cell><cell>0.3583</cell><cell>0.3403</cell></row><row><cell>blv7900shnk (-spamrank) γ = 0.3</cell><cell></cell><cell>0.06969</cell><cell>0.13743</cell><cell>0.1116</cell><cell>0.2083</cell><cell>0.2458</cell></row><row><cell>blv79y00prob (official run)</cell><cell>2.42/1.17</cell><cell>0.09563</cell><cell>0.16256</cell><cell>0.1224</cell><cell>0.3375</cell><cell>0.3181</cell></row><row><cell>BM25</cell><cell>1.25</cell><cell>0.06532</cell><cell>0.12682</cell><cell>0.1100</cell><cell>0.2000</cell><cell>0.2333</cell></row><row><cell>BM25 (+close pairs)</cell><cell>1.53/0.28</cell><cell>0.06413</cell><cell>0.12876</cell><cell>0.1077</cell><cell>0.2042</cell><cell>0.2417</cell></row><row><cell>BM25 (+spamrank)</cell><cell></cell><cell>0.11229</cell><cell>0.18894</cell><cell>0.1365</cell><cell>0.3625</cell><cell>0.3486</cell></row><row><cell>BM25 (+close pairs +spamrank)</cell><cell></cell><cell>0.12265</cell><cell>0.21086</cell><cell>0.1340</cell><cell>0.4083</cell><cell>0.3639</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="9,344.83,294.65,147.94,118.75"><head>Table II :</head><label>II</label><figDesc>Inverted Index Statistics</figDesc><table coords="9,349.15,317.37,143.63,96.04"><row><cell></cell><cell>Size</cell></row><row><cell></cell><cell>(GB)</cell></row><row><cell>Source text data</cell><cell></cell></row><row><cell>(HTML is stripped off)</cell><cell>250</cell></row><row><cell>Dictionary</cell><cell>2</cell></row><row><cell cols="2">Infrequent word postings 50</cell></row><row><cell>Frequent word postings</cell><cell>9</cell></row><row><cell>Pair postings</cell><cell>646</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="11,102.29,203.58,410.95,7.97;11,110.76,213.53,402.53,7.97;11,110.76,223.50,222.28,7.97" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="11,292.33,203.58,178.98,7.97">Efficient phrase querying with an auxiliary index</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Bahle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">E</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,489.02,203.58,24.23,7.97;11,110.76,213.53,402.53,7.97;11,110.76,223.50,76.78,7.97">SIGIR &apos;02: Proceedings of the 25th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="215" to="221" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,234.46,410.94,7.97;11,110.76,244.42,266.55,7.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="11,270.29,234.46,239.68,7.97">Efficiency vs. effectiveness in terabyte-scale information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Büttcher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,121.34,244.42,252.02,7.97">TREC-14: Proceedings of the Fourteenth Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,255.38,410.90,7.97;11,110.76,265.35,402.49,7.97;11,110.76,275.31,114.23,7.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="11,344.68,255.38,164.91,7.97">Expected reciprocal rank for graded relevance</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Chapelle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metlzer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Grinspan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,121.95,265.35,362.22,7.97">Proceeding of the 18th ACM conference on Information and knowledge management. CIKM &apos;09</title>
+		<meeting>eeding of the 18th ACM conference on Information and knowledge management. CIKM &apos;09<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="621" to="630" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,286.26,410.96,7.97;11,110.76,296.22,58.16,7.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="11,288.85,286.26,149.11,7.97">Shortest-substring retrieval and ranking</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,448.26,286.26,64.99,7.97;11,110.76,296.22,17.93,7.97">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="44" to="78" />
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,307.19,410.90,7.97;11,110.76,317.15,210.04,7.97" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="11,359.75,307.19,153.44,7.97;11,110.76,317.15,120.42,7.97">Efficient and effective spam filtering and re-ranking for large web datasets</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+		</author>
+		<idno>CoRR abs/1004.5168</idno>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,328.11,410.96,7.97;11,110.76,338.07,214.43,7.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="11,305.77,328.11,151.29,7.97">Microsoft research at trec 2010 web track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Fetterly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Najork</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,474.55,328.11,38.70,7.97;11,110.76,338.07,210.47,7.97">TREC-19: Proceedings of the Nineteenth Text REtrieval Conference</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,349.03,410.93,7.97;11,110.76,358.99,216.26,7.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="11,185.48,349.03,228.01,7.97">Limited-dependent and qualitative variables in econometrics</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Maddala</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,464.01,349.03,49.21,7.97;11,110.76,358.99,121.22,7.97">Number 3 in Econometric Society monographs</title>
+		<imprint>
+			<publisher>Cambridge Univ. Press</publisher>
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,369.95,410.96,7.97;11,110.76,379.92,73.45,7.97" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="11,238.76,369.95,163.54,7.97">A simplex method for function minimization</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">A</forename><surname>Nelder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,409.97,369.95,85.74,7.97">The Computer Journal</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="308" to="313" />
+			<date type="published" when="1965-01">1965. January</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,390.87,410.95,7.97;11,110.76,400.83,402.46,7.97;11,110.76,410.79,68.17,7.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="11,239.02,390.87,220.97,7.97">Term proximity scoring for keyword-based retrieval systems</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Rasolofo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,478.92,390.87,34.33,7.97;11,110.76,400.83,90.14,7.97">Advances in Information Retrieval</title>
+		<title level="s" coord="11,276.11,400.83,129.51,7.97">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin / Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="volume">2633</biblScope>
+			<biblScope unit="page" from="79" to="79" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,421.76,410.96,7.97;11,110.76,431.72,115.93,7.97" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="11,185.39,421.76,290.46,7.97">Understanding inverse document frequency: On theoretical arguments for IDF</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,484.83,421.76,28.43,7.97;11,110.76,431.72,66.58,7.97">Journal of Documentation</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="page" from="503" to="520" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,442.68,410.94,7.97;11,110.76,452.64,402.50,7.97;11,110.76,462.60,402.47,7.97;11,110.76,472.56,72.38,7.97" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="11,267.66,442.68,245.58,7.97;11,110.76,452.64,113.48,7.97">Some simple effective approximations to the 2-poisson model for probabilistic weighted retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,242.48,452.64,270.78,7.97;11,110.76,462.60,233.62,7.97">Proceedings of the 17th annual international ACM SIGIR conference on Research and development in information retrieval. SIGIR &apos;94</title>
+		<meeting>the 17th annual international ACM SIGIR conference on Research and development in information retrieval. SIGIR &apos;94<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer-Verlag New York, Inc</publisher>
+			<date type="published" when="1994">1994</date>
+			<biblScope unit="page" from="232" to="241" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,483.52,410.93,7.97;11,110.76,493.49,402.52,7.97;11,110.76,503.45,202.61,7.97" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="11,425.46,483.52,87.76,7.97;11,110.76,493.49,21.61,7.97">Efficient text proximity search</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Schenkel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Broschart</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hwang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Theobald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Weikum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,150.14,493.49,363.15,7.97;11,110.76,503.45,29.66,7.97">SPIRE&apos;07: Proceedings of the 14th international conference on String processing and information retrieval</title>
+		<meeting><address><addrLine>Berlin, Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer-Verlag</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="287" to="299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,514.41,410.97,7.97;11,110.76,524.37,402.53,7.97;11,110.76,534.34,204.25,7.97" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="11,216.60,514.41,233.76,7.97">An exploration of proximity measures in information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Tao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,471.21,514.41,42.05,7.97;11,110.76,524.37,402.53,7.97;11,110.76,534.34,58.74,7.97">SIGIR &apos;07: Proceedings of the 30th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007">2007</date>
+			<biblScope unit="page" from="295" to="302" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,545.29,410.95,7.97;11,110.76,555.25,31.95,7.97" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="11,245.10,545.29,151.77,7.97">Compressing Integers for Fast File Access</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">E</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,404.06,545.29,85.34,7.97">The Computer Journal</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="193" to="201" />
+			<date type="published" when="1999">1999</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,102.29,566.22,410.90,7.97;11,110.76,576.18,282.91,7.97" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="11,317.91,566.22,195.28,7.97;11,110.76,576.18,30.53,7.97">What&apos;s next? -index structures for efficient phrase querying</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">E</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Anderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,159.44,576.18,195.49,7.97">Proceedings of the Australasian Database Conference</title>
+		<meeting>the Australasian Database Conference</meeting>
+		<imprint>
+			<date type="published" when="1999">1999</date>
+			<biblScope unit="page" from="141" to="152" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

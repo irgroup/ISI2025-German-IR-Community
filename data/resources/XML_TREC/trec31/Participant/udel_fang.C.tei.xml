@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,129.46,101.17,353.07,15.48;1,118.55,121.09,374.90,15.48">An Exploration Study of Mixed-initiative Query Reformulation in Conversational Passage Retrieval</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,199.01,181.86,47.03,8.96"><forename type="first">Dayu</forename><surname>Yang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,366.26,181.86,46.42,8.96"><forename type="first">Yue</forename><surname>Zhang</surname></persName>
+							<email>zhangyue@udel.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,286.06,231.86,39.89,8.96"><forename type="first">Hui</forename><surname>Fang</surname></persName>
+							<email>hfang@udel.edu</email>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,129.46,101.17,353.07,15.48;1,118.55,121.09,374.90,15.48">An Exploration Study of Mixed-initiative Query Reformulation in Conversational Passage Retrieval</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">64DA0E377CBFC1C7D0BDF1ECA883F8EA</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we report our methods and experiments for the TREC Conversational Assistance Track (CAsT) 2022. In this work, we aim to reproduce multi-stage retrieval pipelines and explore one of the potential benefits of involving mixedinitiative interaction in conversational passage retrieval scenarios: reformulating raw queries. Before the first ranking stage of a multi-stage retrieval pipeline, we propose a mixed-initiative query reformulation module, which achieves query reformulation based on the mixed-initiative interaction between the users and the system, as the replacement for the neural reformulation method. Specifically, we design an algorithm to generate appropriate questions related to the ambiguities in raw queries, and another algorithm to reformulate raw queries by parsing users' feedback and incorporating it into the raw query. For the first ranking stage of our multi-stage pipelines, we adopt a sparse ranking function: BM25, and a dense retrieval method: TCT-ColBERT. For the second-ranking step, we adopt a pointwise reranker: MonoT5, and a pairwise reranker: DuoT5. Experiments on both TREC CAsT 2021 and TREC CAsT 2022 datasets show the effectiveness of our mixed-initiative-based query reformulation method on improving retrieval performance compared with two popular reformulators: a neural reformulator: CANARD-T5 and a rule-based reformulator: historical query reformulator(HQE).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The TREC Conversational Assistance Track (CAsT) is a task to facilitate the study of conversational information systems, which are information systems that adopt a conversational modality to enable conversational exchanges between the system and its users. The main objective of conversational information seeking is to satisfy users' information needs in an evolutionary fashion, which is formalized or expressed through conversation turns. It can be beneficial for many information retrieval tasks, such as sophisticated information searching, exploratory information collecting, multi-turn retrieval task completion, and recommendation. Although conversation can also exhibit other types of interactions with different characteristics and modalities, such as clicks, multi-choice selections, and other forms of feedback <ref type="bibr" coords="1,265.35,650.34,10.45,8.64" target="#b5">[6]</ref>, we mainly focus on natural language conversation in the Text REtrieval Conference(TREC) Conversational Assistance Track(CAsT). Specifically, following the problem settings of TREC CAsT, a user can initialize an open-domain information request to the system, and the system is expected to retrieve relevant passages from a gigantic corpus. During the conversation, the user is free to continue on the previous topic, provide feedback on the previously retrieved passage, or shift from one topic to another.</p><p>The overall approach of us is a multi-stage retrieval architecture that contains four main stages: the query reformulation stage, the first-ranking stage, and the second-ranking stage with an affiliated stage called fusion. In addition to adopting existing query reformulation methods: CANARD-T5 and HQE <ref type="bibr" coords="2,139.64,108.20,14.79,8.64" target="#b2">[3]</ref>, to enable the mixed-initiative interaction and make the interaction helpful to the query reformulation task, we design an algorithm to generate questions seeking clarification of three types of ambiguities in the raw queries: incomplete, reference, and descriptive. After the question is generated, it will be sent to the user. Once the answer from the user is received, the answer will be parsed by another algorithm. The new clarification information will be combined with the raw query to formulate the reformulated query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Method</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Multi-stage Retrieval Pipeline</head><p>First, in order to achieve state-of-the-art retrieval performance, we construct an efficient and effective multi-stage retrieval pipeline. Specifically, we use a four-stage cascade structure. The first stage will be the query reformulation stage, where we implement two popular query reformulation methods: CANARD-T5 rewriter and HQE <ref type="bibr" coords="2,239.71,269.67,11.57,8.64" target="#b2">[3]</ref> to eliminate ambiguities in the raw utterances. The pipeline we build can be illustrated in Figure <ref type="figure" coords="2,240.07,280.58,3.74,8.64" target="#fig_0">1</ref>. To improve the efficiency of the multi-stage pipeline, instead of reformulating the query when we run the pipeline, we first implement query reformulations on all the queries and store the reformulated queries for later usage. This reduces the intensity of communication between the CPU and GPU and avoids unnecessary repeated query reformulation work when trying different ranking functions. For the CANARD-T5 rewriter <ref type="bibr" coords="2,213.37,577.13,11.42,8.64" target="#b2">[3]</ref> which we use for query reformulation, instead of using the parameters, we fine-tune it on TREC 2019 and 2020 data to further improve the reformulation on retrieval. The experiment on the TREC CAsT 2021 dataset shows our fine-tuned T5 rewriter outperforms the T5 with original weights.</p><p>After the ambiguities are resolved by the query reformulation stage, the first ranking stage generates the initial ranked document list and delivers it to the re-ranking stage. there will be γ 1 numbers of documents to be retrieved as the candidates for the following stage. We apply multiple ranking methods based on sparse methods and dense methods to overcome the limitation of the lexical and semantic matching capability of a single ranking function. Each stage i takes γ i-1 numbers of documents to ranking and outcome γ i numbers of documents to the subsequent stage, where γ i-1 ≤ γ i . Specifically, we use BM25 ranking function as the sparse retrieval method we used in the first ranking stage. For the dense ranking in the first ranking stage, we use TCT-ColBERT <ref type="bibr" coords="2,492.15,702.61,11.85,8.64" target="#b1">[2]</ref> to independently encode queries and the documents and formulate the dense representations of Figure <ref type="figure" coords="3,135.77,219.30,3.80,8.64">2</ref>: A workflow for asking clarifying questions in an open-domain conversational search system documents and queries. After the first ranking stages are finished, we use a pointwise re-ranker MonoT5 <ref type="bibr" coords="3,144.57,262.32,11.38,8.64" target="#b3">[4]</ref> and a pairwise re-ranker DuoT5 <ref type="bibr" coords="3,285.20,262.32,11.38,8.64" target="#b4">[5]</ref> to re-rank the relevant documents (passages) that are outputted from the first ranking stage. Finally, we apply reciprocal rank fusion<ref type="foot" coords="3,414.38,271.56,3.49,6.05" target="#foot_1">1</ref> , which is efficient for combining the ranked lists obtained from re-ranking. (If an early fusion is applied, the fusion stage will behave before re-ranking and after the first ranking. After fusion, the final ranked document list will output as result. Figure <ref type="figure" coords="3,218.53,305.96,4.88,8.64" target="#fig_0">1</ref> shows our multi-stage conversational text retrieval pipeline for creating non-mixed-initiative runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Mixed-initiative Query Reformulation</head><p>We observe that, for the TREC CAsT 2021 dataset, in some cases, certain ambiguities are not successfully clarified by the CANARD-T5 reformulators. Since CANARD-T5 is a generative model that samples the reformulated queries from high-dimensional distributions. It is hard for us to explicitly explore why sometimes CANARD-T5 fails to correctly clarify ambiguities. However, what we can observe is that: the automatic reformulator performs well on certain queries but not well on the rest. Therefore, with the introduction of the mixed-initiative task in the TREC CAsT 2022, we intend to explore the potential of clarifying the ambiguity with the help of users. In order to generate the question, we designed an algorithm to identify the ambiguity a raw query has and formulate the corresponding question. Specifically, we design three questions that correspond to three types of ambiguities: references, descriptive, and incomplete sentences. When the algorithm detects an ambiguity, the system will generate a corresponding question from the template and send it to the user for further clarification. Incomplete ambiguity is defined as the raw query does not have any nouns. For example, the user may ask "How's that?" after the previous retrieval turns. Reference ambiguity is defined as the algorithm finding at least one pronoun in the raw query(and it is not at the beginning of the raw query). Descriptive ambiguity means the noun with a high BM25 score in the raw query does not have any descriptive information following it. For example, the raw query could be "What kind of innovation do we have?" which is missing the description of the noun "innovation". The descriptive information of "innovation" can be "innovation of US banks".</p><p>Since only one interaction is allowed for each raw query, if multiple types of ambiguities are detected, the algorithm will follow the priority order: incomplete &gt; reference &gt; descriptive to generate questions. Here are some more concrete examples from the TREC CAsT 2022 dataset, in utterance 3-1, turn 142, the raw query is You've mentioned that several times now. Tell me more.. The algorithm will first identify if this sentence is a complete query. In this case, the raw query is a complete query, so the algorithm will move on to detect the reference ambiguity. Since there is a pronoun "that" in the raw query, that means the raw query has a reference ambiguity. Then the algorithm will extract the pronoun "that" and ask the user, What does "that" refer to in your raw query?. If there is no reference ambiguity found by the algorithm, it will continue to try to identify whether raw utterances have descriptive ambiguities. Taking utterances 3-3, turn 132 as an example, the raw utterance is How did other parties respond?. The algorithm detected that an important word, parties does not have any descriptive information in the raw utterance. Therefore, the system will ask the user to specify the word parties. In this case, the answer received by the system is parties of the Paris Agreement.</p><p>After the answer of obtained, a reformulating algorithm will add the newly-obtained information from the answer to the original query. For an original query with the reference ambiguity, we expect the user's answer to be the entity a pronoun is referring to. So the pronoun will be directly replaced by the answer. For an incomplete original query, we expect the user's answer to be the complete query. So the entire original query will be replaced by the answer. For an original query with descriptive ambiguity, the algorithm will append the descriptive information to the corresponding noun or verb. In some cases, the user may refuse to answer the question, the answer will be "I don't know" if the user refuse to answer in TREC CAsT 2022. The algorithm will keep the original query intact if it meets the answer "I don't know".</p><p>In summary, the algorithm can enable mixed-initiative interaction with users while resolving the ambiguities that existing generative and classification query reformulation methods have difficulty resolving. The overall workflow of our mixed-initiative algorithm is shown in Figure <ref type="figure" coords="4,448.35,228.25,3.74,8.64">2</ref>.</p><p>Overall, the original automatic query reformulation steps of the multi-stage retrieval pipeline introduced in Figure <ref type="figure" coords="4,173.43,255.55,5.02,8.64" target="#fig_0">1</ref> are replaced with the mixed-initiative query reformulation module, which means the change is made only in the "query reformulation" stage. The multi-stage conversational text retrieval pipeline we used for creating mixed-initiative runs for TREC CAsT 2022 can be illustrated in Figure <ref type="figure" coords="4,146.74,288.28,3.74,8.64" target="#fig_1">3</ref>. Since the qrel file of the TREC CAsT 2022 dataset is not available when we participate in the CAsT track. We finish experiments about hyperparameter tuning on the TREC CAsT 2021 dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Query Reformulation Setup</head><p>The original T5 rewriter has trained on CANARD <ref type="bibr" coords="4,315.66,669.88,11.85,8.64" target="#b2">[3]</ref> dataset. Although many experiments from the runs of TREC CAsT 2021 show the knowledge T5 learns from CANARD transfers well to the TREC CAsT dataset, we still want to figure out if it is beneficial to fine-tune the T5 rewriter on the previous TREC CAsT datasets: 2019 and 2020? Therefore, we start with the weights that we borrowed from <ref type="bibr" coords="4,172.00,713.51,11.85,8.64" target="#b0">[1]</ref> and fine-tune the T5 on structured TREC 2019 and 2020 data. Table <ref type="table" coords="4,469.55,713.51,5.08,8.64">1</ref> shows: Run Name Recall@1000 Recall@500 MAP@2000 NDCG@3 The original T5 rewriter 0.5873 0.5502 0.1378 0.2335 Fine-tuned T5 rewriter 0.6365 0.5892 0.1484 0.2525 Table <ref type="table" coords="5,134.02,113.26,3.95,8.64">1</ref>: The retrieval performance on TREC CAsT 2021 dataset of the reformulated queries reformulated by the original T5 rewriter from <ref type="bibr" coords="5,291.74,124.16,11.62,8.64" target="#b0">[1]</ref> and our fine-tuned one.</p><p>by using the query reformulated by the fine-tuned T5 rewriter, the retrieval performance on the first ranking stage can surpass the original T5 rewriter.</p><p>For the default setting of a T5 rewriter, it will consider all the canonical passages A &lt;i : A 1 , A 2 , . . . , A i-1 before the focal query Q i . However, when applying it to the TREC CAsT dataset, the canonical passage is usually much longer than the canonical passage in the CANARD dataset.</p><p>The excessive length brings up the issue that the total length of the input of T5 will sometimes surpass the maximum length of the token input of T5: 512. And T5 will cut off all the tokens after the 512 th token. This makes some latest users' utterances may be abandoned by the T5's tokenizer. However, the intuition is that the user's information needs are more likely to be contained in users' utterance Another experiment we did was to explore "if it is beneficial to consider not only the most probable output of the generative reformulator but other outputs?" The intuition behind this experiment is that the target of a generative model is to generate the sentence with the highest probabilities instead of a sentence with more information that represents users' information needs. By our observation, we find, sometimes, the probability of generating the reformulated sentence: "What is the price of the bike?" is larger than the probability of "What is the price of the sport bike of Trek?" Therefore, we design an experiment to fuse top-probable sentences from the generative reformulator. The results are shown in Table <ref type="table" coords="5,188.23,543.77,3.81,8.64">3</ref>. We can see that the recall can be largely improved if we consider multiple top-probable outputs and fuse them at the end of the first ranking stage. The results indicate that it may be beneficial to consider multiple generated sentences with the largest probabilities from a generative reformulator such as T5 rewriter.</p><formula xml:id="formula_0" coords="5,108.00,271.47,133.88,9.65">Q &lt;i : Q 1 , Q 2 , . . . , Q i-1 instead</formula><p>Historical query reformulation(HQE) is a method that uses BM25 scores to identify if a word in the previous passage retrieval log is important or not. The words that are classified as important will be appended at the end of the raw query. We use the same BM25 threshold setting with the paper introducing HQE <ref type="bibr" coords="5,171.25,625.61,14.82,8.64" target="#b2">[3]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Tuning BM25 Parameters</head><p>For sparse ranking functions, we use the BM25 ranking function with the following parameter setting: k1=1.24, b=0.9 after hyperparameter tuning on the TREC CAsT 2021 dataset. Table <ref type="table" coords="5,455.92,680.79,5.08,8.64">4</ref> shows the improvement in retrieval performance using the aforementioned BM25 parameters compared with the default settings in the TREC CAsT 2021 dataset. For both sparse retrieval and dense retrieval in the first ranking stage, our pipeline will only return the top 2000 ranked passages to improve efficiency.</p><p>No. sentences to fusion Recall@500 MAP@500 NDCG@500 NDCG@3  <ref type="table" coords="6,131.85,147.18,3.84,8.64">3</ref>: The retrieval performances on TREC CAsT 2021 dataset of runs fusing different number of top-probable sentences in the first ranking stage (using BM25 as the ranking function)</p><p>Recall@500 Recall@1000 Recall@3000 A non-tuning run 0.6664 0.7121 0.7790 The best run(k1=1.24, b=0.9). 0.6730 0.7518 0.8101 Table <ref type="table" coords="6,133.11,227.07,3.95,8.64">4</ref>: The improvement in retrieval performance using the aforementioned BM25 parameters compared with the default settings in the TREC CAsT 2021 dataset Also, during the first retrieval, instead of waiting for the retrieval process to finish for a single query, we delay all the retrieval processes for many reformulated queries and process them together to take full advantage of the multiprocessing capability of our CPU.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Re-ranking Setup</head><p>After the first ranking stage, we implement MonoT5 as the pointwise re-ranker and DuoT5 as the pairwise re-ranker. Due to the expensive computational requirement that come with the re-ranking process and re-rankers require online computation. We only use MonoT5 to re-rank the first 1000 documents and use DuoT5 to re-rank the first 200 documents from MonoT5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Fusion Setup</head><p>After the re-ranking stage, we have a total of six re-ranking runs since we have three different versions of reformulated queries: G0, G1, and Hqe, and two different first ranking methods: sparse and dense ranking methods, where"G" stands for generative neural reformulator. In our case, we use the T5 rewriter specifically. We consider both "G0" and "G1", where "G0" stands for the most probable output and "G1" stands for the second most probable output. Although we observe from Table <ref type="table" coords="6,498.92,464.68,5.08,8.64">3</ref> that fusing more runs using different output of the generative reformulator could be beneficial to the retrieval performance. Due to the time restriction and for the simplicity of our method, we do not fuse runs using top-probable sentences generated by the reformulator for creating our submitted runs. The following chapter will include a detailed description of the four submitted runs and how we finished the fusion step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Submitted Runs</head><p>For TREC CAsT 2022 participation, our team finally submitted two automatic runs: UDInfo-best2021, UDInfo-onlyd and two mixed-initiative runs: UDInfo-mi-b2021, UDInfo-onlyd-mi. Since we cannot Method Dataset MI Recall@1000 MAP@1000 NDCG@3 udinfo_best2021</p><p>CAsT The retrieval performance on the TREC CAsT 2021 and 2022 datasets of all submitted runs. MI stands for "mixed-initiative".</p><p>obtain user feedback for the TREC CAsT 2021 dataset, we only report the two pipelines using CANARD-T5 or HQE query reformulators. The details of how to create runs in 4 are described later.</p><p>What we can observe from 4 is that: first, although the two methods we used for creating runs have a higher Recall@1000 on the TREC 2021 dataset compared with the TREC 2022 dataset, we obtain higher NDCG@3 on the TREC 2022 dataset. This could indicate that the ranking methods we used in the first ranking stage, which mainly focused on increasing Recall, can handle the TREC 2021 dataset better than the TREC 2022. On the contrary, the ranking methods we used for the second-ranking stage, which mainly focuses on increasing NDCG, can handle the TREC 2022 dataset better than the 2021 one. Secondly, the methods using the mixed-initiative query reformulation module achieve much higher retrieval performance compared with the runs using CANARD-T5 and HQE, which indicates that incorporating mixed-initiative interaction into conversational passage retrieval systems has the potential to improve retrieval performance<ref type="foot" coords="7,306.96,199.29,3.49,6.05" target="#foot_2">2</ref> .</p><p>• Run #1 (UDInfo-best2021): reciprocal fusion of three top-ranked methods on NDCG@3 in the TREC CAsT 2021 dataset(The reason for only fuse top three runs is because fusing more runs can only harm the performance by experiment on the TREC CAsT 2021 dataset), which are:</p><p>-Using "G1" as the query reformulation method; sparse first ranking stage; Pointwise and Pairwise re-ranking. -Using "G0" as the query reformulation method; dense first ranking stage; Pointwise and Pairwise re-ranking. -Using "Hqe" as the query reformulation method; dense first ranking stage; Only re-ranking on Pointwise method. • Run #2 (UDInfo-mi-b2021): using the clarification answers from users after the system proactively elicits; other remains the same as Run #1. • Run #3 (UDInfo-onlyd): reciprocal fusion of all three dense methods, which are:</p><p>-Using "G1" as the query reformulation method; dense first ranking stage; Pointwise and Pairwise re-ranking. -Using "G0" as the query reformulation method; dense first ranking stage; Pointwise and Pairwise re-ranking. -Using "Hqe" as the query reformulation method; dense first ranking stage; Pointwise and Pairwise re-ranking. • Run #4 (UDInfo-onlyd-mi): using the clarification answers from users after the system proactively elicits; other remains the same as Run #3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>In this paper, we introduced our multi-stage retrieval pipeline that can tackle conversational search tasks. Our pipeline consists of four stages: query reformulation, first ranking, re-ranking, and fusion.</p><p>In addition to the multi-stage retrieval pipeline, we also introduced our implementation of mixedinitiative interaction on query reformulation, where we design an algorithm to generate questions and seek answers from users to explicitly resolve the ambiguities in the raw queries. In the future, we will explore more methods that can enable mixed-initiative interactions, which can possibly benefit retrieval performance in conversational search.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,108.00,500.57,397.65,8.64;2,108.00,511.48,82.75,8.64;2,177.40,302.37,257.20,186.80"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Demonstration of our multi-stage conversational text retrieval pipeline for creating nonmixed-initiative runs</figDesc><graphic coords="2,177.40,302.37,257.20,186.80" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,108.00,513.62,397.66,8.64;4,108.00,524.53,54.67,8.64;4,186.00,310.62,240.00,191.60"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Demonstration of our multi-stage conversational text retrieval pipeline for creating mixedinitiative runs</figDesc><graphic coords="4,186.00,310.62,240.00,191.60" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,107.69,271.47,396.31,169.43"><head>Table 2 :</head><label>2</label><figDesc>of the canonical passages A &lt;i . Another issue is that the long canonical passages may bring T5 extra challenges to locate useful information from the context that contains the information about users' implicit information needs. Therefore, we think concatenating all previous canonical passages may harm the retrieval performance. The results of experiments on the TREC CAsT 2021 dataset are shown in Table2. As we can see, the best-performing reformulated queries only take the most recent canonical passage into consideration. The retrieval performances on TREC CAsT 2021 dataset of the reformulated queries considering the different numbers of canonical passages(*No. Canonical Psg = Number of canonical passages to consider in the T5 rewriter)</figDesc><table coords="5,145.83,348.12,317.85,53.87"><row><cell cols="5">No. Canonical Psg* Recall@500 MAP@500 NDCG@500 NDCG@3</cell></row><row><cell>0</cell><cell>0.5330</cell><cell>0.1237</cell><cell>0.3384</cell><cell>0.2180</cell></row><row><cell>1</cell><cell>0.5459</cell><cell>0.1356</cell><cell>0.3591</cell><cell>0.2474</cell></row><row><cell>2</cell><cell>0.4688</cell><cell>0.1111</cell><cell>0.3012</cell><cell>0.2102</cell></row><row><cell>3</cell><cell>0.4688</cell><cell>0.1111</cell><cell>0.3012</cell><cell>0.2102</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,107.69,622.93,361.21,81.24"><head>Table 5 :</head><label>5</label><figDesc></figDesc><table coords="6,130.62,622.93,338.28,64.49"><row><cell>udinfo_onlyd</cell><cell>2021</cell><cell>✗ ✗</cell><cell>0.949 0.904</cell><cell>0.287 0.286</cell><cell>0.246 0.240</cell></row><row><cell>udinfo_best2021</cell><cell></cell><cell>✗</cell><cell>0.681</cell><cell>0.181</cell><cell>0.325</cell></row><row><cell>udinfo_onlyd udinfo_best2021_mi</cell><cell>CAsT 2022</cell><cell>✗ ✓</cell><cell>0.651 0.771</cell><cell>0.178 0.246</cell><cell>0.348 0.452</cell></row><row><cell>udinfo_onlyd_mi</cell><cell></cell><cell>✓</cell><cell>0.729</cell><cell>0.243</cell><cell>0.450</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" xml:id="foot_0" coords="1,108.00,734.38,240.05,7.77"><p>31th Text REtrieval Conference (TREC 2022), Virtual Conference.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_1" coords="3,123.72,714.16,338.71,7.77"><p>We do not use early fusion. The fusion step is always employed after the second-stage ranking</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_2" coords="7,124.14,684.27,379.86,7.77;7,108.00,694.24,396.00,7.77;7,108.00,704.20,396.16,7.77;7,108.00,714.16,164.61,7.77"><p>Since some of the original answers we received have unexpected bad quality(for example, many answers are "This question is not related to my search."), we manually replace those bad-quality answers by mimicking the behavior of a user. The answer file, which includes the answers we used for query reformulation and our generated questions, can be found in this link.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,129.58,93.11,374.42,8.64;8,129.58,103.84,376.07,8.82;8,129.25,114.75,62.51,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,371.99,93.11,132.01,8.64;8,129.58,104.02,112.99,8.64">Can you unpack that? learning to rewrite questions-in-context</title>
+		<author>
+			<persName coords=""><forename type="first">Ahmed</forename><surname>Elgohary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Denis</forename><surname>Peskov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jordan</forename><surname>Boyd-Graber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,267.52,103.84,221.11,8.59">Can You Unpack That? Learning to Rewrite Questions</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,129.58,127.83,374.59,8.64;8,129.58,138.56,339.91,8.82" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="8,358.69,127.83,145.48,8.64;8,129.58,138.74,152.02,8.64">Distilling dense representations for ranking using tightly-coupled teachers</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.11386</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,129.58,151.64,374.42,8.64;8,129.58,162.37,374.42,8.82;8,129.33,173.28,152.83,8.82" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,228.86,151.64,275.14,8.64;8,129.58,162.55,214.87,8.64">Multi-stage conversational passage retrieval: An approach to fusing term importance estimation and neural query rewriting</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,368.18,162.37,135.82,8.59;8,129.33,173.28,61.52,8.59">ACM Transactions on Information Systems (TOIS)</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page" from="1" to="29" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,129.58,186.36,374.42,8.64;8,129.58,197.09,301.50,8.82" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="8,351.58,186.36,152.42,8.64;8,129.58,197.27,112.63,8.64">Document ranking with a pretrained sequence-to-sequence model</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiying</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2003.06713</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,129.58,210.17,376.07,8.64;8,129.58,220.90,374.42,8.82;8,129.58,231.81,104.69,8.82" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="8,356.80,210.17,148.85,8.64;8,129.58,221.08,283.79,8.64">The expando-mono-duo design pattern for text ranking with pretrained sequence-to-sequence models</title>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2101.05667</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,129.58,244.71,374.42,8.82;8,129.58,255.62,104.32,8.82" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="8,246.40,244.89,156.15,8.64">Conversational information seeking</title>
+		<author>
+			<persName coords=""><forename type="first">Hamed</forename><surname>Zamani</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2201.08808</idno>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,126.42,84.09,359.16,15.49">Microsoft Cambridge at TREC-14: Enterprise track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,104.86,116.57,68.73,10.76"><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+							<email>nickcr@microsoft.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Microsoft Research Ltd</orgName>
+								<address>
+									<addrLine>7 J.J.Thomson Avenue</addrLine>
+									<postCode>CB3 0FB</postCode>
+									<settlement>Cambridge</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,278.28,116.57,74.02,10.76"><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+							<email>hugoz@es.yahoo-inc.com</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Microsoft Research Ltd] Now at Yahoo! Research Barcelona</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,436.74,116.57,90.65,10.76"><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">Microsoft Research Ltd</orgName>
+								<address>
+									<addrLine>7 J.J.Thomson Avenue</addrLine>
+									<postCode>CB3 0FB</postCode>
+									<settlement>Cambridge</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,126.42,84.09,359.16,15.49">Microsoft Cambridge at TREC-14: Enterprise track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E3AF1E07536FEC98199319F354E623A8</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:02+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Summary</head><p>A major focus of much work of the group (as it has been since the City University Okapi work) is the development and refinement of basic ranking algorithms. The workhorse remains the BM25 algorithm; recently <ref type="bibr" coords="1,208.34,271.74,10.79,8.97" target="#b2">[3,</ref><ref type="bibr" coords="1,222.86,271.74,8.30,8.97" target="#b3">4]</ref> we introduced a field-weighted version of this, allowing differential treatment of different fields in the original documents, such as title, anchor text, body text. We have also recently <ref type="bibr" coords="1,239.38,307.61,11.62,8.97" target="#b1">[2]</ref> been working on ways of analysing the possible contributions of static (query-independent) evidence, and of incorporating them into the scoring/ranking algorithm. Finally, we have been working on ways of tuning the resulting ranking functions, since each elaboration tends to introduce one or more new free parameters which have to be set through tuning.</p><p>We used all these techniques successfully in our contribution to the Web track in TREC 2004 <ref type="bibr" coords="1,211.90,403.69,10.58,8.97" target="#b3">[4]</ref>. This year's relatively modest TREC effort is confined to applying essentially the same techniques to rather different data, in the Enterprise Track's known item (KI) and discussion search (DS) experiments. The main interest is whether we can identify some fields and features that lead to an improvement over a flat-text baseline, and as a side effect to verify that our ranking model can deliver the benefit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Ranking model and implementation</head><p>This section describes: 1) BM25 with field weighting and per-field length normalisation (BM25F), 2) Incorporation of query-independent, non-text features via linear combination and 3) The tuning and ranking framework we used this year.</p><p>To calculate BM25F <ref type="bibr" coords="1,147.07,594.77,11.61,8.97" target="#b3">[4]</ref> we first calculate a normalised term frequency for each field:</p><formula xml:id="formula_0" coords="1,118.81,625.00,182.21,27.87">xd,f,t := x d,f,t (1 + B f ( l d,f l f -1))<label>(1)</label></formula><p>f ∈ {SUBJECT, BODY, QUOTED} indicates the field type, x d,f,t is the term frequency of term t in the field type f of document d, l d,f is the length of that field, and l f is the average field length for that field type. B f is a field-dependant parameter similar to the B parameter in BM25. In particular, if B f = 0 there is no normalisation and if B f = 1 the frequency is completely normalised w.r.t. the average field length. These term frequencies can then be combined in a linearly weighted sum to obtain the final term pseudo-frequency:</p><formula xml:id="formula_1" coords="1,390.56,269.70,167.45,20.14">xd,t = f W f • xd,f,t<label>(2)</label></formula><p>with weight parameters W f . This is then used in the usual BM25 saturating function. This leads the following ranking function, which we refer to as BM25F:</p><formula xml:id="formula_2" coords="1,358.09,338.69,199.91,26.88">BM 25F (d) := t∈q∩d xd,t K 1 + xd,t w<label>(1) t (3)</label></formula><p>where w</p><p>t is the usual RSJ relevance weight for term t, which reduces to an idf weight in the absence of relevance information (note that this does not use field information).</p><p>Static features are combined via linear combination with the BM25 score as in <ref type="bibr" coords="1,388.86,426.43,10.58,8.97" target="#b1">[2]</ref>. They are either added with a single weight, or with a three-parameter transformation. This transformation is essentially a weighted sigmoid, but its formulation depends on the nature of the feature variable. For a feature which is constrained to be non-negative and has a natural zero, such as a count, the transformation is:</p><formula xml:id="formula_4" coords="1,413.09,501.09,144.91,23.89">w x a k a + x a<label>(4)</label></formula><p>(note that this is a generalised version of the tf function in BM25). For a feature which does not have a natural zero (for example, Year), the transformation is:</p><formula xml:id="formula_5" coords="1,406.11,574.21,55.08,24.06">w e a(x+b) 1 + e a(x+b)</formula><p>(5)</p><p>These are equivalent under a log transformation of the original feature. In order to reduce the parameter space, we used a single weight where possible, for example for binary features like #parents. We used the three-parameter combination when the single-weight combination was clearly sub-optimal. In the event, the only result using a three-parameter transformation reported below applies the second form (5) to Year.</p><p>Our ranking system was implemented based on tables of statistics rather than an inverted index, extracted and combined via one-off scripts. This gave us maximum flexibility for extraction of fields and statistics. We tuned on the Known Item experiment's 25 query training set, using two separate approaches: iterative 1-D explorations of the parameter space <ref type="bibr" coords="2,289.41,81.07,11.62,8.97" target="#b3">[4]</ref> and gradient descent <ref type="bibr" coords="2,137.09,93.02,10.58,8.97" target="#b0">[1]</ref>. Exploring the parameter space in two ways gave us greater confidence in tunings. Although extensive tuning without a test set can lead to overfitting, we believe that our system was sufficiently constrained to avoid overfitting, so we were happy to stick with the tuning that maximised MRR.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Fields and features</head><p>We eliminated documents, such as index pages, that were not messages. From each message we extracted three text fields and multiple query-independent statistics. The fields were:</p><p>Subject The text on the subject line of the message. Except in MSRCKI5 and MSRCDS5, where we combined Subject and From lines into this field.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Body</head><p>The unquoted, new content of this message.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Quoted</head><p>The quoted content from a previous message.</p><p>We would expect the subject text to be most important in describing a message, and perhaps the quoted text to be the least important.</p><p>We extracted several static features. We describe all of them, but only the first three were used in submitted runs: #parents Has value 1 if the message is in reply to another message, 0 otherwise. KI messages tend to be at the start of a thread, so have #parents=0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Year</head><p>The year in which the message was sent e.g. 2001. In KI there was some benefit in preferring new messages.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RE</head><p>The term frequency of the string 'RE' in the subject line. Since #parents is a strong but noisy feature, we decided to add this feature which is similar but noisy in a different way. For example, a message might have #par-ents=0 due to a problem with resolving the thread tree, but have RE=1. Or a message with #parents=1 might actually be the start of a new discussion, whose subject line was edited and therefore has RE=0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>URLs</head><p>The number of URLs in the message body. We noticed that important messages might be announcing a web site URL.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>#children, #ancestors, #descendants</head><p>These tell us about the thread tree, similarly to #parents, except were less useful in ranking. For example, if a message is 5th in line in a linear thread then it would have #ancestors=4. If it has three replies then #children=3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Date</head><p>The UNIX date, in seconds since the epoch. Like Year but with finer granularity. Prolificauthor The count of messages from the same author. We thought that there might be some relationship between how often an author posts and the importance of their messages.</p><p>We tried static features one at a time, to get an idea of which ones worked best. Then we added our best 2 static features (Year and #parents), and retuned all parameters. This gave a worthwhile improvement in MRR. Adding the best 4 static features (Year, #parents, URLs and RE) the result was only marginally better. We did not try adding more than 4 at once.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Tuning and results</head><p>We have 5 different tunings that were used for our submissions in both tasks. The first tuning uses three text fields and the two best static features. To see if there is any benefit from these, we remove the static features in the second tuning and use a uniform tuning of BM25F in the third. In the fourth and fifth tuning we add some elements were more 'risky': two additional static features (URLs, RE) and then the augmented Subject field that also contains the From line. In the event, the tuning gave 'URLs' a weight of zero, so the resulting ranking function uses only three static features. The most tuning effort, via exploration and gradient descent, was applied to the first tuning (Table <ref type="table" coords="2,459.80,485.67,3.60,8.97" target="#tab_0">1</ref>). The second and third tunings involved zeroing the static feature weights and making the BM25F tuning uniform (W * = 1, B * = 0.8). The fourth tuning involved an extra feature weight (w RE = -1.12) and a slightly modified BM25F tuning, but the weights of #parents and Year remained unchanged. The fifth tuning was identical to the fourth, with the difference being the extra text in the Subject field. In summary, the carefully explored tuning space was the first tuning, and the others are minimal modifications.</p><p>Table <ref type="table" coords="2,345.40,605.60,4.98,8.97" target="#tab_1">2</ref> shows that there were good gains to be had, in both training and test, from the field weighting and static features. The more speculative tunings (4 and 5) showed further improvement on the test set, even though they were not strong in training. In fact our best result on test (second best of all submissions to the task) was tuning 5, which had seemed worse than tunings 1 and 4 on training. In the absence of training data, we submitted to the DS task with the same tunings (Table <ref type="table" coords="2,325.42,701.24,3.60,8.97" target="#tab_2">3</ref>). We suspected that our KI priors for finding messages at the head of a thread would be harmful in the DS task and this  proved to be the case, with the best performance coming from MSRCDS2: field weighting but no static features.</p><p>As indicated above, in our submitted runs Year is the only feature to which we applied a sigmoid transformation (equation 5). This makes for an interesting observation: the value of b resulting from tuning is -2005 (see Table <ref type="table" coords="3,236.67,595.58,3.60,8.97" target="#tab_0">1</ref>). In effect, the system has learnt that the feature might be better defined as 'age' rather than Year! The effective shape given by the sigmoid is in Figure <ref type="figure" coords="3,128.18,631.45,3.74,8.97" target="#fig_0">1</ref>. This may also explain why we got less benefit from the Date feature. If Year needs b = -2005 then Date needs roughly b = -1104537600 1 , and our tuner may not have explored that region of the parameter space.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>We applied our Web Track 2004 ranking model to email search. We identified three text fields: subject, body and quoted. By treating each of these differently we saw some gain in the KI experiment, over a uniformly weighted baseline. We also identified a number of query-independent statistics. Factoring these into the ranking gave us further gains on KI, although we did not add all our features at once. The field weighting performance gains in KI were also there in DS, but the static features harmed our DS effectiveness. This suggests that a good KI result, perhaps a recent message at the head of a thread, is different from a good DS result. Given the gains in effectiveness over a flat text baseline, we can claim some success in transferring our Web retrieval techniques into a different application domain. However, the importance of having appropriate training data (lacking for DS) is emphasised.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,54.00,480.04,247.02,8.97;3,54.00,492.00,20.30,8.97;3,310.98,392.07,247.03,186.91"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Scoring function for the query-independent feature Year.</figDesc><graphic coords="3,310.98,392.07,247.03,186.91" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,64.86,703.64,236.15,8.62;3,54.00,714.56,59.99,7.17"><head>1</head><label></label><figDesc>Sat, 1 Jan 2005 00:00:00 UTC is 1104537600 seconds since the standard epoch of 1/1/1970.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,310.98,594.09,247.02,8.97;3,310.98,606.05,247.02,8.97;3,310.98,618.00,247.02,9.65;3,310.98,629.96,150.20,9.65"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Ten rounds of tuning the six BM25F parameters gave these 60 MRR values on the training set (and the leftmost untuned point). The tuning order was: B Body , B Subject , B Quoted , W Body , W Subject , W Quoted</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,311.99,63.95,245.00,84.53"><head>Table 1 :</head><label>1</label><figDesc>The main tuning used in MSRCKI1 and MSRCDS1.</figDesc><table coords="2,322.67,79.06,223.64,69.43"><row><cell>K 1</cell><cell>2.00</cell><cell></cell><cell></cell></row><row><cell>W Subject</cell><cell cols="2">20.00 B Subject 0.6</cell><cell></cell></row><row><cell>W Body</cell><cell>0.68 B Body</cell><cell>0.03</cell><cell></cell></row><row><cell>W Quoted</cell><cell cols="2">0.70 B Quoted 0.8</cell><cell></cell></row><row><cell cols="2">w #parents -2.50</cell><cell></cell><cell></cell></row><row><cell>w Y ear</cell><cell>6.00 a Y ear</cell><cell>0.3</cell><cell>b Y ear -2005</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,144.71,63.95,322.59,105.61"><head>Table 2 :</head><label>2</label><figDesc>KI training and test results.</figDesc><table coords="3,144.71,79.06,322.59,90.50"><row><cell></cell><cell cols="2">MRR</cell><cell></cell></row><row><cell>Run</cell><cell cols="2">Train Test</cell><cell>Fields</cell><cell>Static</cell></row><row><cell cols="4">MSRCKI1 0.695 0.546 Subject,Body,Quoted</cell><cell>Year, #parents</cell></row><row><cell cols="2">MSRCKI2 0.64</cell><cell cols="2">0.522 Subject,Body,Quoted</cell><cell>None</cell></row><row><cell cols="4">MSRCKI3 0.457 0.458 Uniformly weighted</cell><cell>None</cell></row><row><cell cols="4">MSRCKI4 0.699 0.563 Subject,Body,Quoted</cell><cell>Year, #parents, RE</cell></row><row><cell cols="5">MSRCKI5 0.673 0.613 Subject+From,Body,Quoted Year, #parents, RE</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,158.29,198.19,295.42,86.83"><head>Table 3 :</head><label>3</label><figDesc>DS test results.</figDesc><table coords="3,158.29,211.28,295.42,73.74"><row><cell>Run</cell><cell>MAP</cell><cell>Fields</cell><cell>Static</cell></row><row><cell cols="3">MSRCDS1 0.2802 Subject,Body,Quoted</cell><cell>Year, #parents</cell></row><row><cell cols="3">MSRCDS2 0.3139 Subject,Body,Quoted</cell><cell>None</cell></row><row><cell cols="3">MSRCDS3 0.3042 Uniformly weighted</cell><cell>None</cell></row><row><cell cols="3">MSRCDS4 0.2696 Subject,Body,Quoted</cell><cell>Year, #parents, RE</cell></row><row><cell cols="4">MSRCDS5 0.2713 Subject+From,Body,Quoted Year, #parents, RE</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,70.60,302.69,230.42,8.97;4,70.60,314.64,230.42,8.97;4,70.60,326.60,230.42,8.97;4,70.60,338.55,22.42,8.97" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="4,253.99,302.69,47.04,8.97;4,70.60,314.64,109.97,8.97">Learning to rank using gradient descent</title>
+		<author>
+			<persName coords=""><forename type="first">C J C</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Shaked</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Renshaw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,202.11,314.64,98.91,8.97;4,70.60,326.60,196.64,8.97">Proceedings of the 22nd International Conference on Machine Learning</title>
+		<meeting>the 22nd International Conference on Machine Learning<address><addrLine>Bonn</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.60,358.48,230.42,8.97;4,70.60,370.43,230.42,8.97;4,70.60,382.39,230.42,8.97;4,70.60,394.34,230.42,8.97;4,70.60,406.30,230.42,8.97;4,70.60,418.25,161.61,8.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="4,139.08,370.43,161.94,8.97;4,70.60,382.39,54.65,8.97">Relevance weighting for query independent evidence</title>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,150.26,382.39,150.76,8.97;4,70.60,394.34,230.42,8.97;4,70.60,406.30,162.01,8.97">SIGIR &apos;05: Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="416" to="423" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.60,438.18,230.42,8.97;4,70.60,450.13,230.42,8.97;4,70.60,462.09,230.42,8.97;4,70.60,474.04,230.42,8.97;4,70.60,486.00,161.61,8.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="4,70.60,450.13,211.52,8.97">Simple BM25 extension to multiple weighted fields</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,70.60,462.09,230.42,8.97;4,70.60,474.04,171.40,8.97">CIKM &apos;04: Proceedings of the thirteenth ACM conference on Information and knowledge management</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="42" to="49" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,70.60,505.93,230.42,8.97;4,70.60,517.88,230.42,8.97;4,70.60,529.84,230.42,8.97;4,70.60,541.79,75.00,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,202.74,517.88,98.29,8.97;4,70.60,529.84,144.20,8.97">Microsoft Cambridge at TREC-13: Web and HARD tracks</title>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Suchi</forename><surname>Saria</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,239.79,529.84,61.23,8.97;4,70.60,541.79,45.08,8.97">Proceedings of TREC-2004</title>
+		<meeting>TREC-2004</meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

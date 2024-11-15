@@ -1,0 +1,842 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,85.50,72.21,444.61,15.15;1,106.11,94.13,402.65,15.15;1,262.92,116.05,89.75,15.15">Smith at TREC2019: Learning to Rank Background Articles with Poetry Categories and Keyphrase Extraction</title>
+				<funder>
+					<orgName type="full">Smith College Committee on Faculty Compensation and Development</orgName>
+				</funder>
+				<funder>
+					<orgName type="full">Smith College Science Center&apos;s Summer Undergraduate Research Fellowships</orgName>
+					<orgName type="abbreviated">SURF</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,182.86,165.52,53.30,10.48"><forename type="first">John</forename><surname>Foley</surname></persName>
+							<email>jjfoley@smith.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">Smith College</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,244.96,165.52,86.49,10.48"><forename type="first">Ananda</forename><surname>Montoly</surname></persName>
+							<email>amontoly@smith.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">Smith College</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,358.12,165.52,74.62,10.48"><forename type="first">Mayeline</forename><surname>Peña</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">Smith College</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,85.50,72.21,444.61,15.15;1,106.11,94.13,402.65,15.15;1,262.92,116.05,89.75,15.15">Smith at TREC2019: Learning to Rank Background Articles with Poetry Categories and Keyphrase Extraction</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A72BE316D3F1BD3DE62E849CBBB14032</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Smith College participated in the TREC News Background Linking task in 2019. We constructed a linear learning to rank model trained on the 2018 data and submitted runs that included features derived from ongoing research into automatic poetry understanding.</p><p>In this notebook paper we detail the contents of our submissions and our lessons learned from this year's participation.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The TREC News Task is composed of two core tasks: Background Linking and Entity Linking. We only participated in Background Linking this year. Given a single news document, the goal is to rank other documents from the rest of the collection with respect to how useful they would be for background reading, in suggestion to a user.</p><p>In addition to devising a learning-to-rank approach based upon more traditional features, we leveraged some concurrent research we have been doing on poetry data on this news corpora. Recently, Foley's dissertation introduced a large public collection of poetry extracted from internet archive books <ref type="bibr" coords="1,436.84,470.43,14.71,8.74" target="#b12">[13]</ref>. We had two projects working with this dataset over this summer and we converted each of these to features in our approach.</p><p>We submitted four runs to the background-linking task, as described in the next section. We describe our indexing and scoring process in Section 2, the new learning to rank tool we used (FastRank) and our baseline features in Section 3, and our poetry research features that made it into our submission in Section 4. Finally we have a brief discussion of our 2019 results in Section 5</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Runs Submitted</head><p>smith base This contains the baseline LTR features, described in Table <ref type="table" coords="1,407.76,572.70,3.87,8.74" target="#tab_0">1</ref>.</p><p>smith poetry This contains our baseline model with similarity based on detected poetry categories in the news articles. This model is described in Section 4.1.</p><p>smith keywords This contains the baseline model with additional features based on our keyword importance model. This model is described in Section 4.2.</p><p>smith full This contains a learning-to-rank model over all the features we studied. This combines the previous three models into one.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">News-Specific Processing</head><p>We first create an index using the irene software<ref type="foot" coords="2,274.00,73.98,3.97,6.12" target="#foot_0">1</ref> that is a combination of the inquery programming language <ref type="bibr" coords="2,541.78,75.55,10.41,8.74" target="#b7">[8,</ref><ref type="bibr" coords="2,64.55,87.51,12.73,8.74" target="#b27">28,</ref><ref type="bibr" coords="2,80.60,87.51,7.75,8.74" target="#b8">9,</ref><ref type="bibr" coords="2,91.67,87.51,12.73,8.74" target="#b17">18]</ref> with the Lucene document indexing system <ref type="bibr" coords="2,300.58,87.51,14.61,8.74" target="#b22">[23]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Indexing WAPO Articles</head><p>We indexed the Washington Post corpus provided for both news and core tasks with the following fields (when available): published.date, url, kind, title, author, kicker, and we constructed a body from the text of (HTML tags were removed with JSoup<ref type="foot" coords="2,233.94,153.63,3.97,6.12" target="#foot_1">2</ref> ) the JSON paragraph "blobs".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Result Filtering</head><p>Duplicate detection was part of the challenge of working with Washington Post data this year, so we de-duplicated documents by title (choosing the most recent publication date for any conflicts) and rejected all documents without a title from ranking -feeling that documents are not useful for background research if they cannot be summarized concisely.</p><p>We also enforced that documents retrieved were published before the query document, using a streaming model for our evaluation. Following the track guidelines, we also excluded documents whose kickers were: "Opinion(s)", "Letters to the Editor", or "The Post's View".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Learning to Rank Baseline</head><p>Since this is the second year of TREC News, this year there was training data available for a supervised approach. All of our runs fall into this category, using the 50 queries from News 2018 in five-fold cross-validation for learning.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">FastRank: An Enhanced Coordinate Ascent</head><p>One of the most effective and simplest learning to rank models for small datasets is the Coordinate Ascent model <ref type="bibr" coords="2,93.43,384.68,15.39,8.74" target="#b20">[21]</ref> because of its ability to directly optimize IR evaluation measures. This model is stochastic and searches parameter space one feature at a time (with acceleration) to construct a linear weighting of features. It proceeds until no improvements are available with a given tolerance.</p><p>For our learning to rank experiments we rewrote the implementation available in Ranklib <ref type="bibr" coords="2,481.73,421.03,15.61,8.74" target="#b10">[11]</ref> in Rust (to improve efficiency), to simplify the code, and to add a few small enhancements:</p><p>1. Random initialization: Ranklib initializes its starting weight vectors to be 1/D where D is the number of features; thus assuming each feature is equally important and in the positive sense. Since the algorithm uses random restarts, to avoid local minima, it also makes sense to randomly initialize each weight vector.</p><p>2. Feature selection: in addition to moving features from their current values based on an accelerating step-size, we also consider removing each feature at every point during the search: that is, setting the feature value to zero. This prevents model performance from dropping precipitously when a poor feature is introduced if it can observe an improvement from eliding it.</p><p>An early release of our new learning to rank tool is available<ref type="foot" coords="2,340.80,560.70,3.97,6.12" target="#foot_2">3</ref> and was announced recently via blog post <ref type="bibr" coords="2,534.46,562.28,14.61,8.74" target="#b13">[14]</ref>. In addition to these algorithmic improvements of Ranklib, this tool also has deterministic seeding, support for better error messages while loading improperly formatted input files, and support for compressed files.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Learning to Rank Features</head><p>Our learning to rank features fall into three categories, and are presented in Table <ref type="table" coords="2,427.16,629.97,3.87,8.74" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Retrieval Models</head><p>The first category of features are standard retrieval models. We turn the original article into a query and execute the given retrieval model against all pooled results.</p><p>Reverse Models Rather than treating the original article as a query, we can go in reverse. That is, we consider the candidate article as a query and the original article as the document to be scored. Most modern retrieval models are non-symmetric so this provides additional information about how similar the query document and the candidate documents are.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Quality Features</head><p>The last category of features we describe are quality &amp; metadata features. They are query-independent and are meant to be a kind of filter on the types of documents that are valuable to recommend to a user. In addition to some traditional quality features <ref type="bibr" coords="3,425.70,143.28,10.07,8.74" target="#b2">[3]</ref>, and two date features to allow the model to prioritize past articles over future articles (or vice versa) we also generated a clickbait feature for WaPo articles based on their title (See Section 3.2.1 for more). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Group</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">Clickbait Classification</head><p>In news, clickbait refers to headlines that are intentionally vague, sensational, or otherwise provocative in order to gather clicks. While there has been a variety of work on clickbait detection <ref type="bibr" coords="3,395.06,548.46,15.48,8.74" target="#b25">[26,</ref><ref type="bibr" coords="3,413.86,548.46,7.74,8.74" target="#b0">1,</ref><ref type="bibr" coords="3,424.91,548.46,12.72,8.74" target="#b9">10]</ref> and even a challenge <ref type="bibr" coords="3,533.95,548.46,14.59,8.74" target="#b24">[25]</ref>, one of the easiset datasets to obtain is that of Chakraborty et al., <ref type="bibr" coords="3,347.12,560.41,13.83,8.74" target="#b9">[10]</ref>, which is available in plain text on Github<ref type="foot" coords="3,545.55,558.84,3.97,6.12" target="#foot_3">4</ref> . Although most works define and extract features manually, (Chakraborty et al. use a SVM to get 93% accuracy) instead we used a simple neural network approach via the fastText tool<ref type="foot" coords="3,431.44,584.34,3.97,6.12" target="#foot_4">5</ref> for supervised learning of word embeddings for the classification task <ref type="bibr" coords="3,260.11,597.86,14.75,8.74" target="#b14">[15]</ref>. This tool obtained a P@1 (Accuracy) of 0.959 which was as good or better than the reported SVM accuracy without the need for explicit feature extraction.</p><p>We applied this learned fastText clickbait model to the tiles of all of our candidate documents with the intuition that better background articles would have less clickbait-y titles.</p><p>Results over an early version of the base LTR model on 2018 data suggested a reasonably-sized improvement in NDCG@5 (0.386 to 0.403) using our enhanced Coordinate Ascent model ( §3.1).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Poetry Research for News</head><p>In this section, we discuss how we took ongoing research into poetry categorization and keyphrase extraction and applied it to our TREC News background-linking runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Poetry Categorization</head><p>Recently, more interest has been given toward extracting datasets of poetry from within other datasets <ref type="bibr" coords="4,520.59,129.34,15.53,8.74" target="#b29">[30,</ref><ref type="bibr" coords="4,539.44,129.34,12.75,8.74" target="#b28">29,</ref><ref type="bibr" coords="4,64.30,141.29,12.79,8.74" target="#b15">16,</ref><ref type="bibr" coords="4,80.93,141.29,11.71,8.74" target="#b12">13]</ref>. With Foley's dissertation work releasing 600,000 pages<ref type="foot" coords="4,348.01,139.72,3.97,6.12" target="#foot_5">6</ref> of poetry <ref type="bibr" coords="4,401.29,141.29,14.75,8.74" target="#b12">[13]</ref>, we were looking into how to categorize this poetry into the categories provided by the https://poetryfoundation.org that were previously studied <ref type="bibr" coords="4,99.72,165.20,14.61,8.74" target="#b18">[19]</ref>. There are 9 first-level categories and 127 subcategories available in that labeled dataset.</p><p>Using some tools from the scikit-learn package we trained linear classifiers over TF-IDF representations for the 9 top-level categories, each of which had thousands of poetry labels. Since the top-level categories had enough labels, and TF-IDF is a powerful baseline, these classifiers achieve high performance in both cross-validation and generalization (to Foley's Poetry50K dataset) settings. Results for cross-validation are presented in The top-labels were: "Relationships", "Nature", "Arts/Sciences", "Living", "Religion", "Social Commentaries", "Love", "Activities", and "Mythology". We turned our nine classifiers into a nine-dimensional vector for every Washington Post article. We then added a feature that was the cosine similarity between the query article and a particular background article, as well as query-independent features for each topic.  <ref type="table" coords="4,95.76,514.86,4.46,8.77">3</ref>: Qualitative inspection of labels assigned to articles seem yields fairly positive results, especially for Top-1 labels. (Used non-corpora Washington Post stories; 27 October and 16 October 2019, respectively.) Some results are presented on both 2018 and 2019 data in Table <ref type="table" coords="4,365.96,546.95,3.95,8.74" target="#tab_4">5</ref>. Because results were competitive using NDCG and this had not been part of last year's pool, we decided to submit the smith poetry run.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Keyword and Keyphrase Extraction</head><p>In poetry, often entities or other important concepts are mentioned without context; this is sometimes used as allusion, to add color, emotion or context to a poem with very few tokens. One of the the open research questions we have is how to identify such allusions and other interesting words. One obvious baseline for such a task is "keyphrase extraction".</p><p>TextRank is the classical keyword or keyphrase extraction approach: it is a version of PageRank where nodes are words or phrases and links between them are crafted from co-occurrence data. The SummaNLP library <ref type="bibr" coords="4,530.44,661.18,10.43,8.74" target="#b1">[2]</ref> is one such implementation of this approach in Python. Another library is PKE, which contains a wider variety of keyphrase extraction methods <ref type="bibr" coords="4,198.63,685.09,9.96,8.74" target="#b4">[5]</ref>, which was used in last year's TREC News Track <ref type="bibr" coords="4,430.59,685.09,9.96,8.74" target="#b3">[4]</ref>.</p><p>The models available in SummaNLP and PKE that we found helpful and usable on both our poetry and news data are as follows:</p><p>TextRank is the classic algorithm: pagerank applied to words with links based on co-occurrence <ref type="bibr" coords="5,518.76,91.73,14.61,8.74" target="#b21">[22]</ref>.</p><p>SingleRank is a model that uses text-rank over candidates that are adjacent nouns and adjectives <ref type="bibr" coords="5,527.40,112.28,14.61,8.74" target="#b30">[31]</ref>.</p><p>PositionRank is a model that extends TextRank by biasing keywords to those occurring earlier in the article or document <ref type="bibr" coords="5,189.28,144.79,14.61,8.74" target="#b11">[12]</ref>.</p><p>MultiRank is a model that only allows edges between phrases of different topics <ref type="bibr" coords="5,449.53,165.34,9.96,8.74" target="#b5">[6]</ref>.</p><p>TopicRank is a model that executes SingleRank and then limits selections to the best keyphrase in each "topic" <ref type="bibr" coords="5,133.04,197.85,9.96,8.74" target="#b6">[7]</ref>.  <ref type="bibr" coords="5,118.09,343.39,15.50,8.74" target="#b19">[20]</ref> based on its extraction confidence.</p><p>In Table <ref type="table" coords="5,114.98,362.73,4.88,8.74" target="#tab_3">4</ref> we present the performance of these off-the-shelf approaches to the TREC News Background-Linking task: we extracted keyphrases from each of the query documents and constructed a query that was a weighted combination of SDM <ref type="bibr" coords="5,162.63,386.64,15.61,8.74" target="#b19">[20]</ref> models around each extracted keyphrase. These were competitive with a simpler relevance-modeling feature already present in our ensemble, and provided a small gain in cross-validation over the 2018 data when used together.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Discussion</head><p>Preliminary analysis of our model results on the 2019 challenge suggest that keywords were of more value in the 2019 data than in the 2018 data. See We expected our poetry and keyword features to be helpful as we looked at NDCG while training and evaluating our learning-to-rank model. Because of the exponential discounting in NDCG we disregarded the impact of using NDCG@5 vs. NDCG@100 or larger depths, but the numbers in our Table <ref type="table" coords="5,391.95,596.51,4.99,8.74" target="#tab_4">5</ref> suggest that this was potentially a mistake. When we visualize the data as bar-plots, we can see that these runs are a little more interchangeable and that the rankings are very sensitive to the depth examined. Rankings are also different for the NDCG@100 case for mean and median NDCG (Figure <ref type="figure" coords="5,250.67,632.38,3.87,8.74">1</ref>, below).</p><p>The poetry features appeared to be valuable in the 2018 data (or at least not significantly harmful but they appear to be more of a problem in the 2019 data). That being said, the differences discovered in including poetry features in our news articles are probably not significant. This means that -our results are probably essentially the same across our four runs. It remains to be seen how runs with totally different features are ranked against these, since absolute measures can be misleading and ranking across systems is what is most robust in TREC evaluations.</p><p>smith_base@5 smith_poetry@5 smith_keyword@5 smith_full@5 smith_base@10 smith_poetry@10 smith_keyword@10 smith_full@10 smith_base@100 smith_poetry@100 smith_keyword@100 smith_full@100 0.0 0.2 0.4 0.6 0.8 1.0</p><p>Figure <ref type="figure" coords="6,101.03,377.75,4.46,8.77">1</ref>: Exploration of Depth on NDCG on system ranking. The ranking of systems changes between a depth of 5, 10 and 100. Clearly unjudged documents will have more of an effect at deeper depths, but recall will be more emphasized in deeper runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusions</head><p>We explored some non-traditional features atop a traditional learning to rank model. Since we tuned our models based on NDCG and not NDCG@5, we did not necessarily emphasize precision as much as we should have during model selection, however, the performance of all our models is highly-overlapping (Figure <ref type="figure" coords="6,482.98,466.39,3.80,8.74">1</ref>). Surprisingly, keyword extraction methods seem to be more competitive on the 2019 data than on the 2018 data and our poetry features seem to be more helpful for recall than precision; thus not being reflected as clearly in the official measure. The 2019 dataset is larger than the 2018 dataset and so we plan to experiment with these ideas on the full set of 110 queries which should lead to more statistically significant conclusions.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,95.08,444.75,53.99,8.74;4,313.98,444.75,56.65,8.74;4,95.08,457.10,206.54,8.74;4,95.08,469.06,132.95,8.74;4,313.98,457.10,208.21,8.74;4,313.98,469.06,67.63,8.74;4,95.08,481.01,207.93,8.74;4,94.57,492.97,190.42,8.74;4,313.98,481.01,208.21,8.74;4,313.98,492.97,54.52,8.74;4,64.40,514.86,27.38,8.77"><head></head><label></label><figDesc>Dave Chappelle accepts the Twain Prize: 'I love my art form. It saved my life.' Social Comment. (1.6), Arts/Sci. (1.3), Relationships (0.49) Apples keep you healthy, carrots help your eyes: What science says about such folk remedies Activities (1.5), Arts/Sci. (0.41), Social Comment. (0.37) Table</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,70.78,201.93,474.05,282.91"><head>Table 1 :</head><label>1</label><figDesc>List of Learning to Rank Features</figDesc><table coords="3,70.78,201.93,474.05,260.99"><row><cell></cell><cell>Feature</cell><cell>Description</cell></row><row><cell cols="2">Retrieval Models title-sdm</cell><cell>The title of the query article as a SDM query [20]</cell></row><row><cell></cell><cell>title-ql</cell><cell>The title of the query article as a Query Likelihood query [24, 32]</cell></row><row><cell></cell><cell>rm-n10</cell><cell>A relevance model (RM) [17] built with 10 expansion terms.</cell></row><row><cell></cell><cell>rm-n50</cell><cell>RM with 50 terms.</cell></row><row><cell></cell><cell>rm-n100</cell><cell>RM with 100 terms.</cell></row><row><cell></cell><cell>bm25-rm-n10</cell><cell>A relevance model (RM) [17] built with 10 expansion terms weighted</cell></row><row><cell></cell><cell></cell><cell>with BM25 [27].</cell></row><row><cell></cell><cell>bm25-rm-n50</cell><cell>RM with 50 terms weighted with BM25.</cell></row><row><cell></cell><cell>bm25-rm-n100</cell><cell>RM with 100 terms weighted with BM25.</cell></row><row><cell></cell><cell>body-ql</cell><cell>Body of query document as an unweighted unigram query.</cell></row><row><cell></cell><cell>first-para-ql</cell><cell>First paragraph of query document as an unweighted unigram query.</cell></row><row><cell></cell><cell>first-para-sdm</cell><cell>First paragraph of query document as an SDM query.</cell></row><row><cell>Reverse Models</cell><cell>title-ql-rev</cell><cell>Title(candidate document) as a query against the query document.</cell></row><row><cell></cell><cell>bm25-rm-n10-rev</cell><cell>RM with 50 terms weighted with BM25 (cand to query).</cell></row><row><cell></cell><cell>bm25-rm-n50-rev</cell><cell>RM with 50 terms weighted with BM25 (cand to query).</cell></row><row><cell></cell><cell cols="2">bm25-rm-n100-rev RM with 100 terms weighted with BM25 (cand to query).</cell></row><row><cell cols="2">Quality Features entropy</cell><cell>Entropy of candidate document.</cell></row><row><cell></cell><cell>body-len</cell><cell>Length of candidate document.</cell></row><row><cell></cell><cell>date-cmp</cell><cell>Three values: candidate published (&lt;, =, &gt;) the query document.</cell></row><row><cell></cell><cell>date-sub</cell><cell>The difference in publication times.</cell></row><row><cell></cell><cell>clickbait-proba</cell><cell>Clickbait-probability of candidate title. ( §3.2.1)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,64.80,213.29,487.49,145.50"><head>Table 2 -</head><label>2</label><figDesc>generalization experiments and labels are not complete.</figDesc><table coords="4,214.80,242.05,185.99,116.73"><row><cell>Category</cell><cell cols="2">Number of Labels AUC</cell></row><row><cell cols="2">Social Comm. 3050</cell><cell>0.753</cell></row><row><cell cols="2">Relationships 3050</cell><cell>0.722</cell></row><row><cell>Nature</cell><cell>2644</cell><cell>0.797</cell></row><row><cell cols="2">Arts/Sciences 2270</cell><cell>0.723</cell></row><row><cell>Living</cell><cell>3946</cell><cell>0.668</cell></row><row><cell>Religion</cell><cell>1049</cell><cell>0.804</cell></row><row><cell>Love</cell><cell>1608</cell><cell>0.826</cell></row><row><cell>Activities</cell><cell>1461</cell><cell>0.678</cell></row><row><cell>Mythology</cell><cell>468</cell><cell>0.716</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,181.97,371.94,251.26,8.77"><head>Table 2 :</head><label>2</label><figDesc>Cross-Validation AUC for Poetry Classification</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,64.40,225.43,486.40,126.69"><head>Table 4 :</head><label>4</label><figDesc>NDCG@5 of queries generated by keyphrase extraction. Each phrase extracted is executed as a weighted SDM query</figDesc><table coords="5,197.49,225.43,220.63,92.82"><row><cell>Extraction Method</cell><cell cols="2">Libary NDCG@5</cell></row><row><cell>TextRank</cell><cell>Summa</cell><cell>0.306</cell></row><row><cell>TextRank</cell><cell>PKE</cell><cell>0.254</cell></row><row><cell>SingleRank</cell><cell>PKE</cell><cell>0.310</cell></row><row><cell>PositionRank</cell><cell>PKE</cell><cell>0.300</cell></row><row><cell>MultiRank</cell><cell>PKE</cell><cell>0.336</cell></row><row><cell>TopicRank</cell><cell>PKE</cell><cell>0.340</cell></row><row><cell>BM25-RM-50</cell><cell>Retrieval Model</cell><cell>0.344</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="5,128.40,465.97,358.81,73.83"><head>Table 5 ,</head><label>5</label><figDesc>below.</figDesc><table coords="5,128.40,482.57,358.81,57.23"><row><cell>Submitted Run</cell><cell cols="4">NDCG@5 2019 NDCG@5 2018 NDCG 2019 NDCG 2018</cell></row><row><cell>smith poetry</cell><cell>0.555</cell><cell>0.518</cell><cell>0.603</cell><cell>0.557</cell></row><row><cell>smith base</cell><cell>0.564</cell><cell>0.526</cell><cell>0.605</cell><cell>0.555</cell></row><row><cell>smith keywords</cell><cell>0.570</cell><cell>0.502</cell><cell>0.610</cell><cell>0.553</cell></row><row><cell>smith full</cell><cell>0.560</cell><cell>0.518</cell><cell>0.614</cell><cell>0.555</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="5,104.07,552.67,407.06,8.77"><head>Table 5 :</head><label>5</label><figDesc>Evaluation of submitted models on qrel-files. Official Evaluation metric: NDCG@5</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,80.04,687.19,127.03,6.64"><p>https://github.com/jjfiv/irene</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,80.04,696.69,76.21,6.64"><p>https://jsoup.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,80.04,706.20,139.73,6.64"><p>https://github.com/jjfiv/fastrank</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,80.04,687.23,194.77,6.64"><p>https://github.com/bhargaviparanjape/clickbait</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="3,80.04,696.73,448.82,6.64;3,64.59,706.20,63.51,6.64"><p>fasttext supervised -input clickbait.train -output model -dim 32 -lr 0.1 -wordNgrams 4 -minCount 1 -bucket 10000 -epoch 20</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="4,80.04,706.20,177.83,6.64"><p>https://ciir.cs.umass.edu/downloads/poetry</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgements</head><p>This work was supported in part by the <rs type="funder">Smith College Committee on Faculty Compensation and Development</rs> and the <rs type="funder">Smith College Science Center's Summer Undergraduate Research Fellowships (SURF)</rs>. Any opinions, findings and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect those of the sponsors.</p></div>
+			</div>
+			<listOrg type="funding">
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,79.51,660.12,471.29,7.86;6,74.57,671.08,395.14,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,288.47,660.12,262.34,7.86;6,74.57,671.08,80.95,7.86">We used neural networks to detect clickbaits: You won&apos;t believe what happened next</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Chakraborty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Park</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,176.19,671.08,187.19,7.86">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="541" to="547" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.51,693.98,471.53,7.86;6,74.90,704.94,221.19,7.86" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,357.71,693.98,193.33,7.86;6,74.90,704.94,117.77,7.86">Variations of the similarity function of textrank for automated summarization</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Barrios</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>López</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Argerich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Wachenchauzer</surname></persName>
+		</author>
+		<idno>CoRR, abs/1602.03606</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.51,57.91,471.29,7.86;7,74.39,68.86,477.68,7.86;7,74.90,79.82,48.89,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,289.64,57.91,167.73,7.86">Quality-biased ranking of web documents</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bendersky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Diao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,477.73,57.91,73.07,7.86;7,74.39,68.86,347.65,7.86">Proceedings of the Fourth ACM International Conference on Web Search and Data Mining, WSDM &apos;11</title>
+		<meeting>the Fourth ACM International Conference on Web Search and Data Mining, WSDM &apos;11<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="95" to="104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.51,98.63,472.58,7.86;7,74.90,109.59,219.54,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,119.94,109.59,126.37,7.86">htw saar@ trec 2018 news track</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bimantara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Engelhardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gerwert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gottschalk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lukosz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Piri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><forename type="middle">S</forename><surname>Shaft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Berberich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,265.76,109.59,22.95,7.86">TREC</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.50,128.40,472.56,7.86;7,74.20,139.36,476.02,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,158.10,128.40,252.85,7.86">pke: an open source python-based keyphrase extraction toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Boudin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,430.21,128.40,121.86,7.86;7,74.20,139.36,358.01,7.86">Proceedings of COLING 2016, the 26th International Conference on Computational Linguistics: System Demonstrations</title>
+		<meeting>COLING 2016, the 26th International Conference on Computational Linguistics: System Demonstrations<address><addrLine>Osaka, Japan</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="69" to="73" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.50,158.17,462.32,7.86" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="7,158.08,158.17,241.38,7.86">Unsupervised keyphrase extraction with multipartite graphs</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Boudin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.08721</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,79.50,176.98,457.61,7.86" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="7,278.78,176.98,254.40,7.86">Topicrank: Graph-based topic ranking for keyphrase extraction</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bougouin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Boudin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Daille</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.51,195.78,471.29,7.86;7,74.20,206.74,143.12,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,303.69,195.78,113.32,7.86">The inquery retrieval system</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">M</forename><surname>Harding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,436.82,195.78,113.98,7.86;7,74.20,206.74,46.01,7.86">Database and expert systems applications</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="1992">1992</date>
+			<biblScope unit="page" from="78" to="83" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.51,225.55,471.29,7.86;7,74.44,236.51,304.94,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,284.93,225.55,249.24,7.86">Galago: A modular distributed processing and retrieval system</title>
+		<author>
+			<persName coords=""><forename type="first">M.-A</forename><surname>Cartright</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Huston</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Feild</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,74.44,236.51,247.29,7.86">SIGIR 2012 Workshop on Open Source Information Retrieval</title>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="25" to="31" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,255.32,466.69,7.86;7,74.90,266.28,475.90,7.86;7,74.20,277.24,177.73,7.86" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,381.11,255.32,169.70,7.86;7,74.90,266.28,120.62,7.86">Stop clickbait: Detecting and preventing clickbaits in online news media</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Chakraborty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Paranjape</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kakarla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ganguly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,215.10,266.28,335.70,7.86;7,74.20,277.24,95.07,7.86">2016 IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="9" to="16" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.11,296.05,353.61,8.12" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="7,155.91,296.05,29.90,7.86">Ranklib</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dang</surname></persName>
+		</author>
+		<ptr target="https://sourceforge.net/p/lemur/wiki/RankLib" />
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,314.86,467.03,7.86;7,74.90,325.81,476.74,7.86;7,74.40,336.77,128.34,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,234.05,314.86,317.09,7.86;7,74.90,325.81,41.88,7.86">Positionrank: An unsupervised approach to keyphrase extraction from scholarly documents</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Florescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Caragea</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,137.33,325.81,365.65,7.86;7,74.40,336.77,51.92,7.86">Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 55th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1105" to="1115" />
+		</imprint>
+	</monogr>
+	<note>Long Papers)</note>
+</biblStruct>
+
+<biblStruct coords="7,84.11,355.58,466.09,7.86" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="7,152.97,355.58,224.84,7.86">Poetry: Identification, Entity Recognition, and Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Foley</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Massachusetts</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct coords="7,84.11,374.39,416.09,8.12" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Foley</surname></persName>
+		</author>
+		<ptr target="https://jjfoley.me/2019/10/11/fastrank-alpha.html" />
+		<title level="m" coord="7,163.46,374.39,93.32,7.86">FastRank alpha release</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,393.20,466.68,7.86;7,74.39,404.16,477.67,7.86;7,74.44,415.12,293.16,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="7,353.43,393.20,178.94,7.86">Bag of tricks for efficient text classification</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,74.39,404.16,236.21,7.86">Proceedings of the 15th Conference of the European Chapter</title>
+		<meeting>the 15th Conference of the European Chapter<address><addrLine>Short Papers</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="427" to="431" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,433.93,466.68,7.86;7,74.56,444.88,291.82,7.86" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="7,222.19,433.93,328.61,7.86;7,74.56,444.88,129.20,7.86">Searching for My Lady&apos;s Bonnet: discovering poetry in the National Library of Australia&apos;s newspapers database</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Kilner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Fitch</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note>Digital Scholarship in the Humanities</note>
+</biblStruct>
+
+<biblStruct coords="7,84.12,463.69,466.43,7.86;7,74.31,474.65,463.86,7.86" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,257.36,463.69,139.05,7.86">Relevance based language models</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lavrenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,421.25,463.69,129.30,7.86;7,74.31,474.65,369.90,7.86">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="120" to="127" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,493.46,467.97,7.86;7,74.90,504.42,475.90,7.86;7,74.40,515.38,192.24,7.86" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="7,118.47,504.42,313.08,7.86">Toward reproducible baselines: The open-source IR reproducibility challenge</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Crane</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Trotman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Chattopadhyaya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Foley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Ingersoll</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vigna</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,451.25,504.42,99.55,7.86;7,74.40,515.38,85.91,7.86">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="408" to="420" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,534.19,466.68,7.86;7,74.40,545.15,129.61,7.86" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="7,271.39,534.19,185.50,7.86">Multilabel subject-based classification of poetry</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Inkpen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Tanasescu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,475.16,534.19,75.64,7.86;7,74.40,545.15,125.35,7.86">The Twenty-Eighth International Flairs Conference</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,563.95,466.69,7.86;7,74.20,574.91,478.40,7.86;7,74.56,585.87,24.31,7.86" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="7,234.13,563.95,206.68,7.86">A markov random field model for term dependencies</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,460.23,563.95,90.58,7.86;7,74.20,574.91,410.06,7.86">Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 28th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="472" to="479" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,604.68,467.96,7.86;7,74.44,615.64,58.37,7.86" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="7,238.71,604.68,214.92,7.86">Linear feature-based models for information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,461.31,604.68,86.90,7.86">Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="257" to="274" />
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,634.45,466.69,7.86;7,74.14,645.41,262.12,7.86" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="7,232.88,634.45,142.11,7.86">Textrank: Bringing order into text</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mihalcea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Tarau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,395.21,634.45,155.60,7.86;7,74.14,645.41,195.22,7.86">Proceedings of the 2004 conference on empirical methods in natural language processing</title>
+		<meeting>the 2004 conference on empirical methods in natural language processing</meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="404" to="411" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,84.12,664.22,466.69,7.86;7,74.90,675.18,234.34,7.86" xml:id="b22">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pérez-Iglesias</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">R</forename><surname>Pérez-Agüera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Fresno</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">Z</forename><surname>Feinstein</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0911.5046</idno>
+		<title level="m" coord="7,405.99,664.22,144.82,7.86;7,74.90,675.18,96.91,7.86">Integrating the probabilistic models bm25/bm25f into lucene</title>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,84.12,693.98,467.03,7.86;7,74.90,704.94,119.31,7.86" xml:id="b23">
+	<monogr>
+		<title level="m" type="main" coord="7,239.16,693.98,215.02,7.86">A language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Ponte</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Massachusetts at Amherst</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct coords="8,84.12,57.91,466.68,7.86;8,74.90,68.86,225.05,7.86" xml:id="b24">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1812.10847</idno>
+		<title level="m" coord="8,323.03,57.91,227.77,7.86;8,74.90,68.86,82.88,7.86">The clickbait challenge 2017: towards a regression model for clickbait strength</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,84.12,87.79,466.68,7.86;8,74.39,98.75,140.82,7.86" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="8,314.57,87.79,72.98,7.86">Clickbait detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Köpsel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,405.57,87.79,145.22,7.86;8,74.39,98.75,34.49,7.86">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="810" to="817" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,84.12,117.68,466.66,7.86;8,74.44,128.64,126.97,7.86" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="8,465.75,117.68,60.60,7.86">Okapi at trec-3</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">M</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gatford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,534.14,117.68,16.63,7.86;8,74.44,128.64,86.99,7.86">Nist Special Publication Sp</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,84.12,147.57,466.87,7.86;8,74.90,158.53,477.69,7.86" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="8,351.28,147.57,199.71,7.86;8,74.90,158.53,62.64,7.86">Indri: A language model-based search engine for complex queries</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Strohman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Turtle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,156.92,158.53,267.43,7.86">Proceedings of the International Conference on Intelligent Analysis</title>
+		<meeting>the International Conference on Intelligent Analysis</meeting>
+		<imprint>
+			<publisher>Citeseer</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="2" to="6" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,84.12,177.46,466.68,7.86;8,74.90,188.42,114.24,7.86" xml:id="b28">
+	<monogr>
+		<title level="m" type="main" coord="8,181.54,177.46,235.76,7.86">Understanding Genre in a Collection of a Million Volumes</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Underwood</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<pubPlace>Urbana-Champaign</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>University of Illinois</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Technical report</note>
+</biblStruct>
+
+<biblStruct coords="8,84.12,207.35,466.92,7.86;8,74.66,218.30,173.27,7.86" xml:id="b29">
+	<analytic>
+		<title level="a" type="main" coord="8,354.20,207.35,196.83,7.86;8,74.66,218.30,30.51,7.86">Mapping mutable genres in structurally complex volumes</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Underwood</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">L</forename><surname>Black</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Auvil</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Capitanu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,125.13,218.30,59.98,7.86">IEEE Big Data</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="95" to="103" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,84.12,237.23,467.96,7.86;8,74.66,248.19,101.94,7.86" xml:id="b30">
+	<analytic>
+		<title level="a" type="main" coord="8,214.03,237.23,287.61,7.86">Single document keyphrase extraction using neighborhood knowledge</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Xiao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,524.92,237.23,21.73,7.86">AAAI</title>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="855" to="860" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,84.12,267.12,468.47,7.86;8,74.21,278.08,273.19,7.86" xml:id="b31">
+	<analytic>
+		<title level="a" type="main" coord="8,215.67,267.12,333.40,7.86">A study of smoothing methods for language models applied to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,74.21,278.08,207.12,7.86">ACM Transactions on Information Systems (TOIS)</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="179" to="214" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

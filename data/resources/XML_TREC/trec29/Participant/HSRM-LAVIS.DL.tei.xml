@@ -1,0 +1,892 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,85.36,84.23,441.28,15.44;1,77.96,104.15,456.07,15.44">HSRM-LAVIS at TREC 2020 Deep Learning Track: Neural First-stage Ranking Complementing Term-based Retrieval</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,147.36,133.15,72.36,11.96"><forename type="first">Marco</forename><surname>Wrzalik</surname></persName>
+							<email>marco.wrzalik@hs-rm.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">RheinMain University of Applied Sciences Dirk Krechel</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">RheinMain University of Applied Sciences</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,85.36,84.23,441.28,15.44;1,77.96,104.15,456.07,15.44">HSRM-LAVIS at TREC 2020 Deep Learning Track: Neural First-stage Ranking Complementing Term-based Retrieval</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A276E9A36892AEBA30B1CC5AB0FCE1DA</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our submission to the passage ranking task of the TREC 2020 Deep Learning Track. With our work we focus on improving first-stage ranking and investigate its effect on endto-end retrieval. Our approach aims to complement term-based retrieval methods with rankings from a representation-focused neural ranking model for first-stage ranking. Thus, we compile reranking candidates by mixing rankings from our complementary model with BM25 rankings. Our model incorporates ALBERT to exploit local term interactions and language modeling pretraining. For efficient retrieval, our passage representations are pre-computed and can be indexed in an Approximate Nearest Neighbor index. We investigate the characteristics of our approach based on the following three submitted runs: First, isolated rankings from our complementing first-stage ranking model for to reveal its standalone effectiveness. Second, mixed candidates from both BM25 and our model to inspect its complementary behavior. Third, rankings from an ELECTRA-based re-ranker using the candidates from the second run as an example of end-to-end results.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The current state of the art in passage retrieval is dominated by re-ranking models. They follow a two-or multi-stage ranking approach, where a number of candidate passages is re-ranked by a more sophisticated model. The candidates are typically retrieved by a sparse bag-of-words retrieval model such as BM25. Although BM25 has proven decent performance as a first-stage ranker, it tends to miss relevant passages. Recently, this has been counteracted with neural extensions to the sparse retrieval model such as query-and document expansion <ref type="bibr" coords="1,173.04,503.36,13.44,8.97" target="#b15">[15,</ref><ref type="bibr" coords="1,188.71,503.36,10.29,8.97" target="#b23">23,</ref><ref type="bibr" coords="1,201.23,503.36,11.49,8.97" target="#b25">25]</ref> or term weighting <ref type="bibr" coords="1,283.00,503.36,9.32,8.97" target="#b5">[6]</ref>. With our submission we investigate a first-stage ranking approach based on dense representations from a language model with the goal to complement term-based rankings. This has been pursued in the past: Boytsov et al. <ref type="bibr" coords="1,151.79,547.20,9.42,8.97" target="#b1">[2]</ref>, for instance, generated dense document representations using static word embeddings to retrieve re-ranking candidates based on k-nearest neighbor search. In contrast, our model incorporates ALBERT <ref type="bibr" coords="1,198.22,580.08,9.47,8.97" target="#b9">[9]</ref>, a language model and text encoder similar to BERT <ref type="bibr" coords="1,166.88,591.03,9.52,8.97" target="#b7">[7]</ref>, which is used to exploit local term interactions and language modeling pretraining. We optimize our model towards representations that reflect relevance through vector similarity. At the same time, we guide our model towards a complementary behavior to BM25 by sampling negative examples from BM25 rankings. We hypothesize that using a BERT-like encoder is of great use for this task: Both language modeling pretraining and local interactions based on the attention mechanism of the incorporated transformer module <ref type="bibr" coords="1,200.57,678.71,14.65,8.97" target="#b19">[19]</ref> contribute to a better understanding of queries and passages. This differs to most previous representation-focused IR models based on language modeling Table 1: Overview of our runs submitted to the passage retrieval task of the TREC 2020 Deep Learning Track.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run-id Description</head><p>CoRT-standalone Standalone first-stage rankings from our complementary model, which will be refered to as "CoRT".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CoRT-bm25</head><p>Mixed rankings (50:50) from BM25 and our complementary model, which we refer to as "CoRT+BM25".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CoRT-electra</head><p>Exemplary end-to-end results using an ELECTRA-based re-ranker and CoRT-bm25 as candidate passages. We refer to this run as "CoRT+BM25→ELECTRA".</p><p>approaches <ref type="bibr" coords="1,361.90,393.77,9.37,8.97" target="#b1">[2,</ref><ref type="bibr" coords="1,373.52,393.77,6.15,8.97" target="#b8">8,</ref><ref type="bibr" coords="1,381.92,393.77,10.15,8.97" target="#b13">13]</ref>, since local term interactions were rarely exploited to form first-stage rankings. Many recent re-ranking models implicitly use the attention mechanism for query-passage interactions <ref type="bibr" coords="1,338.89,426.65,13.60,8.97" target="#b11">[11,</ref><ref type="bibr" coords="1,354.93,426.65,10.35,8.97" target="#b12">12,</ref><ref type="bibr" coords="1,367.71,426.65,10.35,8.97" target="#b14">14,</ref><ref type="bibr" coords="1,380.49,426.65,10.21,8.97" target="#b18">18]</ref>. In our approach, however, we intentionally dispense with query-passage interactions in favor of low computational effort to make retrieval from the full corpus feasible. At inference time, only the given query needs to be encoded, while the relevance score is computed as the dot product between query and passage representations. This can effectively be done using a GPU or through an Approximate Nearest Neighbor (ANN) index to avoid exhaustive scoring.</p><p>Preliminary to our submission to TREC 2020 DL, we used the pooled judgments from the passages task of TREC 2019 DL to evaluate our model <ref type="bibr" coords="1,392.49,536.24,13.49,8.97" target="#b21">[21]</ref>. There, we found that 26% of the top-10 candidates from our complementary model are not included in the pooled judgments. At the same time, our model performs well according to top-10 precision: Our standalone model achieves 54.2% P@10 while BM25, which is densely labeled among the top-10 rankings, only achieves 40.5% P@10. Therefore we want to contribute our rankings to the assessment pool of the this year's deep learning track. Also, we greatly appreciate the opportunity to obtain dense labels for the top-10 passages of our first-stage ranking experiments, which will be of great use for the analysis of our model. Beneath the first-stage ranking we also submit an exemplary end-to-end ranking pipeline: we conduct a re-ranking experiment using our complementing first-stage ranking approach. With this, we want to benchmark our approach against state-of-the-art models and demonstrate the effect of increasing candidate selection quality on end-to-end ranking performance.</p><p>There are two tasks associated with the TREC 2020 Deep Learning Track: Document ranking and passage ranking. Both are based on the MS MARCO dataset <ref type="bibr" coords="2,145.40,122.54,9.52,8.97" target="#b0">[1]</ref>. For the passage task -on which we focus -about 530k positive connections between queries and passages are provided for training. Participants were asked to either re-rank a given set of passages or perform a full ranking using the MS MARCO corpus containing about 8.8M passages. 200 queries or topics were selected for the submissions, from which 81 entered the NIST assessment process and 54 are now contained by the final evaluation set. The assessments involve a pooling strategy in which first the top-10 passages from all submitted runs are judged by human assessors. Then, based on the positively labeled passages, additional candidates are chosen for assessment. Further information to the TREC Deep Learning Track and the NIST assessments can be found on the official website 1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">APPROACH</head><p>We describe a neural representation-focused ranking model for first-stage ranking that aims to act as a complementary ranker to existing term-based retrieval models such as BM25. To achieve this, we sample negative training examples from BM25 rankings and make use of local interactions and language modeling pretraining. The latter are introduced due to a BERT-like language model in the core of our model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Architecture</head><p>The architecture and training strategy of our model, illustrated in Figure <ref type="figure" coords="2,78.72,402.50,3.01,8.97" target="#fig_1">1</ref>, follows the idea of a Siamese Neural Network <ref type="bibr" coords="2,248.20,402.50,9.27,8.97" target="#b2">[3]</ref>. Passages and queries are encoded using the identical model with shared weights except for one detail: The passage encoder 𝜓 𝛼 and the query encoder 𝜓 𝛽 use different segment embeddings <ref type="bibr" coords="2,241.78,435.38,9.27,8.97" target="#b7">[7]</ref>. Our model computes relevance scores as angular similarity between query and passage representations while training a pair-wise ranking objective</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Encoding</head><p>Our model can incorporate any BERT-like encoder as underlying text encoder. Here, we use a pretrained ALBERT <ref type="bibr" coords="2,229.43,504.13,10.42,8.97" target="#b9">[9]</ref> encoder for its smaller model size, the tougher sentence coherence pretraining and increased first-stage ranking quality throughout our early-stage experiments compared to BERT. The tokenizer of ALBERT is a WordPiece tokenizer <ref type="bibr" coords="2,132.68,547.96,14.82,8.97" target="#b22">[22]</ref> including the special tokens [CLS] and [SEP] known from BERT. From the text encoder we seek a single representation vector for the whole passage or query, which we call context representation. From ALBERT we take the [CLS] embedding of the last layer for this purpose. The context representation obtained from the underlying encoder for an arbitrary string 𝑠 is denoted with 𝜏 (𝑠) ∈ R ℎ where ℎ is the output representation size.</p><p>ALBERT's language modeling approach involves sentence coherence prediction for which segment embeddings are used to signal different input segments. Although we only feed single segments to the encoder, i.e. a query or a passage, we use segment embeddings allowing the model to encode queries differently than passages. The segment embeddings 𝐸 𝐴 and 𝐸 𝐵 (illustrated in Figure <ref type="figure" coords="2,247.71,680.00,3.35,8.97" target="#fig_1">1</ref>) are part of  the context encoder functions 𝜏 𝛼 and 𝜏 𝛽 for passages and queries respectively. The context representation is further projected to the desired representation size 𝑒 using a linear layer followed by a tanh activation function. Thus, the complete passage encoder function is 𝜓 𝛼 (𝑠) := tanh(𝑊 𝜏 𝛼 (𝑠) + 𝑏) where 𝑊 ∈ R ℎ×𝑒 and 𝑏 ∈ R 𝑒 are parameters of the linear layer. The query encoder 𝜓 𝛽 is defined analogous.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Training</head><p>Training our model corresponds to updating the parameters of the encoder 𝜓 towards representations that reflect relevance between queries and documents through vector similarity. Each training sample is a triple comprising a query 𝑞, a positive passage 𝑑 + and a negative passage 𝑑 -. While positive passages are taken from relevance assessments, negative passages are sampled from termbased rankings (i.e. BM25) to support the complementary property of our model. The relevance score for a query-passage pair (𝑞, 𝑑) is calculated using the angular cosine similarity function. <ref type="foot" coords="2,519.04,466.46,3.38,7.27" target="#foot_0">2</ref></p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>𝑠𝑖𝑚(𝑞, 𝑑)</head><formula xml:id="formula_0" coords="2,387.48,489.29,170.72,22.26">:= 1 -arccos 𝜓 𝛽 (𝑞) • 𝜓 𝛼 (𝑑) ||𝜓 𝛽 (𝑞)|| ||𝜓 𝛼 (𝑑)|| /𝜋<label>(1)</label></formula><p>As illustrated in Figure <ref type="figure" coords="2,415.81,517.32,3.13,8.97" target="#fig_1">1</ref>, the training objective is to score the positive example 𝑑 + by at least the margin 𝜖 higher than the negative one 𝑑 -. We use the triplet margin loss function as part of our batch-wise loss function:</p><formula xml:id="formula_1" coords="2,347.51,563.31,210.69,11.09">𝑙 (𝑞, 𝑑 + , 𝑑 -) := 𝑚𝑎𝑥 (0, 𝑠𝑖𝑚(𝑞, 𝑑 -) -𝑠𝑖𝑚(𝑞, 𝑑 + ) + 𝜖)<label>(2)</label></formula><p>Inspired by Oh Song et al. <ref type="bibr" coords="2,423.53,580.66,13.33,8.97" target="#b16">[16]</ref>, we aim to take full advantage of the whole training batch. For each query, each passage in the batch is used as a negative example except for the positive one. Thus, the batch-wise loss function can be defined as follows:</p><formula xml:id="formula_2" coords="2,342.21,634.74,215.99,21.85">L := 1≤𝑖 ≤𝑛 1≤ 𝑗 ≤𝑛 𝑙 (𝑞 𝑖 , 𝑑 + 𝑖 , 𝑑 - 𝑗 ) + 1≤𝑘 ≤𝑛, 𝑘≠𝑖 𝑙 (𝑞 𝑖 , 𝑑 + 𝑖 , 𝑑 + 𝑘 )<label>(3)</label></formula><p>𝑞 𝑖 , 𝑑 + 𝑖 and 𝑑 - 𝑖 denote the triple of the 𝑖 𝑡ℎ sample in the batch and 𝑛 the number of samples per batch. We found this technique makes the training process more robust towards exploding gradients thus the model can be trained without gradient clipping <ref type="bibr" coords="3,247.98,193.95,13.49,8.97" target="#b26">[26]</ref>. Also, it positively affects first-stage ranking results<ref type="foot" coords="3,211.64,202.92,3.38,7.27" target="#foot_1">3</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Indexing and Retrieval</head><p>For retrieval with our model, each passage must be encoded by the passage encoder 𝜓 𝛼 . Subsequent normalization of each vector allows us to use the dot product as a proxy score function, which is sufficient to accurately compile the ranking. Given a query 𝑞, we calculate its representation 𝜓 𝛽 (𝑞) and the dot product with each normalized passage vector. From those, the 𝑘 highest scores are selected and sorted to form the ranking. This procedure can be implemented heavily parallelized using a GPU. Alternatively, the passage representations can be indexed in an ANN index to avoid exhaustive similarity search. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">EXPERIMENTS</head><p>Our submitted runs comprise two experiment types: First-stage (full) ranking for candidate retrieval and subsequent re-ranking as an example for an end-to-end ranking pipeline. Since we could only submit three runs, we strategically decided to neither submit a BM25 baseline, nor a re-ranking baseline using BM25 candidates only. We argue, BM25 rankings should already be well covered in the pooled NIST assessments. Next to the evaluation results based on the TREC 2020 DL Passage Task, we also add corresponding results using the qrels from the previous year. Furthermore, we add evaluation results for baseline measures we did not submit. There, the evaluation results were generated using the official trec_eval evaluation script and the "-l 2" option to prevent the label "1" (for related) being counted as relevant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">First-stage Ranking</head><p>We trained our model as described in Section 3.3 while using a representation size of 𝑒 = 768 to avoid a possible bottleneck. However, our previous experiments indicate that 𝑒 can be reduced to 256 without significantly hurting the ranking quality, which substantially decreases computational effort and resource cost <ref type="bibr" coords="3,230.12,673.34,13.22,8.97" target="#b21">[21]</ref>. Any passage or query is cropped to a sequence length of 512 tokens. The rankings are compiled using exhaustive search on a GPU. Since the initial ordering of a certain set of candidates for re-ranking is not relevant to the final results, we identify recall to be the most adequate measure to summarize the quality of candidate selections. Various recall cuts are taken into account to represent situations, where smaller numbers of candidates are favorable. We report nDCG@1000 as an additional summary of the overall first-stage ranking quality.</p><p>Results. As shown in Table <ref type="table" coords="3,422.75,281.62,3.09,8.97" target="#tab_0">2</ref>, mixing candidates from our model with those from BM25 significantly increases recall at all considered cuts, which demonstrates the complementary behavior of our model. It is worth noting, that BM25 achieves much higher recall@1k on this year's judgments compared to last year. We hypothesize this translates to the significantly smaller gain we observe on this metric: While the judgments from 2019 show +0.086 recall@1k due to candidate mixing, the increase only amounts +0.046 recall@1k on this year's judgments. However, the increases on the other considered metrics are quite robust.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">ELECTRA Re-ranking</head><p>As an example for an end-to-end ranking pipeline based on our candidates, we trained a neural re-ranker using a point-wise learning objective. Inspired by Nogueira and Cho <ref type="bibr" coords="3,469.95,437.72,13.38,8.97" target="#b14">[14]</ref>, we fine-tune a pretrained language model on binary relevance classification. Instead of BERT, however, we use a pretrained ELECTRA discriminator <ref type="bibr" coords="3,547.23,459.64,9.27,8.97" target="#b4">[5]</ref>.</p><p>An input query-passage pair (𝑞, 𝑝) is concatenated to one token sequence with two segments. This sequence is processed by the ELEC-TRA discriminator while the embedding for the classification token in the last layer, which we denote with 𝜙 (𝑞, 𝑝), is projected to a binary classification logit. We then apply the sigmoid activation function 𝜎 to obtain the relevance confidence for query 𝑞 and passage 𝑝. This procedure can be formalized as 𝜁 (𝑞, 𝑝) = 𝜎 (𝑊 ′ 𝜙 (𝑞, 𝑝) + 𝑏 ′ ) where 𝑊 ′ ∈ R ℎ×1 and 𝑏 ′ ∈ R are the parameters of a linear layer with a single output activation. To form a ranking at inference time, we sort the candidates by the model's confidence. During training, we sample query-passage pairs, each associated with a binary relevance label 𝑦 ∈ {0, 1} and minimize the binary cross-entropy loss:</p><formula xml:id="formula_3" coords="3,341.28,616.64,216.93,11.09">𝑙 ′ (𝑞, 𝑝, 𝑦) = 𝑦 • 𝑙𝑜𝑔 𝜁 (𝑞, 𝑝) + (1 -𝑦) • 𝑙𝑜𝑔 (1 -𝜁 (𝑞, 𝑝))<label>(4)</label></formula><p>Results. Table <ref type="table" coords="3,375.39,634.87,4.25,8.97" target="#tab_1">3</ref> shows the results of our exemplary end-to-end ranking pipeline. For the first stage of our pipeline we use 1000 candidates mixed from BM25 and our complementary model as described in Section 3.4. As a baseline, we conduct the same experiment using 1000 candidates from BM25 only. Decent gains in MAP and nDCG@1000 are achieved due to our complementary first-stage ranking. However, in this setting of 1000 candidates,  where satisfactory numbers of relevant passages are already retrieved by BM25, further increasing recall seems not to translate into improved top-rank-focused metrics, i.e. MRR and nDCG@10.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Limiting Candidate Numbers</head><p>Since most re-ranking methods score each candidate individually, it is reasonable to assume that the corresponding computational cost relates linearly to the number of candidates. Thus, decreasing the candidates is an effective measure to reduce end-to-end ranking time and resource cost. However, this is likely to negatively influence ranking quality. We investigate the effect of limited numbers of candidates on the final ranking quality, while using candidates from a) BM25 and b) CoRT+BM25. As Figure <ref type="figure" coords="4,228.23,525.28,4.25,8.97" target="#fig_3">2</ref> (left) illustrates, the ranking quality in terms of nDCG@10 of the run that uses candidates from CoRT+BM25 suffers much less from the decreasing number of candidates: 128 candidates from CoRT+BM25 result in a higher ranking quality than 512 candidates from BM25 only. This effect becomes heavier for lower candidate numbers: Only 32 candidates from CoRT+BM25 are needed outperform 256 BM25 candidates. However, this behavior is not reflected by the recall on the right side of Figure <ref type="figure" coords="4,135.42,612.95,3.01,8.97" target="#fig_3">2</ref>. There, the margin between the approaches is rather constant. Furthermore, we observe that recall is not a good predictor for end-to-end ranking quality with our state-of-the-art re-ranker. For instance, 32 candidates from CoRT+BM25 comprise an approximately equal recall value to 64 candidates from BM25. Contrarily, the resulting ranking quality in terms of nDCG@10 is much higher for the 32 candidates from CoRT+BM25. We hypothesize, it is not only the recall of the candidates that matters, but rather the coverage regarding different types of relevance signals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSION</head><p>We submitted three passage ranking runs to the TREC 2020 Deep Learning Track. Two of them are dedicated to our first-stage ranking approach, which aims to complement BM25 rankings with candidates from a representation-focused neural ranking model. This model incorporates ALBERT to exploit local interactions and language modeling pretraining. Our third run demonstrates exemplary end-to-end results using our candidate selection. We have shown that mixing BM25 ranking with those from our complementary model results in significantly increased recall. According to MAP and nDCG this translates into small increases to overall ranking quality after re-ranking. However, the nDCG@10 and MRR measures indicate, this does not apply to the top positions of our end-to-end rankings when using 1000 candidates, since the BM25 ranking already contains satisfactory numbers of relevant passages. However, this changes if less candidates are used during re-ranking. There, we find the top ranks are positively impacted by the increased recall our proposed first-stage ranker offers. Furthermore, we find this effect increases as the number of candidates decreases.</p><p>A TRAINING DETAILS Software. All our implementations are made with Python 3.7. We used PyTorch <ref type="bibr" coords="5,363.22,112.39,15.39,8.02" target="#b17">[17]</ref> and HuggingFace's Transformers <ref type="bibr" coords="5,493.45,112.39,15.23,8.02" target="#b20">[20]</ref> as deep learning libraries. Any BM25 ranking were generated by the Anserini toolkit <ref type="bibr" coords="5,341.41,133.50,13.40,8.97" target="#b24">[24]</ref>. Anserini ensures reproducibility by providing optimized parameter sets and ranking scripts based on Apache Lucene for several datasets including MS MARCO. First-stage Ranking. We trained our model based on the pretrained ALBERT model "albert-base-v2", which is the lightest available version in HuggingFace's repository<ref type="foot" coords="5,480.36,186.31,3.38,7.27" target="#foot_2">4</ref>  <ref type="bibr" coords="5,486.47,188.29,13.24,8.97" target="#b20">[20]</ref>. Our model has been trained on MS MARCO for 10 epochs. Each epoch includes all queries that are associated to at least one relevant passage. For each query we randomly sample one positive and one negative passage. Most queries are only associated to one relevant passage, however. Negative examples are sampled from the corresponding top-100 BM25 ranking to support the complementary property of our model. There, we filter any positively labeled passage as well as any passage above rank 𝑛 = 8 for their high probability of actually being relevant. With this we aim to reduce the number of false negatives and thus generated contradictory signals. Due to high computational effort, this parameter was not tuned systematically. However, we achieved 0.7 p.p. higher MRR@10 and 1.2 p.p. higher RECALL@100 on our sparse validation set when training with 𝑛 = 8 compared to 𝑛 = 0. As usual for BERT-based models we use the ADAM optimizer with weight decay fix <ref type="bibr" coords="5,484.11,352.68,14.85,8.97" target="#b10">[10]</ref> and the default parameters 𝛽 1 = 0.9, 𝛽 2 = 0.999, 𝑒𝑝𝑠 = 10 -6 . We have empirically chosen a weight decay rate of 𝜆 = 0.1 and a linearly decreasing learning rate schedule starting with 𝑙𝑟 = 2×10 -6 after 20.000 warmup batches. We train mini-batches of size 𝑏 = 6 samples (triples) while accumulating the gradients of 100 mini-batches before performing one update step. The triplet margin (eq. 2 in Section 3.3) has been set to 𝜖 = 0.1, which has been coarsely tuned in the range of [0.01, 0.2]. Re-ranker. The pretrained ELECTRA discriminator <ref type="bibr" coords="5,514.73,451.31,10.68,8.97" target="#b4">[5]</ref> we used for our re-ranking experiment was accessed through HuggingFace's repository <ref type="bibr" coords="5,357.51,473.23,13.26,8.97" target="#b20">[20]</ref>, namely google/electra-large-discriminator. The optimizer settings have been adopted from our first-stage ranking experiment except for the learning rate, which we empirically set to 5 × 10 -5 . We trained the model for 8 epochs on the MS MARCO training set, with batches of 𝑏 = 6 samples and 100 steps of gradient accumulation. The negative examples for the pointwise learning objective has been taken from our top-1000 mixed candidates (CoRT-bm25).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,53.67,700.60,160.54,8.49"><head></head><label></label><figDesc>1 https://microsoft.github.io/TREC-2020-Deep-Learning/</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="2,317.96,231.70,240.50,7.70;2,317.96,242.66,241.85,7.70;2,317.96,253.62,31.25,7.70;2,317.96,83.69,240.24,134.02"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The model architecture of our complementary first-stage ranker and the pair-wise learning objective (simplified).</figDesc><graphic coords="2,317.96,83.69,240.24,134.02" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,156.93,339.15,138.63,8.97;3,53.80,350.11,240.25,8.97;3,53.80,361.06,241.76,8.97;3,53.80,372.02,240.25,8.97;3,53.80,382.98,240.41,8.97;3,53.80,393.94,239.71,8.97;3,53.80,404.90,158.27,8.97;3,214.27,413.02,2.49,4.15;3,213.26,407.71,22.15,4.02;3,236.99,413.02,4.98,4.15;3,237.00,404.90,58.57,8.97;3,53.80,415.86,240.24,8.97;3,53.80,426.82,241.63,8.97"><head></head><label></label><figDesc>Finally, we combine the resulting ranking of our model with the respective BM25 ranking by interleaving or zipping the positions beginning with our model until a new ranking of the same length has been arranged. During this process, each passage that was already added by the other ranking is omitted. For instance, merging two ranking lists beginning with [𝑎, 𝑏, 𝑐, 𝑑, . . . ] and [𝑒, 𝑐, 𝑓 , 𝑎, . . . ] would result in [𝑎, 𝑒, 𝑏, 𝑐, £ 𝑐, 𝑓 , 𝑑, ¡ 𝑎, . . . ]. The zipping procedure stops as soon as the desired ranking size has been reached. The result is a compound ranking of our model and BM25.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="4,53.80,306.18,504.40,7.70;4,53.80,317.14,155.31,7.70"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Based on the TREC 2020 DL Passage Task, ranking quality in terms of nDCG@10 vs number of candidates (left) and corresponding candidate recall (right).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,58.78,85.73,492.29,86.71"><head>Table 2 :</head><label>2</label><figDesc>Evaluation results of our first-stage passage ranking on the Deep Learning Track of TREC 2019 and 2020.</figDesc><table coords="3,58.78,111.89,492.29,60.55"><row><cell></cell><cell></cell><cell cols="2">TREC 2019 DL -Passage Task</cell><cell></cell><cell></cell><cell cols="2">TREC 2020 DL -Passage Task</cell><cell></cell></row><row><cell>Method</cell><cell cols="4">nDCG@1k recall@100 recall@200 recall@1k</cell><cell cols="4">nDCG@1k recall@100 recall@200 recall@1k</cell></row><row><cell>BM25</cell><cell>0.6000</cell><cell>0.4976</cell><cell>0.5981</cell><cell>0.7450</cell><cell>0.5879</cell><cell>0.5669</cell><cell>0.6428</cell><cell>0.8031</cell></row><row><cell>CoRT</cell><cell>0.5129</cell><cell>0.4471</cell><cell>0.5172</cell><cell>0.6328</cell><cell>0.5413</cell><cell>0.5301</cell><cell>0.5850</cell><cell>0.6973</cell></row><row><cell>CoRT+BM25</cell><cell>0.6636</cell><cell>0.5696</cell><cell>0.6590</cell><cell>0.8308</cell><cell>0.6630</cell><cell>0.6454</cell><cell>0.7230</cell><cell>0.8496</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,55.62,85.73,501.44,204.06"><head>Table 3 :</head><label>3</label><figDesc>End-to-end passage ranking results</figDesc><table coords="4,55.62,111.89,501.44,177.90"><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="5">TREC 2019 DL -Passage Task</cell><cell></cell><cell cols="4">TREC 2020 DL -Passage Task</cell></row><row><cell cols="3">Ranking Pipeline</cell><cell></cell><cell>MRR</cell><cell>MAP</cell><cell cols="3">nDCG@10 nDCG@1k</cell><cell>MRR</cell><cell></cell><cell>MAP</cell><cell cols="3">nDCG@10 nDCG@1k</cell></row><row><cell cols="3">BM25→ELECTRA</cell><cell></cell><cell>0.9109</cell><cell>0.4664</cell><cell></cell><cell>0.7306</cell><cell>0.6962</cell><cell>0.8721</cell><cell></cell><cell>0.5210</cell><cell>0.7587</cell><cell></cell><cell>0.7107</cell></row><row><cell cols="3">CoRT+BM25→ELECTRA</cell><cell></cell><cell>0.9128</cell><cell>0.5101</cell><cell></cell><cell>0.7471</cell><cell>0.7336</cell><cell>0.8703</cell><cell></cell><cell>0.5399</cell><cell>0.7566</cell><cell></cell><cell>0.7438</cell></row><row><cell></cell><cell>0.75</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.80</cell><cell>BM25</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>nDCG@10</cell><cell>0.60 0.63 0.66 0.69 0.72</cell><cell></cell><cell></cell><cell></cell><cell cols="3">CoRT+BM25→ELECTRA BM25→ELECTRA</cell><cell>0.32 0.40 0.48 0.56 0.64 RECALL 0.72</cell><cell cols="2">CoRT + BM25</cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>16</cell><cell>32</cell><cell>64</cell><cell>128</cell><cell>256</cell><cell>512</cell><cell>1000</cell><cell>16</cell><cell>32</cell><cell>64</cell><cell>128</cell><cell>256</cell><cell>512</cell><cell>1000</cell></row><row><cell></cell><cell></cell><cell></cell><cell cols="3">Number of Candidates</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="3">Number of Candidates</cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,321.00,702.12,230.98,6.97"><p>Similar to<ref type="bibr" coords="2,350.50,702.12,7.31,6.97" target="#b3">[4]</ref>, we found angular similarity performs better than cosine similarity.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="3,56.84,693.90,237.20,6.97;3,53.80,702.12,134.05,6.97"><p>We achieve 2.0 p.p. higher MRR@10 compared to the plain triplet margin loss on sparse labels from the MS MARCO dev dataset.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="5,320.88,702.12,172.99,6.97"><p>https://huggingface.co/transformers/pretrained_models.html</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,333.39,574.60,225.58,6.97;4,333.39,582.57,225.88,6.97;4,333.39,590.54,224.81,6.97;4,333.39,598.51,91.01,6.97" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Payal</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.09268</idno>
+		<title level="m" coord="4,333.39,590.54,204.04,6.97">Ms marco: A human generated machine reading comprehension dataset</title>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,333.39,606.48,224.81,6.97;4,333.39,614.45,224.81,6.97;4,333.39,623.04,225.88,6.23;4,333.23,630.39,31.30,6.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="4,519.38,606.48,38.82,6.97;4,333.39,614.45,162.21,6.97">Off the beaten path: Let&apos;s replace term-based retrieval with k-nn search</title>
+		<author>
+			<persName coords=""><forename type="first">Leonid</forename><surname>Boytsov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Novak</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yury</forename><surname>Malkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,507.91,615.07,50.30,6.23;4,333.39,623.04,222.54,6.23">Proceedings of the 25th ACM international on conference on information and knowledge management</title>
+		<meeting>the 25th ACM international on conference on information and knowledge management</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="1099" to="1108" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,333.39,638.36,225.58,6.97;4,333.39,646.33,224.81,6.97;4,333.39,654.30,148.35,6.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="4,386.37,646.33,112.22,6.97">Signature Verification using a &quot;Siamese</title>
+		<author>
+			<persName coords=""><forename type="first">Jane</forename><surname>Bromley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bentz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Bottou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Sackinger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Shah</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,503.48,646.33,54.72,6.97;4,333.39,654.30,122.64,6.97">Time Delay Neural Network. Int</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<date type="published" when="1993">1993. 1993</date>
+		</imprint>
+	</monogr>
+	<note>Pattern Recognit. Artzf Intell</note>
+</biblStruct>
+
+<biblStruct coords="4,333.39,662.27,224.81,6.97;4,333.28,670.24,225.99,6.97;4,333.39,678.21,207.12,6.97" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Cer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yinfei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Yi</forename><surname>Kong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nan</forename><surname>Hua</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicole</forename><surname>Limtiaco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rhomni</forename><surname>St John</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noah</forename><surname>Constant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mario</forename><surname>Guajardo-Cespedes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steve</forename><surname>Yuan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.11175</idno>
+		<title level="m" coord="4,514.04,670.24,45.24,6.97;4,333.39,678.21,93.30,6.97">Chris Tar, et al. 2018. Universal sentence encoder</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,333.39,686.18,225.89,6.97;4,333.39,694.15,225.88,6.97;4,333.39,702.12,156.97,6.97" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="4,333.39,694.15,222.93,6.97">ELECTRA: Pre-training Text Encoders as Discriminators Rather Than Generators</title>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Minh-Thang</forename><surname>Luong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,340.99,702.74,146.59,6.23">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,88.42,105.72,6.97" xml:id="b5">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,177.45,88.42,116.60,6.97;5,69.23,96.39,94.59,6.97" xml:id="b6">
+	<monogr>
+		<title level="m" coord="5,177.45,88.42,116.60,6.97;5,69.23,96.39,67.18,6.97">Context-Aware Passage Term Weighting For First Stage Retrieval</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,104.36,225.63,6.97;5,69.23,112.33,224.81,6.97;5,69.23,120.30,91.11,6.97" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="5,281.34,104.36,13.53,6.97;5,69.23,112.33,205.00,6.97">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,128.27,224.81,6.97;5,69.06,136.24,224.98,6.97;5,69.23,144.21,128.47,6.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,274.98,128.27,19.07,6.97;5,69.06,136.24,154.92,6.97">Neural vector spaces for unsupervised information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Christophe</forename><surname>Van Gysel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maarten</forename><surname>De Rijke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Evangelos</forename><surname>Kanoulas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,231.88,136.87,62.16,6.23;5,69.23,144.84,76.34,6.23">ACM Transactions on Information Systems (TOIS)</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page" from="1" to="25" />
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,152.18,224.81,6.97;5,69.23,160.15,224.81,6.97;5,69.23,168.12,191.32,6.97" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="5,163.41,160.15,130.64,6.97;5,69.23,168.12,77.68,6.97">Albert: A lite bert for self-supervised learning of language representations</title>
+		<author>
+			<persName coords=""><forename type="first">Zhenzhong</forename><surname>Lan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mingda</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Gimpel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Piyush</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Radu</forename><surname>Soricut</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.11942</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,176.09,225.89,6.97;5,69.23,184.06,107.98,6.97" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Loshchilov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Frank</forename><surname>Hutter</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1711.05101</idno>
+		<title level="m" coord="5,182.88,176.09,109.50,6.97">Decoupled weight decay regularization</title>
+		<imprint>
+			<date type="published" when="2017">2017. 2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,192.03,225.64,6.97;5,69.23,200.00,224.81,6.97;5,69.23,208.60,224.81,6.23;5,69.23,215.94,59.08,6.97" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="5,276.23,192.03,18.64,6.97;5,69.23,200.00,145.37,6.97">CEDR: Contextualized embeddings for document ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arman</forename><surname>Cohan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nazli</forename><surname>Goharian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,227.59,200.63,66.46,6.23;5,69.23,208.60,224.81,6.23;5,69.23,216.57,23.44,6.23">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1101" to="1104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,223.91,225.88,6.97;5,69.23,231.88,224.81,6.97;5,69.23,239.85,90.96,6.97" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstatter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hamed</forename><surname>Zamani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.10434</idno>
+		<title level="m" coord="5,69.23,231.88,205.32,6.97">Conformer-Kernel with Query Term Independence for Document Retrieval</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,247.82,224.81,6.97;5,69.23,255.79,213.06,6.97" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Bhaskar Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Caruana</surname></persName>
+		</author>
+		<idno>arXiv-1602</idno>
+		<title level="m" coord="5,273.54,247.82,20.50,6.97;5,69.23,255.79,135.37,6.97">A Dual Embedding Space Model for Document Ranking</title>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,263.76,225.88,6.97;5,69.23,271.73,108.33,6.97" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<title level="m" coord="5,203.72,263.76,87.86,6.97">Passage Re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,279.70,225.89,6.97;5,69.03,287.67,22.20,6.97" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="5,188.07,279.70,103.44,6.97">From doc2query to docTTTTTquery</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,295.64,224.81,6.97;5,69.23,303.61,224.81,6.97;5,69.23,311.58,183.80,6.97" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="5,278.96,295.64,15.08,6.97;5,69.23,303.61,150.51,6.97">Deep metric learning via lifted structured feature embedding</title>
+		<author>
+			<persName coords=""><forename type="first">Hyun Oh</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yu</forename><surname>Xiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stefanie</forename><surname>Jegelka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Silvio</forename><surname>Savarese</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,231.70,304.24,62.34,6.23;5,69.23,312.21,148.07,6.23">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="4004" to="4012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,319.55,224.99,6.97;5,69.23,327.52,225.99,6.97;5,69.23,335.49,224.81,6.97;5,69.03,343.46,225.02,6.97;5,69.23,351.43,224.81,6.97;5,69.23,359.40,225.57,6.97;5,69.23,367.37,225.99,6.97;5,69.23,375.34,225.49,6.97;5,69.23,383.31,186.95,6.97" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="5,113.19,351.43,180.85,6.97;5,69.23,359.40,19.82,6.97">PyTorch: An Imperative Style, High-Performance Deep Learning Library</title>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Paszke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sam</forename><surname>Gross</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Francisco</forename><surname>Massa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Lerer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Bradbury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gregory</forename><surname>Chanan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Trevor</forename><surname>Killeen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zeming</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Natalia</forename><surname>Gimelshein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luca</forename><surname>Antiga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alban</forename><surname>Desmaison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andreas</forename><surname>Kopf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Edward</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zachary</forename><surname>Devito</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Martin</forename><surname>Raison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alykhan</forename><surname>Tejani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sasank</forename><surname>Chilamkurthy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benoit</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lu</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Junjie</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Soumith</forename><surname>Chintala</surname></persName>
+		</author>
+		<ptr target="http://papers.neurips.cc/paper/9015-pytorch-an-imperative-style-high-performance-deep-learning-library.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,103.00,360.03,146.33,6.23">Advances in Neural Information Processing Systems</title>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Wallach</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Larochelle</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Beygelzimer</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Alché-Buc</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Fox</surname></persName>
+		</editor>
+		<editor>
+			<persName><surname>Garnett</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="8024" to="8035" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,391.28,224.81,6.97;5,69.23,399.25,209.54,6.97" xml:id="b18">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Yifan</forename><surname>Qiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenghao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1904.07531</idno>
+		<title level="m" coord="5,252.68,391.28,41.36,6.97;5,69.23,399.25,95.88,6.97">Understanding the Behaviors of BERT in Ranking</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,407.22,225.58,6.97;5,68.99,415.19,225.06,6.97;5,69.23,423.16,212.44,6.97" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="5,249.21,415.19,44.83,6.97;5,69.23,423.16,24.64,6.97">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,106.24,423.79,139.53,6.23">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,431.13,225.58,6.97;5,68.99,439.10,225.05,6.97;5,69.23,447.07,224.81,6.97;5,69.23,455.04,115.80,6.97" xml:id="b20">
+	<monogr>
+		<title level="m" type="main" coord="5,106.59,447.07,187.46,6.97;5,69.23,455.04,29.19,6.97">HuggingFace&apos;s Transformers: State-of-the-art Natural Language Processing</title>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lysandre</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Clement</forename><surname>Delangue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anthony</forename><surname>Moi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierric</forename><surname>Cistac</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Rault</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R'emi</forename><surname>Louf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Morgan</forename><surname>Funtowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Brew</surname></persName>
+		</author>
+		<idno>ArXiv abs/1910.03771</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,463.01,224.81,6.97;5,69.03,470.98,150.83,6.97" xml:id="b21">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Marco</forename><surname>Wrzalik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dirk</forename><surname>Krechel</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.10252</idno>
+		<title level="m" coord="5,183.33,463.01,110.71,6.97;5,69.03,470.98,36.97,6.97">CoRT: Complementary Rankings from Transformers</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,478.95,225.58,6.97;5,68.90,486.92,226.22,6.97;5,69.23,494.89,224.81,6.97;5,69.23,502.86,203.00,6.97" xml:id="b22">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Yonghui</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhifeng</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Quoc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohammad</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wolfgang</forename><surname>Norouzi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maxim</forename><surname>Macherey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuan</forename><surname>Krikun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Qin</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Klaus</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Macherey</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1609.08144</idno>
+		<title level="m" coord="5,87.18,494.89,206.86,6.97;5,69.23,502.86,89.61,6.97">Google&apos;s neural machine translation system: Bridging the gap between human and machine translation</title>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,510.83,225.88,6.97;5,69.23,518.80,224.81,6.97;5,69.23,526.77,224.81,6.97;5,69.23,535.37,225.51,6.23;5,69.23,543.34,225.58,6.23;5,69.23,550.68,224.81,6.97;5,69.03,558.65,209.00,6.97" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="5,87.54,518.80,206.50,6.97;5,69.23,526.77,214.13,6.97">IDST at TREC 2019 Deep Learning Track: Deep Cascade Ranking with Generation-based Document Expansion and Pre-trained Language Modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Ming</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenliang</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chen</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bin</forename><surname>Bi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiangnan</forename><surname>Xia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luo</forename><surname>Si</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/IDST.DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,69.23,535.37,162.40,6.23">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Eighth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019-11-13">2019. November 13-15, 2019</date>
+			<biblScope unit="volume">2019</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,566.63,224.81,6.97;5,69.23,574.60,224.81,6.97;5,69.23,583.19,225.88,6.23;5,69.07,590.54,31.30,6.97" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="5,206.72,566.63,87.32,6.97;5,69.23,574.60,113.88,6.97">Anserini: Enabling the use of Lucene for information retrieval research</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,195.03,575.22,99.01,6.23;5,69.23,583.19,223.23,6.23">Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1253" to="1256" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,598.51,224.81,6.97;5,69.23,606.48,224.81,6.97;5,69.23,615.07,225.57,6.23;5,69.23,622.42,224.81,6.97;5,69.03,630.39,226.09,6.97;5,69.23,638.36,109.29,6.97" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="5,275.09,598.51,18.96,6.97;5,69.23,606.48,109.88,6.97">Brown University at TREC Deep Learning 2019</title>
+		<author>
+			<persName coords=""><forename type="first">George</forename><surname>Zerveas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruochen</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leila</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carsten</forename><surname>Eickhoff</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/Brown.DL.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,190.96,607.10,103.08,6.23;5,69.23,615.07,56.15,6.23">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Angela</forename><surname>Ellis</surname></persName>
+		</editor>
+		<meeting>the Twenty-Eighth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019-11-13">2019. 2019. November 13-15, 2019</date>
+			<biblScope unit="volume">1250</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>National Institute of Standards and Technology (NIST</orgName>
+		</respStmt>
+	</monogr>
+	<note>TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,646.33,224.81,6.97;5,69.23,654.30,224.81,6.97;5,69.23,662.89,149.37,6.23" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="5,254.05,646.33,40.00,6.97;5,69.23,654.30,213.40,6.97">Why Gradient Clipping Accelerates Training: A Theoretical Justification for Adaptivity</title>
+		<author>
+			<persName coords=""><forename type="first">Jingzhao</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tianxing</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Suvrit</forename><surname>Sra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ali</forename><surname>Jadbabaie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,69.23,662.89,146.59,6.23">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

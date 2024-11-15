@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,75.55,84.23,463.09,15.44;1,132.69,104.15,346.61,15.44;1,53.80,312.78,241.37,8.91;1,53.55,323.91,241.99,8.74;1,53.80,334.70,98.39,8.77">CSIROmed Team Report of TREC 2021 Clinical Trials track: Experiments with BERT Reranking Methods</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,165.79,131.67,84.51,11.50"><forename type="first">Maciej</forename><surname>Rybinski</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,263.90,131.67,86.48,11.50"><forename type="first">Vincent</forename><surname>Nguyen</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,363.98,131.67,83.23,11.50"><forename type="first">Sarvnaz</forename><surname>Karimi</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<address>
+									<settlement>CSIRO Data61 Sydney</settlement>
+									<country key="AU">Australia</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<address>
+									<settlement>New York</settlement>
+									<region>NY</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,75.55,84.23,463.09,15.44;1,132.69,104.15,346.61,15.44;1,53.80,312.78,241.37,8.91;1,53.55,323.91,241.99,8.74;1,53.80,334.70,98.39,8.77">CSIROmed Team Report of TREC 2021 Clinical Trials track: Experiments with BERT Reranking Methods</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">F8A46BC97FD52BB1F14F2B1DCEB9E96F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Clinical trials search</term>
+					<term>Medical information retrieval</term>
+					<term>Learningto-rank</term>
+					<term>Evidence-based medicine</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>A large body of clinical trials fail to attract enough eligible participants. TREC 2021 Clinical Trials track set a task to use patient data in the form of clinical notes as a way to identify patients eligible for clinical trials. We explore a number of reranking methods as well as query rewighting using Bidirectional Encoder Representations from Transformers (BERT). Our best method used BERT reranking trained on scientific literature.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>TREC Clinical Trials (CT) is the first edition of the track run in TREC 2021. Previously held biomedical retrieval track, TREC Precision Medicine, introduced clinical trial retrieval tasks <ref type="bibr" coords="1,76.86,504.13,9.82,8.63" target="#b7">[8,</ref><ref type="bibr" coords="1,89.36,504.13,11.25,8.63" target="#b9">10,</ref><ref type="bibr" coords="1,103.29,504.13,12.01,8.63" target="#b10">11]</ref> in its 2017, 2018, and 2019 editions. New in the 2021 edition, the task focuses on retrieval of clinical trials given EHR extracts (ER admission statements; 5-10 sentences) for synthetic patients. Specifically, the task is one of matching trials to a given patient, where patient is represented exclusively with a free text extract of their EHR.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">DATASET</head><p>The TREC 2021 CT dataset consists of 75 topics with 35,832 manual judgments. The corpus for the task is a 2020 snapshot of ClinicalTrials.gov database <ref type="foot" coords="1,167.97,614.83,3.49,6.71" target="#foot_0">1</ref> , with over 375K registered clinical trial records. Each topic contains a narrative simulating a patient's admission note. An example topic is shown in Figure <ref type="figure" coords="1,82.19,649.61,3.36,8.63" target="#fig_0">1</ref>.</p><p>A 2-year-old boy is brought to the emergency department by his parents for 5 days of high fever and irritability. The physical exam reveals conjunctivitis, strawberry tongue, inflammation of the hands and feet, desquamation of the skin of the fingers and toes, and cervical lymphadenopathy with the smallest node at 1.5 cm. The abdominal exam demonstrates tenderness and enlarged liver. Laboratory tests report elevated alanine aminotransferase, white blood cell count of 17,580/mm, albumin 2.1 g/dL, C-reactive protein 4.5 mg, erythrocyte sedimentation rate 60 mm/h, mild normochromic, normocytic anemia, and leukocytes in urine of 20/mL with no bacteria identified. The echocardiogram shows moderate dilation of the coronary arteries with possible coronary artery aneurysm. Relevance judgments assign a score of 0 for not relevant, 1 for excluded and 2 for eligible to a topic-document pair.</p><p>For training our runs using supervised learning re-ranking models, we use past TREC Clinical Decision Support (CDS) 2014-16 collections for literature retrieval (2017-2019) with similarly defined EHR extracts <ref type="bibr" coords="1,443.98,467.19,9.74,8.63" target="#b8">[9,</ref><ref type="bibr" coords="1,456.33,467.19,11.22,8.63" target="#b11">12,</ref><ref type="bibr" coords="1,470.17,467.19,11.97,8.63" target="#b14">15]</ref> (hereafter referred to collectively as training collections). The key difference between these training collections and the 2021 dataset is that CDS track focused on retrieval of relevant scientific literature abstracts (with PubMed snapshots), rather than searching clinical trials. We also used the dataset introduced by Koopman and Zuccon <ref type="bibr" coords="1,390.33,532.95,10.57,8.63" target="#b2">[3]</ref> as an auxiliary source of training and evaluation data. This dataset uses topics from TREC CDS 2014-2015, but search task and a shallower pool of relevance judgments are defined over a historic snapshot of the Clini-calTrials.gov database.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">METHODS</head><p>Our submission broadly addresses the applicability of established neural retrieval methods to TREC CT task. Our submission for the official evaluations included the following runs:</p><p>• CSIROmed_DCT-DeepCT-query <ref type="bibr" coords="1,481.05,657.41,10.49,8.63" target="#b1">[2]</ref> method applied to the topic texts (i.e., the clinical notes) for query terms (neural) re-weighting; DeepCT-query model was trained on TREC CDS collections. We used BM25 for the retrieval with reweighted queries.</p><p>• CSIROmedNIR-our neural indexing method where scores are derived from an interpolation of BM25 (sparse) scores and cosine similarities between universal sentence embedding vectors obtained with Sentence-BERT <ref type="bibr" coords="2,293.36,120.43,9.40,8.63" target="#b6">[7]</ref>; this run follows our approach originally applied in 2020 COVID-TREC evaluation <ref type="bibr" coords="2,181.17,142.35,9.52,8.63" target="#b4">[5]</ref>. • CSIROmed_inc-a MonoBERT [6] style pipeline with Divergence From Randomness (DFR) used in initial retrieval step and a pointwise BlueBERT reranker used to re-score top 100 documents; inclusion criteria CT field is used to represent documents in the reranker input.</p><p>• CSIROmed_abs-a MonoBERT style pipeline with DFR initial retrieval step and a pointwise BlueBERT reranker used to re-score top 100 documents; 'brief summary' field is used to represent documents in the reranker input.</p><p>• CSIROmed_brd-a Borda rank fusion of the four other runs and an additional baseline run (DFR retrieval without reranking).</p><p>We also report results for the DFR baseline for reference. Within our official runs we cover a selection of neural approaches relevant to this year's TREC CT track.</p><p>We use DeepCT-query in this setting for two reasons. Firstly, it is an attempt to reweight/prune long clinical narratives, which were already shown to result in poor effectiveness when used as queries in the context of historic TREC CDS tasks. Secondly, we evaluate this method in clinical settings and with limited training data, which provides additional insight on the adaptability of DeepCT-query to specialised domains.</p><p>Similarly, with the CSIROmedNIR run we attempt to improve the initial retrieval step with a BERT-based encoder. The method has already proved successful in a scientific retrieval task with natural language questions, so our experiment tests its applicability to clinical narratives.</p><p>The MonoBERT-style runs re-use a pipeline successfully employed in TREC PM 2020 <ref type="bibr" coords="2,168.80,497.89,13.72,8.63" target="#b12">[13]</ref>, where it was used successfully in a zero/few shot setting. In TREC CT experiment we expect these runs to provide a strong neural baseline that can be potentially used in combination with improvements in the initial retrieval.</p><p>Borda rank fusion run was intended as a simple way to combine the results of the very different methods used in the remaining runs.</p><p>Indexing. We index clinical trials with the following fields: brief summary, brief title, clinical trial ID, detailed description, drug name, drug keywords, exclusion, gender, general keywords, inclusion, intervention type, maximum age, minimum age, official title, and primary outcome. Age-related fields are numeric, all other fields except clinical trial ID are copied into an aggregate text field, which is also indexed.</p><p>CSRIOmed_DCT. In DeepCT-query a BERT model takes a query as input and returns a vector of weights (one weight for each of the query terms). These weights are used as term weights in a subsequent sparse retrieval step with BM25, with documents indexed as described in the previous paragraph. Our DeepCT-query model was trained on TREC CDS data. In the original implementation a BERT model is trained as a regressor for query term recall signal, defined for term t as r t = |d pos (t)| |d pos | , where d pos denotes a set of documents relevant to a given input query, and d pos (t) denotes a subset of these documents that contain term t. The only important difference between our experiment and the methodology outlined in the original paper is that in our experiments we incorporate signal from non-relevant documents d neg into the regression training target for term t as follows: r t = max(0,</p><formula xml:id="formula_0" coords="2,347.85,224.67,69.63,16.26">|d pos (t)| |d pos | - |d neg (t)| |d neg | ).</formula><p>The sparse retrieval step is carried out using BM25 scoring with the default parameters (k1 = 1.2, b = 0.7) over the aggregated text field.</p><p>CSIROmedNIR. We propose an end-to-end retrieval framework using a hybrid scoring function from <ref type="bibr" coords="2,492.88,291.02,10.52,8.63" target="#b4">[5]</ref> consisting of:</p><p>(1) a cosine similarity over textual fields using a universal sentence encoder; and, (2) BM25 scoring. Due to the lack of training data, we do all our tuning and pruning on a test collection for matching patients to clinical trials <ref type="bibr" coords="2,530.11,334.86,9.62,8.63" target="#b2">[3]</ref>. We tune BM25 maximising recall precision giving two hyperparameters b = 0.9 and k1 = 1.4. Due to the availability of many fields, we prune fields based on recall precision using a leave-one-out approach to estimate significance. We do this pruning independently for BM25 and cosine similarity. Our final scores for each document and query is generated based on the hyperparameters and fields found during pruning/training. Log-normalization is used to combine cosine similarity scores and BM25 scores.</p><p>CSIROmed_abs. We propose a two-step search framework consisting of: (1) an initial retrieval using DFR <ref type="bibr" coords="2,511.75,471.11,9.64,8.63" target="#b0">[1]</ref>; and, (2) neural re-ranking with BioBERT <ref type="bibr" coords="2,444.72,482.07,10.33,8.63" target="#b3">[4]</ref> for the top 100 documents of the initial ranking. We adapt the re-ranking setup proposed by Rybinski et al. <ref type="bibr" coords="2,388.87,503.99,14.94,8.63" target="#b13">[14]</ref> for clinical trials retrieval in TREC PM task. Specifically, as a neural relevance scorer we use an output of a fine-tuned BlueBERT with binary linear layer connected to the encoder's pooled layer with dropout. Blue-BERT is a domain-adapted BERT variant with pre-training on a snapshot of PubMed and MIMIC-III clinical notes. The re-ranking model is fine-tuned using cross-entropy loss and a pointwise re-ranking approach, so we essentially train a binary classifier on binarized human judgments from 2014-2016 TREC CDS datasets (an abstracts retrieval task). For search we use a softmax over the classifier output as BERTbased relevance score. In training (with the CDS topics and documents) we represent the queries (Sentence A inputs) with the description topic field (the longest narrative), and the documents (Sentence B inputs) with a title and abstract. In inference A input is the entire topic and B input is a concatenation of brief titles and brief summaries of the respective clinical trials. Inputs are capped to the maximum token length for BERT variants (512 token). For a final score DFR scores are interpolated with the BERT-based scoring (in a 1:9 ratio for normalised scores).</p><p>CSIROmed_inc. The pipeline for CSIROmed_inc is identical to that of CSIROmed_abs in its general outline. The main difference here is that the model is trained on the auxiliary training dataset and documents (here, clinical trials for both training and inference) are represented with a concatenation of their brief titles and inclusion criteria.</p><p>CSIROmed_brd. For the rank fusion we use a Dowdall system, i.e. each document-topic pair is scored as a sum of inverse ranks across initial rankings. As initial rankings we used the remaining 4 runs, a DFR baseline and another run similar to CSIROmed_inc, but trained on exclusion criteria. As in all runs, we return 1000 documents per topic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RESULTS</head><p>A comparison of our runs against TREC median across automatic and manual runs of all the teams is shown in Table <ref type="table" coords="3,288.77,441.74,3.42,8.63" target="#tab_1">2</ref>. While all our submitted runs are automatic, the manual median values are listed as a potential upper-bound of what can be achieved with human-in-the-loop. Following the official evaluation in this track, we report NDCG@10 calculated over graded judgments as the main evaluation metric. RR and P@10 are calculated over binarised judgments (eligible only).</p><p>From our five submitted runs, all but the NIR run achieved scores above the TREC median for automatic runs. Strongest runs, however, were CSIROmed_abs and CSIROmed_inc. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Metrics</head></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="1,381.55,384.25,113.05,8.41"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: An example topic.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,53.50,88.58,242.03,115.23"><head>Table 1 : CSIROmed automatic runs with their short defini- tions.</head><label>1</label><figDesc></figDesc><table coords="3,63.44,88.58,220.95,90.18"><row><cell cols="2">Run Description</cell></row><row><cell>abs</cell><cell>BERT reranking trained on scientific literature</cell></row><row><cell>brd</cell><cell>Majority voting</cell></row><row><cell cols="2">DCT Query re-weighting with BERT</cell></row><row><cell>inc</cell><cell>BERT reranking trained on literature applied to</cell></row><row><cell></cell><cell>inclusion criteria</cell></row><row><cell cols="2">NIR Neural indexing</cell></row><row><cell cols="2">DFR DFR baseline run (post-TREC)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,317.66,103.80,242.03,167.77"><head>Table 2 : Comparison of submitted CSIROmed automatic runs and a post-TREC DFR baseline against TREC median (mean of medians for individual topics) on both automatic and manual runs as shown in the last two rows. Bold num- bers indicate the highest values in our runs.</head><label>2</label><figDesc></figDesc><table coords="3,355.95,103.80,164.25,109.84"><row><cell>Run</cell><cell>NDCG@10</cell><cell>RR</cell><cell>P@10</cell></row><row><cell>NIR</cell><cell>0.2281</cell><cell cols="2">0.2925 0.1240</cell></row><row><cell>DCT</cell><cell>0.3658</cell><cell cols="2">0.4022 0.2133</cell></row><row><cell>brd</cell><cell>0.4777</cell><cell cols="2">0.5034 0.2800</cell></row><row><cell>abs</cell><cell>0.5285</cell><cell cols="2">0.5114 0.3240</cell></row><row><cell>inc</cell><cell>0.5320</cell><cell cols="2">0.5007 0.3173</cell></row><row><cell>DFR</cell><cell>0.4196</cell><cell cols="2">0.4023 0.2240</cell></row><row><cell>Automatic</cell><cell>0.3040</cell><cell cols="2">0.2942 0.1613</cell></row><row><cell>Manual</cell><cell>0.6212</cell><cell cols="2">0.7213 0.4573</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,56.54,668.49,77.79,6.71;1,53.80,685.78,17.83,6.65"><p>http://clinicaltrials.gov/ TREC</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" xml:id="foot_1" coords="1,73.56,685.78,87.00,6.65;1,53.80,694.63,169.57,6.71"><p>2021, November, 2021, Online 2021. ACM ISBN 978-x-xxxx-xxxx-x/YY/MM. . . $15.00</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,69.40,574.61,224.64,6.71;3,69.40,582.63,224.64,6.71;3,69.40,590.55,124.95,6.80" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="3,254.92,574.61,39.12,6.71;3,69.40,582.63,224.64,6.71;3,69.40,590.64,35.98,6.71">Probabilistic models of information retrieval based on measuring the divergence from randomness</title>
+		<author>
+			<persName coords=""><forename type="first">Gianni</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cornelis Joost</forename><surname>Van Rijsbergen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,111.78,590.55,15.76,6.65">TOIS</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="357" to="389" />
+			<date type="published" when="2002">2002. 2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,69.40,598.61,225.80,6.71;3,69.40,606.54,224.64,6.80;3,69.40,614.55,73.52,6.80" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="3,200.97,598.61,94.23,6.71;3,69.40,606.63,176.21,6.71">Context-aware sentence/passage term importance estimation for first stage retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.10687</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,69.40,622.61,224.64,6.71;3,69.19,630.54,224.85,6.80;3,69.40,638.53,217.21,6.80" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,202.70,622.61,91.35,6.71;3,69.19,630.63,71.89,6.71">A test collection for matching patients to clinical trials</title>
+		<author>
+			<persName coords=""><forename type="first">Bevan</forename><surname>Koopman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Guido</forename><surname>Zuccon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,153.71,630.54,140.34,6.65;3,69.40,638.53,186.30,6.65">Proceedings of the 39th International ACM SIGIR conference on Research and Development in Information Retrieval</title>
+		<meeting>the 39th International ACM SIGIR conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="669" to="672" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,69.40,646.59,225.51,6.71;3,69.40,654.61,224.64,6.71;3,69.40,662.54,224.64,6.80;3,69.40,670.64,80.76,6.71" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,186.25,654.61,107.79,6.71;3,69.40,662.63,177.75,6.71">BioBERT: A pre-trained biomedical language representation model for biomedical text mining</title>
+		<author>
+			<persName coords=""><forename type="first">Jinhyuk</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wonjin</forename><surname>Yoon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sungdong</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donghyeon</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sunkyu</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chan</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">So</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jaewoo</forename><surname>Kang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,253.35,662.54,40.70,6.65">Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1234" to="1240" />
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,69.40,678.61,225.86,6.71;3,69.40,686.63,224.64,6.71;3,69.19,694.54,224.86,6.65;3,68.98,702.51,89.06,6.80" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,87.80,686.63,194.07,6.71">Pandemic Literature Search: Finding Information on COVID-19</title>
+		<author>
+			<persName coords=""><forename type="first">Vincent</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maciej</forename><surname>Rybinski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarvnaz</forename><surname>Karimi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenchang</forename><surname>Xing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,69.19,694.54,224.86,6.65;3,68.98,702.51,64.99,6.65">Proceedings of the The 18th Annual Workshop of the Australasian Language Technology Association</title>
+		<meeting>the The 18th Annual Workshop of the Australasian Language Technology Association</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="92" to="97" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,304.59,224.64,6.71;3,333.56,312.51,171.25,6.80" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<idno>arXiv:1901.04085 [cs.IR]</idno>
+		<title level="m" coord="3,480.89,304.59,77.31,6.71;3,333.56,312.60,15.15,6.71">Passage Re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,320.57,225.80,6.71;3,333.56,328.50,225.52,6.80;3,333.56,336.60,197.27,6.71" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="3,464.46,320.57,94.89,6.71;3,333.56,328.59,123.59,6.71">Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks</title>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/D19-1410.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,471.21,328.50,21.58,6.65">EMNLP</title>
+		<meeting><address><addrLine>Hong Kong, China</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3982" to="3992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,344.62,225.51,6.71;3,333.56,352.59,224.64,6.71;3,333.56,360.47,217.92,6.80" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="3,519.69,352.59,38.51,6.71;3,333.56,360.56,124.41,6.71">Overview of the TREC 2017 Precision Medicine Track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><surname>Lazar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Pant</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,471.54,360.47,15.65,6.65">TREC</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,368.57,225.86,6.71;3,333.56,376.54,225.86,6.71;3,333.56,384.45,88.38,6.80" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="3,373.90,376.54,182.38,6.71">Overview of the TREC 2016 Clinical Decision Support Track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,342.00,384.45,15.65,6.65">TREC</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,392.56,225.86,6.71;3,333.56,400.53,224.64,6.71;3,333.34,408.41,206.85,6.80" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="3,506.24,400.53,51.96,6.71;3,333.34,408.50,113.24,6.71">Overview of the TREC 2018 Precision Medicine Track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Lazar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,460.25,408.41,15.66,6.65">TREC</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,416.52,225.86,6.71;3,333.56,424.49,224.64,6.71;3,333.56,432.46,224.64,6.71;3,333.34,440.34,109.64,6.80" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="3,407.22,432.46,150.98,6.71;3,333.34,440.43,16.03,6.71">Overview of the TREC 2019 Precision Medicine Track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Lazar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Pant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Funda</forename><surname>Meric-Bernstam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,363.04,440.34,15.65,6.65">TREC</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,448.44,225.86,6.71;3,333.56,456.35,224.64,6.80;3,333.33,464.35,122.18,6.80" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="3,351.60,456.44,181.60,6.71">Overview of the TREC 2015 Clinical Decision Support Track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><forename type="middle">S</forename><surname>Simpson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,546.45,456.35,11.76,6.65;3,333.33,464.35,58.83,6.65">Text REtrieval Conference</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,472.46,225.26,6.71;3,333.34,480.39,226.02,6.80;3,333.56,488.39,224.64,6.65;3,333.56,496.36,63.73,6.65" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="3,489.82,472.46,69.00,6.71;3,333.34,480.48,185.58,6.71">Will Sorafenib help? Treatment-aware Reranking in Precision Medicine Search</title>
+		<author>
+			<persName coords=""><forename type="first">Maciej</forename><surname>Rybinski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarvnaz</forename><surname>Karimi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,534.86,480.39,24.50,6.65;3,333.56,488.39,224.64,6.65;3,333.56,496.36,60.21,6.65">Proceedings of the 30th International ACM Conference on Information and Knowledge Management (CIKM)</title>
+		<meeting>the 30th International ACM Conference on Information and Knowledge Management (CIKM)</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,504.42,225.51,6.71;3,333.56,512.35,224.64,6.80;3,333.56,520.36,131.48,6.80" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="3,498.40,504.42,60.67,6.71;3,333.56,512.44,198.19,6.71">Clinical trial search: Using biomedical language understanding models for re-ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Maciej</forename><surname>Rybinski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jerry</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarvnaz</forename><surname>Karimi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,537.62,512.35,20.59,6.65;3,333.56,520.36,71.93,6.65">Journal of Biomedical Informatics</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">103530</biblScope>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,333.56,528.43,224.64,6.71;3,333.56,536.34,206.59,6.80" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="3,485.51,528.43,72.69,6.71;3,333.56,536.43,113.08,6.71">Overview of the TREC 2014 Clinical Decision Support Track</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Simpson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Hersh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,460.20,536.34,15.65,6.65">TREC</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

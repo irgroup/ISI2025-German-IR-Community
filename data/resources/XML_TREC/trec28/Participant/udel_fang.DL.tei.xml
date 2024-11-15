@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,179.86,164.74,251.52,15.20">Higway BERT for Passage Ranking</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2019-10-28">October 28, 2019</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,203.95,197.25,41.44,10.56"><forename type="first">Di</forename><surname>Zhao</surname></persName>
+							<email>zhaodi@udel.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,362.93,197.25,47.30,10.56"><forename type="first">Hui</forename><surname>Fang</surname></persName>
+							<email>hfang@udel.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,179.86,164.74,251.52,15.20">Higway BERT for Passage Ranking</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2019-10-28">October 28, 2019</date>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5EC64F554C9680B8EE3CF6BC3B45ED8F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This is the first year of TREC for deep learning and there are two tasks which are document ranking and passage ranking. Our task is passage ranking which can be described as given a query q and the 1000 most relevant passages p1, p2, ..., p1000 retrieved by BM25, passage ranking task expects to come up with a successful system to rank the most relevant passage as high as possible.</p><p>In this work, we build a neural network based IR model for the passage ranking tasks. Basically we are trying to combine BERT <ref type="bibr" coords="1,359.58,384.28,10.51,8.80" target="#b1">[2]</ref> and highway network <ref type="bibr" coords="1,466.97,384.28,10.51,8.80" target="#b5">[6]</ref> to get a good performance on the task. Since BERT is the current SOTA model on several nlp related tasks and highway network <ref type="bibr" coords="1,353.74,408.19,10.51,8.80" target="#b5">[6]</ref> is kind of neural network with gate structure, since gate structure has already shown its success on some neural network models like lstm <ref type="bibr" coords="1,275.70,432.10,10.51,8.80" target="#b2">[3]</ref> and gru <ref type="bibr" coords="1,326.36,432.10,10.51,8.80" target="#b0">[1]</ref> on sequence modeling tasks. So we assume combining multi-head attention based transformer with gate based network structure to improve the model performance can be achieved. Meanwhile we also try different loss functions and different training strategies also with axiomatic thinking <ref type="bibr" coords="1,241.67,479.92,10.51,8.80" target="#b4">[5]</ref> approach.</p><p>2 Problem Setup and Data TREC passage ranking task uses the data from msmarco passage re-ranking task which provides multiple data format for an easy training on deep learning models. The training data file we use is triples.train.small.tsv, the development data file is top1000.dev.tsv, the evaluation data file is top1000.eval.tsv. The training data file contains three components in each line which are query text, relevant document text and irrelevant document text. The development data contains four component in each line which are query id, document id, query text and document text. The same format goes with top1000.eval.tsv evaluation data file. The development file and evaluation file are retrieved by BM25, there are around 1000 documents retrieved for each query, so basically the task can be a re-ranking task based on BM25 or a full ranking task if the participant can develop their own first step model. The correctly matched query document pairs are stored in the file called qrels.dev.tsv. So after the model ranking the retrieved documents for each query, it will find the position of the correct document and calculate the score based on the mean reciprocal rank(MRR) metric. The higher the MRR score, the better the model performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Our Methodology</head><p>The model we come up with in this task is called Highway BERT, which is composed by a BERT and a highway network. Since BERT has shown its advantages on several text related tasks such as machine translation and language understanding. We use BERT as a feature extractor to extract the sentence embedding from the query-document pair <ref type="bibr" coords="2,318.89,266.35,9.96,8.80" target="#b3">[4]</ref>, then use a highway network as a classifier based on the features extracted by BERT and distinguish if the sentence embedding comes from the relevant document or irrelevant document <ref type="bibr" coords="2,464.20,290.26,9.96,8.80" target="#b3">[4]</ref>. The reason we choose highway network is because it is a gated network, the gate structure has shown its advantages on some rnn models like lstm and gru. The gate structure can filter the redundant information and only leave the most important information for classification, so basically we want to combine the advantages of the old and new neural network based sequential models to boost the model performance. The highway BERT will classify the query-relevant document as a positive class and classify the query-irrelevant document as a negative class, we use a softmax layer as the last layer which tries to distinguish the two classes as clear as possible. The model structure is shown in Figure <ref type="figure" coords="2,458.62,397.85,3.87,8.80" target="#fig_0">1</ref>, in which the left model is highway BERT model with a softmax layer and cross entropy loss, the right figure is the highway BERT model with a ranking loss, the ranking loss ranks the score based on the value of the first dimension of the output sentence embedding. The BERT model comes from the google pre-trained BERT which has twelve encoders, the encoder has the same structure with the transformer encoder, in which there are three components: self-attention, feed forward neural network and residual structure as shown in Figure <ref type="figure" coords="2,424.62,481.54,3.87,8.80" target="#fig_0">1</ref>. I add the highway network on top of the pre-trained BERT model and fine-tune it with TREC training data set, the loss function chosen is marginal ranking loss function and cross entropy loss function. The marginal ranking loss function will maximize the distance between the sentence embedding vector of query-relevant document and the query-irrelevant document which means to distinguish them as much as possible, the highway BERT model with ranking loss is represented as BERTH-R. Meanwhile we also use a cross entropy loss on the highway BERT model which is represented as BERTH-C, the BERTH-C model formulates the re-ranking problem to a classification problem.</p><p>Besides the change on the model structure, in order to have a better performance we are trying to enrich the model with some human knowledge, we choose the axiom approach <ref type="bibr" coords="2,254.86,625.00,10.51,8.80" target="#b4">[5]</ref> in information retrieval to make some perturbation data set for training. Basically we make the perturbation data set based on rule TFC1 which says that a document with more words in query should be more relevant to the query, so we sample a word from the query and add it to the The loss function is made up of three marginal ranking loss function. The first one to maximize the margins between the relevant document and the irrelevant document, the second marginal loss function is trying to maximize the margins between the perturbed positive document with the original positive document, and the third marginal loss function is maximizing the margin between the perturbed negative document and negative document. The difference between the three marginal loss is at their margins since the margin for the first marginal loss is bigger which means the model focus more on the original data set rather than the perturbed data set.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>From this task we find that BERT model has a good performance on passage ranking task, besides we realize that the pre-train and two step process is a powerful training strategy. So here are some open questions: Does more parameters mean better performance for deep learning? What is the good way to simplify BERT to make it run faster and better? And how to apply IR axiomatic thinking approach to leverage the performance of these big models which means can we find the preference or weakness of these models?</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,210.96,429.96,189.33,8.80;3,192.82,124.80,225.60,290.10"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Highway BERT Model Structure.</figDesc><graphic coords="3,192.82,124.80,225.60,290.10" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,246.54,238.18,118.17,8.80;4,198.87,148.13,213.50,75.00"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Axiom Equation.</figDesc><graphic coords="4,198.87,148.13,213.50,75.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,298.28,648.86,179.20,8.80"><head>Table 1</head><label>1</label><figDesc>shows that the ensemble highway BERT model (BERTH-E) does get a performance improvement, it seems that the highway BERT trained with axiomed data does give a diversified ranking on the documents.The results of the models are shown below:</figDesc><table coords="5,168.28,184.49,271.37,23.14"><row><cell></cell><cell cols="4">BERTH-A BERTH-R BERTH-C BERTH-E</cell></row><row><cell>MRR@10</cell><cell>0.336</cell><cell>0.326</cell><cell>0.336</cell><cell>0.339</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,229.77,227.73,151.70,8.80"><head>Table 1 :</head><label>1</label><figDesc>Experiment Result Table.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,149.01,667.26,243.52,7.04"><p>https://github.com/thunlp/Kernel-Based-Neural-Ranking-Models</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,147.69,416.78,329.79,7.04;5,147.69,426.24,288.22,7.04" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,421.89,416.78,55.58,7.04;5,147.69,426.24,235.77,7.04">Empirical evaluation of gated recurrent neural networks on sequence modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Junyoung</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Caglar</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,391.21,426.24,18.07,7.04">NIPS</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,147.69,439.69,329.79,7.04;5,147.69,449.16,309.63,7.04" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="5,405.76,439.69,71.71,7.04;5,147.69,449.16,226.95,7.04">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<publisher>NAACL-HLT</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,147.69,462.61,329.79,7.04;5,147.69,472.07,19.28,7.04" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,313.23,462.61,91.53,7.04">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,414.95,462.61,58.24,7.04">Neural Comput</title>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,147.69,485.52,329.79,7.04;5,147.69,494.99,142.97,7.04" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,381.55,485.52,95.93,7.04;5,147.69,494.99,88.33,7.04">Understanding the behaviors of BERT in ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Yifan</forename><surname>Qiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zheng-Hao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,243.56,494.99,20.83,7.04">ArXiv</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,147.69,508.43,329.79,7.04;5,147.69,517.90,314.49,7.04" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,179.43,517.90,226.30,7.04">An axiomatic approach to regularizing neural ranking models</title>
+		<author>
+			<persName coords=""><forename type="first">Corby</forename><surname>Rosset</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,413.49,517.90,22.15,7.04">SIGIR</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,147.69,531.35,329.80,7.04;5,147.69,540.81,46.88,7.04" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,406.79,531.35,66.79,7.04">Highway networks</title>
+		<author>
+			<persName coords=""><forename type="first">Rupesh</forename><surname>Kumar Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Klaus</forename><surname>Greff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,147.69,540.81,19.82,7.04">ICML</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

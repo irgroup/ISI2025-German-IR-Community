@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,409.71,15.42;1,88.78,106.66,249.76,15.42">Ranked List Fusion and Re-ranking with Pre-trained Transformers for ARQMath Lab</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,134.97,81.21,11.96"><forename type="first">Shaurya</forename><surname>Rohatgi</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Pennsylvania State University</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">Old Dominion University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,183.15,134.97,39.45,11.96"><forename type="first">Jian</forename><surname>Wu</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,253.60,134.97,58.01,11.96"><forename type="first">C</forename><forename type="middle">Lee</forename><surname>Giles</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Pennsylvania State University</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">Old Dominion University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,409.71,15.42;1,88.78,106.66,249.76,15.42">Ranked List Fusion and Re-ranking with Pre-trained Transformers for ARQMath Lab</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">DBB1775ECFABD65E2BD22DEF1A9318A5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Math Information Retrieval, Re-ranking, Math-aware search, Math formula search</term>
+					<term>keyword extraction</term>
+					<term>augmenting data using post summary</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper elaborates on our submission to the ARQMath track at CLEF 2021. For our submission this year we use a collection of methods to retrieve and re-rank the answers in Math Stack Exchange in addition to our two-stage model which was comparable to the best model last year in terms of NDCG'. We also provide a detailed analysis of what the transformers are learning and why is it hard to train a math language model using transformers. This year's submission to Task-1 includes summarizing long question-answer pairs to augment and index documents, using byte-pair encoding to tokenize formula and then re-rank them, and finally important keywords extraction from posts. Using an ensemble of these methods our approach shows a 20% improvement than our ARQMath'2020 Task-1 submission.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The ARQMath-2 lab at CLEF <ref type="bibr" coords="1,221.95,392.53,13.00,10.91" target="#b0">[1]</ref> is an effort to improve math information retrieval and aims to produce better math-aware retrieval systems. The tasks introduced by the lab serve as a benchmark for systems competing in this space. In CLEF-2020 several systems competed for both tasks <ref type="bibr" coords="1,155.40,433.18,11.49,10.91" target="#b1">[2,</ref><ref type="bibr" coords="1,169.96,433.18,7.52,10.91" target="#b2">3,</ref><ref type="bibr" coords="1,180.56,433.18,7.52,10.91" target="#b3">4,</ref><ref type="bibr" coords="1,191.16,433.18,7.65,10.91" target="#b4">5]</ref>. There are two tasks in the ARQMath-lab. This work presents our submission to Task-1: Answer Retrieval, where the participants are given a list of topics and are expected to return a list of relevant posts from the Math Stack Exchange collection. The challenge here is that these topics are multi-modal in the sense that they include both text and math formulas.</p><p>The Intelligent Information Systems Research Laboratory (IISRL) at Pennsylvania State University participated in the CLEF-2021 ARQMath-2 track to contribute and further push the limits of math-aware information retrieval. In addition to our approach for ARQMath-1 Lab <ref type="bibr" coords="1,89.29,541.57,12.87,10.91" target="#b4">[5]</ref> we add new ways to index by augmenting more data. We also extract keywords for better matching of the posts.</p><p>We used a combination of approaches which includes -</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• BM25</head><p>• tf-idf • transformer based re-ranking • using byte-pair encoding (BPE) to rank formula separately</p><p>We merge these ranking and indexing methods using reciprocal rank fusion <ref type="bibr" coords="2,433.23,154.19,12.68,10.91" target="#b5">[6]</ref> which boosts the rankings of the posts which occur in more than one ranked list.</p><p>This approach has shown improvement in our submission for Task-1 over our previous year's submission by 20%. While keyword extraction and augmenting data helps, a major improvement is seen because of BPE for indexing and ranking formula separately hinting that transformers and their tokenization strategy are worth exploring for math formula. We also use this opportunity to showcase the BPE tokenization performance on another math formula retrieval task-NTCIR-12 <ref type="bibr" coords="2,201.84,249.04,11.43,10.91" target="#b6">[7]</ref>.</p><p>The rest of the paper is structured as follows -Section 2 talks about previous work and other participant submissions from ARQMath lab in CLEF 2020; Section 3 discusses our current methodology and approach; Section 4 shows the results and analysis of our approach on Task-1 2020 as well as NTCIR-12 and finally we compare our 2021 submission to other participants and where the current system can make improvements. Finally, we conclude that the transformers might not be good at understanding standalone formulas but they are great at making connections between formulas and related text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>Previous year's systems by MIRMU, zbMath, MathDowsers all submitted competitive results for task-1. All systems brought in unique approaches and here we want to discuss some of them. MIRMU used an ensemble approach where they use a mix of novel approaches including CompuBERT, Soft Cosine Measure, and Formula2vec. While these approaches didn't perform well individually, their ensemble did well on task-1. We take inspiration from this approach and try different matching strategies in this work. zbMath went a more entity-based route, extracting Wikibase items from the collection and then doing manual runs using Google and Math Stack Exchange searches. They also used a mix of ElasticSearch, Doc2vec, and K-nearest neighbors to retrieve the relevant formulas. The main contribution here we think is that they do an inductive classification study on the ARQMath Topics.</p><p>MathDowsers submitted the best performing system for task-1 for ARQMath Lab-1. They use a two-stage re-ranking approach where the re-ranking model is trained on the metadata attributes of the posts like upvotes, number of comments etc. In their first stage, they use Tangent-L for formula retrieval, and similar to our approach of indexing they concatenate the question and the answers before indexing. This joint post is one unit of retrieval. In our last year's submission, we show that their system performs better on formula-dependent queries(where answer relevance is more formula dependent) as compared to our system, while our system performs well in text-dependent queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methodology</head><p>In this section, we describe our multi-stage ranking approach which fuses ranked lists from different approaches. The following subsections go through each approach in detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Byte Pair Encoding (BPE)</head><p>We take inspiration from the sentence piecing work demonstrated in the past <ref type="bibr" coords="3,429.90,174.56,11.28,10.91" target="#b7">[8]</ref>. Here we feed the only formula's to train a tokenizer that can look at frequently occurring characters together and then token a string accordingly. This helps it identify otherwise difficult tokens in the text.</p><p>This way of tokenizing can be exploited for formulas, as there is no strict way of tokenizing them linearly unlike text. While other methods use SLTs and OPTs we stick to a simpler solution of linearly tokenizing the formula. SLTs and OPTs have shown to perform really well for formula search but they require MathML representations, while BPE can work on straight L A T E X. Let's consider an example to better understand BPE for formula retrieval -</p><formula xml:id="formula_0" coords="3,281.57,291.71,224.42,24.43">𝑥 2 - 1 2<label>(1)</label></formula><p>is tokenized as 𝑥, ∧, {, 2, }, -, frac, {, 1, }, {, 2, }. Notice how 𝑓 𝑟𝑎𝑐 is one token.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Summarizer and Posts Augmentation</head><p>A post can be written in various ways. In community question answering platforms like Math Stack Exchange the members, in addition to asking questions add their experience with the question they want to ask. For example, terms like "my assignment want me to . . ", "Please help me understand this concept" etc. These produce noise for the indexing and retrieval systems and need to be removed. Here are an example of summarization and what it can do -Original Text : We began learning this is math analysis a week or so ago along with verifying identities, finding the exact value of trigonometric equations, and writing trigonometric equations as algebraic equations and i'm totally lost.</p><p>Summary : finding the exact value of trigonometric equations, and writing trigonometric equations as algebraic equations</p><p>The summarizer neural network uses a document-level encoder which is based on BERT <ref type="bibr" coords="3,493.22,506.71,12.76,10.91" target="#b8">[9]</ref> which is correctly able to learn the semantics of the document and obtain vector representations for its sentences. These vector representations go through a decoding step and the summary of the document is produced.</p><p>We run the summarizer for all question-answer pairs. This pair is then concatenated and indexed as a single unit of retrieval. We give this document the same id as the answer post, thus augmenting a post that is not there in the collection. This provides a question context for each answer in serving as an answer to newly posed topic questions. When this index is queried for relevant posts for the topics these documents are also returned in addition to the ARQMath collection. The architecture of the system. Ranked lists are lists of answer posts sorted by relevance returned by each approach. We fuse them using reciprocal rank fusion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Keyword extraction</head><p>We generate keyword samples by automatically extracting noun phrases from the answer and question posts in the collection using a grammar-based chunking method. This lets us highlight the role of important keywords in the posts. We concatenate these keywords and create a separate index, which is queried against each topic. This step is an additional filtering step where we make sure that the important keywords are being matched between the posts which go into the fusion step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">PSU at ARQMath Lab 2020 Task-1</head><p>The approach we submitted to ARQMath'20 is used in addition to the ones mentioned above <ref type="bibr" coords="4,89.29,461.70,11.28,10.91" target="#b4">[5]</ref>. To summarize our earlier approach, we developed a two-stage retrieval and ranking system. The first stage was a fusion of the BM25 score and cosine distance using tf-idf. Before the second stage, we learn a language model on the math stack exchange collection. This made the language model more math-aware <ref type="foot" coords="4,259.38,500.59,3.71,7.97" target="#foot_0">1</ref> . We then use this model to re-rank the top-1000 posts retrieved by the first stage. This leads to an improvement in the overall ranking of the answers retrieved as demonstrated in the previous year's working notes.</p><p>We use this model and add the aforementioned retrieval approaches. Figure <ref type="figure" coords="4,438.63,543.00,5.06,10.91" target="#fig_0">1</ref> demonstrates our fusion and re-ranking architecture for ARQMath Lab-2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Reciprocal Rank Fusion</head><p>After we get a ranked list from all the methods detailed above we merge them using Reciprocal Rank Fusion (RRF) <ref type="bibr" coords="4,176.01,619.82,12.97,10.91" target="#b5">[6]</ref> which then ranks the documents using a naive scoring formula. For a set of posts 𝑃 to be ranked and a set of rankings 𝑅 from different scoring schemes, for each permutation on</p><formula xml:id="formula_1" coords="4,161.49,646.92,95.75,10.91">1 • • • |𝑃 |, we compute 𝑅𝑅𝐹 𝑠𝑐𝑜𝑟𝑒(𝑝 ∈ 𝑃 ) = ∑︁ 𝑟∈𝑅 1 𝑘 + 𝑟(𝑝) ,<label>(2)</label></formula><p>where the original work suggests 𝑘 = 60, a hyper-parameter which we keep constant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Experiments</head><p>Our experiments were conducted on a 24 core machine with Intel(R) Xeon(R)Silver 4116 CPU @ 2.10GHz with 256GB of RAM with 4 RTX 2080 Ti GPUs. Default configurations were adopted in ElasticSearch(ES) and Anserini(BM25). Anserini runs on a single thread while ES uses a multi-threaded function. The size of ES Q+A and summarized posts index is 4.8GB whereas for Anserini the size is 3.2GB. Each query takes on an average of 2.3 seconds for retrieval once everything is indexed. It should be noted that we are using a single shard in ES which makes it a little slow.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Fine-tuning math-aware language model and NTCIR-12</head><p>BPE is a subword unit model and is an unsupervised text tokenizer and detokenizer mainly for Neural Network-based text generation systems where the vocabulary size is predetermined before the neural model training <ref type="bibr" coords="5,233.82,348.91,11.28,10.91" target="#b7">[8]</ref>. We use it here as math expressions are hard to tokenize as there are no clear boundaries between tokens.</p><p>It should be noted that BPE is a linear tokenizer and might miss out on the structure which is better captured by tree-based methods. BPE is very cheap to train and requires less preprocessing of the math expressions.</p><p>In this case, we find that the vocabulary size for math is 250 tokens (excluding cardinal numbers). We feed the tokenizer all the expressions from the L A T E Xof the ARQMath collection to train it. It learns the patterns and creates a vocabulary using the co-occurrence frequency of characters in the corpus. This vocabulary is used to do the fine-tuning of the pre-trained weights of RoBERTa which is used in the ARQMath Lab-1 by PSU <ref type="bibr" coords="5,384.86,470.85,11.43,10.91" target="#b4">[5]</ref>.</p><p>We build a nearest neighbor map of the formula in the collection and queried the topics against it to get a ranked list of math expressions that are visibly similar to the formula in the topic.</p><p>To understand if this method works for formulas we benchmarked it on the NTCIR-12 dataset as it is a more complete and well-studied dataset for formula retrieval. We compare it with the current state-of-the-art methods Tangent-CFT <ref type="bibr" coords="5,322.13,552.15,18.07,10.91" target="#b9">[10]</ref> and MathBERT <ref type="bibr" coords="5,416.84,552.15,18.07,10.91" target="#b10">[11]</ref> in Table <ref type="table" coords="5,478.61,552.15,3.81,10.91" target="#tab_1">2</ref>. We also, fused the rankings for Tangent-CFT and our pre-trained model to see if our model can complement the tree-based embedding method. On further investigation, we find that the BPE suffers for partial matching of formula but is great for exact matches of expressions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results and Observations</head><p>We show the results of our system for Task-1 for the ARQMath-1 Lab in Table <ref type="table" coords="5,439.62,642.48,3.74,10.91" target="#tab_2">3</ref>. Here we can see that the new system which includes data augmentation, BPE, and keyword extraction works well and shows improvement over the previous year's approach. It is to be noted that all the  </p><formula xml:id="formula_2" coords="6,142.87,128.83,341.46,49.48">𝑥 -1 -1 2 -1 4 -1 5 -1 6 -1 9 -• • • = 1 𝐴 ⊕ 𝐵 = (𝐴 𝑐 ⊖ 𝐵 𝑠 ) 𝑐 1 𝑥 -1 -1 2 -1 4 -1 5 -1 6 -1 9 -• • • = 1 𝐴 ⊕ 𝐵 = (𝐴 𝑐 ⊖ 𝐵 𝑠 ) 𝑐 2 1 -1 2 -1 4 + 1 3 -1 6 -1 8 + 1 5 -1 10 -1 12 + • • • 𝐴 ∘ 𝐵 = (𝐴 ⊖ 𝐵) ⊕ 𝐵 3 𝜋 = 4 1 -4 3 + 4 5 -4 7 + 4 9 -4 11 + 4 13 -• • • 𝐴 • 𝐵 = (𝐴 ⊕ 𝐵) ⊖ 𝐵</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion and Future Work</head><p>We presented an automatic system that uses techniques to shorten long posts and extract important keywords for more precise retrieval. Unsupervised ranking methods like tf-idf, BM25, and BPE with the nearest neighbor search are used here and they demonstrate robustness. Our last year's submission fused with these new techniques improves our overall NDCG ′ score.</p><p>In the future, we want to improve over this ranking by learning to rank. This collection has an abundance of ground truth data in the form of accepted answers. We could potentially train a model using the metadata of the posts like the number of comments, the number of upvotes, and the total number of answers to name a few; to train a learning to rank model which can re-rank the results.</p><p>Identifying the important formula for relevant retrieval from a number of formulas in a post is hard. We want to focus our efforts on identifying the significant formulas in a post and then giving a higher score to the formulas which match them rather than treating all formulas equally.</p><p>Lastly, we want to incorporate an actual tree-based formula retrieval technique like Approach0 or Tangent-S in our rankings. This can boost our relevance scores as these methods have been shown to perform better with partial relevance when matching formulas, unlike BPE.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,89.29,260.55,416.70,8.93;4,89.29,272.56,290.52,8.87"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1:The architecture of the system. Ranked lists are lists of answer posts sorted by relevance returned by each approach. We fuse them using reciprocal rank fusion.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,88.99,90.49,376.04,49.36"><head>Table 1</head><label>1</label><figDesc>Some examples of retrieval by BPE from the NTCIR-12 query benchmark dataset</figDesc><table coords="6,110.45,118.58,354.58,21.27"><row><cell>NTCIR Query ID</cell><cell>MathWiki-17</cell><cell>MathWiki-13</cell></row><row><cell>Rank</cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,88.99,195.36,416.99,109.89"><head>Table 2</head><label>2</label><figDesc>NTCIR-12 Results (Avg. bpref@1000). H-Mean is the harmonic mean of partial relevance (L1) and full relevance score(L3). RRF-CFT+BERT is the reciprocal rank fusion of our BERT implementation and Tangent-CFT.</figDesc><table coords="6,195.91,246.91,203.46,58.34"><row><cell>System</cell><cell>Partial</cell><cell>Full</cell><cell>H-Mean</cell></row><row><cell>tangent-cft</cell><cell>0.7134</cell><cell>0.5963</cell><cell>0.6496</cell></row><row><cell cols="2">Finetuned-BERT 0.5657</cell><cell>0.5747</cell><cell>0.5701</cell></row><row><cell>MathBERT</cell><cell>0.7361</cell><cell>0.6135</cell><cell>0.6692</cell></row><row><cell>RRF-CFT+BERT</cell><cell cols="2">0.7414 0.6163</cell><cell>0.6730</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="6,88.99,325.15,417.17,181.41"><head>Table 3</head><label>3</label><figDesc>Our best runs compared to the baselines systems for ARQMath-1 Lab. The new system achieves better results than the previous years submission by 20%.</figDesc><table coords="6,89.29,362.95,416.69,143.61"><row><cell>Type</cell><cell>System</cell><cell cols="4">nDCG ′ mAP ′ p ′ @10 Run Type</cell></row><row><cell></cell><cell>linked_results</cell><cell>0.303</cell><cell>0.210</cell><cell>0.418</cell><cell>Automatic</cell></row><row><cell></cell><cell>arq2020-task1-a0-submission</cell><cell>0.250</cell><cell>0.100</cell><cell>0.186</cell><cell>Manual</cell></row><row><cell>Baselines</cell><cell>combined_tf_idf_tangents</cell><cell>0.248</cell><cell>0.047</cell><cell>0.073</cell><cell>Automatic</cell></row><row><cell></cell><cell>tf_idf_task1_final</cell><cell>0.204</cell><cell>0.049</cell><cell>0.074</cell><cell>Automatic</cell></row><row><cell></cell><cell>TangentS_Res</cell><cell>0.158</cell><cell>0.033</cell><cell>0.051</cell><cell>Automatic</cell></row><row><cell>Our Runs</cell><cell>BM25+tf+tf.BERT (2020)</cell><cell>0.263</cell><cell>0.082</cell><cell>0.116</cell><cell>Automatic</cell></row><row><cell></cell><cell>Current system</cell><cell>0.317</cell><cell>0.116</cell><cell>0.165</cell><cell>Automatic</cell></row><row><cell cols="6">approaches mentioned are unsupervised and no learning is done on the previous year's task's</cell></row><row><cell>ranked list.</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,108.93,671.03,217.95,8.97"><p>https://huggingface.co/shauryr/arqmath-roberta-base-1.5M</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>We would like to thank members of the <rs type="institution">ARQMath lab at the Department of Computer Science at Rochester Institute of Technology</rs> for organizing this track. Special thanks to <rs type="person">Behrooz Mansouri</rs> for providing the dataset, initial analysis of topics, and starter code to all the of the task; it made it easier for us to pre-process the data and jump directly to the experiments which have been presented in this work.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,112.66,339.71,393.33,10.91;7,112.66,353.26,394.52,10.91;7,112.66,366.81,394.52,10.91;7,112.66,380.36,112.22,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,342.60,339.71,163.38,10.91;7,112.66,353.26,111.67,10.91">Advancing math-aware search: The arqmath-2 lab at clef 2021</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mansouri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zanibbi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,199.71,366.81,150.33,10.91">Advances in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M.-F</forename><surname>Moens</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Mothe</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Perego</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="631" to="638" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,393.91,394.61,10.91;7,112.28,407.46,393.70,10.91;7,112.33,421.01,29.19,10.91" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Scharpf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schubotz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Greiner-Petter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ostendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Teschke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Gipp</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2012.02413</idno>
+		<title level="m" coord="7,450.50,393.91,56.77,10.91;7,112.28,407.46,248.91,10.91">Arqmath lab: An incubator for semantic formula search in zbmath open?</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,112.66,434.55,394.53,10.91;7,112.66,448.10,394.53,10.91;7,112.66,461.65,58.60,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,112.66,448.10,180.44,10.91">Dowsing for math answers with tangent-l</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">J</forename><surname>Fraser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Kassaie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Labahn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">S</forename><surname>Marzouk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">W</forename><surname>Tompa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,315.23,448.10,127.04,10.91">CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,475.20,393.32,10.91;7,112.66,488.75,179.52,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,308.30,475.20,101.72,10.91">Three is better than one</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Novotnỳ</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Sojka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Štefánik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lupták</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,432.32,475.20,73.66,10.91;7,112.66,488.75,51.81,10.91">CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,502.30,393.33,10.91;7,112.66,515.85,355.89,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,248.08,502.30,257.91,10.91;7,112.66,515.85,75.31,10.91">Psu at clef-2020 arqmath track: Unsupervised re-ranking using pretraining</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Rohatgi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Giles</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,210.91,515.85,129.93,10.91">CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,529.40,393.33,10.91;7,112.66,542.95,393.33,10.91;7,112.66,556.50,385.31,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,289.60,529.40,216.38,10.91;7,112.66,542.95,146.60,10.91">Reciprocal rank fusion outperforms condorcet and individual rank learning methods</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Buettcher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,282.99,542.95,222.99,10.91;7,112.66,556.50,297.78,10.91">Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="758" to="759" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,570.05,393.61,10.91;7,112.66,583.60,122.89,10.91" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="7,413.82,570.05,92.45,10.91;7,112.66,583.60,36.27,10.91">Ntcir-12 mathir task overview</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zanibbi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Aizawa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kohlhase</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Topic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Davila</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<publisher>NTCIR</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,597.15,393.33,10.91;7,112.66,610.69,393.32,10.91;7,112.66,624.24,394.52,10.91;7,112.66,637.79,397.48,10.91;7,112.36,653.78,103.79,7.90" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,262.37,597.15,243.61,10.91;7,112.66,610.69,20.72,10.91">Neural machine translation of rare words with subword units</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Sennrich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Haddow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Birch</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P16-1162</idno>
+		<ptr target="https://www.aclweb.org/anthology/P16-1162.doi:10.18653/v1/P16-1162" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,156.17,610.69,349.81,10.91;7,112.66,624.24,49.24,10.91">Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 54th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Berlin, Germany</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1715" to="1725" />
+		</imprint>
+	</monogr>
+	<note>Long Papers</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,86.97,393.33,10.91;8,112.66,100.52,363.59,10.91" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bert</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<title level="m" coord="8,353.43,86.97,152.55,10.91;8,112.66,100.52,181.08,10.91">Pre-training of deep bidirectional transformers for language understanding</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,114.06,393.33,10.91;8,112.66,127.61,393.33,10.91;8,112.66,141.16,393.53,10.91;8,112.66,154.71,394.03,10.91;8,112.66,168.26,233.99,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,431.64,114.06,74.34,10.91;8,112.66,127.61,203.19,10.91">Tangent-cft: An embedding model for mathematical formulas</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mansouri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Rohatgi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">L</forename><surname>Giles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zanibbi</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3341981.3344235</idno>
+		<ptr target="https://doi.org/10.1145/3341981.3344235.doi:10.1145/3341981.3344235" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,341.27,127.61,164.72,10.91;8,112.66,141.16,319.00,10.91">Proceedings of the 2019 ACM SIGIR International Conference on Theory of Information Retrieval, ICTIR &apos;19</title>
+		<meeting>the 2019 ACM SIGIR International Conference on Theory of Information Retrieval, ICTIR &apos;19<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="11" to="18" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,181.81,393.33,10.91;8,112.66,195.36,198.99,10.91" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="8,258.59,181.81,247.40,10.91;8,112.66,195.36,62.22,10.91">Mathbert: A pre-trained model for mathematical formula understanding</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Peng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Tang</surname></persName>
+		</author>
+		<idno>ArXiv abs/2105.00377</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

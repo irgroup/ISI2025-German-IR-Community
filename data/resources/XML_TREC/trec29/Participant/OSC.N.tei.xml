@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,93.48,112.05,425.04,15.12">OSC at TREC 2020 -News track&apos;s Background Linking Task</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,173.69,150.40,62.59,10.56"><forename type="first">Nathan</forename><surname>Day</surname></persName>
+							<email>nday@o19s.com</email>
+						</author>
+						<author>
+							<persName coords="1,276.21,150.40,61.29,10.56"><forename type="first">Dan</forename><surname>Worley</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,377.43,150.40,60.88,10.56"><forename type="first">Tim</forename><surname>Allison</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,194.09,164.35,127.85,10.56"><forename type="first">Opensource</forename><surname>Connections</surname></persName>
+						</author>
+						<title level="a" type="main" coord="1,93.48,112.05,425.04,15.12">OSC at TREC 2020 -News track&apos;s Background Linking Task</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CEDCC2E6F834BEDCD691989428415890</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This notebook details a submission by OpenSource Connections (OSC) to the TREC 2020 News track's background linking task. OSC's strategies were built around Elasticsearch's More Like This (MLT) Query so they would be accessible to industry practitioners. OSC submitted four runs: MLT with default parameters, MLT with tuned parameters, MLT with a new named entity recognition (NER) field, and MLT re-scored by document embedding similarity. MLT with parameter tuning produced the best results of any OSC runs, but was slightly worse than the task median per topic of all submitted runs. OSC's NER and document embedding runs both produced better results than MLT with default parameters.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>News sources are critical to understanding current events. Often the events being covered are not isolated occurrences, they are parts of larger and more complex ones. The TREC 2020 News track is focused on providing news readers with better news context by linking to relevant related articles and Wikipedia resources. There are two distinct tasks in the News track, both operate identical input (a given news story) and evaluation metric (nDCG@5).</p><p>• Background Linking -Retrieve other news articles that provide important context or background information. The goal is to help a reader understand or learn more about the story or main issues in the current article using the best possible sources.</p><p>• Wikification -Identify short passages in the article that should be hyperlinked to either another article, or a Wikipedia article, in order to provide in-context access to information that would help contextualize or add background on the story being read.</p><p>The OSC team only participated in the Background Linking task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data</head><p>The data set for the News track is Washington Post articles from 2013-2017. There are 671,947 articles in the original dump, but after removing files per TREC News guidelines for relevant sections and wire service authorship, our final index had 615,727 documents.</p><p>Without the vector embedding required for OSC's embed run, the index was 3.5 Gb on disk. After including the document embeddings (768 floats), the index was 14.4 Gb on disk, a 314% increase compared to the original.</p><p>News articles were provided with their original sections intact, including title, kicker, and body paragraph delineations. News articles follow an inverted pyramid structure, where the importance of information decreases in subsequent paragraphs <ref type="bibr" coords="1,227.04,700.57,13.45,9.96" target="#b0">[1]</ref>. OSC's index attempted to take advantage of this intrinsic data, by using separate fields for the first three body paragraphs and a single field with all body paragraphs Approach collapsed together. Similar structure strategies have been employed in prior TREC News submissions <ref type="bibr" coords="2,507.76,74.49,13.05,9.96" target="#b1">[2]</ref> and we hypothesized placing more weight on earlier paragraphs would improve performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Approach</head><p>Elasticsearch, the most popular Lucene based search engine, was selected because of its specialized queries and widespread usage. Effort was focused on layering on improvements to Elasticsearch's out of the box capability by adjusting it's parameters, enriching documents with new fields for named entities and document embeddings. Each augmentation is represented as a run, and is detailed in the sub-sections below.</p><p>More Like This (base) Elasticsearch offers a specialized query, More Like This (MLT), for ranking similar documents from a given index. This query operates by selecting a representative set of terms, based on TF-IDF, for the original document. This set of terms is then used in a disjunctive (OR) query to recommend similar documents <ref type="bibr" coords="2,146.16,248.28,13.81,9.96" target="#b2">[3]</ref>, making it a good candidate for the background linking task.</p><p>MLT allows parameter control of the total number of terms, the minimum/maximum term frequency for consideration, the minimum/maximum document frequency, the minimum/maximum word length and the fields considered.</p><p>Tuned MLT with Quaerite (tune) Because there are a plethora of parameters to adjust in MLT, the OSC team reached for the Quaerite toolkit <ref type="bibr" coords="2,265.45,333.95,11.70,9.96" target="#b3">[4]</ref>. Quaerite tries to improve search engine performance by searching for effective combinations of parameters and field weights, using techniques including genetic algorithms.</p><p>Ultimately the field weights identified by Quaerite were not included in the final run submitted to TREC, due to hypothesized over-fitting of the small (50 topics from TREC News 2018) training dataset. However, the parameter optimizations were used. The parameter changes from base MLT, involved increasing the maximum number of terms (from 25 to 50), the minimum word length (from 0 to 3) and minimum document frequency (from 5 to 10). The parameter for maximum word length was decreased (from unbounded to 20).</p><p>Named Entity Enrichment (ners) News stories are focused on describing events and events involve named entities. We hypothesized that isolating these entities into a new field could improve the performance of MLT. This idea has been utilized by past TREC News submissions <ref type="bibr" coords="2,372.55,479.40,12.89,9.96" target="#b4">[5]</ref>.</p><p>To identify the entities OSC used the spaCY library <ref type="bibr" coords="2,302.51,497.34,12.12,9.96" target="#b5">[6]</ref> and its pre-trained en_core_web_lg model. Each document's title and body were submitted to the model. The identified entities were filtered to remove any entities tagged as CARDINAL, TIME, DATE, QUANTITY, or ORDINAL. This filter was hypothesized to reduce off-target matching, because quantitative measures could generate spurious matches in unrelated domains.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Document embeddings (embed)</head><p>The vector representations BERT <ref type="bibr" coords="2,389.07,577.03,16.64,9.96" target="#b6">[7]</ref> produces are a big departure from the inverted indexes that dominate search engines, like Elasticsearch. Elasticsearch currently supports dense vector re-scoring via cosine similarity.</p><p>To generate embeddings for the index, we used Sentence-BERT (SBERT) <ref type="bibr" coords="2,387.47,618.87,14.82,9.96" target="#b7">[8]</ref>. SBERT is a BERT derivative specifically trained for semantic similarity search. We used the distilbert-base-nli-stsb-mean-tokens sentence transformer model included with the library. We generated a separate embedding for the first three body paragraphs before taking an average to represent the major topics of a given article.</p><p>Cosine similarity was used to calculate embedding similarity. This similarity was incorporated in the result ranking, via a re-score function performed after initial retrieval by MLT.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>OSC submitted four runs for the TREC News Background linking test, as outlined in the Methods sub-sections. Due to a technical error in the OSC evaluation script, the ners run was overwritten with the tune run's results. The ners run was evaluated unofficially after the competition results were scored, using the TREC evaluation scripts.</p><p>The News track's primary evaluation metric was nDCG@5, so we continue to use that metric for evaluating run performance. The only data available for comparison is the minimum, median, and maximum of all submitted runs on a per topic basis. There were 50 new topics in the 2020 evaluation set, numbers 886-934.</p><p>The table below reports the mean nDCG@5 score across all topics for each run and the median. All of OSC's runs had lower mean nDCG@5 than the TREC median. None of OSC's runs were significantly different than the TREC median in a paired two-sample T-test.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run</head><p>Mean nDCG@5 base 0.488 tune 0.517 ners 0.506 embed 0.513 TREC median 0.525</p><p>The best performing OSC run was the simplest augmentation, tuning the parameters of MLT. The worst performing was the out of the box MLT.</p><p>In evaluating individual topic performance, topic 889 stands-out. All four OSC runs recorded a nDCG@5 score of 0.0, while the TREC median was 1.0. This visualization shows per topic nDCG@5 scores as a line and highlights each run's performance relative to the TREC minimum (min), median and maximum (max). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Per topic difference from overall TREC median</head><p>The OSC embed run has the most ties <ref type="bibr" coords="4,249.65,449.80,12.91,9.96" target="#b5">(6)</ref> with the per topic maximums, while reporting a slightly lower mean that OSC's overall best tune.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>OSC's best performing run was tune which is an adjusted parameter configuration of the MLT query. This was not surprising because the MLT query's default parameters are designed to be efficient as well as effective. In real world search applications query run time is important. The parameter settings of tune allow for a maximum of 50 terms instead of the 25 allowed in base. This potentially doubles the queries required for MLT, but for this accuracy focused competition we ignored this potential downside. If tune has scored the median (1.0) for topic 889, it's mean nDCG@5 score would be 0.537, slightly better than the mean of the TREC median per topic. Neither OSC's named entity enrichment, ners, or document embedding similarity re-score embed was able to best the performance of tune, which was surprising. In testing approaches on the data from the the 2018 News track, OSC saw an increase in average performance in both ners and embed, with embed producing the best results on historical data.</p><p>Of interest for future competitions is using vector similarity for initial retrieval, not just re-ranking. Today this is not supported by Elasticsearch, or it's underpinning low level library Lucene, but there is active work for adding approximate nearest neighbor search. These developments represent a novel matching strategy for search engines and we are excited to explore their performance in future conferences.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,505.06,490.08,14.80,34.69;3,505.06,542.37,14.80,31.14;3,505.06,592.90,14.80,31.12;3,505.06,634.52,14.80,48.91;3,153.72,686.23,13.34,7.40;3,189.78,686.23,13.34,7.40;3,225.85,686.23,13.34,7.40;3,261.91,686.23,13.34,7.40;3,297.97,686.23,13.34,7.40;3,334.03,686.23,13.34,7.40;3,370.09,686.23,13.34,7.40;3,406.16,686.23,13.34,7.40;3,442.22,686.23,13.34,7.40;3,98.27,525.25,11.12,7.40;3,98.27,504.56,11.12,7.40;3,98.27,483.86,11.12,7.40;3,98.27,575.77,11.12,7.40;3,98.27,555.07,11.12,7.40;3,98.27,534.38,11.12,7.40;3,98.27,626.29,11.12,7.40;3,98.27,605.59,11.12,7.40;3,98.27,584.89,11.12,7.40;3,98.27,676.80,11.12,7.40;3,98.27,656.11,11.12,7.40;3,98.27,635.41,11.12,7.40;3,296.62,696.22,23.25,9.25;3,86.40,561.45,9.25,43.49;3,212.05,458.20,11.68,7.40;3,250.97,458.20,39.11,7.40;3,317.33,458.20,50.23,7.40;3,394.80,458.20,36.89,7.40;3,113.87,428.40,393.02,13.88;4,70.81,36.64,47.66,8.80;4,71.64,74.49,468.36,9.96;4,71.74,86.45,468.26,9.96;4,72.00,98.40,346.14,9.96;4,145.04,181.29,13.37,11.97;4,158.95,203.45,6.42,10.18;4,235.46,176.48,20.34,10.18;4,284.16,170.56,6.42,10.18;4,339.80,183.26,6.42,10.18;4,360.67,162.59,6.42,10.18;4,381.54,192.62,6.42,10.18;4,465.01,195.27,6.42,10.18;4,158.95,267.77,6.42,10.18;4,207.64,222.71,6.42,10.18;4,214.60,230.30,6.42,10.18;4,235.46,240.80,6.42,10.18;4,242.42,232.77,6.42,10.18;4,249.38,240.80,6.42,10.18;4,284.16,234.88,6.42,10.18;4,311.98,232.91,6.42,10.18;4,158.95,332.09,6.42,10.18;4,214.60,294.62,6.42,10.18;4,235.46,305.12,6.42,10.18;4,242.42,297.09,6.42,10.18;4,249.38,305.12,6.42,10.18;4,284.16,299.20,6.42,10.18;4,311.98,297.23,6.42,10.18;4,138.08,358.94,6.42,10.18;4,158.95,396.41,6.42,10.18;4,235.46,369.44,6.42,10.18;4,242.42,361.40,6.42,10.18;4,249.38,369.44,20.33,13.58;4,284.16,363.51,6.42,10.18;4,311.98,357.75,20.33,13.96;4,451.10,361.20,6.42,10.18;4,505.06,161.12,14.80,34.69;4,505.06,227.21,14.80,31.14;4,505.06,291.54,14.80,31.12;4,505.06,346.96,14.80,48.91;4,162.44,405.56,13.34,7.40;4,197.22,405.56,13.34,7.40;4,232.00,405.56,13.34,7.40;4,266.78,405.56,13.34,7.40;4,301.56,405.56,13.34,7.40;4,336.34,405.56,13.34,7.40;4,371.12,405.56,13.34,7.40;4,405.90,405.56,13.34,7.40;4,440.68,405.56,13.34,7.40;4,100.53,202.55,15.79,7.40;4,100.53,189.07,15.79,7.40;4,105.20,175.58,11.12,7.40;4,105.20,162.10,11.12,7.40;4,105.20,148.61,11.12,7.40;4,100.53,266.87,15.79,7.40;4,100.53,253.39,15.79,7.40;4,105.20,239.90,11.12,7.40;4,105.20,226.41,11.12,7.40;4,105.20,212.93,11.12,7.40;4,100.53,331.19,15.79,7.40;4,100.53,317.70,15.79,7.40;4,105.20,304.22,11.12,7.40;4,105.20,290.73,11.12,7.40;4,105.20,277.25,11.12,7.40;4,100.53,395.51,15.79,7.40;4,100.53,382.02,15.79,7.40;4,105.20,368.54,11.12,7.40;4,105.20,355.05,11.12,7.40;4,105.20,341.56,11.12,7.40;4,300.09,415.56,23.25,9.25;4,83.67,319.66,13.03,6.12;4,86.59,296.88,9.25,20.00;4,86.59,261.31,9.25,32.79;4,86.59,224.09,9.25,34.44"><head></head><label></label><figDesc>relative to TREC min, median and maxConclusionThere were multiple topics where the scores of OSC runs tied with the TREC maximum score. This alternative visualization shows run performance per topic as the different from TREC median. Symbols denote when a run's per topic score tied the TREC maximum (+) or the TREC minimum (-).</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>The authors would like to thank <rs type="person">Samantha Toet</rs> and <rs type="person">Charlie Hull</rs> for their editorial feedback.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,85.52,157.09,455.70,9.96;5,72.00,169.05,19.98,9.96" xml:id="b0">
+	<monogr>
+		<ptr target="https://en.wikipedia.org/wiki/News_style" />
+		<title level="m" coord="5,85.52,157.09,44.36,9.96">News style</title>
+		<imprint>
+			<date type="published" when="2020-10-31">2020, October 31. November 09, 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,86.03,186.98,453.97,9.96;5,71.75,198.93,246.07,9.96" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="5,430.61,186.98,109.38,9.96;5,71.75,198.93,215.49,9.96">TREMA-UNH at TREC 2018: Complex Answer Retrieval and News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Sumanta</forename><surname>Kashyapi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Chatterjee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jordan</forename><surname>Ramsdell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,86.25,216.87,455.13,9.96;5,71.00,228.82,370.25,9.96" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,86.25,216.87,88.23,9.96">More like this query</title>
+		<ptr target="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-mlt-query.html" />
+		<imprint>
+			<date type="published" when="2020-11-09">2020. November 09, 2020</date>
+		</imprint>
+	</monogr>
+	<note>Elasticsearch Reference [7.9</note>
+</biblStruct>
+
+<biblStruct coords="5,86.14,246.75,354.17,9.96" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="5,201.71,246.75,142.17,9.96">Quaerite (Version 1.0.0-Alpha2)</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Allison</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020-04">2020. April</date>
+		</imprint>
+	</monogr>
+	<note>Computer software</note>
+</biblStruct>
+
+<biblStruct coords="5,85.71,276.64,455.67,9.96;5,72.00,288.60,415.14,9.96" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Agra</forename><surname>Bimantara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michelle</forename><surname>Blau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Engelhardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Johannes</forename><surname>Gerwert</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tobias</forename><surname>Gottschalk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Philipp</forename><surname>Lukosz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shenna</forename><surname>Piri</surname></persName>
+		</author>
+		<title level="m" coord="5,129.17,288.60,330.15,9.96">Nima Saken Shaft and Klaus Berberich.htw saar @ TREC 2018 News Track</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,85.81,306.53,455.57,9.96;5,72.00,318.49,241.27,9.96" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="5,247.49,306.53,293.89,9.96;5,72.00,318.49,236.97,9.96">spaCy 2: Natural language understanding with Bloom embeddings, convolutional neural networks and incremental parsing</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,85.70,336.42,454.31,9.96;5,72.00,348.37,393.69,9.96" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="5,418.61,336.42,121.40,9.96;5,72.00,348.37,245.99,9.96">BERT: Pre-training of Deep Bidirectional Transformers for Language Un-derstanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,88.29,366.31,453.38,9.96;5,72.00,378.26,211.07,9.96" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1908.10084</idno>
+		<title level="m" coord="5,260.44,366.31,281.23,9.96;5,72.00,378.26,37.54,9.96">Sentence-BERT: Sentence embeddings using Siamese BERTnetworks</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

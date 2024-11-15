@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,144.30,115.96,326.75,12.62;1,240.84,133.89,133.68,12.62">Using Triplet Loss for bird species recognition on BirdCLEF 2020</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,207.44,171.59,94.48,8.74"><forename type="first">Thailsson</forename><surname>Clementino</surname></persName>
+							<email>thailsson.clementino@icomp.ufam.edu.br</email>
+							<affiliation key="aff0">
+								<orgName type="department">Institute of Computing (Icomp)</orgName>
+								<orgName type="institution">Federal University of Amazonas (UFAM)</orgName>
+								<address>
+									<addrLine>Av. General Rodrigo Octávio 6200</addrLine>
+									<postCode>69077-000</postCode>
+									<settlement>Manaus</settlement>
+									<region>Amazonas</region>
+									<country key="BR">Brazil</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,329.07,171.59,74.38,8.74"><forename type="first">Juan</forename><forename type="middle">G</forename><surname>Colonna</surname></persName>
+							<email>juancolonna@icomp.ufam.edu.br</email>
+							<affiliation key="aff0">
+								<orgName type="department">Institute of Computing (Icomp)</orgName>
+								<orgName type="institution">Federal University of Amazonas (UFAM)</orgName>
+								<address>
+									<addrLine>Av. General Rodrigo Octávio 6200</addrLine>
+									<postCode>69077-000</postCode>
+									<settlement>Manaus</settlement>
+									<region>Amazonas</region>
+									<country key="BR">Brazil</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,144.30,115.96,326.75,12.62;1,240.84,133.89,133.68,12.62">Using Triplet Loss for bird species recognition on BirdCLEF 2020</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">9A256E8A9E9F2E5F23A65A26A35E51F2</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:06+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper presents the approach used in the BirdCLEF 2020 Competition. The objective of the competition is to try to recognize bird species through its sings and calls among 960 species in soundscapes. We use a MultiScale CNN + Triplet Loss to learn the melspectrogram characteristics that differentiate the species from each other. The CNN create a 128-D embedding used to classify the species. The approach achieves third place on the competition with c-mAP of 0.009752 and r-mAP of 0.008. We also present some changes on train parameters done after the competition that achieve our best evaluation with c-mAP 0.062877 and r-mAP of 0.108.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>LifeCLEF 2020 Bird is a machine learning competition that was organized for the 2020 edition of CLEF -Conference and Labs of Evaluation Forum <ref type="bibr" coords="1,438.07,424.13,10.52,8.74" target="#b5">[6,</ref><ref type="bibr" coords="1,450.25,424.13,7.01,8.74" target="#b4">5]</ref>. The objective of the competition was to design, train and apply a classification algorithm that reliably recognize the sounds of birds in raw recordings contaminated with several environmental noises.</p><p>The audio dataset available for training on the competition is composed by 73.267 records of 960 different species from South and North America and Europe. All these records are taken from the website https://www.xeno-canto. org/. The audios present in the validation and test sets belongs to four different record sites: Peru (PER), Sapsucker Woods, Ithaca, USA (SSW), High Sierra Nevada, USA (HSN) and Germany (GER). The validation and test sets have 12 and 153 recordings, respectively, all of which are 10 minutes long and were recorded on the mentioned sites.</p><p>For our solution, we chose to use a Siamese Convolutional Neural Network (CNN) approach with Triplet Loss. This choice was supported by the promising results that state-of-the-art works achieved using Siamese Networks. This type of neural network is based on the concept of One-shot learning, which consists of comparing an embedding vector, generated at the output of the Neural Network, against embeddings of new samples using a similarity by distance calculation. The Triplet Loss helps to learn which features, represented by the embedding vectors, differentiate samples of different species. Related works that make use of Siamese Neural Networks have been applied in different contexts <ref type="bibr" coords="2,438.53,154.86,10.52,8.74" target="#b7">[8,</ref><ref type="bibr" coords="2,450.70,154.86,12.73,8.74" target="#b14">15,</ref><ref type="bibr" coords="2,465.09,154.86,11.62,8.74" target="#b12">13]</ref>, and also in the context of audio recognition <ref type="bibr" coords="2,333.27,166.81,10.52,8.74" target="#b3">[4,</ref><ref type="bibr" coords="2,345.46,166.81,12.73,8.74" target="#b10">11,</ref><ref type="bibr" coords="2,359.85,166.81,11.62,8.74" target="#b13">14]</ref>. After reviewing the related works, we decided to adopt an approach in which we feed the Neural Network with Mel-spectrograms to generate a unique feature representation of each species call.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Preprocessing</head><p>As the competition task is to recognize species in every 5 seconds of audio in a recording, the first preprocessing was to take all the recordings contained in the training set and split them into five-second chunks. There were some recordings in the training set with less than five seconds long, in these cases, the records were padded with copies of themselves until they achieved five seconds. After this stage, we obtained a total of 623.981 segments.</p><p>Similarly to <ref type="bibr" coords="2,205.04,324.93,15.50,8.74" target="#b10">[11,</ref><ref type="bibr" coords="2,222.20,324.93,7.75,8.74" target="#b3">4,</ref><ref type="bibr" coords="2,231.60,324.93,7.01,8.74" target="#b8">9]</ref>, we opted for a visual approach to model input, using Mel-scale spectrograms taken from each chunk of audio, as mentioned above. Furthermore, were also extracted the harmonic and percussive components from Mel-spectrograms <ref type="bibr" coords="2,214.87,360.79,10.52,8.74" target="#b2">[3,</ref><ref type="bibr" coords="2,227.05,360.79,11.62,8.74" target="#b13">14]</ref>, once different species can has a call more expressive in one of its components. Figure <ref type="figure" coords="2,263.95,372.75,4.98,8.74" target="#fig_0">1</ref> shows an input example of five seconds audio belonging to the species Alder flycatcher. Due to the high computational demands of preprocessing, we decided to perform a sub sampling in which 70 thousand spectrograms were separated for training and 20 thousand for validation.</p><p>All preprocessing steps were carried out with two Python Libraries for audio processing: PyDub <ref type="bibr" coords="2,219.34,432.52,10.51,8.74" target="#b1">[2]</ref> and LIBROSA <ref type="bibr" coords="2,300.19,432.52,9.96,8.74" target="#b0">[1]</ref>. Table <ref type="table" coords="2,343.95,432.52,4.98,8.74" target="#tab_0">1</ref> shows the parameters used to extract the Mel-spectrograms. 3 Approach</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Model</head><p>Our approach was inspired on <ref type="bibr" coords="2,263.39,644.16,14.61,8.74" target="#b13">[14]</ref>. Our key idea is to use a Siamese Convolutional Neural Network to extract features from Mel-spectrograms that can be arranged  The Siamese network with triplet loss aims to generate close embedding vectors when the inputs belong to the same species and, at the same time, keep them away from vectors representing other species, considering a Euclidean vector space <ref type="bibr" coords="4,178.81,130.95,14.61,8.74" target="#b11">[12]</ref>. In this way, we hope that the new vector representation would make the classes more easily separable, therefore, easier to classify using a standard classifier such as kNN (k-Nearest Neighbors).</p><p>To achieve faster training convergence, we select the semi-hard triplets, which are the triplets composed by a negative sample more distant than the positive sample from the anchor sample. However, this distance lies inside a predefined margin α. Thus, with this loss function the lower the difference between positive and negative distances, the greater is the Loss. Equation <ref type="formula" coords="4,376.00,214.64,4.98,8.74" target="#formula_0">1</ref>shows the loss function we want to minimize, where f (x) is the embedding vector generated by the Siamese Network for the input sample x. For the i -th triplet x a i represent the anchor, x p i a positive sample, and x n i a negative sample.</p><formula xml:id="formula_0" coords="4,191.55,271.25,289.04,30.32">L = N i f (x a i ) -f (x p i ) 2 2 -f (x a i ) -f (x n i ) 2 2 + α +<label>(1)</label></formula><p>Once we convert all Mel-spectrograms into embeddings vectors, we can use them to classify each species. In our first submission, we chose a kNN classifier with Euclidean distance and, in our other submissions, a Multilayer Perceptron (MLP) neural network. The MLP architecture has an input layer, a hidden dense layer with 256 neurons and an output layer with softmax activation and 960 neurons, equivalent to the number of species we wish to recognize. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Train</head><p>We tried various combinations of hyperparameters until we reached our results. Table <ref type="table" coords="4,163.04,561.19,4.98,8.74" target="#tab_3">4</ref> shows the configuration used in each submission trial. The MLP was always trained with 200 epochs, batch size of 256 and learning rate equal to 0.001.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Submission</head><p>The test data has 153 soundscapes of 10 minutes each, for our submission, we divided them into segments of 5 seconds. For each segment, we build a Melspectrogram and its components. After that, we passed the spectrograms through a CNN trained to obtain a 128-dimensional embedding vectors. Once we obtained the vectors, we use this to predict, using a classifier, a possible specie present on this part of that audio. As our model is still not very accurate, for each 5 seconds piece of audio we get the 10 first possible species pointed out by the classifier and put them into submission file, given a higher weight to the first one and lower weight to the last one. We also take into account, and cut off, the species that does not belong to that region where the current soundscapes were recorded. The list with species per region and the information where each soundscape were recorded was provided along with the dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>To evaluate the system, the competition provides a well-known ranking metric, the Mean Average Precision (MAP). But in this case, divided into two parts. The sample-wise mean average precision (r-mAP), the classic one, and the classwise mean average precision, which takes the average precision (c-mAP) among the classes. Bellow, we have the equation for MAP, where Q is the number of test audio files and AveP(q) is an Average Precision for q file computed on equation 3:</p><formula xml:id="formula_1" coords="5,253.31,492.78,227.28,26.77">M AP = Q q=0 AveP (q) Q ,<label>(2)</label></formula><p>and</p><formula xml:id="formula_2" coords="5,229.66,544.13,246.69,25.41">AveP = N k=0 (P (k) × rel(k)) num relevant documents , (<label>3</label></formula><formula xml:id="formula_3" coords="5,476.35,553.97,4.24,8.74">)</formula><p>where k is the rank in the sequence of returned species, n is the total number of returned species, P (k) is the precision at cut-off k in the list and rel(k) is an indicator function equaling 1 if the item at rank k is a relevant species. Table <ref type="table" coords="5,176.65,608.30,4.98,8.74" target="#tab_4">5</ref> shows the results for the submissions made, 1 and 2 made during the competition and the others made after the competition ended. The submission 4 and 5 use the same train configuration, the difference between them is that on submission time instead of given higher weight to the first one and lower weight, we assign a weight for all species equal to 1. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>We applied a Siamese Network with Triplet Loss to the task of Bird Sounds Recognition. Our results were not the best, but we believe they can be improved. This is an initial study on this theme, from here a better study can be carried out. In this work we don't do any kind of data augmentation, a good work with augmentation techniques can be made with noise injection, as in <ref type="bibr" coords="6,413.37,306.75,10.52,8.74" target="#b8">[9,</ref><ref type="bibr" coords="6,425.55,306.75,7.01,8.74" target="#b6">7]</ref>. Therefore algorithms as Noise Reduction and per-channel energy normalization <ref type="bibr" coords="6,444.93,318.70,15.50,8.74" target="#b9">[10]</ref> still can be used on the preprocessing stage to make learning a simpler task. On train stage, a better hyperparameter optimization should be done to achieve the optimal result, not only empirically choices. Furthermore, a different approach to the selection of the triplets can be tested, such as the dynamic triplet loss in which the margin varies according to the progress of the training <ref type="bibr" coords="6,134.77,390.43,14.61,8.74" target="#b13">[14]</ref>.</p><p>The implementation made to run all the submissions mentioned here are available on https://github.com/clementino1971/BirdCLEF_2020. We would like to thank CLEF for organizing competitions of this type and encouraging research in this context of bioacoustic.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,134.77,196.18,345.82,7.89;3,134.77,207.17,95.53,7.86;3,138.61,115.84,110.66,65.58"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Respectively Mel spectrogram, Harmonic Component and Percussive Component of Alder flycatcher</figDesc><graphic coords="3,138.61,115.84,110.66,65.58" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,223.32,474.65,171.78,77.18"><head>Table 1 .</head><label>1</label><figDesc>Mel Spectrogram Parameters.</figDesc><table coords="2,223.32,499.36,171.78,52.47"><row><cell>Sampling Rate</cell><cell>22050Hz</cell></row><row><cell>Number of Mel coefficients</cell><cell>128</cell></row><row><cell>Window overlap</cell><cell>512</cell></row><row><cell>Window length</cell><cell>1024</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,177.33,365.33,263.77,239.35"><head>Table 2 .</head><label>2</label><figDesc>The Two CNNs Architectures Used.</figDesc><table coords="3,177.33,384.36,263.77,220.32"><row><cell>CNN1</cell><cell>CNN2</cell></row><row><cell>Input (40x200x3)</cell><cell>Input (40x200x3)</cell></row><row><cell>Conv(64,(3x3),Stride=(1x1))</cell><cell>Conv(64,(3x3),Stride=(1x1))</cell></row><row><cell>MAM1()</cell><cell>MAM1()</cell></row><row><cell>Conv(64,(3x3),Stride=(2x1))</cell><cell>Conv(64,(3x3),Stride=(2x1))</cell></row><row><cell>MAM2()</cell><cell>MAM2()</cell></row><row><cell>Conv(64,(3x3),Stride=(5x1))</cell><cell>Conv(64,(3x3),Stride=(2x1))</cell></row><row><cell>GlobalAveragePooling2D()</cell><cell>MAM3()</cell></row><row><cell>Dense(256)</cell><cell>Conv(64,(3x3),Stride=(2x1))</cell></row><row><cell>Dropout(0.5)</cell><cell>MAM4()</cell></row><row><cell>Dense(256)</cell><cell>Conv(64,(3x3),Stride=(5x1))</cell></row><row><cell>Dropout(0.5)</cell><cell>GlobalAveragePooling2D()</cell></row><row><cell>Dense(128,activation=linear)</cell><cell>Dense(256)</cell></row><row><cell></cell><cell>Dense(256)</cell></row><row><cell></cell><cell>Dense(128,activation=linear)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,246.12,397.89,126.18,79.07"><head>Table 3 .</head><label>3</label><figDesc>MLP architecture.</figDesc><table coords="4,246.12,416.92,126.18,60.04"><row><cell>MLP</cell></row><row><cell>Input (128)</cell></row><row><cell>Dense(256)</cell></row><row><cell>Dropout(0.5)</cell></row><row><cell>Dense(960,activation=softmax)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,139.75,115.91,364.97,93.32"><head>Table 4 .</head><label>4</label><figDesc>Configuration of train per Submission</figDesc><table coords="5,139.75,145.90,364.97,63.33"><row><cell cols="2">Submission Model</cell><cell cols="4">Batch Size Learning Rate epochs Margin (α)</cell></row><row><cell>1</cell><cell cols="2">CNN1+Knn 128</cell><cell>0.01</cell><cell>10</cell><cell>0.5</cell></row><row><cell>2</cell><cell cols="2">CNN1+MLP 128</cell><cell>0.001</cell><cell>20</cell><cell>0.5</cell></row><row><cell>3</cell><cell cols="2">CNN2+MLP 128</cell><cell>0.001</cell><cell>20</cell><cell>1.0</cell></row><row><cell>4</cell><cell cols="2">CNN2+MLP 32</cell><cell>0.001</cell><cell>30</cell><cell>1.0</cell></row><row><cell>5</cell><cell cols="2">CNN2+MLP 32</cell><cell>0.001</cell><cell>30</cell><cell>1.0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="6,237.74,115.91,139.87,82.11"><head>Table 5 .</head><label>5</label><figDesc>Submission Evaluation.</figDesc><table coords="6,237.74,134.97,139.87,63.06"><row><cell cols="2">Submission (c-mAP)</cell><cell>(r-mAP)</cell></row><row><cell>1</cell><cell>0.006404</cell><cell>0.008</cell></row><row><cell>2</cell><cell>0.009752</cell><cell>0.008</cell></row><row><cell>3</cell><cell>0.020012</cell><cell>0.031</cell></row><row><cell>4</cell><cell>0.024094</cell><cell>0.041</cell></row><row><cell>5</cell><cell cols="2">0.062877 0.108</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.96,492.88,296.10,8.12" xml:id="b0">
+	<monogr>
+		<ptr target="https://librosa.org/" />
+		<title level="m" coord="6,151.53,492.88,185.92,7.86">Librosa: audio and music processing in python</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,503.75,337.64,8.12;6,151.52,515.35,47.07,7.47" xml:id="b1">
+	<monogr>
+		<ptr target="https://pydub.com/" />
+		<title level="m" coord="6,151.53,503.75,283.90,7.86">Pydub: Manipulate audio with a simple and easy high level interface</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,525.57,337.63,7.86;6,151.52,536.53,180.95,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,298.05,525.57,182.54,7.86;6,151.52,536.53,50.71,7.86">Extending harmonic-percussive separation of audio signals</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Driedger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Disch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,223.05,536.53,29.55,7.86">ISMIR</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="611" to="616" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,547.40,337.64,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,195.62,547.40,257.30,7.86">One-shot learning with siamese networks for environmental audio</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Honka</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,558.26,337.64,7.86;6,151.52,569.22,329.07,7.86;6,151.52,580.18,329.07,7.86;6,151.52,591.14,329.07,7.86;6,151.52,602.10,329.07,7.86;6,151.52,613.06,285.06,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,404.73,580.18,75.87,7.86;6,151.52,591.14,329.07,7.86;6,151.52,602.10,90.77,7.86">Overview of lifeclef 2020: a system-oriented evaluation of automated species identification and species distribution prediction</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Picek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Ruiz De Castañeda</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Lorieul</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Champ</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">R</forename><surname>Stöter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Dorso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Eggel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,266.15,602.10,214.45,7.86;6,151.52,613.06,119.03,7.86">Proceedings of CLEF 2020, CLEF: Conference and Labs of the Evaluation Forum</title>
+		<meeting>CLEF 2020, CLEF: Conference and Labs of the Evaluation Forum<address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-09">Sep. 2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.96,623.92,337.64,7.86;6,151.52,634.88,329.07,7.86;6,151.52,645.84,329.07,7.86;6,151.52,656.80,252.37,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,211.75,634.88,268.84,7.86;6,151.52,645.84,65.83,7.86">Overview of birdclef 2020: Bird sound recognition in complex acoustic environments</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Clapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Hopping</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,240.22,645.84,240.37,7.86;6,151.52,656.80,86.35,7.86">CLEF: Conference and Labs of the Evaluation Forum</title>
+		<meeting><address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020-09">Sep. 2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note>CLEF task overview 2020</note>
+</biblStruct>
+
+<biblStruct coords="7,142.96,119.67,337.63,7.86;7,151.52,130.63,329.07,7.86;7,151.52,141.59,123.58,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,168.54,130.63,293.34,7.86">Large-scale bird sound classification using convolutional neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wilhelm-Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Hussein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kowerko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ritter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eibl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,151.52,141.59,94.91,7.86">CLEF (Working Notes)</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,152.55,337.64,7.86;7,151.52,163.51,292.46,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,324.99,152.55,155.60,7.86;7,151.52,163.51,69.82,7.86">Siamese neural networks for one-shot image recognition</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,242.42,163.51,120.13,7.86">ICML deep learning workshop</title>
+		<meeting><address><addrLine>Lille</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.96,174.47,337.63,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,202.55,174.47,161.71,7.86">Bird species identification in soundscapes</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lasseck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,370.79,174.47,81.97,7.86">CLEF working notes</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,185.43,337.98,7.86;7,151.52,196.36,327.92,7.89" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,425.07,185.43,55.53,7.86;7,151.52,196.39,184.42,7.86">Robust sound event detection in bioacoustic sensor networks</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lostanlen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Salamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Farnsworth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kelling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Bello</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,343.26,196.39,35.45,7.86">PloS one</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page">214168</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,207.34,337.97,7.86;7,151.52,218.30,329.07,7.86;7,151.52,229.26,329.07,7.86;7,151.52,240.22,97.91,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,445.27,207.34,35.32,7.86;7,151.52,218.30,247.75,7.86">Contentbased representations of audio using siamese neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Manocha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Badlani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Shah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Elizalde</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Raj</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,443.44,218.30,37.16,7.86;7,151.52,229.26,308.74,7.86">IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2018">2018. 2018</date>
+			<biblScope unit="page" from="3136" to="3140" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,251.18,337.97,7.86;7,151.52,262.14,329.07,7.86;7,151.52,273.10,204.12,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,324.72,251.18,155.87,7.86;7,151.52,262.14,104.63,7.86">Facenet: A unified embedding for face recognition and clustering</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Schroff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kalenichenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Philbin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,278.40,262.14,202.20,7.86;7,151.52,273.10,120.32,7.86">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="815" to="823" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,284.06,337.98,7.86;7,151.52,295.02,329.07,7.86;7,151.52,305.98,86.01,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,314.50,284.06,147.32,7.86">Siamese instance search for tracking</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Tao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Gavves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">W</forename><surname>Smeulders</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,151.52,295.02,325.14,7.86">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="1420" to="1429" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,316.93,337.97,7.86;7,151.52,327.89,329.07,7.86;7,151.52,338.83,278.01,7.89" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,337.51,316.93,143.08,7.86;7,151.52,327.89,306.01,7.86">Deep metric learning for bioacoustic classification: Overcoming training data scarcity using dynamic triplet loss</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Thakur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Thapar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nigam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,464.72,327.89,15.88,7.86;7,151.52,338.85,180.69,7.86">The Journal of the Acoustical Society of America</title>
+		<imprint>
+			<biblScope unit="volume">146</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="534" to="547" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.62,349.81,337.98,7.86;7,151.52,360.77,329.07,7.86;7,151.52,371.70,204.47,7.89" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="7,406.07,349.81,74.53,7.86;7,151.52,360.77,300.39,7.86">A multi-resolution approach for spinal metastasis detection using deep siamese neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">Y</forename><surname>Su</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Baldi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,458.58,360.77,22.02,7.86;7,151.52,371.73,124.23,7.86">Computers in biology and medicine</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="page" from="137" to="146" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

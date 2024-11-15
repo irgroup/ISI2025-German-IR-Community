@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,152.00,71.79,293.55,12.90">UCD-CS at TREC 2021 Incident Streams Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,158.72,111.83,83.91,10.75"><forename type="first">Congcong</forename><surname>Wang</surname></persName>
+							<email>congcong.wang@ucdconnect.ie</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University College Dublin</orgName>
+								<address>
+									<settlement>Dublin</settlement>
+									<country key="IE">Ireland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,368.78,111.83,59.17,10.75"><forename type="first">David</forename><surname>Lillis</surname></persName>
+							<email>david.lillis@ucd.ie</email>
+							<affiliation key="aff1">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University College Dublin</orgName>
+								<address>
+									<settlement>Dublin</settlement>
+									<country key="IE">Ireland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,152.00,71.79,293.55,12.90">UCD-CS at TREC 2021 Incident Streams Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">8E4669F25E129086A127EE35B98F9822</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In recent years, the task of mining important information from social media posts during crises has become a focus of research for the purposes of assisting emergency response (ES). The TREC Incident Streams (IS) track is a research challenge organised for this purpose. The track asks participating systems to both classify a stream of crisis-related tweets into humanitarian aid related information types and estimate their importance regarding criticality. The former refers to a multi-label information type classification task and the latter refers to a priority estimation task. In this paper, we report on the participation of the University College Dublin School of Computer Science (UCD-CS) in TREC-IS 2021. We explored a variety of approaches, including simple machine learning algorithms, multi-task learning techniques, text augmentation, and ensemble approaches. The official evaluation results indicate that our runs achieve the highest scores in many metrics. To aid reproducibility, our code is publicly available 1 .</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Unexpected Emergencies can cause substantial loss of both life and property if assistance is not available in a timely manner. Recent studies have sought solutions for more efficient emergency response (ES) using computational techniques <ref type="bibr" coords="1,103.04,642.93,93.10,9.46" target="#b0">(Caragea et al., 2011;</ref><ref type="bibr" coords="1,198.69,642.93,62.98,9.46" target="#b13">Vieweg, 2012;</ref><ref type="bibr" coords="1,264.22,642.93,26.05,9.46;1,72.00,656.48,52.87,9.46" target="#b5">Imran et al., 2015)</ref>. Among these works, social media is acknowledged as a promising venue for mining important messages for ES given that some people do tend to seek help by posting messages on social media as a crisis situation unfolds, these messages may contain critical information of relevance to emergency responders <ref type="bibr" coords="1,411.89,226.40,90.54,9.46" target="#b5">(Imran et al., 2015;</ref><ref type="bibr" coords="1,507.37,226.40,18.17,9.46;1,307.28,239.95,82.95,9.46">Mc-Creadie et al., 2019</ref><ref type="bibr" coords="1,390.23,239.95,31.12,9.46">, 2020)</ref>.</p><p>This motivated the Incident streams (IS) track <ref type="bibr" coords="1,332.20,268.96,102.32,9.46" target="#b7">(McCreadie et al., 2019</ref><ref type="bibr" coords="1,442.55,268.96,23.48,9.46" target="#b8">(McCreadie et al., , 2020))</ref>, which challenges the community to explore effective approaches for identifying important messages from user-posted streams on social media during crises. The IS track is a research challenge consisting of two main tasks. The first asks participating systems to classify a stream of crisis-related tweets into humanitarian aid related categories, known as the multi-label information types (ITs) classification task. IS comprises a total of 25 information types that are defined as the categories of possible aid needs in a crisis such as requesting donations, call for search and rescue, reporting weather, etc. The 25 ITs are further divided into two subcategories; 6 are defined as "actionable" ITs (e.g., search and rescue) and the remaining 19 are "nonactionable" ones (e.g., reporting weather)<ref type="foot" coords="1,493.91,483.70,3.99,6.91" target="#foot_1">2</ref> . The second task is known as the priority estimation task. It requires participants to estimate the criticality of those tweets that have been classified into ITs. This criticality is represented by a numeric value from 0 to 1 indicating the least to the most importance.</p><p>Having participated in this track since 2019 (the second iteration of the IS track), our system has evolved based on the experience learnt from our prior participations in past TREC-IS editions<ref type="foot" coords="1,518.33,621.11,3.99,6.91" target="#foot_2">3</ref> . Unlike previous IS editions <ref type="bibr" coords="1,440.96,636.70,84.59,9.46;1,307.28,650.25,19.64,9.46" target="#b7">(McCreadie et al., 2019</ref><ref type="bibr" coords="1,336.60,650.25,23.48,9.46" target="#b8">(McCreadie et al., , 2020))</ref>, TREC-IS 2021 initiated an online leaderboard for participants 4 . It is noted that the leaderboard only reports the performance of par-ticipating runs in the 2021A Edition where the test set is partially annotated within events based on pooling by priority (the submitted test tweets are predicted by ITs and sorted by priority score within each event). In the 2021B Edition, the test set comprises the tweets of more annotated events and deeper pooling (new judgements). Hence, the 2021B Edition acted as an enhanced evaluation for the participating runs that had been submitted to the 2021A leaderboard. Given the timeliness of performance feedback from the leaderboard, we explored a wide range of approaches including a Naïve Bayes classifier using contextual sentence embeddings as the features, multi-task learning approaches with text augmentations, and an ensemble technique. We found our runs perform consistently well in both A and B editions and in particular our multi-task learning runs and ensemble runs perform the best in many metrics amongst all participating runs. However, the results did not show that text augmentations can bring overall improvements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Since the launch of TREC-IS, many works have been produced on the topic of crisis tweet classification and priority estimation (CTC-PE). <ref type="bibr" coords="2,265.09,430.68,25.18,9.46;2,72.00,444.23,55.69,9.46" target="#b17">Wang et al. (2019)</ref> applied Naïve Bayes, Support Vector Machine (SVM), Random Forest, and the ensemble of these models with hand-crafted features for CTC-PE. <ref type="bibr" coords="2,131.27,484.88,78.13,9.46" target="#b1">Choi et al. (2018)</ref> applied SVM and deep learning models which combine class activation mapping with one-shot learning in convolutional neural networks for CTC-PE. <ref type="bibr" coords="2,249.07,525.53,41.20,9.46;2,72.00,539.08,54.94,9.46" target="#b9">Miyazaki et al. (2019)</ref> applied a BiLSTM model for CTC-PE by incorporating the hierarchical structure of labels into the model. <ref type="bibr" coords="2,182.47,566.18,107.80,9.46" target="#b14">Wang and Lillis (2020)</ref> applied a BiLSTM model along with pre-trained ELMo embeddings and trainable embeddings as the input features for CTC-PE. <ref type="bibr" coords="2,206.17,606.82,84.10,9.46">Wang et al. (2021a)</ref> fine-tuned BERT <ref type="bibr" coords="2,150.24,620.37,89.87,9.46" target="#b2">(Devlin et al., 2019)</ref> in a multitask learning manner for CTC-PE while <ref type="bibr" coords="2,265.09,633.92,25.18,9.46;2,72.00,647.47,73.82,9.46" target="#b15">Wang and Lillis (2021)</ref> extended the multi-task learning approach to a sequence-to-sequence transformerbased model T5 <ref type="bibr" coords="2,150.69,674.57,89.78,9.46" target="#b10">(Raffel et al., 2020)</ref>. To alleviate the class imbalanced problem, SHARMA and BUNTAIN (2020) applied synonym replacements as well as crisis image labels to augment the original training data. Other techniques such as downsampling the training data or generating new examples via GPT-2 are also found in the lit-erature <ref type="bibr" coords="2,340.55,66.67,104.15,9.46" target="#b14">(Wang and Lillis, 2020;</ref><ref type="bibr" coords="2,447.69,66.67,77.86,9.46;2,307.28,80.21,62.86,9.46">Hepburn and Mc-Creadie, 2020)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods and Experiments</head><p>Table <ref type="table" coords="2,337.10,127.91,5.45,9.46" target="#tab_0">1</ref> summarises the runs we submitted to TREC-IS 2021. The major techniques used in the runs are described as follows.</p><p>ML run: In this run, we convert each tweet to a representation via pre-trained sentence embeddings (SBERT) models <ref type="bibr" coords="2,485.55,196.16,39.99,9.46;2,307.28,209.71,98.88,9.46" target="#b11">(Reimers and Gurevych, 2019)</ref>.</p><p>Having tested multiple combinations of the available publiclyavailable pre-trained variants of SBERT<ref type="foot" coords="2,499.79,234.76,3.99,6.91" target="#foot_4">5</ref> , we finally choose all-mpnet-base-v2 and paraphrase-xlm-r-multilingual-v1 to embed the tweets, where each tweet's representation is the concatenation of outputs of the two models. Similarly, in choosing the downstream classifier, we exhaustively searched over a list of candidates including SVC, logistic regression, decision tree and random forest. We finally used GaussianNB as the downstream classifier as it brought the best result on the development set. Here the classifier is only for IT prediction whereas the priority is simply mapped from the predicted ITs (An IT's mapped priority score is the average priority of all tweets belonging to this IT in the training set). In this approach, priority is assumed to be a function of the IT.</p><p>Multi-task and ensemble run. Similar to <ref type="bibr" coords="2,320.01,481.20,88.46,9.46">Wang et al. (2021a)</ref>, we train a single model for both the downstream IT classification and the priority estimation tasks in a multi-task learning manner. In simple terms, we fine-tuned a pretrained DeBERTa model <ref type="bibr" coords="2,419.60,535.40,73.84,9.46" target="#b3">(He et al., 2020)</ref> jointly on the two tasks through adding a multi-label classification head and a regression head on top of the model. The model is optimised on a linear combination of the cross entropy loss of classification and MSE regression loss. By doing so, the model is capable of making predictions on both tasks for the test tweets with only one input forward at inference time. Based on this idea, we train multiple individual models varying in model size and training data size. Ultimately the individual models consist of a finetuned deberta-base, deberta-base with Easy Data Augmentation (EDA) <ref type="bibr" coords="2,459.28,711.54,66.26,9.46;2,307.28,725.08,25.45,9.46" target="#b19">(Wei and Zou, 2019)</ref> and deberta-large. EDA is used in our system to augment the training data in order to ensure that every IT has at least 500 examples. We apply this augmentation since the original training data is heavily class-imbalanced. Moreover, we adopt the ensemble approach from <ref type="bibr" coords="3,241.12,120.86,49.15,9.46;3,72.00,134.41,33.93,9.46">Wang et al. (2021a)</ref> to leverage the predictions of individual models for IT classification and priority estimation. The ensemble approach is simple, using the union of predicted ITs by individual models as the final IT prediction and the highest priority among individual priority predictions as the final priority score for test tweets.</p><p>Ensemble run with post-processing. Among the pre-defined 25 ITs<ref type="foot" coords="3,172.96,241.68,3.99,6.91" target="#foot_5">6</ref> , there is an IT called "Irrelevant". The multi-label ITs predicted by the above ensemble approach can contain this class along with other ITs. However, a tweet that is classified as "Irrelevant" cannot also be labelled with other ITs. We thus adopt a post-processing step to handle this issue. For any tweet with this type of prediction, we compare the prediction probability for "Irrelevant" with the probabilities of other ITs. The tweet is assigned "Irrelevant" if its probability for "Irrelevant" is greater than all the individual probabilities of the other ITs. Otherwise it is predicted to be one of the other ITs. As a result, the tweet's priority score also becomes 0 if it is considered to be "Irrelevant".</p><p>Direct-Generation Augmentation (DGA) and Noise Label Annealing (NLA). Aside from EDA augmentation, described above, we also explored other augmentation techniques. Inspired by <ref type="bibr" coords="3,265.09,488.54,25.18,9.46;3,72.00,502.09,60.99,9.46">Wang et al. (2021b)</ref> who applied large pre-trained language models to generate training data without any human annotation and model training but though carefully-crafted prompts, we utilise a similar approach using a small number of examples as the prompt. We choose the pre-trained checkpoint gpt-neo-2.7B<ref type="foot" coords="3,154.50,581.33,3.99,6.91" target="#foot_6">7</ref> as the generation model and the prompt template is formulated as follows:</p><p>Tweet for help in disaster Title: {IT name} Content: {Tweet text}</p><p>The template constructs a stream of natural language, starting with a task description<ref type="foot" coords="3,241.55,689.32,3.99,6.91" target="#foot_7">8</ref> , followed by the title and content fields, which are replaced by the IT name and the tweet text respectively. This is something we refer to Direct-Generation Augmentation (DGA). In our DGA-based runs, we sampled two examples of non-target ITs from the training data to construct the prompt. To generate a new example for a target IT, we omit the textual part of the content so that the model learns from the prompt (two sampled non-target examples) to complete the content part of the target IT. Finally, we used DGA to augment the training data, thus ensuring that every IT has at least 1000 examples. One challenge associated with this kind of augmentation is that the generated texts are likely not to be label-aligned with the label it should be and these generated texts are deemed to be noisy or label-incompatible data that is harmful to the downstream task performance. We adopt a strategy called Noisy Label Annealing Regarding model training, we remove approximately 10% of the original training data to use as the development set. We fine-tune the multitask learning model with 10 epochs and select the best checkpoint based on the IT macro-F1 score on the development set. The model's parameters are tuned on batches (batch size = 16) of training data using Adam (Kingma and Ba, 2015) as the optimizer with a linear warm-up scheduler changing the learning rate from 0 to 5e -5 within the first 10% of total training steps and then linearly decays to 0. Apart from these, the rest of hyperparameters are set up the same as the default by the transformers library <ref type="bibr" coords="3,413.01,595.08,78.05,9.46" target="#b20">(Wolf et al., 2020)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results and Discussions</head><p>In order to measure a system's performance from different perspectives, the IS track defines multiple metrics. The metrics can be broadly divided into two categories: IT classification measurements and priority estimation measurements. They are described as follows:</p><p>• IT classification measurements: To measure the performance of ITs classification, liminary experiments evaluated on the development set.</p><p>Run names Description ucdcs-strans.nb ML run of using SBERT as the fixed features and GaussianNB as the downstream classifier ucdcs-run1</p><p>Multi-task run using deberta-base ucdcs-run2</p><p>Multi-task run using deberta-base with EDA augmentation ucdcs-run3</p><p>Multi-task run using deberta-large ucdcs-mtl.ens (run4) Ensemble run of run 1, 2 and 3 ucdcs-mtl.ens.new</p><p>Ensemble run with post processing ucdcs-mtl.fta</p><p>Multi-task run of deberta-base with direct-generation augmentation (DGA) ucdcs-mtl.fta.nla</p><p>Multi-task run of deberta-base with DGA plus noise label annealing (NLA) ucdcs-mtl.ens.fta</p><p>Ensemble run of run1, 3 and mtl.fta.nla   • Priority estimation measurements: There are five metrics related to the evaluation of priority estimation. Four of them are: Pri F1</p><formula xml:id="formula_0" coords="4,93.82,504.66,196.45,9.46">[A], Pri F1 [All], Pri R [A] and Pri R [All],</formula><p>referring to the F1 scores and recall scores of only actionable and all ITs classification respectively. Besides these, nDCG is a ranking metric included in this category to measure a run's average performance in ranking the top 100 test tweets per event by priority.</p><p>As TREC-IS 2021 has been run with two editions (A and B) that produce two sets of judgements, we report our runs' performance separately in the judgements of each edition as well as in the combined judgements of both editions, as presented in Tables <ref type="table" coords="4,144.75,674.57,16.36,9.46" target="#tab_3">2, 3</ref> and<ref type="table" coords="4,182.32,674.57,8.18,9.46" target="#tab_4">4.</ref> First in overview, most of our runs perform well consistently in both editions across the participating runs. When compared to the median and maximum of each metric, we find that our multi-task and ensemble runs in particular achieve strong performance, hitting the best scores in many cases. To examine the figures by task, we notice that some of our runs can perform well in one task while under-performing in the other. For example, the ML run achieves decent scores in IT classification but its scores for priority estimation are relatively poor. This is likely due to the simple mapping from IT predictions to priority estimation in that run. We expect the ML run to be improved upon by modelling not just the IT classification but also the priority estimation (a regression task).</p><p>In terms of our multi-task runs, we find that these runs tend to achieve strong scores in both tasks. This indicates that the joint learning on both tasks through fine-tuning pre-trained language models (DeBERTa in our case) can help achieve strong performance, which adds support to the results in <ref type="bibr" coords="4,380.90,606.82,91.44,9.46">(Wang et al., 2021a)</ref> in previous TREC-IS editions. Also unsurprisingly, the bigger fine-tuned model brings slightly-improved performance when comparing our run3 to our run1. Regarding our ensemble runs without augmentation, they outperform our other runs in almost every metric for both tasks as well as achieving highest scores in many metrics among the participating runs. It is noted the mtl.ens.new run with post-processing (to deal with the "Irrelevant" IT) further improves the performance in IT classification as compared to run4.   To check the effect of EDA augmentation when comparing run2 to run1, we see marginal improvements in priority estimation in 2021B (Table 3) but not in the other two tables. Hence, it is difficult to conclude whether the EDA augmentation adds benefit in this scenario. we also see similar results for our DGA-based runs (see our mtl.fta, mtl.fta.nla and mtl.ens.fta runs). This seems somewhat inconsistent with the previous study <ref type="bibr" coords="5,141.35,554.44,106.42,9.46" target="#b14">(Wang and Lillis, 2020)</ref>. We attribute these results to two possible reasons. First, the training data has grown from around 5,000 to 50,000 since then, so it is quite possible that the advantage of text augmentation in a low-data situation is more obvious. Second, since the downstream model used in our current runs is pretrained on big general text data, the new examples generated by text augmentation may be noisy as well as be redundant (the model learns general language features at pre-training and is likely to augment similar examples itself implicitly during fine-tuning). Hence, better approaches for denoising and diversifying the augmented examples are avenues of research that we seek to explore in the future.</p><formula xml:id="formula_1" coords="5,164.14,63.99,344.66,8.06">nDCG IT F1 [A] IT F1 [All] IT Acc. Pri F1 [A] Pri F1 [All] Pri R [A] Pri</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>In this paper, we report UCD-CS's participation at the TREC 2021 Incident Streams track (TREC-IS). We submitted multiple runs and our approaches included machine learning algorithms, multi-task learning techniques and ensemble approaches. Among these runs, we find in particular that our multi-task and ensemble runs achieve strong performance in both the information type classification and priority estimation tasks through two rounds of evaluation: TREC-IS 2021A and B editions. Although we explored some text augmentation approaches with the intent of boosting the performance, the results did not indicate consistent performance improvements and thus we seek better augmentation techniques in the future.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,307.28,324.10,218.27,9.46;3,307.28,337.65,218.27,9.46;3,307.28,351.20,218.27,9.46;3,307.28,364.75,218.27,9.46;3,307.28,378.30,218.27,9.46;3,307.28,391.85,218.27,9.46;3,307.28,405.40,94.23,9.46"><head></head><label></label><figDesc>(NLA) introduced in Wang et al. (2021b) to filter out noisy training signals as training progresses. The general idea is that we check the predictions of augmented training examples at the end of each epoch of downstream model training and remove an example if the model disagrees with its label with high confidence.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,93.82,388.26,196.45,9.46;4,93.82,401.81,196.45,9.46;4,93.82,415.36,196.45,9.46;4,93.82,428.91,196.45,9.46;4,93.82,442.46,113.99,9.46"><head></head><label></label><figDesc>three metrics are defined. They are IT F1 [A], IT F1 [All] and IT Acc., referring to the F1 score of only actionable ITs classification, the F1 score and the accuracy of all 25 ITs classification respectively.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,72.00,175.48,465.18,141.72"><head>Table 1 :</head><label>1</label><figDesc>Overview of UCD-CS runs at TREC-IS 2021. Details of the techniques in bold are elaborated in Section 3.</figDesc><table coords="4,77.98,198.69,459.21,118.51"><row><cell></cell><cell cols="8">nDCG IT F1 [A] IT F1 [All] IT Acc. Pri F1 [A] Pri F1 [All] Pri R [A] Pri R [All]</cell></row><row><cell>ucdcs-strans.nb</cell><cell cols="2">0.4297 0.2423</cell><cell>0.2695</cell><cell>0.8294</cell><cell>0.1998</cell><cell>0.1988</cell><cell>0.147</cell><cell>0.1514</cell></row><row><cell>ucdcs-run1</cell><cell cols="2">0.6115 0.215</cell><cell>0.2951</cell><cell>0.8837</cell><cell>0.3032</cell><cell>0.3068</cell><cell>0.2592</cell><cell>0.297</cell></row><row><cell>ucdcs-run2</cell><cell cols="2">0.5848 0.2215</cell><cell>0.2984</cell><cell>0.8835</cell><cell>0.25</cell><cell>0.2781</cell><cell>0.2305</cell><cell>0.2748</cell></row><row><cell>ucdcs-run3</cell><cell cols="2">0.6051 0.2391</cell><cell>0.31</cell><cell>0.8852</cell><cell>0.272</cell><cell>0.3066</cell><cell>0.3112</cell><cell>0.3325</cell></row><row><cell cols="3">ucdcs-mtl.ens (run4) 0.5907 0.2579</cell><cell>0.3211</cell><cell>0.8646</cell><cell>0.3052</cell><cell>0.3125</cell><cell>0.325</cell><cell>0.3416</cell></row><row><cell>ucdcs-mtl.ens.new</cell><cell cols="2">0.5951 0.2627</cell><cell>0.3205</cell><cell>0.8686</cell><cell>0.305</cell><cell>0.3211</cell><cell>0.2892</cell><cell>0.3089</cell></row><row><cell>ucdcs-mtl.fta</cell><cell>0.589</cell><cell>0.1986</cell><cell>0.2793</cell><cell>0.8902</cell><cell>0.2769</cell><cell>0.2807</cell><cell>0.2471</cell><cell>0.3001</cell></row><row><cell>ucdcs-mtl.fta.nla</cell><cell>0.529</cell><cell>0.2007</cell><cell>0.2751</cell><cell>0.8815</cell><cell>0.262</cell><cell>0.281</cell><cell>0.1721</cell><cell>0.2193</cell></row><row><cell>ucdcs-mtl.ens.fta</cell><cell cols="2">0.5755 0.1592</cell><cell>0.2597</cell><cell>0.8034</cell><cell>0.306</cell><cell>0.3141</cell><cell>0.2786</cell><cell>0.2855</cell></row><row><cell>med</cell><cell cols="2">0.5695 0.206</cell><cell>0.2823</cell><cell>0.8827</cell><cell>0.2113</cell><cell>0.2175</cell><cell>0.1728</cell><cell>0.2099</cell></row><row><cell>max</cell><cell cols="2">0.6115 0.2815</cell><cell>0.3211</cell><cell>0.8902</cell><cell>0.306</cell><cell>0.3211</cell><cell>0.4349</cell><cell>0.3585</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,72.00,330.49,453.55,32.55"><head>Table 2 :</head><label>2</label><figDesc>The performance of UCD-CS runs at TREC-IS 2021 based on results using only the judgments in 2021A Edition. The figures in bold indicate the best scores across all participating runs. The med and max rows present the median and maximum scores of each metric respectively across all participating runs.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,72.00,195.80,465.18,165.63"><head>Table 3 :</head><label>3</label><figDesc>The performance of UCD-CS runs at TREC-IS 2021 based on results using only the judgments in 2021B Edition. The figures in bold indicate the best scores across all participating runs. The med and max rows present the median and maximum scores of each metric respectively across all participating runs.</figDesc><table coords="5,77.98,242.92,459.21,118.51"><row><cell></cell><cell cols="8">nDCG IT F1 [A] IT F1 [All] IT Acc. Pri F1 [A] Pri F1 [All] Pri R [A] Pri R [All]</cell></row><row><cell>ucdcs-strans.nb</cell><cell cols="2">0.3368 0.2083</cell><cell>0.2575</cell><cell>0.8474</cell><cell>0.1959</cell><cell>0.1712</cell><cell>0.1096</cell><cell>0.1417</cell></row><row><cell>ucdcs-run1</cell><cell cols="2">0.4727 0.2433</cell><cell>0.2772</cell><cell>0.8926</cell><cell>0.2657</cell><cell>0.2632</cell><cell>0.259</cell><cell>0.2888</cell></row><row><cell>ucdcs-run2</cell><cell cols="2">0.4569 0.2326</cell><cell>0.2753</cell><cell>0.8911</cell><cell>0.2536</cell><cell>0.2524</cell><cell>0.1995</cell><cell>0.2686</cell></row><row><cell>ucdcs-run3</cell><cell cols="2">0.4707 0.2538</cell><cell>0.286</cell><cell>0.893</cell><cell>0.253</cell><cell>0.2694</cell><cell>0.2741</cell><cell>0.3053</cell></row><row><cell cols="3">ucdcs-mtl.ens (run4) 0.4617 0.267</cell><cell>0.2923</cell><cell>0.8685</cell><cell>0.2817</cell><cell>0.2623</cell><cell>0.2886</cell><cell>0.3182</cell></row><row><cell>ucdcs-mtl.ens.new</cell><cell cols="2">0.4643 0.2784</cell><cell>0.2946</cell><cell>0.8728</cell><cell>0.2864</cell><cell>0.2734</cell><cell>0.2748</cell><cell>0.2827</cell></row><row><cell>ucdcs-mtl.fta</cell><cell>0.463</cell><cell>0.2159</cell><cell>0.2647</cell><cell>0.9016</cell><cell>0.2497</cell><cell>0.2361</cell><cell>0.2779</cell><cell>0.2834</cell></row><row><cell>ucdcs-mtl.fta.nla</cell><cell cols="2">0.4193 0.1936</cell><cell>0.2488</cell><cell>0.8907</cell><cell>0.2727</cell><cell>0.2609</cell><cell>0.265</cell><cell>0.2339</cell></row><row><cell>ucdcs-mtl.ens.fta</cell><cell cols="2">0.4515 0.1131</cell><cell>0.217</cell><cell>0.8073</cell><cell>0.2852</cell><cell>0.2724</cell><cell>0.2479</cell><cell>0.2665</cell></row><row><cell>med</cell><cell cols="2">0.4381 0.2008</cell><cell>0.26</cell><cell>0.8911</cell><cell>0.2086</cell><cell>0.2044</cell><cell>0.2087</cell><cell>0.2431</cell></row><row><cell>max</cell><cell cols="2">0.4904 0.2784</cell><cell>0.2946</cell><cell>0.9016</cell><cell>0.2864</cell><cell>0.2734</cell><cell>0.3072</cell><cell>0.3182</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="5,72.00,374.73,453.55,32.55"><head>Table 4 :</head><label>4</label><figDesc>The performance of UCD-CS runs at TREC-IS 2021 based on results using the judgments in 2021A and 2021B Editions. The figures in bold indicate the best scores across all participating runs. The med and max rows present the median and maximum scores of each metric respectively across all participating runs.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,88.14,748.01,188.29,6.31;1,72.00,757.97,54.30,6.31"><p>https://github.com/wangcongcong123/ crisis-mtl</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,323.42,705.49,202.13,7.77;1,307.28,716.30,182.91,8.03"><p>For a full list of the ITs, see the official website at http: //dcs.gla.ac.uk/ ˜richardm/TREC_IS/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="1,323.42,726.33,202.13,7.77;1,307.28,736.29,218.27,7.77;1,307.28,746.25,45.82,7.77"><p>The IS track normally runs two editions every year and a new test set is annotated and added to the training set after each edition.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="1,323.42,757.97,134.50,6.31"><p>https://trecis.github.io/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="2,323.42,748.01,123.74,6.31;2,307.28,757.97,113.47,6.31"><p>https://huggingface.co/ sentence-transformers</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="3,88.14,716.38,193.67,8.03;3,72.00,726.34,16.14,6.31"><p>http://dcs.gla.ac.uk/ ˜richardm/TREC_ IS/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="3,88.14,737.13,182.91,6.31;3,72.00,747.10,65.55,6.31"><p>https://huggingface.co/EleutherAI/ gpt-neo-2.7B</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_7" coords="3,88.14,757.13,202.13,7.77"><p>The task description is carefully chosen based on our pre-</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,307.28,723.60,218.27,8.64;5,318.19,734.56,207.36,8.64;5,318.19,745.52,207.36,8.64;5,318.19,756.48,207.36,8.64;6,82.91,67.10,207.36,8.82;6,82.91,78.06,207.36,8.59;6,82.91,89.02,207.36,8.59;6,82.91,99.98,92.42,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,460.29,756.48,65.26,8.64;6,82.91,67.28,135.12,8.64">Classifying text messages for the haiti earthquake</title>
+		<author>
+			<persName coords=""><forename type="first">Cornelia</forename><surname>Caragea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nathan</forename><forename type="middle">J</forename><surname>Mcneese</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anuj</forename><forename type="middle">R</forename><surname>Jaiswal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Traylor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hyun-Woo</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Prasenjit</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dinghao</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrea</forename><forename type="middle">H</forename><surname>Tapia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C Lee</forename><surname>Giles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bernard</forename><forename type="middle">J</forename><surname>Jansen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,240.91,67.10,49.35,8.59;6,82.91,78.06,207.36,8.59;6,82.91,89.02,188.91,8.59">Proceedings of the 8th International Conference on Information Systems for Crisis Response and Management</title>
+		<meeting>the 8th International Conference on Information Systems for Crisis Response and Management</meeting>
+		<imprint>
+			<publisher>Citeseer</publisher>
+			<date type="published" when="2011">2011. 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,120.08,218.27,8.64;6,82.91,131.04,207.36,8.64" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,128.58,131.04,157.96,8.64">Cbnu at trec 2018 incident streams track</title>
+		<author>
+			<persName coords=""><forename type="first">Won-Gyu</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Seung-Hyeon</forename><surname>Jo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyung-Soon</forename><surname>Lee</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,150.97,218.27,8.64;6,82.91,161.93,207.36,8.64;6,82.91,172.89,207.36,8.64;6,82.91,183.67,207.36,8.82;6,82.91,194.62,207.36,8.59;6,82.91,205.58,207.36,8.59;6,82.91,216.54,207.36,8.59;6,82.91,227.68,207.36,8.64;6,82.91,238.64,145.02,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,198.47,161.93,91.80,8.64;6,82.91,172.89,207.36,8.64;6,82.91,183.84,32.23,8.64">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,139.69,183.67,150.58,8.59;6,82.91,194.62,207.36,8.59;6,82.91,205.58,207.36,8.59;6,82.91,216.54,50.27,8.59">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s" coord="6,189.20,216.54,92.79,8.59">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct coords="6,72.00,258.56,218.27,8.64;6,82.91,269.52,207.36,8.64;6,82.91,280.30,207.35,8.82;6,82.91,291.26,75.27,8.59" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Pengcheng</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Weizhu</forename><surname>Chen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2006.03654</idno>
+		<title level="m" coord="6,171.65,269.52,118.62,8.64;6,82.91,280.48,132.35,8.64">Deberta: Decoding-enhanced bert with disentangled attention</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,72.00,311.37,218.27,8.64;6,82.91,322.33,207.36,8.64;6,82.91,333.11,160.82,8.82" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,82.91,322.33,207.36,8.64;6,82.91,333.28,108.60,8.64">University of glasgow terrier team (uogtr) at the trec 2020 incident streams track</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Alexander</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Hepburn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Mccreadie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,198.83,333.11,22.66,8.59">Image</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,353.21,218.27,8.64;6,82.91,364.17,207.36,8.64;6,82.91,374.95,207.36,8.82;6,82.91,385.91,134.45,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,192.43,364.17,97.84,8.64;6,82.91,375.13,154.61,8.64">Processing social media messages in mass emergency: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">Muhammad</forename><surname>Imran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sarah</forename><surname>Vieweg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,245.17,374.95,45.10,8.59;6,82.91,385.91,90.30,8.59">ACM Computing Surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">67</biblScope>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,406.01,218.27,8.64;6,82.91,416.79,207.36,8.82;6,82.91,427.75,207.36,8.59;6,82.91,438.71,112.93,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,250.91,406.01,39.36,8.64;6,82.91,416.97,138.10,8.64">Adam: A method for stochastic optimization</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Diederik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Ba</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,240.91,416.79,49.35,8.59;6,82.91,427.75,207.36,8.59;6,82.91,438.71,62.18,8.59">Proceedings of the 3rd International Conference for Learning Representations</title>
+		<meeting>the 3rd International Conference for Learning Representations<address><addrLine>San Diego</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,458.81,218.27,8.64;6,82.91,469.77,207.36,8.64;6,82.91,480.55,207.36,8.82;6,82.91,491.51,207.36,8.82;6,82.91,502.65,83.29,8.64" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cody</forename><surname>Buntain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+		<title level="m" coord="6,136.43,469.77,153.84,8.64;6,82.91,480.55,207.36,8.82;6,82.91,491.51,177.73,8.59">TREC incident streams: Finding actionable information on social media. Proceedings of the International ISCRAM Conference</title>
+		<imprint>
+			<date type="published" when="2019-05">2019. 2019-May(May</date>
+			<biblScope unit="page" from="691" to="705" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,522.57,218.27,8.64;6,82.91,533.53,207.36,8.64;6,82.91,544.31,207.36,8.82;6,82.91,555.27,207.36,8.59;6,82.91,566.23,207.36,8.59;6,82.91,577.19,55.34,8.59" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,132.39,533.53,157.88,8.64;6,82.91,544.49,121.91,8.64">Incident Streams 2019: Actionable Insights and How to Find Them</title>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cody</forename><surname>Buntain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,229.45,544.31,60.81,8.59;6,82.91,555.27,207.36,8.59;6,82.91,566.23,188.91,8.59">Proceedings of the 17th International Conference on Information Systems for Crisis Response and Management</title>
+		<meeting>the 17th International Conference on Information Systems for Crisis Response and Management</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note>IS-CRAM 2020</note>
+</biblStruct>
+
+<biblStruct coords="6,72.00,597.29,218.27,8.64;6,82.91,608.25,207.36,8.64;6,82.91,619.21,207.36,8.64;6,82.91,629.99,207.36,8.82;6,82.91,640.95,207.36,8.59;6,82.91,651.91,207.36,8.59;6,82.91,662.87,207.36,8.82;6,82.91,674.01,47.32,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,219.43,608.25,70.84,8.64;6,82.91,619.21,207.36,8.64;6,82.91,630.17,35.48,8.64">Label embedding using hierarchical structure of labels for twitter classification</title>
+		<author>
+			<persName coords=""><forename type="first">Taro</forename><surname>Miyazaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kiminobu</forename><surname>Makino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuka</forename><surname>Takei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hiroki</forename><surname>Okamoto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Goto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,135.85,629.99,154.42,8.59;6,82.91,640.95,207.36,8.59;6,82.91,651.91,207.36,8.59;6,82.91,662.87,176.50,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="6318" to="6323" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,693.93,218.27,8.64;6,82.91,704.89,207.36,8.64;6,82.91,715.85,207.36,8.64;6,82.91,726.81,207.36,8.64;6,82.91,737.59,207.36,8.82;6,82.91,748.73,56.73,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,209.77,715.85,80.50,8.64;6,82.91,726.81,207.36,8.64;6,82.91,737.77,24.90,8.64">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,122.65,737.59,163.28,8.59">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">140</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,67.28,218.27,8.64;6,318.19,78.24,207.36,8.64;6,318.19,89.02,207.35,8.82;6,318.19,99.98,207.36,8.59;6,318.19,110.94,189.85,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,486.26,67.28,39.28,8.64;6,318.19,78.24,207.36,8.64;6,318.19,89.20,34.59,8.64">Sentencebert: Sentence embeddings using siamese bertnetworks</title>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,371.03,89.02,154.51,8.59;6,318.19,99.98,207.36,8.59;6,318.19,110.94,11.42,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,133.21,218.27,8.64;6,318.19,144.17,207.36,8.64;6,318.19,155.13,207.36,8.64;6,318.19,166.09,13.01,8.64" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="6,318.19,144.17,207.36,8.64;6,318.19,155.13,207.36,8.64;6,318.19,166.09,9.76,8.64">Improving classification of crisis-related social media content via text augmentation and image analysis</title>
+		<author>
+			<persName coords=""><forename type="first">Shivam</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cody</forename><surname>Buntain</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,188.01,218.27,8.82;6,318.19,198.97,207.36,8.59;6,318.19,209.93,207.36,8.82;6,318.19,221.06,165.92,8.64" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="6,437.06,188.01,88.49,8.59;6,318.19,198.97,207.36,8.59;6,318.19,209.93,170.98,8.59">Situational awareness in mass emergency: A behavioral and linguistic analysis of microblogged communications</title>
+		<author>
+			<persName coords=""><forename type="first">Elizabeth</forename><surname>Sarah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Vieweg</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Colorado at Boulder</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Ph.D. thesis</note>
+</biblStruct>
+
+<biblStruct coords="6,307.28,243.16,218.27,8.64;6,318.19,254.12,207.36,8.64;6,318.19,264.90,207.35,8.82;6,318.19,275.86,207.36,8.59;6,318.19,286.82,103.38,8.82" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,471.30,243.16,54.25,8.64;6,318.19,254.12,207.36,8.64;6,318.19,265.08,121.43,8.64">Classification for Crisis-Related Tweets Leveraging Word Embeddings and Data Augmentation</title>
+		<author>
+			<persName coords=""><forename type="first">Congcong</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Lillis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,464.53,264.90,61.01,8.59;6,318.19,275.86,207.36,8.59;6,318.19,286.82,21.44,8.59">Proceedings of the Twenty-Eighth Text REtrieval Conference (TREC 2019)</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference (TREC 2019)<address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,309.09,218.27,8.64;6,318.19,320.05,207.36,8.64;6,318.19,331.01,207.36,8.64;6,318.19,341.79,207.36,8.82;6,318.19,352.75,206.50,8.82" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,484.03,309.09,41.51,8.64;6,318.19,320.05,207.36,8.64;6,318.19,331.01,202.89,8.64">Multi-task transfer learning for finding actionable information from crisis-related messages on social media</title>
+		<author>
+			<persName coords=""><forename type="first">Congcong</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Lillis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,330.22,341.79,195.33,8.59;6,318.19,352.75,99.66,8.59">Proceedings of the Twenty-Ninth Text REtreival Conference (TREC 2020)</title>
+		<meeting>the Twenty-Ninth Text REtreival Conference (TREC 2020)<address><addrLine>Gaithersburg, MD, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,375.02,218.27,8.64;6,318.19,385.98,207.36,8.64;6,318.19,396.76,207.36,8.82;6,318.19,407.72,183.08,8.82" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,498.71,375.02,26.84,8.64;6,318.19,385.98,207.36,8.64;6,318.19,396.94,84.03,8.64">2021a. Transformer-based Multi-task Learning for Disaster Tweet Categorisation</title>
+		<author>
+			<persName coords=""><forename type="first">Congcong</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Nulty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Lillis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,413.09,396.76,112.46,8.59;6,318.19,407.72,107.33,8.59">Proceedings of the International ISCRAM Conference</title>
+		<meeting>the International ISCRAM Conference</meeting>
+		<imprint>
+			<date type="published" when="2021-05">2021-May(May</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,429.99,218.27,8.64;6,318.19,440.95,207.36,8.64;6,318.19,451.73,207.36,8.82;6,318.19,462.69,207.36,8.59;6,318.19,473.65,103.38,8.82" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,415.75,440.95,109.80,8.64;6,318.19,451.91,119.10,8.64">CMU-Informedia at TREC 2019 Incident Streams Track</title>
+		<author>
+			<persName coords=""><forename type="first">Junpei</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xinyu</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Po-Yao</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><surname>Hauptmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,464.01,451.73,61.53,8.59;6,318.19,462.69,207.36,8.59;6,318.19,473.65,21.44,8.59">Proceedings of the Twenty-Eighth Text REtrieval Conference (TREC 2019)</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference (TREC 2019)<address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,495.93,218.27,8.64;6,318.19,506.89,207.36,8.64;6,318.19,517.67,134.67,8.59" xml:id="b18">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Zirui</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adams</forename><forename type="middle">Wei</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Orhan</forename><surname>Firat</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuan</forename><surname>Cao</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2109.09193</idno>
+		<title level="m" coord="6,372.08,506.89,149.56,8.64">Towards zero-label language learning</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,307.28,539.94,218.27,8.64;6,318.19,550.90,207.36,8.64;6,318.19,561.68,207.36,8.82;6,318.19,572.64,207.36,8.59;6,318.19,583.60,207.36,8.59;6,318.19,594.56,207.36,8.59;6,318.19,605.51,113.45,8.82" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="6,429.27,539.94,96.28,8.64;6,318.19,550.90,207.36,8.64;6,318.19,561.86,72.68,8.64">Eda: Easy data augmentation techniques for boosting performance on text classification tasks</title>
+		<author>
+			<persName coords=""><forename type="first">Jason</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Zou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,408.54,561.68,117.01,8.59;6,318.19,572.64,207.36,8.59;6,318.19,583.60,207.36,8.59;6,318.19,594.56,207.36,8.59;6,318.19,605.51,33.66,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="6382" to="6388" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,307.28,627.79,218.27,8.64;6,318.19,638.75,207.36,8.64;6,318.19,649.71,207.36,8.64;6,318.19,660.67,207.36,8.64;6,318.19,671.63,207.36,8.64;6,318.19,682.58,207.36,8.64;6,318.19,693.54,207.36,8.64;6,318.19,704.50,207.36,8.64;6,318.19,715.28,207.36,8.82;6,318.19,726.24,207.36,8.59;6,318.19,737.20,207.36,8.82;6,318.19,748.34,161.06,8.64" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="6,499.89,693.54,25.65,8.64;6,318.19,704.50,207.36,8.64;6,318.19,715.46,11.42,8.64">Transformers: State-of-the-art natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lysandre</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Clement</forename><surname>Delangue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anthony</forename><surname>Moi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pierric</forename><surname>Cistac</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Rault</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Remi</forename><surname>Louf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Morgan</forename><surname>Funtowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joe</forename><surname>Davison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sam</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Clara</forename><surname>Patrick Von Platen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yacine</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Julien</forename><surname>Jernite</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Canwen</forename><surname>Plu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Teven</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sylvain</forename><surname>Le Scao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mariama</forename><surname>Gugger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quentin</forename><surname>Drame</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><surname>Lhoest</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Rush</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-demos.6</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,348.40,715.28,177.14,8.59;6,318.19,726.24,207.36,8.59;6,318.19,737.20,93.05,8.59">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="38" to="45" />
+		</imprint>
+	</monogr>
+	<note>Online. Association for Computational Linguistics</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

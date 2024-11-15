@@ -1,0 +1,556 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,363.76,15.42;1,89.29,107.08,205.10,11.96">Leveraging MiniLMv2 Pipelines for EXIST2023 Notebook for the EXIST Lab at CLEF 2023</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,88.87,132.98,95.77,11.96"><forename type="first">Alexandru</forename><surname>Petrescu</surname></persName>
+							<email>alex.petrescu@upb.ro</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Politehnica University of Bucharest</orgName>
+								<address>
+									<addrLine>Splaiul Independent, ei 313</addrLine>
+									<postCode>ti, 060042</postCode>
+									<settlement>Bucures</settlement>
+									<country key="RO">Romania</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,363.76,15.42;1,89.29,107.08,205.10,11.96">Leveraging MiniLMv2 Pipelines for EXIST2023 Notebook for the EXIST Lab at CLEF 2023</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">A286440038E02AE384B4FD5A3C1331F6</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:38+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>NLP</term>
+					<term>MiniLMv2</term>
+					<term>Transformers</term>
+					<term>Text Classification</term>
+					<term>Learning with disagreements</term>
+					<term>Sexism detection</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper introduces our methodology for addressing the three EXIST2023 tasks focused on Sexism Identification in Social Networks. Our proposed solution leverages advanced multi-lingual transformers, specifically XLMR and MiniLMV2, which serve as state-of-the-art frameworks for handling the provided data. Additionally, we employ a data-processing pipeline and task-specific metrics to fine-tune the pre-trained model. The evaluation of our solution demonstrates promising outcomes on the testing set and attains a commendable overall ranking within the competition, particularly excelling in the Soft-Soft evaluation. Our proposed architecture successfully tackles all tasks with favorable outcomes, while also offering opportunities for further enhancements. While the Hard evaluation could benefit from improvements, it is worth noting that our models exhibited signs of overfitting when trained on the available data. In light of this, we made the decision to provide them with more flexibility in the classification process. This approach allowed for increased adaptability and potentially better generalization when handling unseen data instances.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The following document serves as the working notes for our submission to EXIST 2023, described in <ref type="bibr" coords="1,99.91,434.97,12.68,10.91" target="#b0">[1]</ref> and, representing the efforts of the AlexPUPB team. EXIST is a renowned series of scientific events and shared tasks focused on the identification of sexism in social networks. The objective of EXIST is to encompass sexism in its entirety, ranging from overt misogyny to more subtle manifestations involving implicit sexist behaviors.</p><p>For this particular event, we tackled three interrelated tasks:</p><p>• TASK 1: Sexism Identification -This task involved a binary classification approach.</p><p>• TASK 2: Source Intention -We employed a multi-class (4) classification technique to discern the intentions behind the identified sexism. • TASK 3: Sexism Categorization -To achieve a comprehensive understanding, we employed a multi-label classification strategy for categorizing sexism.</p><p>While addressing each task, we leveraged a state-of-the-art pipeline that utilizes transformers. This pipeline demonstrates adaptability, allowing us to tailor our approach to the specific requirements of each task, including the generation of labels and the choice of evaluation metrics.</p><p>Transformers have emerged as the leading methodology for text-related operations, particularly in the realm of classification. We take advantage of the remarkable capabilities of transformers, making use of industry-trained models facilitated by the Hugging Face platform. Furthermore, we fine-tune these models to optimize their performance for our particular task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>In the current literature, many solutions have been proposed for detecting harmful content. Some solutions focus on how embeddings affect the classification results <ref type="bibr" coords="2,404.65,253.99,11.23,10.91" target="#b1">[2,</ref><ref type="bibr" coords="2,418.16,253.99,7.42,10.91" target="#b2">3,</ref><ref type="bibr" coords="2,427.87,253.99,7.49,10.91" target="#b3">4]</ref>, others propose new stacked deep neural networks <ref type="bibr" coords="2,243.56,267.54,12.69,10.91" target="#b4">[5]</ref> or transformer-based ensemble models <ref type="bibr" coords="2,431.48,267.54,11.28,10.91" target="#b5">[6]</ref>. Furthermore, there are methods that also methods that consider network-dependent information <ref type="bibr" coords="2,451.58,281.08,11.27,10.91" target="#b6">[7]</ref>. Another research direction deals with network immunization <ref type="bibr" coords="2,318.90,294.63,11.24,10.91" target="#b7">[8,</ref><ref type="bibr" coords="2,332.47,294.63,7.42,10.91" target="#b8">9,</ref><ref type="bibr" coords="2,342.23,294.63,12.23,10.91" target="#b9">10]</ref>. These methods consider different information diffusion strategies <ref type="bibr" coords="2,228.63,308.18,16.30,10.91" target="#b10">[11,</ref><ref type="bibr" coords="2,247.25,308.18,12.50,10.91" target="#b11">12,</ref><ref type="bibr" coords="2,262.06,308.18,13.95,10.91" target="#b12">13]</ref> to identify harmful nodes and stop the spread within the social network of harmful content.</p><p>Sexism, a type of harmful content, is the act of discriminating against another person based on their gender. For the task of EXIST2023 we will be leveraging social-media data and tackling it in 3 NLP-oriented tasks, namely classification tasks. With previous experience and promising results using transformers <ref type="bibr" coords="2,206.44,375.93,17.76,10.91" target="#b12">[13]</ref> and confirmed in EXIST2021 by <ref type="bibr" coords="2,368.09,375.93,16.08,10.91" target="#b13">[14]</ref>, we plan using a more-task optimized transformer, to tackle the multi-lingual problem, namely XLM-RoBERTa <ref type="bibr" coords="2,456.01,389.48,16.15,10.91" target="#b14">[15]</ref>. While classical ML models offer good results, as shown in <ref type="bibr" coords="2,314.95,403.03,17.76,10.91" target="#b15">[16]</ref> or <ref type="bibr" coords="2,347.44,403.03,17.76,10.91" target="#b13">[14]</ref> where the authors obtain better results with them on the test set, transformers manage to obtain a better representation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Experiments</head><p>XLM-RoBERTa <ref type="bibr" coords="2,160.60,475.20,18.07,10.91" target="#b14">[15]</ref> is a pre-trained transformer model that leverages 2.5TB of filtered Com-monCrawl data containing 100 languages and is the baseline for our experiments. After experimenting with it and using multiple metrics we have decided to use a more powerful model, MiniLMv2 <ref type="bibr" coords="2,130.44,515.85,20.57,10.91" target="#b16">[17]</ref>, which offers a boosted performance at a smaller size. This multilingual model can perform natural language inference (NLI) on 100+ languages and is therefore also suitable for multilingual zero-shot classification.</p><p>The final pipeline for the task uses MiniLMv2 with distinct data-processing modules and metric functions. The choosing of the best parameters is done manually, at this stage, because the fine-tuning process uses all the training data, without splits, and the model overfits after too many epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Metrics used by the Event</head><p>As mentioned on the official site, the metrics used in the competition, for which the engine will be optimized, are:</p><formula xml:id="formula_0" coords="3,107.28,86.97,90.44,99.26">• ICM-Hard • ICM-Hard Norm • F1 • Cross Entropy • Majority class • Minority class • Oracle most voted</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Experimental Setup</head><p>After experimenting with XLM-Roberta we have decided to move on to MiniLMv2 as the results for 3 epochs with the best setups in both cases can be seen in table ??, as in therms of performance XLM-Roberta can achieve 1 epoch in 35 minutes, while MiniLMv2 can in 1.5 minutes Our proposed solution, as can be seen in the following figure, uses the same model, MiniLMv2, for all tasks the 2 components that are changed are:  In what follows we will describe these modules for each task and if there is any particular setup used for the fine-tuning, other than the recommended one for Hugging Face Pipelines. While the dataset contains much meta-data information regarding the annotators, that information was not used in the current form of the solution and a point of future improvement for this will be considering the labels weighed task-specific.</p><p>For all the tasks the following hyper-parameters have been used:</p><p>• 𝑙𝑒𝑎𝑟𝑛𝑖𝑛𝑔_𝑟𝑎𝑡𝑒 = 2𝑒 -5</p><p>• 𝑝𝑒𝑟_𝑑𝑒𝑣𝑖𝑐𝑒_𝑡𝑟𝑎𝑖𝑛_𝑏𝑎𝑡𝑐ℎ_𝑠𝑖𝑧𝑒 = 32</p><p>• 𝑝𝑒𝑟_𝑑𝑒𝑣𝑖𝑐𝑒_𝑒𝑣𝑎𝑙_𝑏𝑎𝑡𝑐ℎ_𝑠𝑖𝑧𝑒 = 32</p><p>• 𝑤𝑒𝑖𝑔ℎ𝑡_𝑑𝑒𝑐𝑎𝑦 = 0.01</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1.">Task 1</head><p>The first task is a binary classification. The systems has to decide whether or not a given tweet contains sexist expressions or behaviours and the metric used for the evaluation is F1. For picking the label, we are using the majoritarian label, equally weighting all the annotations. For this task we have noticed that the model overfits hard resulting in a more categorical class probability (the classes either 100% probability or 0% probability, nothing in between), so we have decided to allow it to train only for 10 epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2.">Task 2</head><p>Source Intention: Once a message has been classified as sexist, the second task aims to categorize the message according to the intention of the author, which provides insights in the role played by social networks on the emission and dissemination of sexist messages. For this task we are using a new model over the samples labeled as sexist by the classifier for Task 1.</p><p>We are using the same idea for obtaining the label, equal weight for all annotations, but this time F1 is weighted. This time we have managed to get 20 epochs without overfitting.</p><p>For this task we could have gone further with the training but we have noticed that some classes started to lose all their probability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3.">Task 3</head><p>The third task was a multi-label classification for each tweet labeled as sexist, by task1. For this part both modules are a bit mode complicated.</p><p>For obtaining the label the text module computes the probability of each label regarding the number of annotators, with the same weight for each of the once more. This time we will predict the probability of each label.</p><p>For the metric we are using Mean Squared Error compared to the ground-truth probabilities trying to minimize the error. This resulted in us being able to run for about 20 epochs without major classes overfitting.</p><p>We have tried to use the pipeline-specific F1, but we have encountered issue with the current version of it, so we have decided to implement the metric ourselved. After a few experiments we have migrated to MSE as it behaves better.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Results</head><p>We have compiled the resuts in table 2 with the previous mentions, Tasks 1 and 2 use F1 as metric and Task 3 uses accuracy. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusions and Results</head><p>The outcomes of our approach can be observed in Table <ref type="table" coords="5,334.53,273.24,4.97,10.91" target="#tab_2">3</ref> of the official leaderboard. For a more comprehensive analysis, please refer to the Results Chapter available on the official site. As anticipated, our transformer models demonstrated favorable performance, as reflected in the achieved results. Notably, our models excelled in the Hard-Hard evaluation and outperformed others in the Soft-Soft evaluation. This discrepancy can be attributed to the relatively higher freedom allowed to certain scenarios, leading to an increased probability assigned by our model. Task 3 yielded the highest ranking; however, it is important to note that this result is contingent upon only labeling tweets identified as sexist by the Task 1 model, indicating room for improvement in subsequent steps. Furthermore, it is necessary to adopt a different evaluation method now that the test dataset is provided. In the initial setup, we utilized the entire dataset for training purposes to maximize the model's specialization. However, this approach yielded unfavorable training evaluations and introduced ambiguity in the model evaluation process. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Further Improvements</head><p>As mentioned before, the model used for task 1 will be the key point in improving the other tasks. On top of that, we consider using transfer-learning techniques in order to further improve the task 1 model and to use it in the following tasks.</p><p>Another thing that can be done is to use the meta-data for the annotators to weigh each label considering that this is a sexist task.</p><p>One more direction to look at is using a different model, specialized for the 2 languages that the tweets were in. Additionally, we can leverage ensembles as they usually provide better results than just the models in their components.</p><p>One final thing that could improve is using a more specific type of transformer, one that uses tweet data, such as BERTweet <ref type="bibr" coords="6,217.09,233.22,20.47,10.91" target="#b17">[18]</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,103.64,405.62,402.35,10.91;3,116.24,419.17,75.90,10.91;3,103.64,433.89,271.74,10.91"><head></head><label></label><figDesc>1. A Text Processing Module: for each task this results in a list of pairs of: Text, Tokenized Text and Label(s) 2. The evaluation function for which the model will improve</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,89.29,613.05,164.46,8.93;3,90.88,462.88,411.02,137.61"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Generic Solution Architecture</figDesc><graphic coords="3,90.88,462.88,411.02,137.61" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,88.99,291.94,327.48,61.67"><head>Table 1</head><label>1</label><figDesc>MiniLM and xlm-roberta after 3 epochs with best parameters</figDesc><table coords="3,178.80,319.98,237.68,33.63"><row><cell></cell><cell cols="3">Train Loss Test Loss Test F1</cell></row><row><cell cols="2">MiniLM-L12-H384 0.4417</cell><cell>0.5266</cell><cell>0.7538</cell></row><row><cell>xlm-roberta-base</cell><cell>0.5234</cell><cell>0.5565</cell><cell>0.7475</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,88.99,150.03,296.28,61.67"><head>Table 2</head><label>2</label><figDesc>Model Stats at the End of Training</figDesc><table coords="5,210.01,178.07,175.26,33.63"><row><cell></cell><cell cols="3">Task 1 Task 2 Task 3</cell></row><row><cell>Loss</cell><cell>0.1508</cell><cell>0.4756</cell><cell>0.3814</cell></row><row><cell cols="2">Best Metric 0.9539</cell><cell>0.7027</cell><cell>47.9045</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,88.99,464.83,263.25,148.14"><head>Table 3</head><label>3</label><figDesc>Ranking in EXIST2023 competition</figDesc><table coords="5,243.03,492.87,109.21,120.10"><row><cell>Task</cell><cell>Rank</cell></row><row><cell>Task 1 Soft-Soft</cell><cell>25</cell></row><row><cell cols="2">Task 1 Hard-Hard 40</cell></row><row><cell>Task 1 Hard-Soft</cell><cell>41</cell></row><row><cell>Task 2 Soft-Soft</cell><cell>11</cell></row><row><cell cols="2">Task 2 Hard-Hard 22</cell></row><row><cell>Task 2 Hard-Soft</cell><cell>27</cell></row><row><cell>Task 3 Soft-Soft</cell><cell>5</cell></row><row><cell cols="2">Task 3 Hard-Hard 12</cell></row><row><cell>Task 3 Hard-Soft</cell><cell>9</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="6.">Acknowledgements</head><p>I want to thank <rs type="person">Ciprian-Octavian Truică</rs>, <rs type="person">𝑐𝑖𝑝𝑟𝑖𝑎𝑛.𝑡𝑟𝑢𝑖𝑐𝑎</rs>@𝑢𝑝𝑏.𝑟𝑜, and <rs type="person">Elena-Simona Apostol</rs>, 𝑒𝑙𝑒𝑛𝑎.𝑎𝑝𝑜𝑠𝑡𝑜𝑙@𝑢𝑝𝑏.𝑟𝑜, for previous guidance and help with cosmetic changes in my documents.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,112.66,364.02,394.53,10.91;6,112.66,377.57,393.33,10.91;6,112.66,391.12,317.31,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,377.57,295.55,10.91">Overview of exist 2023: sexism identification in social networks</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Plaza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Carrillo-De Albornoz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Morante</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gonzalo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Amigó</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Spina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-031-28241-6_68</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,437.99,377.57,68.00,10.91;6,112.66,391.12,33.46,10.91">Proceedings of ECIR&apos;23</title>
+		<meeting>ECIR&apos;23</meeting>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+			<biblScope unit="page" from="593" to="599" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,404.67,394.61,10.91;6,112.28,418.22,393.71,10.91;6,112.33,431.77,280.68,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,322.94,404.67,184.33,10.91;6,112.28,418.22,321.05,10.91">Context-Aware Misinformation Detection: A Benchmark of Deep Learning Architectures Using Word Embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">V.-I</forename><surname>Ilie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paschke</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/access.2021.3132502</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,442.63,418.22,55.43,10.91">IEEE Access</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="162122" to="162146" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,445.32,393.33,10.91;6,112.66,458.87,393.33,10.91;6,112.66,472.42,247.76,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,282.62,445.32,223.37,10.91;6,112.66,458.87,177.85,10.91">Awakened at CheckThat! 2022: fake news detection using BiLSTM and sentence transformer</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paschke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,313.72,458.87,192.26,10.91;6,112.66,472.42,159.61,10.91">Working Notes of the Conference and Labs of the Evaluation Forum (CLEF2022)</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="749" to="757" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,485.97,393.33,10.91;6,112.66,499.52,370.71,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,247.56,485.97,258.43,10.91;6,112.66,499.52,101.22,10.91">It&apos;s All in the Embedding! Fake News Detection Using Document Embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/math11030508</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,223.00,499.52,57.26,10.91">Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page">508</biblScope>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,513.06,393.33,10.91;6,112.66,526.61,394.53,10.91;6,112.28,540.16,369.96,10.91" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="6,295.37,513.06,210.62,10.91;6,112.66,526.61,389.79,10.91">ContCommRTD: A Distributed Content-based Misinformation-aware Community Detection System for Real-Time Disaster Reporting</title>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paschke</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2301.12984" />
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,112.66,553.71,395.17,10.91;6,112.66,567.26,259.73,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,236.65,553.71,230.20,10.91">MisRoBAERTa: Transformers versus Misinformation</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/math10040569</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,475.59,553.71,32.24,10.91;6,112.66,567.26,28.93,10.91">Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">569</biblScope>
+			<biblScope unit="page" from="1" to="25" />
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,580.81,393.33,10.91;6,112.66,594.36,394.61,10.91;6,112.66,607.91,244.15,10.91" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="6,272.89,580.81,233.09,10.91;6,112.66,594.36,262.19,10.91">DANES: Deep Neural Network Ensemble Architecture for Social and Textual Context-aware Fake News Detection</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Karras</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2302.01756" />
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note>ArXiv perprint</note>
+</biblStruct>
+
+<biblStruct coords="6,112.66,621.46,395.17,10.91;6,112.66,635.01,393.33,10.91;6,112.66,648.56,395.01,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,328.60,621.46,179.22,10.91;6,112.66,635.01,100.79,10.91">Sparse Shield: Social Network Immunization vs. Harmful Speech</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Petrescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Karras</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3459637.3482481</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,235.05,635.01,270.94,10.91;6,112.66,648.56,110.71,10.91">ACM International Conference on Information and Knowledge Management (CIKM2021)</title>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="1426" to="1436" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,86.97,393.53,10.91;7,112.66,100.52,395.01,10.91;7,112.66,116.51,97.35,7.90" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="7,290.41,86.97,215.78,10.91;7,112.66,100.52,104.63,10.91">CONTAIN: A Community-based Algorithm for Network Immunization</title>
+		<author>
+			<persName coords=""><forename type="first">Ö</forename><surname>Coban</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2303.01934" />
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,112.66,127.61,393.33,10.91;7,112.14,141.16,393.85,10.91;7,112.66,154.71,395.01,10.91" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="7,373.91,127.61,132.08,10.91;7,112.14,141.16,393.85,10.91;7,112.66,154.71,24.47,10.91">MCWDST: a Minimum-Cost Weighted Directed Spanning Tree Algorithm for Real-Time Fake News Mitigation in Social Media</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R.-C</forename><surname>Nicolescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Karras</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2302.12190" />
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">ArXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,112.66,168.26,394.61,10.91;7,112.66,181.81,393.33,10.91;7,112.66,195.36,392.30,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,289.88,168.26,197.17,10.91">Sentiment Analysis of Events in Social Media</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Petrescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/iccp48234.2019.8959677</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,136.15,181.81,369.84,10.91;7,112.66,195.36,78.10,10.91">IEEE 15th International Conference on Intelligent Computer Communication and Processing (ICCP)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+			<biblScope unit="page" from="143" to="149" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,208.91,135.28,10.91;7,244.63,214.06,1.32,5.98;7,247.94,208.91,258.05,10.91;7,112.66,222.46,393.33,10.91;7,112.66,236.01,397.48,10.91;7,112.66,252.00,43.94,7.90" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,315.10,208.91,190.89,10.91;7,112.66,222.46,232.01,10.91">A Deep Learning Architecture for Audience Interest Prediction of News Topic on Social Media</title>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Karras</surname></persName>
+		</author>
+		<idno type="DOI">10.5441/002/EDBT.2021.69</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,375.29,222.46,130.70,10.91;7,112.66,236.01,192.25,10.91">International Conference on Extending Database Technology (EDBT2021)</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="588" to="599" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,263.11,393.32,10.91;7,112.66,276.66,318.94,10.91" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Petrescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-O</forename><surname>Truică</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-S</forename><surname>Apostol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Paschke</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2301.12805</idno>
+		<title level="m" coord="7,343.00,263.11,162.98,10.91;7,112.66,276.66,188.93,10.91">EDSA-Ensemble: an Event Detection Sentiment Analysis Ensemble Architecture</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,290.20,393.33,10.91;7,112.66,303.75,293.66,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,319.76,290.20,186.23,10.91;7,112.66,303.75,102.18,10.91">Sexism identification using bert and data augmentation-exist2021</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Butt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ashraf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sidorov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">F</forename><surname>Gelbukh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,242.68,303.75,74.83,10.91">IberLEF@ SEPLN</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="381" to="389" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,317.30,394.53,10.91;7,112.66,330.85,178.78,10.91;7,307.62,330.85,198.37,10.91;7,112.66,344.40,395.01,10.91;7,112.66,360.39,97.35,7.90" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="7,307.62,330.85,198.37,10.91;7,112.66,344.40,75.38,10.91">Unsupervised cross-lingual representation learning at scale</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Conneau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Khandelwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Chaudhary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wenzek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guzmán</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1911.02116" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,371.50,393.33,10.91;7,112.66,385.05,355.17,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="7,334.43,371.50,171.56,10.91;7,112.66,385.05,143.30,10.91">Multi-label emotion classification using content-based features in twitter</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ameer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ashraf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sidorov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">Gómez</forename><surname>Adorno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,263.90,385.05,109.84,10.91">Computación y Sistemas</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="1159" to="1164" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,398.60,393.33,10.91;7,112.66,412.15,386.09,10.91" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Bao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2002.10957</idno>
+		<title level="m" coord="7,337.13,398.60,168.86,10.91;7,112.66,412.15,256.00,10.91">Minilm: Deep self-attention distillation for task-agnostic compression of pre-trained transformers</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,425.70,393.33,10.91;7,112.66,439.25,156.94,10.91" xml:id="b17">
+	<monogr>
+		<title level="m" type="main" coord="7,272.69,425.70,233.29,10.91;7,112.66,439.25,26.95,10.91">Bertweet: A pre-trained language model for english tweets</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">Q</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Vu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">T</forename><surname>Nguyen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2005.10200</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

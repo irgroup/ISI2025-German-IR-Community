@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,170.13,115.96,275.09,12.62;1,220.90,133.89,173.54,12.62">kdevqa at VQA-Med 2020: focusing on GLU-based classification</title>
+				<funder ref="#_Zr9DhsW">
+					<orgName type="full">unknown</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,233.30,171.90,59.77,8.74"><forename type="first">Hideo</forename><surname>Umada</surname></persName>
+							<email>1.umada@kde.cs.tut.ac.jp2.aono@tut.jp</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science and Engineering</orgName>
+								<orgName type="institution">Toyohashi University of Technology</orgName>
+								<address>
+									<settlement>Aichi</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,320.24,171.90,57.34,8.74"><forename type="first">Masaki</forename><surname>Aono</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science and Engineering</orgName>
+								<orgName type="institution">Toyohashi University of Technology</orgName>
+								<address>
+									<settlement>Aichi</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,170.13,115.96,275.09,12.62;1,220.90,133.89,173.54,12.62">kdevqa at VQA-Med 2020: focusing on GLU-based classification</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A7B4E9DDFB19FAFB8B4E58C1F3180066</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:05+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>VQA-Med</term>
+					<term>Visual Question Answering</term>
+					<term>Classification</term>
+					<term>Inpainting</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Interpretation of medical images is a challenging research problem with increasing interest in medical applications of artificial intelligence. In particular, the ImageCLEF2020 visual question answering (VQA) task is expected to have applications such as a second opinion. The purpose of this research is to find an effective VQA-Med system method. We propose neural networks using the Gated Linear Unit for effective fusion of image and question features. Before training, we perform pre-processes and conduct pre-training. We apply so called "inpainting" to remove a logo or text embedded in images so that we attempt to extract image features with less noise. And we use the VQA-Med2019 dataset to train some of the weights of the proposed model. We consider the VQA task as a 332-dimensional classification task. The score of our proposed model turns out to be 0.314 in Accuracy and 0.350 in Bleu in VQA-Med2020 task.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>With increasing interest in artificial intelligence to support clinical decisionmaking and to improve patient engagement, the application to automated medical image interpretation is currently getting much popularity. In particular, it is expected that the second opinion provided by the automated system will enhance the judgment of clinicians.</p><p>Visual Question-Answering (VQA) is the task to generate a plausible answer presented with an image-question pairs such as left of Fig. <ref type="figure" coords="1,393.31,577.83,3.87,8.74" target="#fig_0">1</ref>. The task requires expertise in both natural language processing (NLP) and computer vision (CV) so that researchers have been attempting to solve the problem from various standpoints with Deep Neural Networks (DNN).</p><p>In this paper, we describe our approach to ImageCLEF2020 <ref type="bibr" coords="2,415.52,118.99,10.52,8.74" target="#b0">[1]</ref> visual question answering (VQA) task <ref type="bibr" coords="2,253.88,130.95,10.52,8.74" target="#b1">[2]</ref> in medical domain at VQA such as right of Fig. <ref type="figure" coords="2,472.84,130.95,3.87,8.74" target="#fig_0">1</ref>. The nature of medical images are quite different from general images such as Imagenet <ref type="bibr" coords="2,166.30,154.86,10.52,8.74" target="#b2">[3]</ref> in many aspects. The knowledge on medical vocabulary seems to the must to better understand both the questions and answers written in medical terminologies.</p><p>In the following, we first describe related work on VQA task and VQA-Med task in Section 2, followed by the description of the dataset provided for VQA-Med2020 dataset in Section 3. In Section 4, we describe details of the method we propose, and then of our experiments we have conducted in Section 5. We finally conclude this paper in Section 6. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Convolution Neural Networks (CNNs) for image recognition, such as VGG and ResNet, has been used extensively. Similarly, multiple Transformers for sentence comprehension, such as BERT, has been getting popular recently. Accordingly, feature extraction from pretrained neural network models, transfer learning and fine tuning with the pretrained models have been actively investigated. Visual Question Answering, or VQA, stands between image recognition and sentence comprehension, and is regarded as a bridge application between them. Research on VQA is actively carried out through the VQA Challenge using VQA v2.0 <ref type="bibr" coords="2,467.31,518.39,9.96,8.74" target="#b3">[4]</ref>. For example, P.Anderson et al. proposed DNN using Bottom-up Attention <ref type="bibr" coords="2,470.07,530.34,10.52,8.74" target="#b4">[5]</ref> obtained by using pretrained Faster R-CNN <ref type="bibr" coords="2,333.95,542.30,10.52,8.74" target="#b5">[6]</ref> which is one of CNN used for object detection. In addition, as a VQA-Med task, there are competitions at ImageCLEF2018 and 2019. Yan et al. <ref type="bibr" coords="2,310.28,566.21,10.52,8.74" target="#b6">[7]</ref> proposed dividing the dataset into subcategories and attempted to solve the tasks by transforming the opriginal problem into a classification problem with categories in VQA-Med2019.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Dataset of VQA-Med2020</head><p>The VQA-Med2020 dataset consists of 5,000 pairs of medical image and questionanswering. Specifically, the dataset consists of 4,000 training, 500 validation, and 500 test data. Most of the images in the VQA-Med2020 dataset are non-colored, and they potentially include non-essential logos and texts. The question pattern can be classified into 39 different types for training and validation data. In our analysis, the top 10 patterns cover more than 94% of the total data. On the other hand, there are 332 different answer patterns, and the top 10 patterns cover approximately 12% of the total data. Table <ref type="table" coords="3,355.44,178.77,4.98,8.74" target="#tab_0">1</ref> summarizes top 5 frequent questions and answers. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Proposed method</head><p>This section presents our methods in VQA-Med2020. The overview of our system is illustrated in Fig <ref type="figure" coords="3,223.28,392.29,4.98,8.74" target="#fig_1">2</ref> with the yellow layers having trainable weights. We deal with VQA as a classification task of 332-dimension. All the images make some pre-processes shown in subsection 4.1 and are later characterized by VGG. We use VGG16 with batch normalization model <ref type="bibr" coords="3,335.99,428.15,10.52,8.74" target="#b7">[8]</ref> pretrained at Imagenet <ref type="bibr" coords="3,457.05,428.15,10.52,8.74" target="#b2">[3]</ref> to extract image features. However, since there is a large difference in distribution between medical images and general images, fine-tuning is performed using VQA-Med2019 data <ref type="bibr" coords="3,202.04,464.02,9.96,8.74" target="#b8">[9]</ref>. We extract question features from pretrained BERT-Base, Cased <ref type="bibr" coords="3,165.42,475.97,14.61,8.74" target="#b9">[10]</ref>. All the questions are then embedded by the WordPiece which is used by BERT. On the other hand, all the answers are embedded by one-hot encoding. Proposed model consists of DNN, and detailed architecture of DNN is mentioned in subsection 4.3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Image Pre-processing</head><p>We process image normalization, standardization and inpainting <ref type="bibr" coords="3,420.14,562.11,14.61,8.74" target="#b10">[11]</ref>. We show the flow of image pre-processing in Fig. <ref type="figure" coords="3,308.19,574.06,3.87,8.74" target="#fig_2">3</ref>. Firstly, all the images are grayscaling and resizing at 255 × 255 shape. Secondly, we make masks for inpainting in following four steps.</p><p>-Casting laplacian filter on resized images.</p><p>-Binarizing images with a threshold 50.</p><p>-Closing images with kernel size 5.</p><p>-Opening images with kernel size 3. Thirdly, we cast inpainting images using the masks. We illustrate Fig. <ref type="figure" coords="4,447.77,307.55,4.98,8.74" target="#fig_3">4</ref> where you can compare the raw images with the inpainting images. Finally, we make center crop images at 224 × 224 and normalize images as described in <ref type="bibr" coords="4,442.28,331.46,9.96,8.74" target="#b7">[8]</ref>.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Architecture of Proposed Model</head><p>Proposed model, illustrated right of the Fig. <ref type="figure" coords="5,331.86,434.60,3.87,8.74" target="#fig_4">5</ref>, generates an answer as a classification problem. Proposed model has VGG16 and FC1, 2, 3, 4, the weights of FC1, 2, VGG16 is trained by a pre-training task. VGG16 weights are frozen, and FC1, 2 are fine-tuned. Only FC3, 4 are trained from the beginning. FC3, 4 are based on the Gated Linear Unit (GLU) <ref type="bibr" coords="5,303.83,482.42,14.61,8.74" target="#b14">[15]</ref>, and FC3 consists of</p><formula xml:id="formula_0" coords="5,134.77,480.84,345.83,23.18">W 3 ∈ R 1000×332 , bias b ∈ R 332 . FC4 consists of matrix W 4 ∈ R 795×332</formula><p>, batchnorm and sigmoid. Then outputs of FC3, 4 are fused by element-wise multiplication and obtained using the softmax function to get the probability of answers. GLU masks each dimension of the features obtained by FC3 with a real number from 0 to 1. The introduction of GLU is based on the consideration that it is possible to narrow down the answers to some extent only from the attribute information of question texts and images. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Experiments</head><p>Experiments are also performed on the baseline model, proposed model and proposed model without pre-training to show the usefulness of the proposed model. We first describe the baseline model in subsection 5.1, followed by the description of experimental conditions and evaluations in subsection 5.2. We finally describe experimental results and computational scores in subsection 5.3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Baseline Model</head><p>The overview of the baseline model is shown in Fig.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Conditions and Evaluations</head><p>We train our models using the train set and verify training model by the validation set. We determined the following hyper-parameters; loss function as cross entropy loss, the number of epoch 300, batch size of 64, optimizer as RMSprop <ref type="bibr" coords="7,465.09,162.83,15.50,8.74" target="#b15">[16]</ref> with a learning rate of 0.001. When training, we shuffle the training set order for each epoch, and training images are randomly flipped left and right with probability of 0.5. The VQA-Med task adopts two evaluation method, accuracy and BLEU <ref type="bibr" coords="7,462.32,210.65,14.61,8.74" target="#b16">[17]</ref>. BLEU score measures the similarity between the predicted and correct answers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Results</head><p>We submitted the baseline model and the proposed model and obtained the evaluation on the test set.</p><p>The results of our models show in Table <ref type="table" coords="7,323.38,296.33,3.87,8.74" target="#tab_3">2</ref>. These results show that the fusion method using GLU is superior to the concatenation fusion, and according to the verification results, it can be seen that the accuracy is slightly improved by the pre-training task. VQA-Med2020 competition result is shown in Table <ref type="table" coords="7,452.51,332.19,3.87,8.74" target="#tab_4">3</ref>, and our rank is 8th. In this research, we describe the models we submitted in ImageCLEF2020 VQA-Med task. We proposed a model of feature connection by GLU and a pre-training task by VQA-Med2019 dataset. We also introduced the removal of a logo and texts using inpainting as image pre-processing. We show that fusion of functions using GLU is superior to simple concatenation, and slightly improved score using pre-training task. Proposed model scores 0.314 in accuracy and 0.350 in BLEU in VQA-Med2020 task, and our rank is 8th.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,178.83,358.76,257.69,7.89;2,313.53,269.51,149.43,77.72"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Example of general (left) and medical (right) VQA data</figDesc><graphic coords="2,313.53,269.51,149.43,77.72" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,221.62,263.60,172.11,7.89;4,186.64,115.82,242.04,133.01"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Overview of our VQA-Med System</figDesc><graphic coords="4,186.64,115.82,242.04,133.01" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,217.77,489.96,179.81,7.89"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. Overview of our Image Pre-processes</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="5,221.81,257.41,171.73,7.89;5,212.58,115.80,190.25,126.83"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Raw images and Inpainting images</figDesc><graphic coords="5,212.58,115.80,190.25,126.83" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="6,214.31,258.54,186.72,7.89"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. Pretrained model and Proposed model</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="6,216.37,645.07,182.61,7.89"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6. Pretrained model and Baseline model</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,137.12,222.31,341.12,85.85"><head>Table 1 .</head><label>1</label><figDesc>Frequently Questions and Answers Ranking in VQA-Med2020</figDesc><table coords="3,137.12,243.11,341.12,65.05"><row><cell>Rank Question</cell><cell>freq Answer</cell><cell>freq</cell></row><row><cell cols="2">1 what abnormality is seen in the image? 1,106 pulmonary embolism</cell><cell>88</cell></row><row><cell cols="2">2 what is the primary abnormality in ... 1,073 acute appendicitis</cell><cell>80</cell></row><row><cell cols="2">3 what is most alarming about this ct ... 482 angiomyolipoma</cell><cell>49</cell></row><row><cell>4 what is abnormal in the ct scan?</cell><cell>460 yes</cell><cell>49</cell></row><row><cell>5 what is abnormal in the mri?</cell><cell cols="2">252 adenocarcinoma of the lung 46</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="7,178.34,373.71,258.66,63.93"><head>Table 2 .</head><label>2</label><figDesc>Exprimental Results</figDesc><table coords="7,178.34,394.51,258.66,43.13"><row><cell>Model</cell><cell cols="3">Val Accuracy Test Accuracy Test BLEU</cell></row><row><cell>Baseline</cell><cell>0.392</cell><cell>0.282</cell><cell>0.331</cell></row><row><cell>Proposed</cell><cell>0.412</cell><cell>0.314</cell><cell>0.350</cell></row><row><cell>Proposed -pre-training</cell><cell>0.408</cell><cell>-</cell><cell>-</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="7,214.62,485.01,186.12,151.60"><head>Table 3 .</head><label>3</label><figDesc>VQA-Med2020 Competition Results</figDesc><table coords="7,222.49,505.81,170.37,130.80"><row><cell>Rank</cell><cell>Participants</cell><cell>Accuracy BLEU</cell></row><row><cell>1</cell><cell>z liao</cell><cell>0.496 0.542</cell></row><row><cell cols="3">2 TheInceptionTeam 0.480 0.511</cell></row><row><cell>3</cell><cell>bumjun jung</cell><cell>0.466 0.502</cell></row><row><cell>4</cell><cell>going</cell><cell>0.426 0.462</cell></row><row><cell>5</cell><cell>NLM</cell><cell>0.400 0.441</cell></row><row><cell>6</cell><cell>harendrakv</cell><cell>0.378 0.439</cell></row><row><cell>7</cell><cell>Shengyan</cell><cell>0.376 0.412</cell></row><row><cell>8</cell><cell>kdevqa</cell><cell>0.314 0.350</cell></row><row><cell>9</cell><cell>sheerin</cell><cell>0.282 0.330</cell></row><row><cell>10</cell><cell>umassmednlp</cell><cell>0.220 0.340</cell></row><row><cell>11</cell><cell>dhruv sharma</cell><cell>0.142 0.177</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgment</head><p>A part of this research was carried out with the support of the <rs type="grantName">Grant-in-Aid for Scientific Research (B</rs>) (issue number <rs type="grantNumber">17H01746</rs>).</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_Zr9DhsW">
+					<idno type="grant-number">17H01746</idno>
+					<orgName type="grant-name">Grant-in-Aid for Scientific Research (B</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,142.96,338.80,337.64,7.86;8,151.52,349.76,329.08,7.86;8,151.52,360.72,329.08,7.86;8,151.52,371.68,329.07,7.86;8,151.52,382.64,329.08,7.86;8,151.52,393.60,329.08,7.86;8,151.52,404.55,329.07,7.86;8,151.52,415.51,329.08,7.86;8,151.52,426.47,329.08,7.86;8,151.52,437.43,329.07,7.86;8,151.52,448.39,329.07,7.86;8,151.52,459.35,329.08,7.86;8,151.52,470.31,36.40,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,248.46,415.51,232.14,7.86;8,151.52,426.47,215.25,7.86">Overview of the ImageCLEF 2020: Multimedia retrieval in lifelogging, medical, nature, and internet applications</title>
+		<author>
+			<persName coords=""><forename type="first">Bogdan</forename><surname>Ionescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Henning</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Renaud</forename><surname>Péteri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Asma</forename><surname>Ben Abacha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vivek</forename><surname>Datla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Sadid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Serge</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vitali</forename><surname>Kozlovski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yashin</forename><surname>Liauchuk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vassili</forename><surname>Dicente Cid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Obioma</forename><surname>Kovalev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christoph</forename><forename type="middle">M</forename><surname>Pelka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alba</forename><surname>Friedrich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Van-Tu</forename><surname>García Seco De Herrera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tu-Khiem</forename><surname>Ninh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Liting</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luca</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Piras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pål</forename><surname>Riegler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Minh-Triet</forename><surname>Halvorsen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mathias</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cathal</forename><surname>Lux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Duc-Tien</forename><surname>Gurrin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jon</forename><surname>Dang-Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adrian</forename><surname>Chamberlain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Antonio</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dimitri</forename><surname>Campello</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raul</forename><surname>Fichou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Berari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Brie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Liviu</forename><surname>Dogariu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Daniel S ¸tefan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Constantin</forename><surname>Gabriel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,387.42,426.47,93.18,7.86;8,151.52,437.43,190.33,7.86;8,422.63,437.43,57.96,7.86;8,151.52,448.39,291.45,7.86">Proceedings of the 11th International Conference of the CLEF Association (CLEF 2020)</title>
+		<title level="s" coord="8,307.10,459.35,169.53,7.86">LNCS Lecture Notes in Computer Science</title>
+		<meeting>the 11th International Conference of the CLEF Association (CLEF 2020)<address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2020">September 22-25 2020</date>
+			<biblScope unit="volume">12260</biblScope>
+		</imprint>
+	</monogr>
+	<note>Experimental IR Meets Multilinguality, Multimodality, and Interaction</note>
+</biblStruct>
+
+<biblStruct coords="8,142.96,481.30,337.64,7.86;8,151.52,492.26,329.07,7.86;8,151.52,503.22,329.06,7.86;8,151.52,514.18,329.07,7.86;8,151.52,525.14,62.22,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,224.35,492.26,256.24,7.86;8,151.52,503.22,219.26,7.86">Overview of the vqa-med task at imageclef 2020: Visual question answering and generation in the medical domain</title>
+		<author>
+			<persName coords=""><forename type="first">Asma</forename><surname>Ben Abacha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vivek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Datla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Sadid</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Henning</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Müller</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,394.64,503.22,85.94,7.86;8,151.52,514.18,145.58,7.86">CLEF 2020 Working Notes, CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Thessaloniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">September 22-25 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.96,536.14,337.63,7.86;8,151.52,547.10,220.06,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,400.34,536.14,80.25,7.86;8,151.52,547.10,137.62,7.86">ImageNet: A Large-Scale Hierarchical Image Database</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L.-J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Fei-Fei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,309.17,547.10,32.87,7.86">CVPR09</title>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.96,558.09,337.65,7.86;8,151.52,569.05,329.08,7.86;8,151.52,580.01,329.08,7.86;8,151.52,590.97,60.53,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,151.52,569.05,329.08,7.86;8,151.52,580.01,79.04,7.86">Making the V in VQA matter: Elevating the role of image understanding in Visual Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Yash</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tejas</forename><surname>Khot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Douglas</forename><surname>Summers-Stay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dhruv</forename><surname>Batra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Devi</forename><surname>Parikh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,250.39,580.01,230.21,7.86;8,151.52,590.97,31.26,7.86">Conference on Computer Vision and Pattern Recognition (CVPR)</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.96,601.97,337.64,7.86;8,151.52,612.92,329.07,7.86;8,151.52,623.88,236.97,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,291.23,612.92,189.36,7.86;8,151.52,623.88,164.13,7.86">Bottom-up and top-down attention for image captioning and visual question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Buehler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Damien</forename><surname>Teney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Gould</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lei</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,335.49,623.88,23.16,7.86">CVPR</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.96,634.88,337.63,7.86;8,151.52,645.84,329.08,7.86;8,151.52,656.80,148.11,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,212.95,634.88,39.65,7.86">Fast r-cnn</title>
+		<author>
+			<persName coords=""><forename type="first">Ross</forename><surname>Girshick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,271.79,634.88,208.81,7.86;8,151.52,645.84,180.50,7.86">Proceedings of the 2015 IEEE International Conference on Computer Vision (ICCV), ICCV &apos;15</title>
+		<meeting>the 2015 IEEE International Conference on Computer Vision (ICCV), ICCV &apos;15<address><addrLine>Washington, DC, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>IEEE Computer Society</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="1440" to="1448" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.96,119.67,337.64,7.86;9,151.52,130.63,286.91,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,354.89,119.67,125.71,7.86;9,151.52,130.63,215.47,7.86">Zhejiang university at imageclef 2019 visual question answering in the medical domain</title>
+		<author>
+			<persName coords=""><forename type="first">Xin</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lin</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chulin</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Xiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lin</forename><surname>Gu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,387.20,130.63,21.74,7.86">CLEF</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.96,141.59,329.27,7.86" xml:id="b7">
+	<monogr>
+		<ptr target="https://pytorch.org/docs/master/torchvision/models.html" />
+		<title level="m" coord="9,151.52,141.59,45.87,7.86">Torchvision</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.96,152.55,337.64,7.86;9,151.52,163.51,329.07,7.86;9,151.52,174.47,329.08,7.86;9,151.52,185.43,329.08,7.86;9,151.52,196.39,91.48,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,277.47,163.51,203.12,7.86;9,151.52,174.47,134.70,7.86">VQA-Med: Overview of the medical visual question answering task at imageclef 2019</title>
+		<author>
+			<persName coords=""><forename type="first">Asma</forename><surname>Ben Abacha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sadid</forename><forename type="middle">A</forename><surname>Hasan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vivek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joey</forename><surname>Datla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Henning</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Müller</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org&lt;http://ceur-ws.org&gt;" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,309.86,174.47,170.74,7.86;9,151.52,185.43,69.64,7.86">CLEF2019 Working Notes, CEUR Workshop Proceedings</title>
+		<meeting><address><addrLine>Lugano, Switzerland</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019-12">September 09-12 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.62,207.35,337.98,7.86;9,151.52,218.30,329.07,7.86;9,151.52,229.26,148.80,7.86" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="9,439.96,207.35,40.64,7.86;9,151.52,218.30,282.18,7.86">Bert: Pretraining of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>arxiv:1810.04805Comment: 13 pages</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.62,240.22,337.99,7.86;9,151.52,251.18,215.75,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,231.11,240.22,249.49,7.86;9,151.52,251.18,28.30,7.86">An image inpainting technique based on the fast marching method</title>
+		<author>
+			<persName coords=""><forename type="first">Alexandru</forename><surname>Telea</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,188.63,251.18,103.04,7.86">Journal of Graphics Tools</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="23" to="34" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.62,262.14,337.98,7.86;9,151.52,273.10,329.07,7.86;9,151.52,284.06,329.07,7.86;9,151.52,295.02,183.76,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,300.79,262.14,179.81,7.86;9,151.52,273.10,193.36,7.86">Batch normalization: Accelerating deep network training by reducing internal covariate shift</title>
+		<author>
+			<persName coords=""><forename type="first">Sergey</forename><surname>Ioffe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Szegedy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,362.06,273.10,118.53,7.86;9,151.52,284.06,295.51,7.86;9,166.56,295.02,33.71,7.86">Proceedings of the 32nd International Conference on International Conference on Machine Learning</title>
+		<meeting>the 32nd International Conference on International Conference on Machine Learning</meeting>
+		<imprint>
+			<publisher>JMLR.org</publisher>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="448" to="456" />
+		</imprint>
+	</monogr>
+	<note>ICML&apos;15</note>
+</biblStruct>
+
+<biblStruct coords="9,142.62,305.98,337.98,7.86;9,151.52,316.93,225.22,7.86" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Abien</forename><surname>Fred</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Agarap</forename></persName>
+		</author>
+		<idno>arxiv:1803.08375Comment: 7</idno>
+		<title level="m" coord="9,239.10,305.98,192.65,7.86">Deep learning using rectified linear units (relu)</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note>pages, 11 figures, 9 tables</note>
+</biblStruct>
+
+<biblStruct coords="9,142.62,327.89,337.98,7.86;9,151.52,338.85,329.08,7.86;9,151.52,349.81,217.72,7.86" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,214.18,338.85,262.78,7.86">Dropout: A simple way to prevent neural networks from overfitting</title>
+		<author>
+			<persName coords=""><forename type="first">Nitish</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alex</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruslan</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,151.52,349.81,83.60,7.86">J. Mach. Learn. Res</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1929" to="1958" />
+			<date type="published" when="2014-01">January 2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.62,360.77,337.98,7.86;9,151.52,371.73,329.07,7.86;9,151.52,382.69,329.07,7.86;9,151.52,393.65,20.99,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="9,418.76,360.77,61.83,7.86;9,151.52,371.73,159.41,7.86">Language modeling with gated convolutional networks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Yann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Angela</forename><surname>Dauphin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Auli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Grangier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,331.54,371.73,149.05,7.86;9,151.52,382.69,137.17,7.86;9,338.14,382.69,33.71,7.86">Proceedings of the 34th International Conference on Machine Learning</title>
+		<meeting>the 34th International Conference on Machine Learning</meeting>
+		<imprint>
+			<publisher>JMLR.org</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page" from="933" to="941" />
+		</imprint>
+	</monogr>
+	<note>ICML&apos;17</note>
+</biblStruct>
+
+<biblStruct coords="9,142.62,404.61,337.98,7.86;9,151.52,415.56,329.08,7.86;9,151.52,426.52,62.10,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="9,267.01,404.61,213.58,7.86;9,151.52,415.56,144.39,7.86">Lecture 6.5-RmsProp: Divide the gradient by a running average of its recent magnitude</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Tieleman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,304.34,415.56,176.26,7.86;9,151.52,426.52,33.81,7.86">COURSERA: Neural Networks for Machine Learning</title>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.62,437.48,337.98,7.86;9,151.52,448.44,329.08,7.86;9,151.52,459.40,329.07,7.86;9,151.52,470.36,322.94,7.86" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="9,418.32,437.48,62.28,7.86;9,151.52,448.44,188.20,7.86">Bleu: a method for automatic evaluation of machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">Kishore</forename><surname>Papineni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Salim</forename><surname>Roukos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Todd</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei-Jing</forename><surname>Zhu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,357.80,448.44,122.80,7.86;9,151.52,459.40,225.42,7.86">Proceedings of the 40th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 40th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Philadelphia, Pennsylvania, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2002-07">July 2002</date>
+			<biblScope unit="page" from="311" to="318" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

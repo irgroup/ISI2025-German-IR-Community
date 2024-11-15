@@ -1,0 +1,701 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,134.51,99.57,343.52,14.93">DUET AT TREC 2019 DEEP LEARNING TRACK</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,186.17,164.75,63.37,8.96"><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+							<email>bmitra@microsoft.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Microsoft</orgName>
+								<orgName type="institution" key="instit2">University College London</orgName>
+								<address>
+									<settlement>Montreal</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,389.46,164.75,60.04,8.96"><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+							<email>nickcr@microsoft.com</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Microsoft Redmond</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,134.51,99.57,343.52,14.93">DUET AT TREC 2019 DEEP LEARNING TRACK</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">BB92BBACBF9BD6FB98DEDB46C6AD612A</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Deep learning</term>
+					<term>Neural information retrieval</term>
+					<term>Ad-hoc retrieval</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This report discusses three submissions based on the Duet architecture to the Deep Learning track at TREC 2019. For the document retrieval task, we adapt the Duet model to ingest a "multiple field" view of documents-we refer to the new architecture as Duet with Multiple Fields (DuetMF). A second submission combines the DuetMF model with other neural and traditional relevance estimators in a learning-to-rank framework and achieves improved performance over the DuetMF baseline. For the passage retrieval task, we submit a single run based on an ensemble of eight Duet models.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The Duet architecture was proposed by <ref type="bibr" coords="1,229.53,394.32,72.65,8.64">Mitra et al. [2017]</ref> for document ranking. Fig. <ref type="figure" coords="1,414.84,394.32,4.95,8.64">7</ref> from The original paper show that the retrieval effectiveness of the model is still improving as the size of the training data approaches 2 17 samples.</p><p>The training data employed in that paper is a proprietary dataset from Bing. A similar plot was later reproduced on a public benchmark by <ref type="bibr" coords="1,169.72,427.05,76.81,8.64" target="#b18">Nanni et al. [2017]</ref>, but in the context of a passage ranking dataset with synthetic queries. Variations of the Duet model <ref type="bibr" coords="1,190.72,437.96,104.50,8.64">[Mitra and Craswell, 2019</ref><ref type="bibr" coords="1,295.22,437.96,74.78,8.64">, Mitra et al., 2019</ref><ref type="bibr" coords="1,370.00,437.96,84.09,8.64" target="#b3">, Cohen et al., 2018]</ref> have since then been evaluated on other public passage ranking datasets. However, the lack of large scale training data prevented the public evaluation of Duet for document ranking.</p><p>The deep learning track at TREC 2019 makes large training datasets-suitable for traininig deep models with large number of learnable parameters-publicly available in the context of a document ranking and a passage ranking tasks. We benchmark the Duet model on both tasks.</p><p>In the context of the document ranking task, we adapt the Duet model to ingest a "multiple field" view of the documents, based on findings from <ref type="bibr" coords="1,165.78,525.28,79.42,8.64" target="#b22">Zamani et al. [2018]</ref>. We refer to this new architecture as Duet with Multiple Fields (DuetMF) in the paper. Furthermore, we combine the relevance estimates from DuetMF with several other traditional and neural retrieval methods in a learning-to-rank (LTR) <ref type="bibr" coords="1,254.85,547.10,45.38,8.64" target="#b8">[Liu, 2009]</ref> framework.</p><p>For the passage ranking task, we submit a single run based on an ensemble of eight Duet models. The architecture and the training scheme resembles that of the "Duet V2 (Ensembled)" baseline listed on the MS MARCO leaderboard<ref type="foot" coords="1,525.77,572.73,3.49,6.05" target="#foot_0">1</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">TREC 2019 deep learning track</head><p>The TREC 2019 deep learning track introduces: (i) a document retrieval task and (ii) a passage retrieval task. For both tasks, participants are provided a set of candidates-100 documents and 1000 passages, respectively-per query that should be ranked. Participants can choose to either rerank provided candidates or retrieve from the full collection.</p><p>For the passage retrieval task, the track reuses the set of 500K+ manually-assessed binary training labels released as part of the Microsoft Machine Reading COmprehension (MS MARCO) challenge <ref type="bibr" coords="1,387.78,674.90,73.63,8.64" target="#b1">[Bajaj et al., 2016]</ref>. For the document retrieval task, the passage-level labels are transferred to their corresponding source documents-producing a training dataset of size close to 400K labels. For evaluation, a shared test set of 200 queries is provided for both tasks, of which two different overlapping set of 43 queries were later selected for manual NIST assessments corresponding to the two tasks.</p><p>Full details of all datasets is available on the track website<ref type="foot" coords="2,303.43,212.88,3.49,6.05" target="#foot_1">2</ref> and in the track overview paper <ref type="bibr" coords="2,437.72,214.55,87.02,8.64" target="#b4">[Craswell et al., 2019]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods and results</head><p>The Duet model proposed by <ref type="bibr" coords="2,190.65,265.48,73.20,8.64">Mitra et al. [2017]</ref> employs two deep neural networks trained jointly towards a retrieval task: (i) The "distributed" sub-model learns useful representations of text for matching and (ii) the "local" sub-model estimates relevance based on patterns of exact term matches between query and document. Mitra and <ref type="bibr" coords="2,475.84,287.30,64.17,8.64">Craswell [2019]</ref> propose several modifications to the original Duet model that show improved performance on the MS MARCO passage ranking challenge. We adopt the updated Duet model from Mitra and <ref type="bibr" coords="2,362.85,309.11,66.31,8.64">Craswell [2019]</ref> and incorporate additional modifications, in particular to consider multiple fields for the document retrieval task. Table <ref type="table" coords="2,439.89,320.02,4.98,8.64" target="#tab_0">1</ref> summarizes the official evaluation results for all three runs.</p><p>Duet model with Multiple Fields (DuetMF) for document ranking. <ref type="bibr" coords="2,367.47,353.75,84.71,8.64" target="#b22">Zamani et al. [2018]</ref> study neural ranking models in the context of documents with multiple fields. In particular, they make the following observations:</p><p>Obs. 1: It is more effective to summarize the match between query and individual document fields by a vector-as opposed to a single score-before aggregating to estimate full document relevance to the query. Obs. 2: It is better to learn different query representations corresponding to each document field under consideration. Obs. 3: Structured dropout (e.g., field-level dropout) is effective for regularization during training.</p><p>We incorporate all of these ideas to modify the Duet model from Mitra and <ref type="bibr" coords="2,380.10,444.17,64.15,8.64">Craswell [2019]</ref>. The updated model is shown in Fig. <ref type="figure" coords="2,129.36,455.08,3.74,8.64" target="#fig_0">1</ref>. Documents in the deep learning track dataset contains three text fields: (i) URL, (ii) title, and (iii) body. We employ the Duet architecture to match the query against each individual document fields. In line with Obs. 1 from <ref type="bibr" coords="2,483.09,482.37,58.16,8.64;2,72.00,493.28,21.27,8.64" target="#b22">[Zamani et al., 2018]</ref>, the field-specific Duet architecture outputs a vector instead of a single score. We do not share the parameters of the Duet architectures between the field-specific instances based on Obs. 2. Following Obs. 3, we introduce structured dropouts at different stages of the model. We randomly dropout each of the local sub-models for 50% of the training samples. Similarly, we also dropout different combinations of field-level models uniformly at random-taking care that at least one field-level model is always retained.</p><p>We consider the first 20 terms for queries and for document URLs and titles. For document body text, we consider the first 2000 terms. Similar to Mitra and <ref type="bibr" coords="2,240.31,564.22,63.77,8.64">Craswell [2019]</ref>, we employ pretrained word embeddings as the input text representation for the distributed sub-models. We train the word embeddings using a standard word2vec <ref type="bibr" coords="2,480.78,575.13,60.46,8.64;2,72.00,586.04,23.71,8.64" target="#b11">[Mikolov et al., 2013]</ref> implementation in FastText <ref type="bibr" coords="2,212.84,586.04,79.84,8.64" target="#b5">[Joulin et al., 2016]</ref> on a combination of the MS MARCO document corpus and training queries.</p><p>Similar to previous work <ref type="bibr" coords="2,172.98,613.33,115.64,8.64">[Mitra et al., 2017, Mitra and</ref><ref type="bibr" coords="2,291.10,613.33,61.53,8.64">Craswell, 2019]</ref>, the query and document field embeddings are learned by deep convolutional-pooling layers. We set the hidden layer size at all stages of the model to 300 and dropout rate for different layers to 0.5. For training, we employ the RankNet loss <ref type="bibr" coords="2,368.71,635.15,82.85,8.64" target="#b2">[Burges et al., 2005]</ref> over &lt; q, d pos , d neg &gt; triples and the Adam optimizer [Kingma and Ba, 2014]-with a minibatch size of 128 and a learning rate of 0.0001 for training. We sample d neg uniformly at random from the top 100 candidates provided that are not positively labeled. When employing structured dropout, the same sub-models are masked for both d pos and d neg .</p><p>In light of the recent success of large pretrained language models-e.g., <ref type="bibr" coords="2,352.80,684.27,106.67,8.64" target="#b19">[Nogueira and Cho, 2019]</ref>-we also experiment with an unsupervised pretraining scheme using the MS MARCO document collection. The pretraining is performed  over &lt; q pseudo , d pos , d neg &gt;-where d pos and d neg are randomly sampled from the collection and a pseudo-query q pseudo is generated by picking the URL or the title of d pos randomly (with equal probability) and masking the corresponding field on the document side for both d pos and d neg . We see faster convergence during supervised training when the DuetMF model is pretrained in this fashion on the MS MARCO document collection. We posit that a more formal study should be performed in the future on pretraining Duet models on large collections, such as Wikipedia and the BookCorpus <ref type="bibr" coords="3,124.86,497.67,67.65,8.64" target="#b23">[Zhu et al., 2015]</ref>.</p><p>Learning-to-rank model for document ranking. We train a neural LTR model with two hidden layers-each with 1024 hidden nodes. The LTR run reranks a set of 100 document candidates retrieved by query likelihood (QL) <ref type="bibr" coords="3,513.96,538.92,26.04,8.64;3,72.00,549.83,60.73,8.64" target="#b20">[Ponte and Croft, 1998</ref>] with Dirichlet smoothing (µ = 1250) <ref type="bibr" coords="3,289.45,549.83,99.89,8.64" target="#b9">[MacKay and Peto, 1995]</ref>. Several ranking algorithms based on neural and inference networks act as features: (i) DuetMF, (ii) Sequential Dependence Model (SDM) <ref type="bibr" coords="3,487.63,560.74,52.36,8.64;3,72.00,571.65,48.49,8.64" target="#b10">[Metzler and Croft, 2005]</ref>, and (iii) Pseudo-Relevance Feedback (PRF) <ref type="bibr" coords="3,308.91,571.65,59.32,8.64" target="#b7">[Lavrenko and</ref><ref type="bibr" coords="3,370.86,571.65,117.79,8.64">Croft, 2001, Lavrenko, 2008]</ref>, (iv) BM25, <ref type="bibr" coords="3,72.00,582.56,92.56,8.64" target="#b21">[Robertson et al., 2009]</ref>, and (v) Dual Embedding Space Model (DESM) <ref type="bibr" coords="3,364.19,582.56,86.28,8.64" target="#b17">[Nalisnick et al., 2016</ref><ref type="bibr" coords="3,450.47,582.56,77.39,8.64">, Mitra et al., 2016]</ref>.</p><p>We employ SDM with an order of 3, combine weight of 0.90, ordered window weight of 0.034, and an unordered window weight of 0.066 as our base candidate scoring function.</p><p>We use these parameters to retrieve from the target corpus as well as auxiliary corpora of English language Wikipedia (enwiki-20180901-pages-articles-multistream.xml.bz2), LDC Gigaword (LDC2011T07). For PRF, initial retrievals-from either of the target, wikipedia, or gigaword corpora-adopted the SDM parameters above, however are used to rank 75-word passages with a 25-word overlap. These passages are then interpolated using the top m passages and standard relevance modeling techniques, from which we select the top 50 words to use as an expanded query for the final ranking of the target candidates. We do not explicitly adopt RM3 <ref type="bibr" coords="3,366.69,675.31,103.60,8.64" target="#b0">[Abdul-Jaleel et al., 2004]</ref> because our LTR model implicitly combines our initial retrieval score and score from the expanded query. All code for the SDM and PRF feature computation is available at https://github.com/diazf/indri.</p><p>We evaluate two different BM25 models with hyperparameters &lt; k 1 = 0.9, b = 0.4 &gt; and &lt; k 1 = 3.44, b = 0.87 &gt;.</p><p>Corresponding to each of the DuetMF, SDM, PRF, and BM25 runs we generate two features based on the score and the rank that the model predicts for a document w.r.t. the target query.</p><p>We generate eight features by comparing the query against two different document fields (title and body) and using different DESM similarity estimates <ref type="bibr" coords="4,218.97,113.68,161.44,8.64">(INxIN, INxOUT, OUTxIN, OUTxOUT)</ref>.</p><p>Lastly, we add couple of features based on query length and domain quality-where the latter is defined simply as a ratio between how often documents from a given domain appear in the positively labeled training data and in the overall document collection.</p><p>Ensemble of Duet models for passage ranking. For the passage ranking task, we adopt the exact same model and training procedure from <ref type="bibr" coords="4,169.66,186.38,106.66,8.64">[Mitra and Craswell, 2019]</ref>. Our final submission is an ensemble of eight Duet models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Discussion and conclusion</head><p>One of the main goals of the deep learning track is to create a public reusable dataset for benchmarking the growing body of neural information retrieval literature <ref type="bibr" coords="4,260.12,249.54,109.12,8.64">[Mitra and Craswell, 2018]</ref>. We submit three runs based on the Duet architecture for the two-document and passage-retrieval tasks. Our main goal is to enrich the set of pooled documents for NIST assessments with documents that a Duet based architecture is likely to rank highly. As a secondary goal, we are also interested in benchmarking Duet against other state-of-the-art neural and traditional methods. A more detailed comparison of the performance of these Duet runs with other TREC submissions is provided in the track overview paper <ref type="bibr" coords="4,96.62,304.09,87.02,8.64" target="#b4">[Craswell et al., 2019]</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,132.75,404.66,346.51,8.64"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The modified Duet model (DuetMF) that considers multiple document fields.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,71.69,72.27,468.31,89.43"><head>Table 1 :</head><label>1</label><figDesc>Official TREC results. The recall metric is computed at position 100 for the document retrieval task and at position 1000 for the passage retrieval task.</figDesc><table coords="2,117.66,102.97,374.44,58.73"><row><cell>Run description</cell><cell>Run ID</cell><cell cols="4">Subtask MRR NDCG@10 MAP Recall</cell></row><row><cell>Document retrieval task</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>LTR w/ DuetMF as feature</cell><cell>ms_ensemble</cell><cell>fullrank</cell><cell>0.876 0.578</cell><cell>0.237</cell><cell>0.368</cell></row><row><cell>DuetMF model</cell><cell>ms_duet</cell><cell>rerank</cell><cell>0.810 0.533</cell><cell>0.229</cell><cell>0.387</cell></row><row><cell>Passage retrieval task</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">Ensemble of 8 Duet models ms_duet_passage rerank</cell><cell>0.806 0.614</cell><cell>0.348</cell><cell>0.694</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,88.14,714.52,164.72,7.47"><p>http://www.msmarco.org/leaders.aspx</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,88.14,714.52,246.22,7.47"><p>https://microsoft.github.io/TREC-2019-Deep-Learning/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,72.00,350.86,468.00,8.64;4,81.96,361.77,247.80,8.64" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="4,149.90,361.77,149.82,8.64">Umass at trec 2004: Novelty and hard</title>
+		<author>
+			<persName coords=""><forename type="first">Nasreen</forename><surname>Abdul-Jaleel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Leah</forename><surname>Larkey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaoyan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mark</forename><forename type="middle">D</forename><surname>Smucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Courtney</forename><surname>Wade</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,377.08,468.36,8.64;4,81.96,387.99,458.03,8.64;4,81.96,398.72,193.32,8.82" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="4,275.66,387.99,264.34,8.64;4,81.96,398.90,26.39,8.64">Ms marco: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Payal</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.09268</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,72.00,414.21,468.00,8.64;4,81.96,424.94,459.78,8.82;4,81.60,436.02,49.69,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="4,493.58,414.21,46.42,8.64;4,81.96,425.12,106.13,8.64">Learning to rank using gradient descent</title>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tal</forename><surname>Shaked</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Erin</forename><surname>Renshaw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ari</forename><surname>Lazier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Deeds</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicole</forename><surname>Hamilton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Hullender</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,206.32,424.94,277.20,8.59">Proceedings of the 22nd international conference on Machine learning</title>
+		<meeting>the 22nd international conference on Machine learning</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="89" to="96" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,451.33,468.00,8.64;4,81.96,462.06,329.37,8.82" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,348.97,451.33,191.03,8.64;4,81.96,462.24,132.63,8.64">Cross domain regularization for neural ranking models using adversarial learning</title>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katja</forename><surname>Hofmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,232.87,462.06,46.72,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="1025" to="1028" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,477.55,468.00,8.64;4,81.40,488.28,99.35,8.82" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="4,342.95,477.55,181.46,8.64">Overview of the trec 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Emine</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Campos</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note>In TREC (to appear</note>
+</biblStruct>
+
+<biblStruct coords="4,72.00,503.77,469.75,8.64;4,81.96,514.50,159.58,8.82" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="4,364.78,503.77,173.28,8.64">Bag of tricks for efficient text classification</title>
+		<author>
+			<persName coords=""><forename type="first">Armand</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Edouard</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Piotr</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1607.01759</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,72.00,529.81,469.25,8.82;4,81.96,540.90,22.42,8.64" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Diederik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<title level="m" coord="4,219.40,529.99,181.13,8.64">Adam: A method for stochastic optimization</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="4,72.00,556.03,425.05,8.82;4,72.00,571.34,468.00,8.82;4,81.35,582.25,431.34,8.82" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="4,143.30,556.03,127.68,8.59;4,72.00,571.52,275.81,8.64">Victor Lavrenko and W Bruce Croft. Relevance based language models</title>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Lavrenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,365.54,571.34,174.46,8.59;4,81.35,582.25,310.50,8.59">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2008. 2001</date>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page" from="120" to="127" />
+		</imprint>
+	</monogr>
+	<note>A generative theory of relevance</note>
+</biblStruct>
+
+<biblStruct coords="4,72.00,597.55,469.25,8.82;4,81.96,608.64,50.91,8.64" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="4,125.18,597.73,161.02,8.64">Learning to rank for information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Tie-Yan</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,293.17,597.55,186.20,8.59">Foundation and Trends in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="225" to="331" />
+			<date type="published" when="2009-03">March 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,623.77,469.24,8.82;4,81.21,634.86,81.63,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="4,257.56,623.95,154.30,8.64">A hierarchical dirichlet language model</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">C</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Linda C Bauman</forename><surname>Mackay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Peto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,419.97,623.77,117.15,8.59">Natural language engineering</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="289" to="308" />
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,649.99,468.00,8.82;4,81.61,661.08,89.54,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="4,225.01,650.17,215.93,8.64">A markov random field model for term dependencies</title>
+		<author>
+			<persName coords=""><forename type="first">Donald</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,461.39,649.99,47.97,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="472" to="479" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,676.39,468.00,8.64;4,81.96,687.12,300.51,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="4,376.16,676.39,163.84,8.64;4,81.96,687.30,134.77,8.64">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">Tomas</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kai</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,235.15,687.12,42.72,8.59">Proc. NIPS</title>
+		<meeting>NIPS</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,72.00,702.43,468.00,8.82;4,81.79,713.34,161.45,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="4,219.18,702.61,191.40,8.64">An introduction to neural information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,419.83,702.43,120.17,8.59;4,81.79,713.34,86.47,8.59">Foundations and Trends R in Information Retrieval</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note>to appear</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,75.30,469.24,8.82;5,81.96,86.39,22.42,8.64" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1903.07666</idno>
+		<title level="m" coord="5,213.06,75.48,184.76,8.64">An updated duet model for passage re-ranking</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,101.28,469.74,8.64;5,81.96,112.01,159.58,8.82" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="5,329.91,101.28,207.80,8.64">A dual embedding space model for document ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Bhaskar Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Caruana</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1602.01137</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,127.08,468.00,8.64;5,81.96,137.81,226.69,8.82" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,274.03,127.08,265.96,8.64;5,81.96,137.99,57.14,8.64">Learning to match using local and distributed representations of text for web search</title>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,157.47,137.81,44.44,8.59">Proc. WWW</title>
+		<meeting>WWW</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1291" to="1299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,152.89,468.00,8.64;5,81.96,163.62,458.04,8.82;5,81.96,174.53,100.17,8.82" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="5,484.69,152.89,55.31,8.64;5,81.96,163.80,393.10,8.64">Incorporating query term independence assumption for efficient retrieval and ranking using deep neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">Corby</forename><surname>Bhaskar Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Rosset</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Hawking</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fernando</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Emine</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Yilmaz</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1907.03693</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,189.60,468.00,8.64;5,81.96,200.33,141.21,8.82" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="5,352.52,189.60,187.49,8.64;5,81.96,200.51,46.04,8.64">Improving document ranking with dual word embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nalisnick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Caruana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,146.98,200.33,44.44,8.59">Proc. WWW</title>
+		<meeting>WWW</meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,215.22,469.75,8.82;5,81.79,226.13,79.58,8.82" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="5,341.97,215.40,160.65,8.64">Benchmark for complex answer retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Federico</forename><surname>Nanni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Magnusson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,520.47,215.22,21.28,8.59;5,81.79,226.13,22.83,8.59">Proc. ICTIR</title>
+		<meeting>ICTIR</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,241.03,442.73,8.82" xml:id="b19">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<title level="m" coord="5,235.51,241.21,112.46,8.64">Passage re-ranking with bert</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,72.00,255.92,468.00,8.82;5,81.96,267.01,89.54,8.64" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="5,214.10,256.10,226.27,8.64">A language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Jay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W Bruce</forename><surname>Ponte</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,460.94,255.92,48.19,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="275" to="281" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,281.72,468.00,8.82;5,81.40,292.63,222.53,8.82" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="5,239.49,281.90,226.84,8.64">The probabilistic relevance framework: Bm25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,474.36,281.72,65.64,8.59;5,81.40,292.63,134.52,8.59">Foundations and Trends R in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,307.71,468.00,8.64;5,81.96,318.44,252.61,8.82" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="5,392.33,307.71,147.67,8.64;5,81.96,318.62,62.42,8.64">Neural ranking models with multiple document fields</title>
+		<author>
+			<persName coords=""><forename type="first">Hamed</forename><surname>Zamani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mitra</forename><surname>Bhaskar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,162.20,318.44,48.91,8.59">Proc. WSDM</title>
+		<meeting>WSDM</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="700" to="708" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,333.51,469.74,8.64;5,81.60,344.42,458.40,8.64;5,81.65,355.15,360.01,8.82" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="5,81.60,344.42,440.20,8.64">Aligning books and movies: Towards story-like visual explanations by watching movies and reading books</title>
+		<author>
+			<persName coords=""><forename type="first">Yukun</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ryan</forename><surname>Kiros</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rich</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruslan</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raquel</forename><surname>Urtasun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Antonio</forename><surname>Torralba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sanja</forename><surname>Fidler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,81.65,355.15,276.28,8.59">Proceedings of the IEEE international conference on computer vision</title>
+		<meeting>the IEEE international conference on computer vision</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="19" to="27" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

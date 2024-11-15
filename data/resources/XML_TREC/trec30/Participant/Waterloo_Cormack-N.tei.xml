@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,62.35,79.30,493.40,16.84">Semantic Search for Background Linking in News Articles</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,153.34,105.32,62.48,10.75"><forename type="first">Udhav</forename><surname>Sethi</surname></persName>
+							<email>udhav.sethi@uwaterloo.ca</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,375.38,105.32,124.24,10.75"><forename type="first">Anup</forename><forename type="middle">Anand</forename><surname>Deshmukh</surname></persName>
+							<email>aa2deshmukh@uwaterloo.ca</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,62.35,79.30,493.40,16.84">Semantic Search for Background Linking in News Articles</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">C7E09B6B8FED2FEE28402554BF80798D</idno>
+					<idno type="DOI">10.1145/1235</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Natural Language Processing</term>
+					<term>Information Retrieval</term>
+					<term>BERT</term>
+					<term>Background Linking</term>
+					<term>TREC</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The task of background linking aims at recommending news articles to a reader that are most relevant for providing context and background for the query article. For this task, we propose a two-stage approach, IR-BERT, which combines the retrieval power of BM25 with the contextual understanding gained through a BERT-based model. We further propose the use of a diversity measure to evaluate the effectiveness of background linking approaches in retrieving a diverse set of documents. We provide a comparison of IR-BERT with other participating approaches at TREC 2021. We have open sourced our implementation on Github 1 .</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>INTRODUCTION</head><p>Online news services have become key sources of information and have affected the way we consume and share news. While drafting a news article, it is often assumed that the reader has sufficient information about the article's background story. This may not always be the case, which warrants the need to provide the reader with links to useful articles that can set the context for the article in focus. These articles may or may not be by the same author, can be dated before or after the query article, and serve to provide additional information about the article's topic or introduce the reader to its key ideas. However, determining what can be categorized as an article providing background context and retrieving such documents is not straightforward.</p><p>Motivated by this problem, the background linking task was introduced in the news track of TREC 2018. This task aims to retrieve a list of articles that can be incorporated into an "explainer" box alongside the current article to help the reader understand or learn more about the story or main issues contained therein.</p><p>In this paper, we propose a two-stage approach, IR-BERT, to address the problem of background linking. The first stage filters the corpus to identify a set of candidate documents which are relevant to the article in focus. This is achieved by combining weighted keywords extracted from the query document into an effective search query and using BM25 <ref type="bibr" coords="1,552.49,202.03,11.67,8.64" target="#b8">[9]</ref> to search the corpus. The second stage leverages Sentence-BERT <ref type="bibr" coords="1,348.91,223.95,11.83,8.64" target="#b7">[8]</ref> to learn contextual representations of the query in order to perform semantic search over the shortlisted candidates. We hypothesize that employing a language model can be beneficial to understanding the context of the query article and helping identify articles that provide useful background information.</p><p>This paper is structured as follows: In section 2, we provide an overview of prior work that motivates our strategies. In section 3, we describe in detail our retrieval approach, followed by sections 4 and 5, where we describe our experiments and discuss the retrieval performance of our method. Finally, we summarize and conclude our work in section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RELATED WORK</head><p>BM25 <ref type="bibr" coords="1,349.53,389.04,11.84,8.64" target="#b8">[9]</ref> is one of the most popular ranking functions used by search engines to estimate the relevance of documents to a given search query. It is based on a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each document, regardless of their proximity within the document. Several previous approaches to background linking are built using BM25. The Anserini toolkit developed by Yang et al. <ref type="bibr" coords="1,450.83,465.75,16.71,8.64" target="#b12">[13]</ref> further standardizes the open-source Lucene library. Along with BM25, it has been used to effectively tackle the background linking problem <ref type="bibr" coords="1,547.20,487.67,14.97,8.64" target="#b11">[12]</ref>. Another set of approaches, ICTNET <ref type="bibr" coords="1,463.34,498.63,11.38,8.64" target="#b3">[4]</ref> and DMINR <ref type="bibr" coords="1,527.65,498.63,10.37,8.64" target="#b4">[5]</ref>, leverage the use of named entities in the query article to build a search query for BM25.</p><p>Previous work has also exploited language models such as BERT for the task of ad-hoc retrieval <ref type="bibr" coords="1,468.72,548.44,15.46,8.64" target="#b12">[13,</ref><ref type="bibr" coords="1,486.67,548.44,7.05,8.64" target="#b6">7]</ref>. BERT <ref type="bibr" coords="1,527.21,548.44,11.38,8.64" target="#b1">[2]</ref> is pretrained on large open-domain textual data and has achieved state-of-the-art results in many downstream NLP tasks. It has also proven to be an effective re-ranker in many information retrieval tasks. For example, Dai and Callan <ref type="bibr" coords="1,519.28,592.28,11.78,8.64" target="#b0">[1]</ref> showed that employing BERT leads to significant improvements in retrieval tasks where queries are written in natural languages. This is a direct consequence of their ability to better leverage language structures. Nogueira and Cho <ref type="bibr" coords="1,477.69,636.11,11.48,8.64" target="#b5">[6]</ref> used BERT on top of Anserini to re-rank passages in the TREC Complex Answer Retrieval (CAR) task <ref type="bibr" coords="1,405.15,658.03,10.37,8.64" target="#b2">[3]</ref>. Similar re-ranking mechanisms have also shown promise in open-domain question answering <ref type="bibr" coords="1,546.84,668.99,15.22,8.64" target="#b13">[14]</ref>.</p><p>The task of semantic search is very relevant to ad-hoc retrieval where queries are written in natural languages. There are two main issues with using BERT for finding the semantic sim- ilarity between text documents. First, to compare a pair of documents, both need to be input to the model, which causes significant computational overhead at inference time. Second, to solve the problem of semantic search, a widely used approach is to map documents into the vector space where similar documents are closer. Common practices such as averaging the BERT output layer or using the output of [CLS] token yield poor embeddings. Sentence-BERT <ref type="bibr" coords="2,244.74,375.45,11.80,8.64" target="#b7">[8]</ref> alleviates these issues by leveraging siamese and triplet network structures. It derives semantically meaningful sentence embeddings that can be compared using cosine-similarity. In this work, we leverage Sentence-BERT as a part of our architecture.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>METHODOLOGY</head><p>The background linking task can be formulated as following: Given a news story S and a collection of news articles A, retrieve other news articles from A that provide important context or background information about S.</p><p>It is reasonable to consider this task as a specific case of news recommendation aimed at retrieving relevant articles from a corpus (A) for a query generated from an article (S). We hypothesize that most of the articles that can provide contextual information about the query article were likely published before it. To this end, we filter out forward links from our results, i.e., the articles published after the query article are not considered.</p><p>IR-BERT attempts to solve the problem of background linking in two stages. In the first stage, we construct a weighted query Q i from article S i and use BM25 to retrieve a set of p candidate documents. Let this set of documents be R</p><formula xml:id="formula_0" coords="2,53.57,655.64,243.43,25.72">i b = {d 1 , d 2 , .., d p } where |R i b | = p.</formula><p>In the second stage, we conduct a semantic search of Q i over the set of retrieved documents R i b to arrive at the final set of documents</p><formula xml:id="formula_1" coords="2,158.96,693.48,139.78,12.98">R i f = {d 1 , d 2 , .., d t } where |R i f | = t.</formula><p>The two stages of IR-BERT are illustrated in Figure <ref type="figure" coords="2,262.94,707.85,3.74,8.64" target="#fig_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Weighted Search Query + BM25</head><p>We first build an effective search query that best captures the relevant topics of the query article. The problem is formulated as extracting the essential keywords from the query article, assigning them weights according to their relevance, and concatenating them to form a query. This query is then used to search the corpus using BM25, through which a ranked list is generated.</p><p>To find the keywords {k 1 , ..., k n } from a query document S, we sort all the words in S in decreasing order of their TF-IDF score. To assign different relevance scores to the keywords, we define a weight w j for each keyword k j as follows:</p><formula xml:id="formula_2" coords="2,394.36,442.73,169.81,24.68">w j = nint s j ∑ n k=1 s k • n<label>(1)</label></formula><formula xml:id="formula_3" coords="2,390.66,478.17,173.51,9.72">s j = TF(k j , S) • IDF(k j , A)<label>(2)</label></formula><p>where n is the number of keywords, and TF and IDF are the two statistics, term frequency and inverse document frequency, respectively. To apply the weight for each keyword, we round its value to the nearest integer w j and repeat the jth keyword k j , w j number of times in the query. We also assign different weights to the contribution of keywords in the title and body of the article. This weighted query is fed to BM25, and the top p retrieved articles (R i b ) are selected as candidate documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Semantic Search using BERT</head><p>The first stage uses BM25 to retrieve candidate documents from the corpus entirely based on the term frequencies of words appearing in the query article. To understand the context of the query article, it is important to take the semantics of words into consideration. This is because the background articles may not necessarily contain the same keywords as the search query constructed from the query article. For example, a query article In Russia, political engagement is blossoming online is likely to have Russia and online in the constructed query. In order to find the background articles, the retrieval model first must understand that Russia is a country and online refers to social media platforms like Facebook and Twitter which are based on the internet. To this end, we use a BERTbased model in the second stage to gain semantic knowledge of the query and candidate articles.</p><p>RAKE: Before carrying out the semantic search over the set of documents R i b , it is important to feed only those words to sentence-BERT whose semantic meaning could benefit us. Thus, every document in R i b is passed through the Rapid automatic Keyword Extraction (RAKE) algorithm <ref type="bibr" coords="3,247.53,170.45,15.33,8.64" target="#b9">[10]</ref>. RAKE takes a list of stopwords and the query as inputs and extracts keywords from the query in a single pass. RAKE is completely domain independent and hence can be utilized for our specific newswire domain. It is based on the idea that co-occurrences of words are meaningful in determining whether they are keywords or not. The relations between the words are hence measured in a manner that automatically adapts to the style and content of the text. This allows RAKE to have adaptive measurement of word co-occurrences which are used to score candidate keywords.</p><p>Sentence-BERT (SBERT): Sentence-BERT <ref type="bibr" coords="3,235.51,296.97,11.85,8.64" target="#b7">[8]</ref> is a modification of the pretrained BERT network that adds a pooling operation on top of the last layer of BERT and is fine tuned to derive a fixed size sentence embedding. Sentence-BERT further uses siamese and triplet network structures <ref type="bibr" coords="3,242.00,340.81,16.32,8.64" target="#b10">[11]</ref> to update the weights of this model. The siamese network allows for sentence embeddings that are specifically trained to work with a similarity measure like cosine-similarity. Figure <ref type="figure" coords="3,251.57,373.68,4.89,8.64" target="#fig_1">2</ref> illustrates the Sentence-BERT architecture at inference time. (3)</p><formula xml:id="formula_4" coords="3,320.74,119.78,161.40,25.05">Algorithm 1 RerankCandidates(Q i , R i b ) 1: p ← Number of</formula><p>documents retrieved by BM25 2: t ← Required number of final documents 3: q i ← SBERT(Q i ) 4: for j = 1, . . . p do 5:</p><formula xml:id="formula_5" coords="3,326.07,177.97,96.24,22.91">E j = SBERT(R i b, j ) 6:</formula><p>f j = CosineSim(E j , q i ) 7: end for 8: F ← R i b sorted by decerasing f j 9: R i f ← top t documents in F 10: return R i f</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>EXPERIMENTS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Dataset</head><p>We used the Washington Post Corpus<ref type="foot" coords="3,479.16,298.35,3.69,6.39" target="#foot_1">2</ref> released by TREC for the 2021 news track to compare our approach with runs by other participants in TREC 2021. The collection contains 728,626 news articles and blog posts from January 2012 through December 2020. For other experiments, we used the Washington Post 2018 corpus, which is a subset of the 2021 dataset, containing 608,180 articles from Januray 2012 up to August 2017. Both datasets were preprocessed using the steps shown in Figure <ref type="figure" coords="3,415.69,387.95,3.81,8.64" target="#fig_2">3</ref>. The articles are in JSON format, and include fields for title, date of publication, kicker (a section header), article text, and links to embedded images and multimedia.</p><p>Our method relies on Elasticsearch<ref type="foot" coords="3,460.10,435.83,3.69,6.39" target="#foot_2">3</ref> as the indexing platform. During indexing, we extracted the information from the various fields and indexed them as separate Elasticsearch fields. We also created a new field to store the body of the article. For this, we first extracted the HTML text content from the fields marked by type 'sanitized_html' and subtype 'paragraph', and then concatenated them after using regular expressions to extract the raw text from HTML text. Next, we performed lower-casing, stop-word removal, and stemming on the raw text. The final preprocessed text was then indexed as a separate text field in Elasticsearch, representing the article body. While indexing, we removed the articles from the "Opinion", "Letters to the Editor", and "The Post's View" sections (as labeled in the "kicker" field) as they are as they are deemed irrelevant according to the TREC guidelines.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Setup</head><p>We used the the default scoring method in Elasticsearch, BM25, as the retrieval model. To set the relative weights for the title and body of the article in the search query, we leveraged Elasticsearch boosting queries. We experimented with different combinations of a number of parameters, the final values for which are listed in Table <ref type="table" coords="3,483.30,680.11,3.74,8.64" target="#tab_0">1</ref>.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Evaluation Metric</head><p>The primary metric used by TREC for the background linking task is nDCG@5 with a gain value of 2 r-1 , where r is the relevance level, ranging from 0 (provides little or no useful background information) to 4 (provides critical context). The zero relevance level contributes no gain.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Diversity Measure</head><p>As per TREC guidelines, one of the criteria for ranking for the background linking task is to have a retrieved list of articles which are diverse. The idea of diversity may seem subjective but it is possible to formulate it as given in equation 4.</p><formula xml:id="formula_6" coords="4,79.33,399.14,217.67,28.86">Diversity = 1 |Q| ∑ Q i 1 |R i f | ∑ a∈R i f ∑ b∈R i f ,b a dist(d a , d b ) (4)</formula><p>For every retrieved document list R i f , we calculate the sum of distances between all possible pairs of documents d a and d b . The distances between representation of documents can be captured by metrics like cosine similarity. These distances are then summed over all queries/topics Q to get the diversity score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>RESULTS</head><p>We review the relative performance of IR-BERT against some of the other participating methods at TREC 2021 in Table <ref type="table" coords="4,291.12,545.73,3.81,8.64" target="#tab_1">2</ref>. Results show that IR-BERT performs better than TKB48 which utilizes transformer based Doc2Query re-ranker. IR-BERT also beats methods like FUH-N and QU which carry out matrix based indexing operations and transfer learning from subtopics respectively <ref type="foot" coords="4,161.67,598.60,3.69,6.39" target="#foot_3">4</ref> . On the other hand, methods like KWVec and IR-Cologne achieve higher nDCG@5 scores than IR-BERT. KWVec is similar to IR-BERT in using Sentence-BERT and Elasticsearch. IR-Cologne uses extracted entities and relations for reranking.</p><p>To investigate the effects of employing a language model for the background linking task, we compare the performance  of alternate architectures on the Washington Post 2018 corpus. We list the nDCG@5 and nDCG@10 scores for each of these approaches in Table <ref type="table" coords="4,438.71,286.42,3.81,8.64" target="#tab_2">3</ref>. The first two approaches utilize only stage 1 of our architecture, i.e., they simply build a search query and use BM25 for retrieval. While wBT+BM25 uses only weighted body and title while constructing a query, wQ+BM25 uses also uses weights for all the words present in the query document. We observe that wQ+BM25 gives the best nDCG@10 score, which suggests that articles that provide useful background information are likely to contain keywords similar to the query article. Furthermore, IR-BERT achieves the highest nDCG@5 score, suggesting that contextual understanding of the article's story can benefit the background linking task. It is also interesting to note that using RoBERTa on top of BM25 for re-ranking harms the performance compared to using the vanilla BERT model. In our final set of experiments we compare the diversity of the documents retrieved by all our approaches on the Washington Post 2018 dataset using equation 4 (See Table <ref type="table" coords="4,504.50,569.51,3.56,8.64" target="#tab_3">4</ref>). We observe that IR-RoBERTa, which performs relatively worse on nDCG measures, retrieves the most diverse list of background articles for a given query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Methods</head><p>Diversity Score wBT+BM25 0.9067 wQ+BM25 0.912 IR-RoBERTa 0.921 IR-BERT 0.9084 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CONCLUSION</head><p>In this paper, we described a two-stage approach to solve the background linking task of the TREC 2021 news track. The first stage attempts to extract representative keywords from the query article and uses them to retrieve a candidate set of the background links. The second stage leverages the contextual understanding gained from BERT to perform semantic search over the retrieved candidates. Our model, IR-BERT, achieved an nDCG@5 score of 0.3613 on the TREC Washington Post 2021 dataset. Overall, the participating models and their performance show the effectiveness of re-ranking by leveraging the contextual understanding of transformer based models.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,218.44,270.21,179.22,7.17;2,103.71,62.36,408.20,200.40"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Stages of retrieval in the IR-BERT pipeline</figDesc><graphic coords="2,103.71,62.36,408.20,200.40" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,53.93,587.07,243.35,7.17;3,53.93,596.03,20.66,7.17;3,95.22,413.36,158.00,168.25"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Sentence-BERT architecture at inference to calculate similarity scores</figDesc><graphic coords="3,95.22,413.36,158.00,168.25" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,248.59,118.23,118.92,7.17"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Data Preprocessing Steps</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,130.62,207.15,89.69,7.17"><head>Table 1 .</head><label>1</label><figDesc>Parameter Values</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,320.83,223.51,243.34,16.13"><head>Table 2 .</head><label>2</label><figDesc>nDCG@5 scores of IR-BERT and other participating methods on Washington Post 2021 dataset</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,320.83,456.76,244.66,75.63"><head>Table 3 .</head><label>3</label><figDesc>Comparison of nDCG scored for alternate methods on Washington Post 2018 dataset</figDesc><table coords="4,361.27,456.76,160.24,52.87"><row><cell></cell><cell cols="2">nDCG@5 nDCG@10</cell></row><row><cell>wBT+BM25</cell><cell>0.4088</cell><cell>0.4155</cell></row><row><cell>wQ+BM25</cell><cell>0.3942</cell><cell>0.4315</cell></row><row><cell>IR-RoBERTa</cell><cell>0.394</cell><cell>0.3918</cell></row><row><cell>IR-BERT</cell><cell>0.4199</cell><cell>0.4104</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="4,320.83,689.76,243.33,16.13"><head>Table 4 .</head><label>4</label><figDesc>Comparison of diversity of retrieved documents from various methods on Washington Post 2018 dataset</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,58.41,617.31,234.82,6.58;1,55.66,710.19,91.34,6.05;1,55.91,720.44,66.29,6.76"><p>https://github.com/Anup-Deshmukh/TREC_background_linking ACM ISBN 978-1-4503-2138-9. DOI: 10.1145/1235</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,325.58,698.41,142.27,6.58"><p>https://trec.nist.gov/data/wapost/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,325.58,709.08,96.24,6.58"><p>https://www.elastic.co/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="4,58.41,690.56,239.71,7.77;4,53.65,699.53,243.35,7.77;4,53.93,708.49,35.91,7.77"><p>Although we did not have access to the nDCG@5 score of QU, TREC 2021 news track overview shows the better performance of IR-BERT.</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>ACKNOWLEDGMENTS</head><p>We would like to thank <rs type="person">Prof. Gordon V. Cormack</rs>, Professor at the <rs type="affiliation">School of Computer Science, University of Waterloo</rs>, for his guidance during the course of this work.</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,75.01,270.94,194.92,8.64;5,75.01,281.90,212.90,8.64;5,75.01,292.68,205.16,8.82;5,74.40,303.64,220.00,8.59;5,75.01,314.59,139.05,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,223.88,270.94,46.05,8.64;5,75.01,281.90,212.90,8.64;5,75.01,292.86,35.67,8.64">Deeper text understanding for IR with contextual neural language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,128.42,292.68,151.75,8.59;5,74.40,303.64,220.00,8.59;5,75.01,314.59,95.31,8.59">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="985" to="988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,75.01,329.94,197.09,8.64;5,75.01,340.90,208.59,8.64;5,75.01,351.86,217.19,8.64;5,75.01,362.64,163.72,8.82" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="5,180.90,340.90,102.69,8.64;5,75.01,351.86,212.98,8.64">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,75.01,377.98,220.81,8.64;5,75.01,388.94,201.63,8.64;5,75.01,399.72,80.86,8.82" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,140.31,388.94,136.33,8.64;5,75.01,399.90,36.20,8.64">TREC Complex Answer Retrieval Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Manisha</forename><surname>Verma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,195.08,377.98,100.74,8.64;5,75.01,388.94,33.70,8.64">Filip Radlinski, and Nick Craswell</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note>In TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,75.01,415.06,215.45,8.64;5,75.01,426.02,221.89,8.64;5,74.70,436.80,188.21,8.82;5,74.45,447.76,196.77,8.59" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,252.61,426.02,44.29,8.64;5,74.70,436.98,96.44,8.64">ICTNET at TREC 2019 News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Yuyang</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaoying</forename><surname>Lian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Houquan</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhaoge</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hanxing</forename><surname>Ding</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhongni</forename><surname>Hou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,188.65,436.80,74.26,8.59;5,74.45,447.76,163.07,8.59">Proceedings of the Twenty-Eighth Text REtrieval Conference</title>
+		<meeting>the Twenty-Eighth Text REtrieval Conference</meeting>
+		<imprint>
+			<publisher>TREC</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,75.01,463.11,200.49,8.64;5,75.01,474.07,221.95,8.64;5,74.70,484.85,118.39,8.82" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="5,254.12,474.07,42.85,8.64;5,74.70,485.02,74.03,8.64">DMINR at TREC News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Sondess</forename><surname>Missaoui</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Macfarlane</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephann</forename><surname>Makri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marisela</forename><surname>Gutierrez-Lopez</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note>In TREC</note>
+</biblStruct>
+
+<biblStruct coords="5,342.18,65.84,218.71,8.64;5,342.18,76.62,153.54,8.82;5,342.18,87.58,104.32,8.82" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.04085</idno>
+		<title level="m" coord="5,529.49,65.84,31.39,8.64;5,342.18,76.80,88.81,8.64">Passage Re-ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,342.18,104.30,206.27,8.64;5,341.99,115.25,214.20,8.64;5,342.18,126.03,192.84,8.82" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.14424</idno>
+		<title level="m" coord="5,415.33,115.25,140.85,8.64;5,342.18,126.21,21.30,8.64">Multi-stage document ranking with BERT</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,342.18,142.75,221.65,8.64;5,342.18,153.71,204.93,8.64;5,342.18,164.49,163.72,8.82" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1908.10084</idno>
+		<title level="m" coord="5,506.28,142.75,57.54,8.64;5,342.18,153.71,200.81,8.64">Sentence-bert: Sentence embeddings using siamese bert-networks</title>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,342.18,181.21,215.82,8.64;5,341.87,192.17,202.00,8.64;5,342.18,202.95,198.08,8.82;5,341.87,213.90,125.21,8.82" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,341.87,192.17,202.00,8.64;5,342.18,203.12,27.15,8.64">The probabilistic relevance framework: BM25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Others</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,376.34,202.95,163.91,8.59;5,341.87,213.90,36.37,8.59">Foundations and Trends® in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009. 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,342.17,230.62,204.15,8.64;5,342.18,241.58,203.59,8.64;5,342.18,252.36,210.11,8.82;5,342.18,263.32,89.37,8.82" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,402.66,241.58,143.10,8.64;5,342.18,252.54,83.74,8.64">Automatic keyword extraction from individual documents</title>
+		<author>
+			<persName coords=""><forename type="first">Stuart</forename><surname>Rose</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dave</forename><surname>Engel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Cramer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wendy</forename><surname>Cowley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,432.97,252.36,119.31,8.59;5,342.18,263.32,32.93,8.82">Text mining: applications and theory 1</title>
+		<imprint>
+			<date type="published" when="2010">2010. 2010</date>
+			<biblScope unit="page" from="1" to="20" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,342.17,278.00,198.59,8.64;5,342.18,288.96,212.58,8.64;5,342.18,299.74,218.14,8.82;5,342.18,310.70,221.36,8.59;5,342.18,321.83,37.36,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,400.85,288.96,153.90,8.64;5,342.18,299.92,102.73,8.64">Facenet: A unified embedding for face recognition and clustering</title>
+		<author>
+			<persName coords=""><forename type="first">Florian</forename><surname>Schroff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dmitry</forename><surname>Kalenichenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Philbin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,461.99,299.74,98.33,8.59;5,342.18,310.70,217.36,8.59">Proceedings of the IEEE conference on computer vision and pattern recognition</title>
+		<meeting>the IEEE conference on computer vision and pattern recognition</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="815" to="823" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,342.17,338.37,220.80,8.64;5,342.18,349.15,217.23,8.82;5,342.18,360.11,215.28,8.82;5,341.43,371.25,22.42,8.64" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="5,525.90,338.37,37.08,8.64;5,342.18,349.33,179.45,8.64">Anserini: Reproducible ranking baselines using Lucene</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hui</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,528.66,349.15,30.74,8.59;5,342.18,360.11,161.32,8.59">Journal of Data and Information Quality (JDIQ)</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="1" to="20" />
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,342.17,387.79,210.99,8.64;5,342.18,398.75,215.28,8.64;5,341.87,409.53,201.57,8.59;5,341.51,420.48,55.90,8.59" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="5,481.21,387.79,71.95,8.64;5,342.18,398.75,200.31,8.64">Anserini at TREC 2018: CENTRE, Common Core, and News Tracks</title>
+		<author>
+			<persName coords=""><forename type="first">Peilin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,341.87,409.53,201.57,8.59">Proceedings of the 27th Text REtrieval Conference</title>
+		<meeting>the 27th Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,342.17,437.20,218.46,8.64;5,341.87,448.16,194.71,8.64;5,342.18,459.12,199.78,8.64;5,342.18,469.90,206.33,8.82" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="5,342.18,459.12,199.78,8.64;5,342.18,470.08,36.47,8.64">End-to-end open-domain question answering with bertserini</title>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuqing</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aileen</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xingyu</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luchen</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kun</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1902.01718</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

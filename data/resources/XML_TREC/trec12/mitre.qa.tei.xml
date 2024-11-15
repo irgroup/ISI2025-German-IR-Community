@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,203.52,60.28,205.27,15.84">MITRE&apos;s Qanda at TREC-12</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,272.88,79.66,66.33,11.96"><forename type="first">John</forename><forename type="middle">D</forename><surname>Burger</surname></persName>
+							<email>john@mitre.org</email>
+						</author>
+						<title level="a" type="main" coord="1,203.52,60.28,205.27,15.84">MITRE&apos;s Qanda at TREC-12</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">0C27249B3938CFEEB44CC7F476F372F5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:00+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Qanda is MITRE's TREC-style question answering system. This year, we were able to apply only a small effort to the TREC QA activity, approximately one person-month. As well as some general improvements in Qanda's processing, we made some simple attempts to handle definition and list answers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">TREC-12 system description</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Catalyst architecture</head><p>Qanda uses a general architecture for human language technology called Catalyst, <ref type="bibr" coords="1,185.18,300.46,111.94,11.96;1,54.00,313.18,105.52,11.96">(Burger &amp; Mardis 2002, Nyberg et al., to appear)</ref>. Developed at MITRE for the DARPA TIDES program, the Catalyst architecture is specifically designed for fast processing and for combining the strengths of Information Retrieval and Natural Language Processing into a single framework. Catalyst uses a dataflow architecture in which standoff annotations are passed from one component to another, with the components connected in arbitrary (acyclic) topologies. The use of standoff annotation permits components to be optimized for just those pieces of information they require for their processing.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Major system components</head><p>Qanda has a by now familiar architecture-questions are analyzed for expected answer types, documents are retrieved using an IR system and are then processed by various taggers to find entities of the expected types in contexts that match the question. Below we describe each of the major components in turn.</p><p>• Question analysis: This component is run after the question has been subjected to POS and named entity tagging. It uses a simple grammar, currently hand-written, to identify important components of the question-see Section 2 below for more detail.</p><p>• IR wrappers: Catalyst components have been written for several IR engines, taking the results of the question analysis and formulating an IR query.</p><p>For continue to use the Java-based Lucene engine (Apache 2002). Lucene's query language has a phrase operator, and also allows query components to be given explicit weights. Qanda uses both of these capabilities in constructing queries from the information extracted from the question. For TREC-12, the top 25 documents were retrieved.</p><p>• Passage processing: Retrieved documents are tokenized, and sentence boundaries are detected.</p><p>Because some downstream components run more slowly than the rest of the system, Qanda assigns a preliminary score to each sentence by summing the log-IDF (inverse document frequency) of each word that overlaps with the question. Those sentences with a low score are filtered out and not processed by most of the system.</p><p>• Named entity tagging: Qanda uses Phrag <ref type="bibr" coords="1,524.09,305.98,34.29,11.96;1,333.12,318.70,53.16,11.96">(Burger et al. 2002)</ref>, an HMM-based tagger, to identify named persons, locations and organizations, as well as temporal expressions. Phrag is also used as a POS tagger for question analysis.</p><p>• Numeric tagging: A simple pattern-based tagger identifies measures, currency, percentages and other numeric phrases.</p><p>• Specialized taggers: We have a simple facility for constructing taggers from fixed word-and phraselists. These were used to re-tag many named locations more specifically as cities, states/provinces, and countries. Qanda also identifies various other (nearly) closed classes such as precious metals, birthstones, various animal categories, etc.</p><p>• O v e r l a p : The question is compared to each sentence, and a number of overlap features are computed, some in terms of various WordNet relations (see Section 3).</p><p>• Answer formation and ranking: Candidates are identified and merged, a number of features are collected, and a score is computed (Section 3).</p><p>For factoid questions, we simply use the top-scored candidate. For definition and list questions, we apply some other processing to generate answer strings, as detailed in Section 4</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Questions analysis</head><p>Phrag, our HMM-based tagger, first annotates questions using separate models for part-of-speech and named entities. Qanda also runs a simple lookupbased tagger that maps head words to answer types in Qanda's ontology using a set of approximately 6000 words and phrases, some extracted semi-automatically from WordNet, some identified by hand. Based on these annotations, Qanda's main question analysis component uses a parser with a simple hand-optimized grammar to identify the following aspects of each question:</p><p>• Answer type: a type in Qanda's (rather simple) ontology, e.g., PERSON or COUNTRY.</p><p>• Answer restriction: an open-domain phrase from the question that describes the entity being sought, e.g., first woman in space.</p><p>• Salient entity: What the question is "about". Typically a named entity, this corresponds roughly to the classical notion of topic, e.g., Matterhorn in What is the height of the Matterhorn?</p><p>• Geographical restriction: Any phrase that seems to restrict the question's geophysical domain, e.g., in America.</p><p>• Temporal restriction: Any phrase that similarly restricts the relevant time period, e.g., in the nineteenth century.</p><p>These features are emitted as annotations on the question, and are then available for other components to use.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">. Answer ranking with log-linear models</head><p>Qanda only examines sentences that match the question sufficiently, based on the IDF-weighted overlap described above. It collects candidate answers by gathering phrasal annotations from all of the semantic taggers, and identifies a number of features. These are combined using a conditional log-linear model trained from past TREC QA data sets. This approach has been used by several TREC participants, e.g., <ref type="bibr" coords="2,75.12,623.26,97.51,11.96" target="#b4">Ittycheriah et al (2001)</ref>.</p><p>Many of the features used in the log-linear model reflect particular kinds of overlap between the question and the context in which the candidate answer is found:</p><p>• Context IDF Overlap: Described above.</p><p>• Context Unigram Overlap: Raw count of words 1 in common with the question.</p><p>• Context Bigram Overlap: Raw count of word bigrams in common with the question.</p><p>• Context Question Restriction Overlap: Raw count of words from the restriction phrase of the question (see Section 2).</p><p>• Context Salient Overlap: Raw count of words considered especially salient by question analysis (see Section 2).</p><p>• Context Synonym Overlap: Raw count of words that could be synonymous with questions words.</p><p>• Context Antonym Overlap: Raw count of words that could be antonyms of question words.</p><p>The synonym and antonym features are computed with respect to WordNet <ref type="bibr" coords="2,402.44,284.14,70.38,11.96" target="#b3">(Fellbaum 1998)</ref>.</p><p>Several features are computed based on the candidate itself, or its location in the context sentence:</p><p>• Candidate Overlap: Raw count of words in common between the candidate itself and the question, to bias against entities from the question being chosen as answers.</p><p>• Candidate Overlap Distance: Number of characters between the candidate and the closest (content) question word in the context.<ref type="foot" coords="2,500.40,414.52,3.48,7.70" target="#foot_0">2</ref> </p><p>• Candidate Question Restriction Distance: Number of characters between the candidate and a word from the restriction phrase of the question.</p><p>The only document-level feature currently used is the following:</p><p>• IR Ranking of the source document by the IR system.</p><p>Candidates with similar textual realizations are merged, with the combined candidate retaining the highest value for each feature. Accordingly, an additional feature is maintained:</p><formula xml:id="formula_0" coords="2,318.72,597.82,71.71,12.85">• Merge Count</formula><p>A number of boolean features are also computed that compare the question's expected answer type derived by analysis with the semantic type of the candidate:</p><p>1 All of the "raw count" features described in this section omit stop words.</p><p>• Type Same: Boolean, true if the candidate and expected answer types are identical.</p><p>• Type Consistent: True if the candidate's type is "similar" to the expected answer type.</p><p>For the most part, candidates are only considered for a question if their types are consistent. For example, Where questions lead to an expected answer type of LOCATION, which is consistent with COUNTRY candidates; How much questions lead to QUANTITY, consistent with PERCENTAGE.</p><p>Ideally, Qanda would consider all candidates for all questions, but, if nothing else, performance considerations justify limiting this. We do not even represent all consistent pairs as explicit features. Instead, a small set of approximately 20 combinations was chosen by hand, as indicated in Figure <ref type="figure" coords="3,254.64,262.30,4.11,11.96">1</ref>. These represent particular biases or preferences that we feel justified in trying to acquire from the training data. In addition, some of these pairwise features represent exceptions to the consistency requirement, e.g., PERSON is not consistent with COUNTRY, but we wish to consider such candidates anyway. Similarly, we wish to consider certain named entity types as candidates, even when question analysis was unsuccessful in divining an expected answer type (unknown). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Figure 1: Type-pair features used in evaluating answer candidates</head><p>After all of the (merged) candidates have been acquired, the raw feature values described above are normalized with respect to the maximum across all candidates for a particular question, resulting in values between 0 and 1. 3 Features normalized in this way are more commensurate across questions, especially word overlap and related features <ref type="bibr" coords="3,437.53,130.30,76.66,11.96" target="#b5">(Light et al. 2001)</ref>.</p><p>The normalized features are then combined using the weights assigned by the log-linear model during training. This year, we trained the model using the questions from TREC 1999 and 2000. We also used a development test set composed of TREC 2002 factoid questions, the 25 AQUAINT definition evaluation questions, and the lists questions from 2001.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Special question types</head><p>This year, in addition to the usual factoid questions, systems had to deal with two additional types of questions, definition and list questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Definition questions</head><p>Qanda has no real facility for processing definition questions as such. Instead, we attempted to leverage our factoid question processing, which for the most part only considers named and other entities as candidate answers. Of course, very few definition answers were named entities, per se, but we noticed that certain kinds of named entities were involved with some definition answers, as indicated in the example below:</p><p>Who is Gunter Blobel?</p><p>Is at Rockefeller University 1999 Nobel prize in Medicine was born in 1936 was born in Waltersdorf, Silesia, Germany Qanda's question analysis component could already identify the semantic type of the definition target (e.g., PERSON, above). Since definition answers did not need to be exact, we decided to allow Qanda to consider certain entity types as "answers" to definition questions, deriving the actual answer string by extracting approximately 90 characters around the putative candidate.</p><p>We used the type-pair features described in Section 3 to license certain combinations of definition target type and candidate type, as shown in Figure <ref type="figure" coords="3,507.45,657.10,4.05,11.96" target="#fig_0">2</ref>.</p><p>3</p><p>The normalized values are computed so that the intuitively "best" feature value is 1, the worst 0-this is primarily for the developers' convenience, but also so weights are all positive, and more easily reasoned about.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Definition target type</head><p>Candidate type.  Additionally, we injected some non-entity candidates using crude heuristics for identifying short fragments occurring in appositional contexts. Our hope was that the type-pair features, as well as the candidate count feature, would allow the system to find some definition answers. As training data, we used 24 questions from TREC 1999 and 2000 that we determined were essentially definition questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>PERSON</head><p>We had some limited success with this approach. In the following examples, we indicate with underlining the actual "core" candidates that Qanda considered: 2112: Who is Antonio Coello Novello? general, as New York's health commissioner on Thursday, drawing cries of betrayal from the abortion.</p><p>2385: What is the Kama Sutra?</p><p>the famous Indian manual of sexual knowledge, and his pursuit of Lalita is a kind of realization These answers are hardly well-formed, but apparently relevant. It remains to be seen whether such a crude approach can be refined sufficiently to be useful, or if more sophisticated approaches are necessary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>List questions</head><p>Qanda currently treats list questions no differently from factoid questions, except that more than one answer is generated. We might have simply picked some fixed cutoff, say 3, and generated exactly three answers to every list question. We decided to attempt something slightly more sophisticated.</p><p>Since Qanda's candidate evaluation mechanism is probabilistic in nature, we decided to choose how many answers to generate dynamically, based on the expected value of the score we might receive. Each list question was to be scored using F-measure, the harmonic mean of precision and recall: †</p><formula xml:id="formula_1" coords="4,386.00,86.70,101.37,29.30">F = 2PR (P + R) = 2c (n + r)</formula><p>Here, n is the number of answers we choose to generate, c is the number of correct answers we generate, and r is the total number of correct answers possible. We do not know in advance whether an answer is correct, but we can use Qanda's probabilistic score for the answers as the basis for an expectation of c. We have no real hope of estimating r, the number of correct answers possible, so we simply fixed this at the magic number 3. Thus, our algorithm for generating list answers was to add each of the candidates to the answer set in turn, increasing n by one each time, and calculating the following expectation: †</p><formula xml:id="formula_2" coords="4,402.58,300.05,68.60,48.51">E[F] ª 2 s i i=1 n Â (n + r)</formula><p>Here, s i is the score assigned to candidate i. We stop generating candidates when this expectation begins to decrease. On this year's evaluation, this admittedly crude mechanism performed slightly better than simply generating one candidate per list question (F=0.07 vs. 0.05).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>As well as the requisite description of this year's system architecture, we have discussed Qanda's question analysis and our use of log-linear models for answer selection. We intend to improve the latter with better features, feature combination, and more sophisticated models. We also presented some initial results with crude mechanisms for generating definition and list answers. We intend to improve these components substantially as well.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,66.72,219.10,217.54,11.96;4,132.96,231.82,84.98,11.96"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Type-pair features used in evaluating answer candidates</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,318.24,711.47,240.13,10.89;2,315.12,722.75,29.80,10.89"><p>Words would arguably be a more intuitive unit for this feature.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,54.00,76.06,194.44,11.96;5,54.00,88.78,237.29,11.96" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,217.47,76.06,30.98,11.96;5,54.00,88.78,81.79,11.96">Jakarta Lucene-Overview</title>
+		<ptr target="http://jakarta.apache.org/lucene/" />
+		<imprint>
+			<date type="published" when="2002">2002</date>
+			<publisher>Apache Software Foundation</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,107.26,207.07,11.96;5,54.00,119.98,223.83,11.96;5,54.00,132.70,204.89,11.96;5,54.00,145.42,160.20,11.96" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,127.27,119.98,150.56,11.96;5,54.00,132.70,43.74,11.96">Statistical named entity recognizer adaptation</title>
+		<author>
+			<persName coords=""><forename type="first">John</forename><forename type="middle">D</forename><surname>Burger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><forename type="middle">C</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">T</forename><surname>Morgan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,111.88,132.70,147.01,11.96;5,54.00,145.42,119.85,11.96">Proceedings of the Conference on Natural Language Learning</title>
+		<meeting>the Conference on Natural Language Learning<address><addrLine>Taipei</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,163.90,226.86,11.96;5,54.00,176.62,219.60,11.96;5,54.00,189.34,219.89,11.96" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,219.18,163.90,61.69,11.96;5,54.00,176.62,88.25,11.96">Qanda and the Catalyst architecture</title>
+		<author>
+			<persName coords=""><forename type="first">John</forename><forename type="middle">D</forename><surname>Burger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Scott</forename><surname>Mardis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,153.25,176.62,120.34,11.96;5,54.00,189.34,215.26,11.96">AAAI Spring Symposium on Mining Answers from Texts and Knowledge Bases</title>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,207.82,216.44,11.96;5,54.00,220.54,156.34,11.96" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="5,165.41,207.82,105.03,11.96;5,54.00,220.54,73.69,11.96">WordNet: An Electronic Lexical Database</title>
+		<author>
+			<persName coords=""><forename type="first">Christiane</forename><surname>Fellbaum</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,239.26,220.88,11.96;5,54.00,251.74,231.26,11.96;5,54.00,264.46,224.43,11.96;5,54.00,277.18,50.69,11.96" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,88.93,251.74,186.95,11.96">IBM&apos;s statistical question answering system</title>
+		<author>
+			<persName coords=""><forename type="first">Abraham</forename><surname>Ittycheriah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Martin</forename><surname>Franz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Salim</forename><surname>Roukos</surname></persName>
+		</author>
+		<idno>TREC-10</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,54.00,264.46,224.43,11.96">Proceedings of the Tenth Text Retrieval Conference</title>
+		<meeting>the Tenth Text Retrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,295.90,236.77,11.96;5,54.00,308.38,210.05,11.96;5,54.00,321.10,184.80,11.96;5,54.00,333.82,76.80,11.96" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,85.94,308.38,178.11,11.96;5,54.00,321.10,93.36,11.96">Analyses for elucidating current question answering technology</title>
+		<author>
+			<persName coords=""><forename type="first">Marc</forename><surname>Light</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gideon</forename><forename type="middle">S</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><surname>Riloff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Breck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,159.27,321.10,79.53,11.96;5,54.00,333.82,53.41,11.96">Natural Language Engineering</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,54.00,352.30,217.60,11.96;5,54.00,365.02,209.48,11.96;5,54.00,377.74,235.50,11.96;5,54.00,390.46,238.00,11.96" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,148.28,365.02,115.19,11.96;5,54.00,377.74,133.16,11.96">Software Architectures for Advanced Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><forename type="middle">D</forename><surname>Burger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Scott</forename><surname>Mardis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Ferrucci</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,210.86,377.74,78.64,11.96;5,54.00,390.46,85.71,11.96">New Directions in Question Answering</title>
+		<editor>
+			<persName><forename type="first">Mark</forename><surname>Maybury</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>AAAI Press</publisher>
+		</imprint>
+	</monogr>
+	<note>to appear</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

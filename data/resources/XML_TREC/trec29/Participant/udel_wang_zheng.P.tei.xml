@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,59.27,84.23,492.86,15.44">A Two-Phase Approach for Abstractive Podcast Summarization</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,150.00,114.32,66.78,10.59"><forename type="first">Chujie</forename><surname>Zheng</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Delaware</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,390.06,114.32,79.09,10.59"><forename type="first">Kunpeng</forename><surname>Zhang</surname></persName>
+							<email>kpzhang@umd.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Maryland</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,132.17,160.33,101.43,10.59"><forename type="first">Harry</forename><forename type="middle">Jiannan</forename><surname>Wang</surname></persName>
+							<email>hjwang@udel.edu</email>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Delaware</orgName>
+								<address>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,407.74,160.33,42.74,10.59"><forename type="first">Ling</forename><surname>Fan</surname></persName>
+							<email>lfan@tongji.edu.cn</email>
+							<affiliation key="aff3">
+								<orgName type="institution">Tongji University</orgName>
+								<address>
+									<country key="CN">China</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,59.27,84.23,492.86,15.44">A Two-Phase Approach for Abstractive Podcast Summarization</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">699A86F37591088FBA45517870737823</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Podcast summarization is different from summarization of other data formats, such as news, patents, and scientific papers in that podcasts are often longer, conversational, colloquial, and full of sponsorship and advertising information, which imposes great challenges for existing models. In this paper, we focus on abstractive podcast summarization and propose a two-phase approach: sentence selection and seq2seq learning. Specifically, we first select important sentences from the noisy long podcast transcripts. The selection is based on sentence similarity to the reference to reduce the redundancy and the associated latent topics to preserve semantics. Then the selected sentences are fed into a pre-trained encoder-decoder framework for the summary generation. Our approach achieves promising results regarding both ROUGE-based measures and human evaluations.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The summarization task has been well studied in Natural Language Processing (NLP). Especially within the development of deep learning and the introduction of attention mechanism <ref type="bibr" coords="1,224.76,421.68,16.42,7.94" target="#b9">[10]</ref>, Transformerbased summarization models <ref type="bibr" coords="1,158.22,432.63,9.23,7.94" target="#b6">[7,</ref><ref type="bibr" coords="1,169.10,432.63,6.10,7.94" target="#b8">9,</ref><ref type="bibr" coords="1,176.84,432.63,10.27,7.94" target="#b10">11,</ref><ref type="bibr" coords="1,188.76,432.63,11.47,7.94" target="#b11">12]</ref> have achieved remarkable performance. However, these Transformer-based models are unable to process long sequences due to their self-attention operation, which scales quadratically with the sequence length <ref type="bibr" coords="1,253.28,465.51,9.44,7.94" target="#b0">[1,</ref><ref type="bibr" coords="1,265.45,465.51,6.29,7.94" target="#b5">6]</ref>. This bottleneck has brought challenges for podcast summarization since the average length of podcast transcript is much longer than the maximum sequence limitation. When these Transformer-based summarization models can only read the first hundreds of tokens in the episode transcript, how to generate a comprehensive summary covering the important information is a challenge.</p><p>Besides the challenge from the length, podcast summarization is a complicated research problem because of the conversational feature. Comparing to the professionally edited texts like news and academic papers, the podcast is colloquial and contains many conversations. According to the number from Spotify, 81.4% of the podcast episodes are conversational 1 . But few studies have focused on how to deal with conversational corpus summarization. It is still a research gap.</p><p>This short paper is for the summarization task of TREC 2020 Podcast Track <ref type="bibr" coords="1,105.85,640.85,9.27,7.94" target="#b4">[5]</ref>. In this work, we introduce a two-phase approach for podcast abstractive summarization. It is designed based on the unique features of the podcast. Our proposed approach selects the important sentences from the transcript in the first phase and uses 1 Numbers are reported in Matthew Sharpe's presentation "A Review of Metadata Fields Associated with Podcast RSS Feeds" in RecSys 2020 PodRecs Workshop the encoder-decoder network to generate the abstractive summary based on the selection. Figure <ref type="figure" coords="1,430.35,217.13,4.24,7.94" target="#fig_0">1</ref> describes the general framework for proposed approach.</p><p>The key contribution of this paper focuses on the first phase, which selects the important sentences from the input documents. Building on top of the Transformer-based models, our goal is to filter the irrelevant content and locate the most useful information for the abstractive summary generation. Under this idea, the research question becomes how to define important sentences? We propose two methods to identify the important sentences using the ROUGE score and the topic-level features. Our proposed approach provides some novel insights for podcast summarization and improves the performance of the summarization model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">DATASET</head><p>The dataset used in this work is the TREC Spotify podcast dataset <ref type="bibr" coords="1,549.95,376.98,9.23,7.94" target="#b2">[3,</ref><ref type="bibr" coords="1,317.75,387.94,7.30,7.94" target="#b3">4]</ref> which has 105,360 podcast episodes from 18,376 shows produced by 17,473 creators. The average duration of a single episode is 30 minutes, while the longest can be over 5 hours and the shortest is only 10 seconds. The TREC Podcast Track organizers form the "Brass Set" by cutting down the dataset to 66,245 podcast episodes using the following rules:</p><p>• Remove episodes with descriptions that are too long (&gt; 750 characters) or too short (&lt; 20 characters); • Remove "duplicate" episodes with similar descriptions (by conducting similarity analysis); • Remove episodes with descriptions that are similar to the corresponding show descriptions, which means the episode description may not reflect the episode content.</p><p>We perform additional data preprocessing on top of the Brass Set as follows:</p><p>• Remove episodes with profanity language in the episode or show descriptions as <ref type="bibr" coords="1,420.60,581.84,9.39,7.94" target="#b8">[9]</ref>. • Remove episodes with non-English descriptions.</p><p>• Remove episodes whose description is less than 10 tokens<ref type="foot" coords="1,553.73,601.61,3.38,6.44" target="#foot_0">2</ref> .</p><p>After preprocessing, the dataset has 52,140 episodes left (see Table <ref type="table" coords="1,340.67,631.86,4.25,7.94" target="#tab_0">1</ref> for details). We randomly split the dataset into training, validation, and testing by 80%, 10%, and 10%. This processed dataset is used for our training.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">TWO-PHASE APPROACH</head><p>In this section, we introduce our Two-Phase Approach for podcast summarization. The key motivation is to select important sentences from the input document and use it as the input for the abstractive summarization model. In this work, we don't design a new model for Phase 2, so we choose to use the BART framework, which performs the best in the preliminary experiment <ref type="bibr" coords="2,266.61,458.33,13.49,7.94" target="#b12">[13]</ref>. In practical implementation, we use distilBART 3 provided by Hug-gingFace. Our focus is on how to define an efficient metric to select sentences contained important information. So the research problem turns to how to define the important sentences.</p><p>We propose two sentence selection methods to identify the sentences with important information. The importance is determined based on whether the sentence covers the key information of the article or whether it reflects the key topic of the article.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">ROUGE-based Approach</head><p>Inspired by <ref type="bibr" coords="2,97.04,581.93,13.31,7.94" target="#b11">[12]</ref>, we propose a ROUGE-based approach to identify the sentence who covers the key information of the input document. We calculate the ROUGE score <ref type="bibr" coords="2,195.64,603.85,10.69,7.94" target="#b7">[8]</ref> for each sentence with the input document, which considers as the relevance score for this sentence. ROUGE is the most common evaluation metric for the summarization task, which focuses on the overlapping between the reference summary and the model output. The intuition for the ROUGE-based Approach is a sentence with a higher ROUGE score serves as an excellent summary of the input document, which should capture the important information. In practical implementation, since there are three types of ROUGE scores commonly used: ROUGE-1, ROUGE-2, and ROUGE-L, we choose the average of three scores as the measurement to find the most relevant sentences. We introduce our detailed implementation Sliding Window ROUGE-based Approach and Novelty-Enhanced ROUGE-based Approach in the following.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Sliding Window ROUGE-based Approach.</head><p>We select the sentences in a window size as the candidate and compute the ROUGE score, as Figure <ref type="figure" coords="2,378.56,484.30,3.13,7.94">2</ref>. This implementation is based on two reasons. First, it is very time consuming to calculate the score for every single sentences, especially for the long document. In addition, we believe selecting single sentence may lead to the redundancy in the information. In other words, we are using ROUGE score as the measurement to selecting sentences x in the window size 𝑤, as Equation <ref type="formula" coords="2,352.91,550.06,3.04,7.94" target="#formula_0">1</ref>. 𝑠 𝑘 represents the 𝑘-th sentence in the input document, which contains 𝑁 sentences.</p><formula xml:id="formula_0" coords="2,370.74,577.85,187.47,9.97">x = argmax 𝑠 𝑖:𝑖+𝑤 ROUGE(𝑠 𝑖:𝑖+𝑤 , 𝑠 1:𝑁 )<label>(1)</label></formula><p>Here 𝑤 is chosen based on the consideration that the average length of the selected sentences should have approximately 1024 tokens, which is the maximum sequence limit we set for BART, followed the instructions provided by HuggingFace <ref type="foot" coords="2,504.47,626.39,3.38,6.44" target="#foot_1">4</ref> . In our implementation, we set 𝑤 = 40 since the average number of tokens is 1018 tokens, which satisfied our constraints.  us another question: since we are selecting the sentences in consecutive order, is it possible that we may miss some single important sentences? To solve this question, we propose a new approach: besides finding the sentences 𝑠 𝑖:𝑖+𝑤 in the window size 𝑤, we also calculate the ROUGE score for each sentence 𝑠 𝑗 and check if it is selected already in the window. If not, we will combine it with the selected window as the summary. This approach aims to enhance the performance of the ROUGE-based approach in case we miss any important single sentence.</p><p>We choose the top 𝑘 = 5 sentences with the highest ROUGE score and check if these sentences are in the selected sentences under the window size 𝑤 = 25. These two parameters are chosen based on the requirement that the average length of the final selection satisfies the maximum length limit for the Transformer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Topic-Enhanced Approach</head><p>The second proposed approach for important sentence selection is identifying the sentence captures the main topic of the input document. The intuition is to learn the main topics at first and find the sentences that are most relevant to the key topics.</p><p>This approach is built on the assumption for topic modeling: documents are represented as random mixtures over topics and each topic is characterized by a distribution over words <ref type="bibr" coords="3,238.11,635.74,9.34,7.94" target="#b1">[2]</ref>. As Figure <ref type="figure" coords="3,289.92,635.74,4.13,7.94">3</ref> describes, we identify the latent topics and calculate the relevance score for each sentence with the topic embedding. The sentences with the highest relevance score are selected. Using topic modeling, we generate the key topics from the input document. We use Gibbs sampling to learn the topic distribution 𝜽 = (𝜽 1 , 𝜽 2 , ..., 𝜽 𝑘 ). For each latent topic 𝜽 𝑖 , we calculate the relevance score between each sentence and 𝜽 𝑖 , then we select the more relevant sentence as the representation for this topic. These selected sentences are combined as the output in the first phase.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">EVALUATION</head><p>In this section, we summarize the evaluation result for our submitted results. Totally we've submitted 4 runs this year. The detail for each submitted run is summarized here: </p><formula xml:id="formula_1" coords="3,333.92,488.09,4.46,7.70">•</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">ROUGE Score</head><p>The organizers reported the ROUGE-L score between the generated summary and the episode description, which is written by creators.</p><p>As the most common evaluation metric for summarization, the ROUGE score focuses on the overlapping between the generated summary and the reference summary. Considering the fact that the quality of the episode description varies, it may not be the perfect </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Human Evaluation</head><p>As one of the important parts of the evaluation, this year the organizers provide the qualitative judgments for the generated summary. They selected 179 out of 1000 episodes from the submitted set. An assessor first quickly skimmed the episode, and then made judgments for each summary for that episode, in random order. Therefore, for each episode, the assessor will give a score from 0-3 quality according to its quality, where a higher score indicates higher quality. Table <ref type="table" coords="4,132.73,501.73,4.25,7.94">3</ref> reports the performance of our submitted results. We compare our performance with the average score for all participants, and it turns that 3 out of 4 methods perform better than the average. Compared with the average score, Method 1 with the highest quality rating scores 14.3% higher.</p><p>We also analyze the percentage for each category in Table <ref type="table" coords="4,267.77,556.52,4.09,7.94" target="#tab_1">4</ref> for all submitted runs. Method 3 performs the best using this measurement because of its outstanding performance in the high-quality rating categories: 7.82% of the generated summary is rated as "Excellent" and 21.79% of the output is rated as "Good".</p><p>For every episode, the assessor is asked eight yes-or-no questions regarding the quality of the summary, and "1" indicates that the answer is "yes". These questions include:</p><p>• Q1: Does the summary include names of the main people (hosts, guests, characters) involved or mentioned in the podcast? • Q2: Does the summary give any additional information about the people mentioned (such as their job titles, biographies, personal background, etc)? • Q3: Does the summary include the main topic(s) of the podcast? • Q4: Does the summary tell you anything about the format of the podcast; e.g. whether it's an interview, whether it's a chat between friends, a monologue, etc? • Q5: Does the summary give you mode context on the title of the podcast? • Q6: Does the summary contain redundant information? • Q7: Is the summary written in good English? • Q8: Are the start and end of the summary good sentence and paragraph start and end points? We compare the performance of our submitted runs to the average scores for all participants. Except for Q6, a higher score represents better performance. According to Table <ref type="table" coords="4,481.51,378.86,3.01,7.94" target="#tab_2">5</ref>, our submitted runs have achieved better performance than the average for all eight questions. Our models are better at capturing important information and semantically more fluent.</p><p>Table <ref type="table" coords="4,349.97,422.70,3.07,7.94">3</ref>, 4 and 5 leave us a lot of room for further discussion.</p><p>• Firstly, based on the fact that the average rating is only 0.98 and the best performance for our models is 1.12, there is a lot of room for improvement for podcast summarization.</p><p>Considering that the score is from 0 to 3, the average performance is only "Fair". Especially in comparison with the excellent performance of news summarization, we have a lot of thoughts: What makes podcast summarization so challenging? We are looking forward to this year's Podcast Track and improve our performance. • We also raise some concerns about the prepared eight yesor-no questions. These questions reflect the quality level of the generated summary, which is also considered as the feature for a good podcast summary. Comparing to other summaries, it emphasizes several aspects including additional information like people's job titles or the format of the podcast. These features definitely play a very important role in helping people familiar with the episode. How to capture these features leads to several directions for future research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSION</head><p>In this year's podcast track, we develop a two-phase approach to handle the podcast summarization task. Using the transcript generated by Google ASR, we design a pipeline to select the important sentences which cover the key information of the input document and generate the abstractive summary using the selected sentences.</p><p>Our main contribution is that we propose two approaches to select sentences including the ROUGE-based approach and the topicenhanced approach. These approaches provide a novel definition for important sentences and improve the performance of the podcast summarization model.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,212.24,259.05,187.52,7.70;2,104.24,83.69,403.52,161.37"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Framework for Two-Phase Approach</figDesc><graphic coords="2,104.24,83.69,403.52,161.37" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="2,53.80,701.13,147.95,7.84"><head></head><label></label><figDesc>3 https://huggingface.co/sshleifer/distilbart-cnn-12-6</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="2,317.96,668.14,241.76,8.04;2,317.96,679.16,240.25,7.94"><head>3. 1 . 2</head><label>12</label><figDesc>Novelty-Enhanced ROUGE-based Approach. From the implementation of the Sliding Window ROUGE-based Approach, it brings</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="3,205.69,157.32,200.62,7.70;3,129.46,178.19,353.09,171.52"><head>Figure 2 :Figure 3 :</head><label>23</label><figDesc>Figure 2: Framework for ROUGE-based Approach</figDesc><graphic coords="3,129.46,178.19,353.09,171.52" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="3,342.36,488.57,215.84,7.94;3,342.36,499.53,215.84,7.94;3,342.36,510.49,26.20,7.94;3,333.92,520.97,225.79,8.43;3,342.36,532.41,215.84,7.94;3,342.36,543.37,164.07,7.94;3,333.92,553.84,225.79,8.43;3,342.36,565.28,215.83,7.94;3,342.36,576.24,173.66,7.94;3,333.92,586.72,225.79,8.43;3,342.36,598.16,219.79,7.94;3,342.36,609.12,89.72,7.94"><head>Method 1 :</head><label>1</label><figDesc>Using the BART framework without a sentence selection approach to fine-tune the model and generate the results. • Method 2: Using the BART framework with sentences selected by Sliding Window ROUGE-based Approach to fine-tune the model and generate the results. • Method 3: Using the BART framework with sentences selected by Novelty-Enhanced ROUGE-based Approach to fine-tune the model and generate the results. • Method 4: Using the BART framework with sentences selected by Topic-Enhanced Approach to fine-tune the model and generate the results.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,175.93,293.50,247.06,64.12"><head>Table 1 :</head><label>1</label><figDesc>Data Preprocessing and the Number of Episodes</figDesc><table /><note coords="2,175.93,293.50,113.76,7.94;2,396.00,293.50,26.99,7.94;2,175.93,304.46,177.43,7.94;2,398.08,304.46,22.82,7.94;2,175.93,315.42,180.65,7.94;2,398.08,315.42,22.82,7.94;2,175.93,326.38,202.60,7.94;2,398.08,326.38,22.82,7.94;2,175.93,337.34,202.49,7.94;2,398.08,337.34,22.82,7.94"><p>TREC Spotify Podcasts Dataset 105,360 After filtering by the TREC organizer (Brass Set) 66,245 After removing episodes with profanity language 55,799 After removing episodes with non-English descriptions 55,383 After removing episodes whose description is too short 52,140</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,53.80,88.97,240.25,308.51"><head>Table 4 :</head><label>4</label><figDesc>Percentage of Quality Rating reference summary. For example, there are many social media links and sponsorships in the episode description, which are irrelevant content. Here the ROUGE score reported in Table2is sharing to offer a standard summarization evaluation viewpoint.</figDesc><table coords="4,70.06,88.97,207.43,217.84"><row><cell></cell><cell cols="4">ROUGE-L P ROUGE-L R ROUGE-L F</cell></row><row><cell>Method 1</cell><cell>23.87</cell><cell>16.07</cell><cell></cell><cell>16.30</cell></row><row><cell>Method 2</cell><cell>20.84</cell><cell>16.01</cell><cell></cell><cell>15.29</cell></row><row><cell>Method 3</cell><cell>20.16</cell><cell cols="2">16.83</cell><cell>15.49</cell></row><row><cell>Method 4</cell><cell>18.44</cell><cell>13.90</cell><cell></cell><cell>13.29</cell></row><row><cell cols="5">Table 2: ROUGE-L Scores for Submitted Summaries</cell></row><row><cell cols="5">Average Method1 Method2 Method3 Method4</cell></row><row><cell>0.98</cell><cell>1.12</cell><cell>1.03</cell><cell>1.08</cell><cell>0.72</cell></row><row><cell cols="5">Table 3: Average Score for Quality Rating</cell></row><row><cell></cell><cell cols="4">%(Excellent) %(Good) %(Fair) %(Bad)</cell></row><row><cell>Method 1</cell><cell>7.26%</cell><cell cols="3">21.79% 46.37% 24.58%</cell></row><row><cell>Method 2</cell><cell>5.59%</cell><cell cols="3">19.00% 48.04% 27.37%</cell></row><row><cell>Method 3</cell><cell>7.82%</cell><cell cols="3">21.79% 41.34% 29.05%</cell></row><row><cell>Method 4</cell><cell>3.91%</cell><cell cols="3">11.73% 36.87% 47.49%</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,324.58,88.97,226.71,110.97"><head>Table 5 :</head><label>5</label><figDesc>Average Score for Human Evaluation Questions</figDesc><table coords="4,334.92,88.97,206.32,95.79"><row><cell cols="5">Average Method1 Method2 Method3 Method4</cell></row><row><cell>Q1 0.44</cell><cell>0.60</cell><cell>0.52</cell><cell>0.56</cell><cell>0.26</cell></row><row><cell>Q2 0.28</cell><cell>0.34</cell><cell>0.31</cell><cell>0.28</cell><cell>0.18</cell></row><row><cell>Q3 0.58</cell><cell>0.70</cell><cell>0.66</cell><cell>0.68</cell><cell>0.50</cell></row><row><cell>Q4 0.45</cell><cell>0.51</cell><cell>0.52</cell><cell>0.63</cell><cell>0.50</cell></row><row><cell>Q5 0.52</cell><cell>0.54</cell><cell>0.58</cell><cell>0.62</cell><cell>0.42</cell></row><row><cell>Q6 0.09</cell><cell>0.05</cell><cell>0.09</cell><cell>0.04</cell><cell>0.07</cell></row><row><cell>Q7 0.62</cell><cell>0.74</cell><cell>0.63</cell><cell>0.75</cell><cell>0.74</cell></row><row><cell>Q8 0.45</cell><cell>0.50</cell><cell>0.46</cell><cell>0.51</cell><cell>0.55</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="1,321.00,694.57,237.20,6.18;1,317.96,702.79,196.69,6.18"><p>We perform some data preprocessing for episode description, including using some rule-based methods to remove the social media link and sponsorship.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_1" coords="2,320.88,702.79,216.64,6.18"><p>https://github.com/huggingface/transformers/tree/master/examples/seq2seq</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,69.23,164.81,225.99,6.18;5,69.23,172.73,176.00,6.25" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,229.18,164.81,66.04,6.18;5,69.23,172.78,62.31,6.18">Longformer: The longdocument transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Iz</forename><surname>Beltagy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><forename type="middle">E</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arman</forename><surname>Cohan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2004.05150</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,180.75,225.88,6.18;5,69.23,188.67,171.94,6.25" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,222.56,180.75,69.92,6.18">Latent dirichlet allocation</title>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><forename type="middle">Y</forename><surname>David M Blei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><forename type="middle">I</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Jordan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,69.23,188.67,104.19,6.25">Journal of machine Learning research</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="993" to="1022" />
+			<date type="published" when="2003-01">2003. Jan (2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,196.69,224.81,6.18;5,69.23,204.61,224.81,6.25;5,69.23,212.58,67.08,6.25" xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2004.04270</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">The Spotify Podcasts Dataset. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,220.60,225.58,6.18;5,69.23,228.57,225.58,6.18;5,69.23,236.54,225.89,6.18;5,69.23,244.46,224.81,6.25;5,68.81,252.43,29.58,6.25" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,147.57,236.54,144.32,6.18">000 Podcasts: A Spoken English Document Corpus</title>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rezvaneh</forename><surname>Rezapour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hamed</forename><surname>Bonab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">F</forename><surname>Gareth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,76.86,244.46,217.19,6.25;5,68.81,252.43,26.30,6.25">Proceedings of the 28th International Conference on Computational Linguistics (COLING)</title>
+		<meeting>the 28th International Conference on Computational Linguistics (COLING)</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="volume">100</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,260.45,224.81,6.18;5,69.23,268.42,224.81,6.18;5,69.03,276.34,225.46,6.25;5,333.39,89.04,43.61,6.25" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,247.78,268.42,46.26,6.18;5,69.03,276.39,76.38,6.18">Overview of the TREC 2020 Podcasts Track</title>
+		<author>
+			<persName coords=""><forename type="first">Rosie</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ann</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Eskevich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gareth</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jussi</forename><surname>Karlgren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aasish</forename><surname>Pappu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sravana</forename><surname>Reddy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yongze</forename><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,159.36,276.34,98.36,6.25">The 29th Text Retrieval Conference</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note>TREC 2020) notebook. NIST</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,97.07,224.81,6.18;5,333.39,104.98,145.59,6.25" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="5,494.07,97.07,64.13,6.18;5,333.39,105.04,32.17,6.18">Reformer: The efficient transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Nikita</forename><surname>Kitaev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anselm</forename><surname>Levskaya</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.04451</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,113.01,224.81,6.18;5,333.39,120.98,224.81,6.18;5,333.39,128.95,225.58,6.18;5,333.39,136.86,168.10,6.25" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="5,529.71,120.98,28.49,6.18;5,333.39,128.95,225.58,6.18;5,333.39,136.92,54.37,6.18">Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension</title>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marjan</forename><surname>Ghazvininejad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Abdelrahman</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ves</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.13461</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+			<pubPlace>Bart</pubPlace>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,144.89,225.88,6.18;5,333.39,152.80,121.34,6.25" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,393.14,144.89,162.85,6.18">Rouge: A package for automatic evaluation of summaries</title>
+		<author>
+			<persName coords=""><forename type="first">Chin-Yew</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,340.99,152.80,91.07,6.25">Text summarization branches out</title>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="74" to="81" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,160.83,225.58,6.18;5,333.39,168.80,225.99,6.18;5,333.39,176.71,224.81,6.25;5,333.39,184.68,66.98,6.25" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="5,506.14,168.80,53.24,6.18;5,333.39,176.77,178.08,6.18">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.10683</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,192.71,225.58,6.18;5,333.15,200.68,225.06,6.18;5,333.39,208.59,212.44,6.25" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,513.37,200.68,44.83,6.18;5,333.39,208.65,24.64,6.18">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,370.40,208.59,139.53,6.25">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,216.62,225.58,6.18;5,333.39,224.59,224.94,6.18;5,333.39,232.50,211.01,6.25" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="5,440.93,224.59,117.41,6.18;5,333.39,232.56,97.58,6.18">Prophetnet: Predicting future n-gram for sequence-to-sequence pre-training</title>
+		<author>
+			<persName coords=""><forename type="first">Yu</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Weizhen</forename><surname>Qi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yeyun</forename><surname>Gong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dayiheng</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nan</forename><surname>Duan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiusheng</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruofei</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2001.04063</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,240.53,225.63,6.18;5,333.39,248.44,224.81,6.25;5,333.39,256.41,91.44,6.25" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="5,534.18,240.53,24.84,6.18;5,333.39,248.50,203.76,6.18">Pegasus: Pre-training with extracted gap-sentences for abstractive summarization</title>
+		<author>
+			<persName coords=""><forename type="first">Jingqing</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yao</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohammad</forename><surname>Saleh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1912.08777</idno>
+		<imprint>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,264.44,225.88,6.18;5,333.15,272.35,225.06,6.25;5,333.39,280.32,67.05,6.25" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Chujie</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiannan</forename><surname>Harry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kunpeng</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ling</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Fan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2008.10648</idno>
+		<title level="m" coord="5,340.57,272.41,168.25,6.18">Baseline Analysis for Podcast Abstractive Summarization</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,146.06,115.90,323.23,12.90;1,230.49,133.83,154.38,12.90;1,223.43,153.68,168.50,10.75">Unsupervised pretraining for text classification using siamese transfer learning Notebook for PAN at CLEF 2019</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,228.26,190.08,71.35,8.64"><forename type="first">Maximilian</forename><surname>Bryan</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Universität Leipzig</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,306.57,190.08,80.53,8.64"><forename type="first">J</forename><forename type="middle">Nathanael</forename><surname>Philipp</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Universität Leipzig</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,146.06,115.90,323.23,12.90;1,230.49,133.83,154.38,12.90;1,223.43,153.68,168.50,10.75">Unsupervised pretraining for text classification using siamese transfer learning Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">64A750F8AD34D576A0F7F8873CAD3F9E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:59+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>When training neural networks, huge amounts of training data typically lead to better results. When only a small amount of training data is available, it has been proven useful to initialize a network with pretrained layers. For NLP tasks, networks are usually only given pretrained word embeddings, the rest of the network is not pretrained since pretraining recurrent networks for NLP tasks is difficult. In this article, we present a siamese architecture for pretraining recurrent networks on textual data. The network has to map pairs of sentences onto a vector representation. When a sentence pair is appearing coherently in our corpus, the vector representations should be similar, if not, the representations should be dissimilar. After having pretrained that network, we enhance it and train it on a smaller dataset in order to have it classify textual data. We show that using this kind of approach for pretraining results in better results comparing to doing no pretraining or only using pretrained embeddings when doing text classification for a task with only a small amount of training data. For evaluation, we are using the bots and gender profiling dataset provided by PAN 2019.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>When training a neural network for a given task, training data is needed. With this data, the network adjusts its weights in order to correctly classify input data onto given labels presented with the training data. The more variance there is in the input data, the better the network performs on unseen data. Thus, the more training data is available, the better a network is performing <ref type="bibr" coords="1,272.93,520.23,15.27,8.64" target="#b12">[13]</ref>. On the other hand when there is not much data available, a neural networks is running the risk of overfitting the training data since only patterns are learned that can be seen in the training data.</p><p>In this article, we present an architecture for pretraining neural networks on textual data, that not only pretrains word embeddings but is a bigger network that learns sentence representations. In section 3 we present a siamese architecture to pretrain a neural network on a huge text corpus. To show that this pretraining leads to better results when transferring the network to a specific task, we enhance the presented architecture and continue training it on a smaller dataset. The smaller dataset will be taken from the bots and gender profiling task of PAN 2019 <ref type="bibr" coords="2,310.10,119.31,11.88,8.64" target="#b5">[6,</ref><ref type="bibr" coords="2,321.97,119.31,11.88,8.64" target="#b22">23,</ref><ref type="bibr" coords="2,333.85,119.31,11.88,8.64" target="#b23">24,</ref><ref type="bibr" coords="2,345.73,119.31,11.88,8.64" target="#b21">22]</ref>. In section 4, we compare this pretrained network with a not-pretrained network.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>In order to circumvent the problem of having little training data for a specific task, a neural network can be trained on other, related data before being trained on the data for the desired use case. This approach is known as transfer learning <ref type="bibr" coords="2,393.35,208.55,16.60,8.64" target="#b19">[20]</ref> and is commonly used in the field of computer vision by using the pretrained ImageNet <ref type="bibr" coords="2,423.83,220.50,15.27,8.64" target="#b11">[12]</ref>, which is trained on 1.2 million images, on tasks like image classification <ref type="bibr" coords="2,398.92,232.46,10.58,8.64" target="#b8">[9]</ref>, object detection <ref type="bibr" coords="2,134.77,244.41,15.27,8.64" target="#b9">[10]</ref>, image segmentation <ref type="bibr" coords="2,243.05,244.41,11.62,8.64" target="#b6">[7]</ref> or others. In all use cases, the network is performing better because it has been pretrained on a large dataset of images.</p><p>Pretraining neural networks for NLP tasks is harder because of two reasons: on one hand, it is very easy to gather text data, but it is much more difficult to get a labeled corpus of humongous size. On the other hand, text data is unsuited for use of traditional pretraining architectures like autoencoders <ref type="bibr" coords="2,309.19,304.19,16.60,8.64" target="#b26">[27]</ref> for several reasons. When pretraining unsupervised using an autoencoder, the neural network has to recreate the given input data. Now, when the input data is a sequence of dictionary entries, the network has to contain a layer that is mapping onto a dictionary in order to e.g. predict probabilities of tokens being present. Given that dictionaries typically contain several hundreds of thousands of tokens, that single layer contains so many weights that it becomes technically hard to train such a network. Also, when using an autoencoder as a pretraining step, one is usually only interested in the encoding part of the network, but the decoding part still has to be trained which results in bigger networks than actually needed. Another problem arises when considering that the fact that text data is sequential. This makes autoencoders, which work great for images, unusable. One could think of a recurrent architecture that maps a sequence onto itself, but when using that kind of architecture, the network just has to map each token onto itself and does not need to consider contextual information. To circumvent this problems, architectures have been created which split the network into an encoding and decoding part by mapping the sequence onto one vector representation and then recreating the sequence using that single vector <ref type="bibr" coords="2,448.49,483.52,15.18,8.64" target="#b24">[25,</ref><ref type="bibr" coords="2,463.66,483.52,7.59,8.64" target="#b2">3]</ref>.</p><p>To avoid the aforementioned problems when pretraining sequential networks in the context of NLP, networks most often contain a pretrained input part, which maps words to a vector representation, often called embedding and created using tools like Word2Vec <ref type="bibr" coords="2,134.77,531.34,15.27,8.64" target="#b17">[18]</ref>, GloVe <ref type="bibr" coords="2,182.81,531.34,16.60,8.64" target="#b20">[21]</ref> or context2vec <ref type="bibr" coords="2,261.44,531.34,15.27,8.64" target="#b16">[17]</ref>. For example, <ref type="bibr" coords="2,337.21,531.34,16.60,8.64" target="#b15">[16]</ref> have created an architecture for question answering using pretrained word vectors using Glove , <ref type="bibr" coords="2,400.32,543.29,11.62,8.64" target="#b1">[2]</ref> created a neural network for natural language inference, in which they used pre-trained word vectors, <ref type="bibr" coords="2,134.77,567.20,16.60,8.64" target="#b25">[26]</ref> used a pre-trained embedding for creating a neural network to do semantic role labeling.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Siamese Architecture</head><p>A siamese architecture belongs to the group of unsupervised learning methods. It does not aim to perform a classification like with supervised approaches but tries to find patterns in data, so that the given input data can be mapped onto a vector representation. This approach is similar to Restricted Boltzman Machines <ref type="bibr" coords="3,365.70,119.31,16.60,8.64" target="#b13">[14]</ref> or Autoencoders <ref type="bibr" coords="3,452.21,119.31,15.27,8.64" target="#b26">[27]</ref>. A siamese architecture is similar to an autoencoder's architecture, whereas it only contains the first part which is the encoding part. Due to the lacking of a decoding part, the siamese architecture cannot be trained to recreate the input data but is instead trained using data pairs. The network is given two entries of the training set and has to map both inputs onto the same vector representation as long as both entries are considered to be similar (positive pair). The vector similarity can then be calculated several ways, e.g. using cosine similarity, euclidian similarity or the Jaccard index. It is important to give the network an input pair of which the both entries are considered being not similar (negative pair). Otherwise, the network would convert to the trivial solution of giving all input data the same vector representation. Using the positive/negative pair approach, the network has to find patterns in the input data so that positive input pairs with similar patterns result in a similar network representation and conversely negative pairs result in different vector representations.</p><p>To our knowledge, the first application of such architecture was created by <ref type="bibr" coords="3,454.40,286.69,11.62,8.64" target="#b0">[1]</ref> for verifying signatures. A neural network was created that mapped the input image onto a vector representation. Then, two signature's cosine similarity had to be 1 when the signatures where from the same person. Another siamese approach was created by <ref type="bibr" coords="3,466.20,322.55,10.79,8.64" target="#b3">[4]</ref>: They created a convolutional neural network with a linear output. During training, the network was trained to give face images from the same person a cosine similarity of 1. When the images came from two different persons, the cosine similarity should be 0. Other siamise architectures have been used for text use cases. Putting text characterwise into LSTMs was done by <ref type="bibr" coords="3,256.35,382.33,15.27,8.64" target="#b18">[19]</ref>. They used job descriptions, which had been labeled by similarity previously. The neural network then had to create a vector representation, which then has been used with cosine distance to create the similarity between input data.</p><p>Network Structure When training a neural network to learn semantical and structural patterns from sentences, we propose to use a recurrent network. The recurrent network is fed with a sequence of word vectors. To allow for out-of-vocabulary tokens, we add a second input per time step, which is a character ngram representation of the current token. That way, word vectors are trained together with the character of the corresponding token. When the token is not in our dictionary, we use a zero word vector and weigh the character ngram representation with a factor of 2. As a type of recurrent layer, we advocate for using a GRU <ref type="bibr" coords="3,242.73,524.93,10.58,8.64" target="#b4">[5]</ref>. As a sentence's vector representation, we are using the last state of the recurrent network. Using a GRU over a simple RNN has the advantage that a GRU solves the vanishing gradient problem of plain RNN layers. When comparing an GRU with the also commonly used LSTM layer <ref type="bibr" coords="3,363.35,560.80,15.27,8.64" target="#b14">[15]</ref>, there is a problem with the LSTM's hidden state: The LSTM cell is designed such that it contains a state which is protected and will only be output when the corresponding gates opens. At the same time, an freely accessible hidden state is passed over each time step. That means, there are two vector representations of each LSTM cell at each time step. Since we do not want to decide which state to take and we neither want to combine two vectors which different purpose, we decide to use the GRU with its single vector representation. Also, since the GRU has less gates and thus less weights to train, the overall training speed increases compared to using an LSTM. The explained structure can be seen in figure <ref type="figure" coords="3,473.11,656.44,3.74,8.64">3</ref>.  Training Data For unsupervised training of a neural network on sequential textual data, we are using a huge collection of crawled news articles <ref type="bibr" coords="4,388.31,270.36,15.27,8.64" target="#b10">[11]</ref>. When comparing news articles to books or tweets, they have the advantage that each article contains a rather short set of sentences of which we know that they cover the same topic. When training the network using the positive negative approach, we create positive pairs by choosing random coherent sentence pairs from the same news article. Negative pairs consist of random sentences from the whole corpus. The network has to learn to map sentences onto a vector representation whereas it has to learn which sentences are likely to be paired with a given sentence, which means that features from possibly coherent sentences have to be contained in a sentence's vector representation. At the same time, all sentences cannot be mapped onto the same vector representation because of the negative pairs. The effect is that sentences like Python is a nice programming language. and I like working with it. probably appear more often as a positive pair than a negative pair, thus the network has to learn to give both sentences a similar vector representation.</p><p>The fact that sentences pairs are chosen as positive pairs but can also be shown as negative pairs is called weak supervision ([8] among others).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Evaluation</head><p>In this section, we want to evaluate our pretraining approach. We are using a rather small dataset provided by PAN @ CLEF 2019 <ref type="bibr" coords="4,297.35,512.29,10.58,8.64" target="#b5">[6]</ref>. The dataset consists of tweets of different authors <ref type="bibr" coords="4,167.62,524.25,15.27,8.64" target="#b23">[24]</ref>. The authors have to be categorized whether they are a bot or a human being, and if the latter, whether the author is male or female. For that task, tweets of 2880 authors are given as training data. When comparing that amount of authors with the number of users a service like Twitter sees daily, it is incredibly small. With that small amount of data, the problem now is that typical tweet patterns or even linguistic patterns may not be presented often enough in the training data that the network can robustly learn to recognize these patterns. Also, some patterns can occur above-average in the training data, so that the network could fit itself to the training data, which then is disadvantageously when using it on data unseen during the test phase.</p><p>The architecture used for this challenge will be the one described in section 3. Since the network only returns a vector representation of a single sentence and no classification for an author, we enhace it with a recurrent layer and two small output layers. The first has two outputs which indicates the information bot or no bot, the second additional layer has three outputs and indicates bot, male or female. Both new output layers are activated using softmax. The architecture can be seen in figure <ref type="figure" coords="5,400.42,143.22,3.74,8.64">4</ref>. bot / no-bot bot / male / female English Spanish English Spanish not-pretrained 0.6514 0.5708 0.6758 0.6525 pretrained embeddings 0.7303 0.6101 0.6928 0.6897 pretrained siamese 0.8597 0.7862 0.7494 0.7169 Table <ref type="table" coords="5,158.21,436.61,3.36,8.06">1</ref>. Comparison of network accuracy for differently pretrained networks on the challenge's publicly available test data.</p><p>We are using three differently trained versions of that architecture for comparison which are differing in the parts which have been pretrained. The training for fine-tuning the data will be done on the data provided for the challenge. The testing will be done on the publicly available test data. The first version of the architecture won't be pretrained at all, i.e. it does not get pretrained word embedding or a pretrained recurrent layer. The second version will only be trained on the challenge data, but will receive pretrained word embeddings. This approach is similar to other previously mentioned related projects, which create a neural network for an NLP task and provide pretrained word embeddings. The third version will be pretrained using the siamese approach described in section 3. After pretraining, the architecture will be enhanced and trained on the challenge's training data. Additionally, each approach for the three described versions is done for English data and for Spanish data. As can be seen in table 1, the presented architecture's performance get significantly better the more pretraining has been done.</p><p>In this article, we tackled the problem of pretraining recurrent architectures on NLP data by transfering the siamese architecture to textual data. We are training a network using positive/negative sentence pairs with weak supervision. The sentence pairs are chosen from a corpus of news articles. When sentences are appearing next to each other in an article, they are considered being a positive pair, otherwise they are a negative pair. This pretrained network was then enhanced and trained on a smaller dataset to have it classify author's by their tweets. We showed that we get significantly better results than when no pretraining is performed or when just pretrained word embeddings are used.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,134.77,201.84,345.83,8.12;4,134.77,213.14,219.63,7.77"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Architecture for multi-class visual attention. Tokens are given into a recurrent network as pairs of word vectors and character ngram representations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,134.77,291.17,345.83,8.12;5,134.77,302.48,328.95,7.77"><head>2 Figure 2 .</head><label>22</label><figDesc>Figure 2. Enhanced architecture for taking part in the author-profiling-challenge. The input into the recurrent layer is a tweet's vector representation created by the network seen in figure 3.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,142.61,290.21,324.00,7.77;6,150.95,301.16,235.82,7.77" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,361.40,290.21,105.21,7.77;6,150.95,301.16,122.72,7.77">Signature verification using a siamese time delay neural network</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bromley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Säckinger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Shah</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1993-01">01 1993</date>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="737" to="744" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,312.65,325.90,7.77;6,150.95,323.61,264.21,7.77;6,150.95,334.56,112.61,7.77" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="6,320.58,312.65,147.93,7.77;6,150.95,323.61,148.32,7.77">Enhancing and combining sequential and tree LSTM for natural language inference</title>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Ling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jiang</surname></persName>
+		</author>
+		<idno>CoRR abs/1609.06038</idno>
+		<ptr target="http://arxiv.org/abs/1609.06038" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,346.05,307.91,7.77;6,150.95,357.01,300.62,7.77;6,150.95,367.96,258.31,7.77" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="6,150.95,357.01,300.62,7.77;6,150.95,367.96,36.76,7.77">Learning phrase representations using RNN encoder-decoder for statistical machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Van Merrienboer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ç</forename><surname>Gülçehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Bougares</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>CoRR abs/1406.1078</idno>
+		<ptr target="http://arxiv.org/abs/1406.1078" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,379.45,315.06,7.77;6,150.95,390.41,245.22,7.77" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,277.30,379.45,180.37,7.77;6,150.95,390.41,108.03,7.77">Learning a similarity metric discriminatively, with application to face verification</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Chopra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Hadsell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="539" to="546" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,401.89,337.40,7.77;6,150.95,412.85,225.30,7.77;6,150.95,423.81,108.13,7.77" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="6,314.92,401.89,165.09,7.77;6,150.95,412.85,113.44,7.77">Empirical evaluation of gated recurrent neural networks on sequence modeling</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ç</forename><surname>Gülçehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>CoRR abs/1412.3555</idno>
+		<ptr target="http://arxiv.org/abs/1412.3555" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,435.29,312.25,7.77;6,150.95,446.25,301.85,7.77;6,150.95,457.21,316.87,7.77;6,150.95,468.17,321.36,7.77;6,150.95,479.12,323.61,7.77;6,150.95,490.08,329.64,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,150.95,457.21,316.87,7.77;6,150.95,468.17,140.81,7.77">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,407.83,479.12,66.74,7.77;6,150.95,490.08,229.80,7.77">Proceedings of the Tenth International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019-09">2019. Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,501.57,314.44,7.77;6,150.95,512.52,260.79,7.77" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="6,235.63,501.57,221.43,7.77;6,150.95,512.52,29.87,7.77">Instance-aware semantic segmentation via multi-task network cascades</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Sun</surname></persName>
+		</author>
+		<idno>CoRR abs/1512.04412</idno>
+		<ptr target="http://arxiv.org/abs/1512.04412" />
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,524.01,322.68,7.77;6,150.95,534.97,310.11,7.77" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="6,383.12,524.01,82.18,7.77;6,150.95,534.97,79.30,7.77">Neural ranking models with weak supervision</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zamani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Severyn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+		<idno>CoRR abs/1704.08803</idno>
+		<ptr target="http://arxiv.org/abs/1704.08803" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.61,546.45,327.60,7.77;6,150.95,557.41,322.99,7.77;6,150.95,568.37,288.93,7.77;6,150.95,579.33,318.59,7.77;6,150.95,590.28,243.83,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,437.60,546.45,32.61,7.77;6,150.95,557.41,238.96,7.77">Decaf: A deep convolutional activation feature for generic visual recognition</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Hoffman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Tzeng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Darrell</surname></persName>
+		</author>
+		<ptr target="http://proceedings.mlr.press/v32/donahue14.html" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,182.66,568.37,253.38,7.77">Proceedings of the 31st International Conference on Machine Learning</title>
+		<title level="s" coord="6,150.95,579.33,155.21,7.77">Proceedings of Machine Learning Research</title>
+		<editor>
+			<persName><forename type="first">E</forename><forename type="middle">P</forename><surname>Xing</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Jebara</surname></persName>
+		</editor>
+		<meeting>the 31st International Conference on Machine Learning<address><addrLine>PMLR, Bejing, China</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2014-06-24">22-24 Jun 2014</date>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="647" to="655" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,601.77,320.30,7.77;6,150.95,612.73,266.35,7.77;6,150.95,623.68,108.13,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="6,332.09,601.77,130.45,7.77;6,150.95,612.73,154.66,7.77">Rich feature hierarchies for accurate object detection and semantic segmentation</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">B</forename><surname>Girshick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Darrell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Malik</surname></persName>
+		</author>
+		<idno>CoRR abs/1311.2524</idno>
+		<ptr target="http://arxiv.org/abs/1311.2524" />
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.24,635.17,319.71,7.77;6,150.95,646.13,309.30,7.77;6,150.95,657.08,299.58,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,296.99,635.17,164.96,7.77;6,150.95,646.13,192.93,7.77">Building large monolingual dictionaries at the leipzig corpora collection: From 100 to 200 languages</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Goldhahn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Eckart</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Quasthoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,371.85,646.13,88.41,7.77;6,150.95,657.08,273.44,7.77">Proceedings of the Eight International Conference on Language Resources and Evaluation (LREC&apos;12</title>
+		<meeting>the Eight International Conference on Language Resources and Evaluation (LREC&apos;12</meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,119.96,325.64,7.77;7,150.95,130.92,293.34,7.77;7,150.95,141.88,195.23,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,279.21,119.96,188.66,7.77;7,150.95,130.92,139.66,7.77">Delving deep into rectifiers: Surpassing human-level performance on imagenet classification</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,308.33,130.92,135.97,7.77;7,150.95,141.88,109.60,7.77">Proceedings of the IEEE international conference on computer vision</title>
+		<meeting>the IEEE international conference on computer vision</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="page" from="1026" to="1034" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,152.84,316.99,7.77;7,150.95,163.80,304.52,7.77;7,150.95,174.76,200.27,7.77" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="7,255.33,163.80,171.93,7.77">Deep learning scaling is predictable, empirically</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Hestness</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ardalani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">F</forename><surname>Diamos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Kianinejad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">M A</forename><surname>Patwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<idno>CoRR abs/1712.00409</idno>
+		<ptr target="http://arxiv.org/abs/1712.00409" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,185.71,308.61,7.77;7,150.95,196.67,169.00,7.77;7,150.95,207.63,190.61,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,278.01,185.71,172.84,7.77;7,150.95,196.67,31.13,7.77">Reducing the dimensionality of data with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<ptr target="https://science.sciencemag.org/content/313/5786/504" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,188.22,196.67,27.89,7.77">Science</title>
+		<imprint>
+			<biblScope unit="volume">313</biblScope>
+			<biblScope unit="issue">5786</biblScope>
+			<biblScope unit="page" from="504" to="507" />
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,218.59,333.91,7.77;7,150.95,229.55,35.11,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="7,267.53,218.59,87.80,7.77">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,362.08,218.59,71.47,7.77">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">12 1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,240.51,310.28,7.77;7,150.95,251.47,284.21,7.77" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="7,278.55,240.51,173.97,7.77;7,150.95,251.47,52.95,7.77">Stochastic answer networks for machine reading comprehension</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Duh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<idno>CoRR abs/1712.03556</idno>
+		<ptr target="http://arxiv.org/abs/1712.03556" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,262.43,332.95,7.77;7,150.95,273.39,283.15,7.77;7,150.95,284.34,310.06,7.77;7,150.95,295.30,314.96,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,295.81,262.43,179.38,7.77;7,150.95,273.39,86.67,7.77">context2vec: Learning generic context embedding with bidirectional LSTM</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Melamud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Goldberger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Dagan</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/K16-1006" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,257.30,273.39,176.80,7.77;7,150.95,284.34,153.04,7.77">Proceedings of The 20th SIGNLL Conference on Computational Natural Language Learning</title>
+		<meeting>The 20th SIGNLL Conference on Computational Natural Language Learning<address><addrLine>Berlin, Germany</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2016-08">Aug 2016</date>
+			<biblScope unit="page" from="51" to="61" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,306.26,336.66,7.77;7,150.95,317.22,192.40,7.77" xml:id="b17">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1301.3781" />
+		<title level="m" coord="7,321.82,306.26,157.07,7.77;7,150.95,317.22,53.65,7.77">Efficient estimation of word representations in vector space</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,328.18,322.98,7.77;7,150.95,339.14,70.13,7.77" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="7,297.25,328.18,167.96,7.77;7,150.95,339.14,32.78,7.77">Learning text similarity with siamese recurrent networks</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Neculoiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Versteegh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rotaru</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,350.10,326.87,7.77;7,150.95,361.06,251.39,7.77" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="7,222.64,350.10,103.54,7.77">A survey on transfer learning</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">J</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Yang</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/TKDE.2009.191</idno>
+		<ptr target="http://dx.doi.org/10.1109/TKDE.2009.191" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,331.94,350.10,137.17,7.77">IEEE Trans. on Knowl. and Data Eng</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1345" to="1359" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,372.02,331.86,7.77;7,150.95,382.97,298.68,7.77" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="7,306.76,372.02,163.80,7.77">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<ptr target="https://nlp.stanford.edu/pubs/glove.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,163.16,382.97,31.63,7.77">EMNLP</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,393.93,335.40,7.77;7,150.95,404.89,309.15,7.77;7,150.95,415.85,209.02,7.77" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="7,333.86,393.93,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,259.53,404.89,200.58,7.77;7,150.95,415.85,144.92,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,426.81,295.84,7.77;7,150.95,437.77,313.89,7.77;7,150.95,448.73,321.27,7.77" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="7,307.56,426.81,130.52,7.77;7,150.95,437.77,120.48,7.77">A low dimensionality representation for language variety identification</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Franco-Salvador</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,354.25,437.77,110.59,7.77;7,150.95,448.73,94.37,7.77">Computational Linguistics and Intelligent Text Processing</title>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Gelbukh</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="156" to="169" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,459.69,323.41,7.77;7,150.95,470.65,316.92,7.77;7,150.95,481.60,241.55,7.77" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="7,229.20,459.69,236.44,7.77;7,150.95,470.65,58.90,7.77">Overview of the 7th Author Profiling Task at PAN 2019: Bots and Gender Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,425.77,470.65,42.10,7.77;7,150.95,481.60,72.99,7.77">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="7,230.42,481.60,85.63,7.77">Notebook Papers. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019-09">Sep 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,492.56,327.72,7.77;7,150.95,503.52,215.97,7.77" xml:id="b24">
+	<monogr>
+		<title level="m" type="main" coord="7,279.55,492.56,186.51,7.77">Sequence to sequence learning with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<idno>CoRR abs/1409.3215</idno>
+		<ptr target="http://arxiv.org/abs/1409.3215" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,514.48,290.02,7.77;7,150.95,525.44,276.74,7.77" xml:id="b25">
+	<monogr>
+		<title level="m" type="main" coord="7,313.73,514.48,118.54,7.77;7,150.95,525.44,46.25,7.77">Deep semantic role labeling with self-attention</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Shi</surname></persName>
+		</author>
+		<idno>CoRR abs/1712.01586</idno>
+		<ptr target="http://arxiv.org/abs/1712.01586" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,536.40,328.85,7.77;7,150.95,547.36,159.37,7.77" xml:id="b26">
+	<monogr>
+		<title level="m" type="main" coord="7,352.47,536.40,118.62,7.77;7,150.95,547.36,133.22,7.77">Extracting and composing robust features with denoising autoencoders</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Vincent</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Larochelle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Manzagol</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

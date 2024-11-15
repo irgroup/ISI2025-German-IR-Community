@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,134.06,84.19,327.16,15.42;1,206.17,106.11,182.93,15.42;1,89.29,128.45,324.97,11.96">Retrieving Comparative Arguments using Deep Language Models Notebook for the Touché Lab on Argument Retrieval at CLEF 2022</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,88.90,154.35,95.76,11.96"><forename type="first">Viktoriia</forename><surname>Chekalina</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Skolkovo Institute of Science and Technology</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,197.30,154.35,107.29,11.96"><forename type="first">Alexander</forename><surname>Panchenko</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Skolkovo Institute of Science and Technology</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,134.06,84.19,327.16,15.42;1,206.17,106.11,182.93,15.42;1,89.29,128.45,324.97,11.96">Retrieving Comparative Arguments using Deep Language Models Notebook for the Touché Lab on Argument Retrieval at CLEF 2022</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">8A66B43C1294FF68136F51486505816E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:26+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>comparative argument retrieval</term>
+					<term>natural language processing</term>
+					<term>neural information retrieval</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we present a submission to the Touché lab's Task 2 on Argument Retrieval for Comparative Questions. Our team Katana employs approaches based on pre-trained deep language model architecture ColBERT <ref type="bibr" coords="1,166.57,242.47,9.36,8.97" target="#b0">[1]</ref>. This BERT-based architecture is adapted to the text ranking task by learning to represent both queries and documents as vectors and measuring the similarity between them. We use a model trained on a question-answering dataset MSMARCO, with the proposed weights and weights pre-trained by us. We also customize ColBERT for the comparative retrieval domain by fine-tuning the model on the data from the previous years' Touché competitions. The proposed experiments verify the usefulness of the transfer learning from a large pre-trained ranking language models to the problem of arguments extraction for comparative topics. Ours solutions rank third in both relevance, quality, and stance prediction evaluations.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>In everyday life, people are constantly faced with the task of comparing two options: which of the phone models is more reliable, which fuel is environment-friendly, which drug is the most effective. The decision-making process is based not only to comparing the structural features of objects, as suggested, for example, by WolframAlpha<ref type="foot" coords="1,325.76,459.77,3.71,7.97" target="#foot_0">1</ref> or Diffen<ref type="foot" coords="1,372.99,459.77,3.71,7.97" target="#foot_1">2</ref> , but on considering people's opinions. The problem of searching on the web for documents with argumentative support for compared objects is a subset of information retrieval tasks problem.</p><p>The Touché lab's Task 2 on Argument Retrieval in 2022 <ref type="bibr" coords="1,347.07,502.17,12.76,10.91" target="#b1">[2]</ref> proposes to select passages from a corpus of 1 million texts that are most relevant to the user's comparative queries, as well as to determine their position -which object in the text is proposed as the most suitable. We employ neural-network based approach with a simplified scheme for comparing query and document embeddings. In addition to using the pre-trained large language model, we further trained the model on documents ranked for comparative queries.</p><p>On the validation dataset, the approach shows competitive performance, but less than the ensemble-based method from the previous year <ref type="bibr" coords="1,314.32,597.01,11.58,10.91" target="#b2">[3]</ref>. This work shows the possibility and efficiency of the neural network technique based on the matching of the query and document representations relatively to a specific comparative case of informational retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related work</head><p>The most relevant to this work are the previous shared tasks Touche 2020 <ref type="bibr" coords="2,404.16,159.14,12.68,10.91" target="#b3">[4]</ref> and Touche 2021 <ref type="bibr" coords="2,492.63,159.14,11.28,10.91" target="#b4">[5]</ref>. These tasks aimed to rerank documents, retrieved by ChatNoir <ref type="bibr" coords="2,380.81,172.69,13.00,10.91" target="#b5">[6]</ref> System as candidates to a comparative request answers. Multiple teams submitted their runs to the shared task as presented in the technical reports of CLEF. <ref type="foot" coords="2,279.57,198.03,3.71,7.97" target="#foot_2">3</ref>The main difficulty in finding relevant documents on the web is the large size of the text corpus. Traditionally, search engine systems depict documents using statistic-based features, the computation of which is not complex.</p><p>For example, the baseline of the 2021 and 2020 comparative shared tasks is created on the BM25F <ref type="bibr" coords="2,122.24,267.54,12.68,10.91" target="#b6">[7]</ref> -a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each passage. This baseline performed well -only a few teams in previous years' competition could overcome it. One of the best improvements solutions was the decision tree ensembles over statistics and comparison features <ref type="bibr" coords="2,334.04,308.18,11.43,10.91" target="#b2">[3]</ref>, deploying in PyTerrier <ref type="bibr" coords="2,455.16,308.18,12.84,10.91" target="#b7">[8]</ref> library.</p><p>A large volume of texts imposes a limitation on the use of neural networks for ranking documents in a corpus. There are two ways of neural approaches to information retrieval tasks: representation-based models <ref type="bibr" coords="2,217.87,348.83,12.72,10.91" target="#b8">[9]</ref> and interaction-based models <ref type="bibr" coords="2,365.09,348.83,16.12,10.91" target="#b9">[10]</ref>. The first one computes the representation of the topic and passage separately and only counts the score of interaction for the pair. Interaction-based methods match the query and document in a token or phrase-level. This set of methods is more expensive but most effective. In the proposed paper we deploy architecture, which combines the advantages of both these methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Data and experimental design</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Data provided for the task</head><p>The organizers offer the participants 50 comparative questions (topics), for which it was necessary to extract and rank passages from the text corpus. Topics for the competition are available online <ref type="foot" coords="2,117.36,507.96,3.71,7.97" target="#foot_3">4</ref> . The organizers also provide a corpus of about 0.9 million texts for passage extraction. For stance detection, every topic comprises objects that are compared in it. For stance detection support, a dataset created from comparative questions of the MSMARCO dataset<ref type="foot" coords="2,447.42,535.06,3.71,7.97" target="#foot_4">5</ref> is proposed. The dataset includes relevant answers with highlighted objects of comparison in it and their position in the documents. Every text in a dataset has a detected stance.</p><p>For model validation purposes, the task presents 100 topics and corresponding relevance annotations of the previous year's competition <ref type="bibr" coords="2,294.01,591.01,11.23,10.91" target="#b3">[4,</ref><ref type="bibr" coords="2,307.60,591.01,7.49,10.91" target="#b4">5]</ref>. These documents were also retrieved from ChatNoir and ranked manually to 0 (not relevant), 1 (relevant), or 2 (highly relevant) scores. The 2020 year assessment contains a common ranking, last year's competition has a separate judgment for relevance and quality. We use this data to fine-tune the model to comparative sub-task in document retrieval. Besides, last year's team submissions are available too.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Datasets</head><p>The standard learning object for argument ranking consists of a triple: query, positive passage (relevant text), negative passage (irrelevant text). Reading comprehension dataset MS-MARCO (Microsoft Machine Reading Comprehension) <ref type="bibr" coords="3,343.43,176.93,18.06,10.91" target="#b10">[11]</ref> includes 1,010,916 anonymized questions from Bing's query and 8 million passages extracted from the search system Bing. For the training BERT-based model we use MSMARCO-Passage-Ranking, which comprises triplets from the mentioned questions and passages.</p><p>We use data from the previous years' Touche tasks to generate a validation dataset and dataset for fine-tuning the ColBERT model. For every topic, we retrieve up to 100 texts from the ClueWeb12<ref type="foot" coords="3,141.76,256.47,3.71,7.97" target="#foot_5">6</ref> corpus using the ChatNoir <ref type="bibr" coords="3,269.21,258.22,12.82,10.91" target="#b5">[6]</ref> system, according to Tocuhe'20-21 task rules. The validation dataset was created on 10 topics from 2021 with corresponding quality and relevance qrels. The rest 40 topics and 50 topics from 2020 produce data for adapting the pre-trained model for text ranking in terms of argumentative objects comparison.</p><p>The 2020 year task topics have only one assessment dimension in qrels. If the score in this is 1 or 2, we treat this text as relevant. Irrelevant pairs were selected from documents with ratings less than 1 or from the search results for different topics, provided that they were not presented in the search results for the current query. In the case of an assessment of 21 years, there are separate judgments among two axes: quality and relevance. We calculate a sum of a quality and relevance score and consider relevant documents having a score equal to or more than 3, otherwise -irrelevant. The statistic of mentioned datasets is in Table <ref type="table" coords="3,397.49,393.71,3.74,10.91" target="#tab_0">1</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Evaluation setup</head><p>For document ranking, we use ColBERT <ref type="bibr" coords="3,264.76,541.86,12.69,10.91" target="#b0">[1]</ref> model, pre-trained in several ways. Using the model, in the test stage, we created an index of all documents in the provided collection of text passages. Using this index, we select the top-k most relevant texts to each of the topics. We use auxiliary information about objects under comparison to find them in every ranked document and define document stance using Comparative argumentation machine CAM <ref type="bibr" coords="3,402.96,596.06,18.07,10.91" target="#b11">[12]</ref> functionality. We execute produced solutions on the web evaluation platform Tira <ref type="bibr" coords="3,373.12,609.61,16.11,10.91" target="#b12">[13]</ref>. The retrieved documents will be assessed manually for both metrics: general relevance and comparison quality. Relevance depicts proximity to the topic and the presence of sufficient argumentative support. Quality refers to good structuring, understandable news, and text styling. In the validation phase, we use topics of the previous year's competition as queries. The corpus on which the model builds the index consists of documents from the Chat Noir issue that are relevant to topics. We retrieve documents for every question and compare them to official qrels judgments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Document ranking</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Document ranking with Late Interaction over BERT representations</head><p>The main architecture we used in the retrieving document task is Contextualized Late Interaction over BERT <ref type="bibr" coords="4,141.80,495.01,45.56,10.91">(ColBERT)</ref>. ColBERT provides a trade-off between representation-based models with low computational cost and well-performed token interaction-based models. Actually, for approaches with a full interaction matrix between query and document tokens, ColBERT reduces complexity by affording a convolution over the documents' token.</p><p>The query and document processing in ColBERT architecture contains 2 steps:</p><p>• To encode query, we add [𝑄] after [𝐶𝐿𝑆] token, process padded query by BERT, apply convolution and normalization • To encode document, we add [𝐷] after [𝐶𝐿𝑆] token, process padded passage by BERT, apply convolution and normalization, also filter out punctuation symbols and other tokens unimportant under retrieval task. • The conception of Late Interaction (Fig. <ref type="figure" coords="4,304.44,642.18,4.25,10.91" target="#fig_0">1</ref>) from the entire document considers only the token that has the maximum similarity with the given query token. The document relevance is estimated as a sum of maximum similarities across all query tokens.</p><p>• For retrieving in a large-scale set of passages, the faiss library <ref type="bibr" coords="5,411.95,86.97,18.06,10.91" target="#b13">[14]</ref> for the efficient similarity search is used.</p><p>Thus, the ColBERT approach fine-tunes BERT main encoder and learns from the scratch linear layers, filter and embeddings for [𝑞] and [𝑑] symbols. Leveraging on triplets of query, document with high relevance and document with low relevance &lt; 𝑞, 𝑑 + , 𝑑 -&gt;, the model optimizes the pairwise softmax cross-entropy loss.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">ColBERT models</head><p>For passage retrieval in the Touche task, we use three different types of pre-trained ColBERT architecture.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ColBERT original</head><p>The first is a checkpoint, generated at the University of Glasgow<ref type="foot" coords="5,487.15,253.96,3.71,7.97" target="#foot_6">7</ref> on MSMARCO triples using instruction from the official ColBERT repository <ref type="foot" coords="5,420.14,267.51,3.71,7.97" target="#foot_7">8</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ColBERT from scratch</head><p>We also pre-trained ColBERT architecture, provided in repository, from scratch by ourselves. We use L2 distance between a query and document instead of cosine similarity, since the original paper noted that the faiss index works faster on a square distance.</p><p>The training process was carried out in a 3 epochs with the learning rate 3e-6, batch size 64, passage length no more than 180, query length 32, similarity 𝑙2, and took about two weeks on a single GPU card.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>CoBERT fine-tune</head><p>We also tried to fine-tune the resulting model on data for a comparative question-answer system obtained from information from past competitions and described in section 1. The pre-training procedure was carried out with the following parameters: learning rate 1e-7, batch size 64, passage length no more than 180, query length 32, similarity 𝐿2. The weights are updated using the AdamW optimizer during 10 epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Stance detection</head><p>An additional challenge within the task was to determine the stances of retrieved documents. Stance defines the document's attitude towards the compared objects: pro first object, prosecond object, neutral, or the absence of attitude. To detect the stance of a given document, we note objects from topic auxiliary data, found them in the document, and consider text between objects' locations. Comparative Argumentative Machine (CAM) offers the possibility of classification those pieces of text. It decodes them into feature vectors using Infersent <ref type="bibr" coords="5,488.00,575.10,17.99,10.91" target="#b14">[15]</ref> and applies a pre-trained XGBoost classifier to features <ref type="bibr" coords="5,335.14,588.65,16.18,10.91" target="#b11">[12]</ref>. The output of CAM is considered to be a document stance class.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Results</head><p>We run the proposed approaches in two stages: in the validation stage the model retrieves and ranks documents for the previous year's topic over the ChatNoir output, and in the test stage the model ranks passages for a given topics over proposed corpus, at the same time designating their stance. The result for every proposed approach obtained on the validation part of data from the previous year's competition is in Table <ref type="table" coords="6,273.96,347.18,3.81,10.91" target="#tab_1">2</ref>. We compare ColBERT-based approaches to the previous year's baseline and LGBM Ranker, considered the best answer. The best scores come from the frequency-based feature baseline approach, the second place belongs to the ensembles over statistic and comparative features set. Pre-trained ColBERT provides results slightly worse in terms of quality. In terms of accuracy, the decrease is more significant, but the same in order as the difference between the first and second places scores. ColBERT, trained by our team from scratch, provides a worse result than pre-trained ColBERT. Fine-tuning this version on the dataset from the previous year's task gives a noticeable increase in relevance, but makes the model perform slightly worse on quality. This may be due to the properties of the Touche-based dataset used for model fine-tuning. It contains passages, less complete and grammatically correct than MSMARCO objects, but at the same time they are more suitable specifically for the comparative subset of questions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1.">Results on validation set</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">Results on test set</head><p>The retrieved documents were assessed manually for two dimentions. The first criteria is relevance -how opportune and supportive answer is contained in passage, the second is rhetorical quality -good styling and well understoodness of the text. The results also contains the F1 macro clssification scores for the stance detection. The results for three criteria for our tean Katana and Top-1 approch in each metrics are in Tables <ref type="table" coords="6,361.37,600.15,3.74,10.91" target="#tab_2">3</ref>.</p><p>For the ranking document task, ColBERT, trained on the MSMARCO dataset has the best performance according to fine-tuning the model. The difference between the model with downloaded weights and the model trained by us from scratch is not significant. Pre-trained model achive 3rd place in terms of relevance, while model trained from scratch has 3rd place in the quality table. Fine-tuning comparative data impairs the results. It may be due to the quality difference between texts from the main and fine-tuning data -in the MSMARCO case, well-formed natural language passages were composed by humans on the basis of the search system outputs. <ref type="bibr" coords="7,159.81,114.06,16.09,10.91" target="#b10">[11]</ref>. The quality of the stance detection towards the objects expectedly depends on the ranking performance -the ColBERT with pre-trained weights also takes third place. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion</head><p>We present our solution for Argument Retrieval for Comparative Questions -a ranking task over a corpus of textual passages. In our submission, we use large pre-trained neural models which match representations of an input text document and a query. More specifically, we experiment with the ColBERT model, based on computational effective late interaction architecture. We employ a model, pre-trained on the question answering dataset MSMARCO. For adapting the model to a particular comparative case, we fine-tune it on a dataset built on a ranked document from previous years' competition. We also detect stances of every ranked text by using the classification functionality of the comparative argumentative machine: it determines the polarity of text between two objects by the pre-trained InferSent model. According to the manual assessment, the best quality in all metrics -both ranking and stance detection -comes from a model trained on the large dataset MSMARCO showing that the pre-trained model already allows to answer comparative questions decently turning out to be a strong baseline. A straighforward procedure of fine-tuning of this model with the comparative questions worsens the ultimate quality of the model. Source code of our experiments is available online. 9  </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,89.29,299.71,416.69,8.93;4,89.29,311.72,416.69,8.87;4,89.29,323.67,128.54,8.87;4,130.96,84.19,333.33,196.14"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The scheme of Late Interaction matching is used in ColBERT architecture. The similarity of query and document is the sum of the scores between every query token and the most similar document token. Source of the image: [1].</figDesc><graphic coords="4,130.96,84.19,333.33,196.14" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,88.99,420.39,337.87,65.84"><head>Table 1</head><label>1</label><figDesc>Statistics of datasets used in training from scratch and fine-tuning.</figDesc><table coords="3,168.42,450.96,258.44,35.26"><row><cell>Dataset</cell><cell>Task</cell><cell>Number of triples</cell></row><row><cell>MSMARCO-Passage-Ranking</cell><cell>train</cell><cell>39 780 810</cell></row><row><cell cols="2">Dataset based on Touché 2021 fine-tune</cell><cell>46 450</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,88.99,215.77,341.88,97.22"><head>Table 2</head><label>2</label><figDesc>NDCG@5 results for quality and relevance of retrieved document on validation set.</figDesc><table coords="6,203.58,246.34,188.11,66.65"><row><cell>Method</cell><cell cols="2">Quality Relevance</cell></row><row><cell>Baseline'21</cell><cell>0.427</cell><cell>0.649</cell></row><row><cell>Best Answer'21</cell><cell>0.421</cell><cell>0.591</cell></row><row><cell>ColBERT original</cell><cell>0.413</cell><cell>0.474</cell></row><row><cell>ColBERT from scratch</cell><cell>0.342</cell><cell>0.314</cell></row><row><cell>ColBERT fine-tune</cell><cell>0.322</cell><cell>0.365</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="7,88.99,156.62,390.32,99.26"><head>Table 3</head><label>3</label><figDesc>Final evaluation scores on the test set for Katana team as compared to the Top-1 approaches.</figDesc><table coords="7,115.96,188.24,363.36,67.64"><row><cell>Method</cell><cell cols="3">NDCG@5 relevance NDCG@5 quality F1 stance detection</cell></row><row><cell>ColBERT original</cell><cell>0.618 (Top-3)</cell><cell>0.643</cell><cell>0.229 (Top-3)</cell></row><row><cell>ColBERT from scratch</cell><cell>0.601</cell><cell>0.644 (Top-3)</cell><cell>0.221</cell></row><row><cell>ColBERT fine-tune</cell><cell>0.574</cell><cell>0.637</cell><cell>0.212</cell></row><row><cell>Top-1 approach</cell><cell>0.758</cell><cell>0.774</cell><cell>0.313</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,108.93,660.06,116.62,8.97"><p>https://www.wolframalpha.com</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,108.93,671.02,86.82,8.97"><p>https://www.diffen.com</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,108.93,649.10,208.50,8.97"><p>http://ceur-ws.org/Vol-2696, http://ceur-ws.org/Vol-2936</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="2,108.93,660.06,196.53,8.97"><p>https://webis.de/events/touche-22/shared-task-2.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="2,108.93,671.02,132.06,8.97"><p>https://microsoft.github.io/msmarco</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="3,108.93,671.04,125.73,8.97"><p>http://lemurproject.org/clueweb12</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="5,108.93,660.00,180.47,8.97"><p>http://www.dcs.gla.ac.uk/~craigm/colbert.dnn.zip</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_7" coords="5,108.93,670.96,178.84,8.97"><p>https://github.com/stanford-futuredata/ColBERT</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>We thank <rs type="person">Maik Frobe</rs> for providing the support of the software runs in the TIRA system. 9 https://github.com/sayankotor/touche</p></div>
+			</div>			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,111.28,393.33,10.91;8,112.66,124.83,395.01,10.91;8,112.41,138.38,127.84,10.91" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="8,219.71,111.28,286.28,10.91;8,112.66,124.83,115.19,10.91">Colbert: Efficient and effective passage search via contextualized late interaction over BERT</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zaharia</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2004.12832" />
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,151.93,395.17,10.91;8,112.66,165.48,395.17,10.91;8,112.66,179.03,395.01,10.91;8,112.41,192.57,393.57,10.91;8,112.66,206.12,339.15,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,361.25,165.48,146.58,10.91;8,112.66,179.03,62.60,10.91">Overview of Touché 2022: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Syed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gurcke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,197.77,179.03,309.90,10.91;8,112.41,192.57,309.42,10.91">Experimental IR Meets Multilinguality, Multimodality, and Interaction. 13th International Conference of the CLEF Association (CLEF 2022)</title>
+		<title level="s" coord="8,429.80,192.57,76.18,10.91;8,112.66,206.12,78.83,10.91">Lecture Notes in Computer Science</title>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note>to appear</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,219.67,393.33,10.91;8,112.66,233.22,393.32,10.91;8,112.14,246.77,395.05,10.91;8,112.66,260.32,394.52,10.91;8,112.66,273.87,378.89,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,241.37,219.67,264.62,10.91;8,112.66,233.22,41.19,10.91">Retrieving comparative arguments using ensemble methods and BERT</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Chekalina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2936/paper-211.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,423.73,233.22,82.26,10.91;8,112.14,246.77,340.26,10.91">Proceedings of the Working Notes of CLEF 2021 -Conference and Labs of the Evaluation Forum</title>
+		<title level="s" coord="8,377.97,261.33,129.22,9.72;8,112.66,273.87,21.79,10.91">CEUR Workshop Proceedings, CEUR</title>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Faggioli</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Joly</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Maistro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Piroi</surname></persName>
+		</editor>
+		<meeting>the Working Notes of CLEF 2021 -Conference and Labs of the Evaluation Forum<address><addrLine>Bucharest, Romania</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">September 21st -to -24th, 2021. 2936. 2021</date>
+			<biblScope unit="page" from="2354" to="2365" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,287.42,394.52,10.91;8,112.66,300.97,393.33,10.91;8,112.66,314.52,315.37,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,335.85,300.97,92.96,10.91">Overview of Touché</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-58219-7_26</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,459.33,300.97,46.66,10.91;8,112.66,314.52,38.01,10.91">Argument Retrieval</title>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+			<biblScope unit="page" from="384" to="395" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,328.07,394.52,10.91;8,112.66,341.62,393.33,10.91;8,112.66,355.17,394.53,10.91;8,112.66,368.71,393.33,10.91;8,112.66,382.26,394.53,10.91;8,112.39,395.81,394.88,10.91;8,112.31,409.36,374.62,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,338.25,341.62,167.73,10.91;8,112.66,355.17,122.30,10.91">Overview of touché 2021: Argument retrieval -extended abstract</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-72240-1_67</idno>
+		<ptr target="https://doi.org/10.1007/978-3-030-72240-1_67.doi:10.1007/978-3-030-72240-1\_67" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,202.85,368.71,303.14,10.91;8,112.66,382.26,105.71,10.91;8,414.33,382.26,89.84,10.91">Advances in Information Retrieval -43rd European Conference on IR Research, ECIR 2021</title>
+		<title level="s" coord="8,185.81,396.83,143.13,9.72">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Moens</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Mothe</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Perego</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Virtual Event</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2021-04-01">March 28 -April 1, 2021. 2021</date>
+			<biblScope unit="volume">12657</biblScope>
+			<biblScope unit="page" from="574" to="582" />
+		</imprint>
+	</monogr>
+	<note>Proceedings, Part II</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,422.91,395.17,10.91;8,112.66,436.46,394.53,10.91;8,112.66,450.01,393.33,10.91;8,112.66,463.56,395.00,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,482.79,422.91,25.04,10.91;8,112.66,436.46,227.16,10.91">Chat-Noir: A Search Engine for the ClueWeb09 Corpus</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Graßegger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tippmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Welsch</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2348283.2348429</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,225.12,450.01,280.87,10.91;8,112.66,463.56,147.33,10.91">International ACM Conference on Research and Development in Information Retrieval (SIGIR 2012)</title>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Hersh</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Callan</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Y</forename><surname>Maarek</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sanderson</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page">1004</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,477.11,393.32,10.91;8,112.66,490.66,395.17,10.91;8,112.66,504.21,393.33,10.91;8,112.66,517.76,394.61,10.91;8,112.66,531.30,337.56,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,303.91,477.11,202.08,10.91;8,112.66,490.66,22.77,10.91">Simple BM25 extension to multiple weighted fields</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">J</forename><surname>Taylor</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1031171.1031181</idno>
+		<ptr target="https://doi.org/10.1145/1031171.1031181.doi:10.1145/1031171.1031181" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,467.82,490.66,40.01,10.91;8,112.66,504.21,393.33,10.91;8,112.66,517.76,55.88,10.91">Proceedings of the 2004 ACM CIKM International Conference on Information and Knowledge Management</title>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">A</forename><surname>Grossman</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Gravano</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">O</forename><surname>Herzog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">A</forename><surname>Evans</surname></persName>
+		</editor>
+		<meeting>the 2004 ACM CIKM International Conference on Information and Knowledge Management<address><addrLine>Washington, DC, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2004">November 8-13, 2004. 2004</date>
+			<biblScope unit="page" from="42" to="49" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,544.85,393.33,10.91;8,112.66,558.40,394.61,10.91;8,112.33,571.95,394.85,10.91;8,112.30,585.50,394.97,10.91;8,112.31,599.05,186.73,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,242.72,544.85,263.26,10.91;8,112.66,558.40,39.51,10.91">Declarative Experimentation in Information Retrieval using PyTerrier</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3409256.3409829</idno>
+		<ptr target="https://dl.acm.org/doi/10.1145/3409256.3409829" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,463.17,558.40,44.10,10.91;8,112.33,571.95,390.56,10.91">ICTIR &apos;20: The 2020 ACM SIGIR International Conference on the Theory of Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">V</forename><surname>Setty</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Lioma</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Zhang</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Berberich</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Virtual Event, Norway</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2020">September 14-17, 2020. 2020</date>
+			<biblScope unit="page" from="161" to="168" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,612.60,395.17,10.91;8,112.66,626.15,393.33,10.91;8,112.28,639.70,394.91,10.91;8,112.28,653.25,395.00,10.91;8,112.66,666.80,337.56,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,374.93,612.60,132.90,10.91;8,112.66,626.15,251.50,10.91">Learning deep structured semantic models for web search using clickthrough data</title>
+		<author>
+			<persName coords=""><forename type="first">P.-S</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Acero</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Heck</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2505515.2505665</idno>
+		<ptr target="https://doi.org/10.1145/2505515.2505665.doi:10.1145/2505515.2505665" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,393.76,626.15,112.23,10.91;8,112.28,639.70,390.96,10.91">Proceedings of the 22nd ACM International Conference on Information Knowledge Management, CIKM &apos;13</title>
+		<meeting>the 22nd ACM International Conference on Information Knowledge Management, CIKM &apos;13<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="2333" to="2338" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,86.97,393.33,10.91;9,112.66,100.52,394.53,10.91;9,112.66,114.06,394.53,10.91;9,112.28,127.61,395.39,10.91;9,112.66,141.16,196.08,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,241.14,86.97,264.85,10.91;9,112.66,100.52,97.16,10.91">Learning to match using local and distributed representations of text for web search</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3038912.3052579</idno>
+		<ptr target="https://doi.org/10.1145/3038912.3052579.doi:10.1145/3038912.3052579" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.66,114.06,361.46,10.91">Proceedings of the 26th International Conference on World Wide Web, WWW 2017</title>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Barrett</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Cummings</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Agichtein</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Gabrilovich</surname></persName>
+		</editor>
+		<meeting>the 26th International Conference on World Wide Web, WWW 2017<address><addrLine>Perth, Australia</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2017">April 3-7, 2017. 2017</date>
+			<biblScope unit="page" from="1291" to="1299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,154.71,394.61,10.91;9,112.28,168.26,395.39,10.91;9,112.66,181.81,264.57,10.91" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="9,112.28,168.26,263.70,10.91">A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">S</forename><surname>Marco</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1611.09268" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,195.36,395.17,10.91;9,112.66,208.91,394.53,10.91;9,112.66,222.46,393.33,10.91;9,112.66,236.01,394.53,10.91;9,112.66,249.56,395.01,10.91;9,112.66,263.11,155.44,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,490.39,195.36,17.44,10.91;9,112.66,208.91,262.33,10.91">Answering comparative questions: Better than ten-blue-links?</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schildwächter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zenker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3295750.3298916</idno>
+		<ptr target="https://doi.org/10.1145/3295750.3298916.doi:10.1145/3295750.3298916" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,346.48,222.46,159.51,10.91;9,112.66,236.01,222.10,10.91">Proceedings of the 2019 Conference on Human Information Interaction and Retrieval</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Halvey</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">I</forename><surname>Ruthven</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Joho</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">V</forename><surname>Murdock</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Qvarfordt</surname></persName>
+		</editor>
+		<meeting>the 2019 Conference on Human Information Interaction and Retrieval<address><addrLine>CHIIR; Glasgow, Scotland, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2019-03-10">2019. March 10-14, 2019. 2019</date>
+			<biblScope unit="page" from="361" to="365" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,276.66,394.53,10.91;9,112.66,290.20,393.33,10.91;9,112.66,303.75,394.51,10.91;9,112.66,319.74,123.08,7.90" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,327.46,276.66,175.13,10.91">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,240.99,290.20,264.99,10.91;9,112.66,303.75,123.97,10.91">Information Retrieval Evaluation in a Changing World, The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,330.85,395.17,10.91;9,112.66,344.40,156.41,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,255.31,330.85,179.93,10.91">Billion-scale similarity search with GPUs</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Douze</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jégou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,444.73,330.85,63.11,10.91;9,112.66,344.40,77.55,10.91">IEEE Transactions on Big Data</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="535" to="547" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,357.95,393.33,10.91;9,112.66,371.50,393.57,10.91;9,112.33,385.05,296.49,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="9,365.06,357.95,140.93,10.91;9,112.66,371.50,285.81,10.91">Supervised learning of universal sentence representations from natural language inference data</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Conneau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kiela</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Barrault</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bordes</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1705.02364" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

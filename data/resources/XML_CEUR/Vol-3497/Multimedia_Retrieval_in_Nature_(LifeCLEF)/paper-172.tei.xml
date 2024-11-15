@@ -1,0 +1,838 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,72.02,75.44,451.17,17.04;1,72.02,96.20,451.08,17.04;1,72.02,116.96,209.25,17.04">Acoustic Bird Species Recognition at BirdCLEF 2023: Training Strategies for Convolutional Neural Network and Inference Acceleration using OpenVINO</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,72.02,149.86,63.62,10.80"><forename type="first">Lihang</forename><surname>Hong</surname></persName>
+							<email>rihanneko@gmail.com</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Accenture Japan Ltd</orgName>
+								<address>
+									<addrLine>Akasaka Intercity 1-11-44 Akasaka, Minato-ku</addrLine>
+									<postCode>107-8672</postCode>
+									<settlement>Tokyo</settlement>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,72.02,75.44,451.17,17.04;1,72.02,96.20,451.08,17.04;1,72.02,116.96,209.25,17.04">Acoustic Bird Species Recognition at BirdCLEF 2023: Training Strategies for Convolutional Neural Network and Inference Acceleration using OpenVINO</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">EC7D27F39A713599B111EF76C58256A2</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:37+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>BirdCLEF2023</term>
+					<term>audio</term>
+					<term>bird species recognition</term>
+					<term>Convolutional Neural Network</term>
+					<term>Sound Event Detection</term>
+					<term>OpenVINO 2. Related Work</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Monitoring of bird species plays a vital role in understanding biodiversity trends, as birds serve as reliable indicators of ecological change. Traditional observer-based bird surveys are often resource-intensive and logistically challenging, prompting the need for advanced technological solutions. In this study, we explored the use of Convolutional Neural Networks (CNNs) for feature extraction and classification, along with training strategies that maximize the performance of these models given limited training data. Furthermore, we evaluate the implementation of the OpenVINO toolkit to accelerate the inference speed. Our goal is to establish a reliable classification model that can, with limited training data, recognize bird species by their calls in real time. The solution based on the study achieved 2nd rank among 1189 teams at BirdCLEF 2023 challenge hosted in Kaggle.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="594.96" lry="842.04"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The rapid decline in global biodiversity has become a significant concern in recent years, putting numerous species at risk of extinction and threatening the stability of ecosystems. As birds serve as important indicators of biodiversity change, monitoring their populations is essential. Traditional bird surveys, which primarily rely on direct observation and human expertise, can be resource-intensive and face logistical challenges when applied at large scales and high temporal resolutions. This highlights the need for more efficient, scalable, and cost-effective methods to monitor bird populations. Advancements in passive acoustic monitoring (PAM) technology, combined with innovative machine learning algorithms, present a promising solution to these challenges.</p><p>The aim of BirdCLEF 2023 <ref type="bibr" coords="1,213.89,541.77,11.99,9.94" target="#b0">[1,</ref><ref type="bibr" coords="1,229.10,541.77,9.20,9.94" target="#b1">2]</ref> is to identify Eastern African bird species by sound, which is a pilot work of testing the effect of various management regimes and states of degradation on bird biodiversity in rangeland systems around Northern Mount Kenya. This is done with the aim of demonstrating the efficacy and cost-effectiveness of using machine learning algorithms in measuring the success of restoration projects. Ultimately, the goal is to achieve large-scale restoration and protection of the planet in a cost-effective manner.</p><p>1. Weak labels. The main challenge is that given an audio, we have no information about where the bird call appears. When we clip the audio, there is a chance that the audio clip does not contain bird call, which introduce noise to the training process. 2. The gap between the bird call in short audios(training data) and that in long soundscapes(test data). Short audios usually focus on one certain species and the bird call appears in the foreground. However, in soundscape, usually there are several species speaking over each other in the background. Making the classification model trained on short audios applicable to soundscape is very important because scientists need to identify birds recorded in a relatively noisy environment, while short audios are cost-effective as training data. 3. Long-tailed and imbalanced distribution. Rare species have less training audios available, while major species have many available audios. Classification model trained with imbalanced dataset may give a poor performance when classifying rare species.</p><p>In previous BirdCLEF challenges <ref type="bibr" coords="2,235.58,239.08,11.91,9.94" target="#b3">[4,</ref><ref type="bibr" coords="2,249.89,239.08,8.28,9.94" target="#b4">5,</ref><ref type="bibr" coords="2,260.45,239.08,7.92,9.94" target="#b5">6]</ref>, state-of-the-art solutions transform the raw audio to Melspectrograms and train with Deep Convolutional Neural Networks (CNNs), treating the task as an image classification problem. In addition, ensembles and post-processing techniques are usually implemented.</p><p>To deal with weak labels, researchers proposed model which can be trained with longer audio clips by combining Convolutional Neural Networks (CNNs) with simple pooling layer on time and frequency dimension <ref type="bibr" coords="2,120.14,302.35,12.00,9.94" target="#b6">[7,</ref><ref type="bibr" coords="2,134.42,302.35,7.92,9.94" target="#b7">8]</ref>. Other approaches like Sound Event Detection (SED) employs two-dimensional CNNs to extract time and frequency information from audio samples, then the information is processed by an attention head to calculate the probability of the appearance of birds over the time dimension <ref type="bibr" coords="2,483.58,327.67,11.79,9.94" target="#b8">[9]</ref>.</p><p>To deal with the gap between short audios and soundscape, data Augmentation and pretraining were implemented. Adding environmental sound without bird calls as background noise <ref type="bibr" coords="2,437.74,352.99,17.52,9.94" target="#b9">[10,</ref><ref type="bibr" coords="2,457.90,352.99,14.72,9.94" target="#b10">11]</ref> and Mixup are considered most effective. Researchers implemented Mixup <ref type="bibr" coords="2,380.59,365.59,18.32,9.94" target="#b11">[12]</ref> on both audio and Melspectrograms to mix different bird calls into one training sample in order to simulate the soundscape.</p><p>To deal with imbalanced distribution, oversampling the rare species by splitting one short audio to several audio clips are implemented <ref type="bibr" coords="2,233.09,403.63,11.70,9.94" target="#b7">[8]</ref>.</p><p>In the previous BirdCLEF challenges, soundscapes are allowed to compute with GPU within 9 hours of inference time. In BirdCLEF 2023, soundscapes are only allowed to compute with CPU within 2 hours of inference time. This change encouraged a focus on efficient models with a good balance between accuracy and speed, which can be used in the real field work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methods</head><p>In this section, we explains the main components of our solution to the BirdCLEF 2023 Challenge.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Dataset</head><p>As in previous BirdCLEF challenges, training data is provided by the Xeno-canto <ref type="bibr" coords="2,449.14,569.73,18.44,9.94" target="#b12">[13]</ref> community. More than 16000 audios covering 264 species are provided by the competition host.</p><p>To further expand the dataset size, we collected additional 21000 audios which from Xeno-canto community. Besides the audios in which the target species appear in foreground, which we call them foreground audios, audios with duration less than 60 seconds in which the target species only appear in background, which we call them background audios, were also included.</p><p>For pretraining, audios from previous BirdCLEF challenges were included <ref type="bibr" coords="2,412.74,645.60,11.92,9.94" target="#b3">[4,</ref><ref type="bibr" coords="2,426.94,645.60,8.28,9.94" target="#b4">5,</ref><ref type="bibr" coords="2,437.38,645.60,7.91,9.94" target="#b5">6]</ref>. The total dataset size was about 119000 covering 834 species.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Evaluation</head><p>The evaluation metric for this challenge is padded cmAP, a derivative of the macro-averaged average precision score as implemented by scikit-learn. The prediction data and target data of each species are padded with five rows of true positives, which makes it possible for the metrics to accept zero positive labels and less influenced by the species with very few positive labels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>3.3.</head><p>Preprocessing 10-20 second audio clip randomly selected from raw audio is converted to Mel-spectrograms using librosa library <ref type="bibr" coords="3,137.95,118.36,16.95,9.94" target="#b13">[14]</ref>. For background audios, to ensure that the target species appear in the audio clip, we first clipped 60 seconds from the audio, cut it into for example, six 10 second audio clips and summed up to one 10 second mixed audio clip. After converting the audio clip to Mel-spectrograms, Deltas and Delta-deltas are calculated as additional input feature using torchaudio library <ref type="bibr" coords="3,466.78,156.40,16.90,9.94" target="#b14">[15]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Augmentations</head><p>7 types of audio augmentations implemented using audiomentations <ref type="bibr" coords="3,388.75,214.12,18.32,9.94" target="#b15">[16]</ref> are as follows:</p><p>1. GaussianNoise: This technique involves adding random Gaussian noise to the audio signal.</p><p>2. PinkNoise: Noise with a power spectral density inversely proportional to frequency. 3. Gain: Gain is used to adjust the overall volume of the audio signal. 4. Background Noise: Adding background noise simulates the presence of other sounds in the environment, such as wind, rain, or human activity <ref type="bibr" coords="3,348.67,277.39,17.40,9.94" target="#b9">[10,</ref><ref type="bibr" coords="3,368.83,277.39,13.14,9.94" target="#b10">11]</ref>. 5. PitchShift: Pitch shifting changes the pitch of the audio signal without altering its duration. 6. TimeShift: Moving the audio signal in time, without changing its pitch or duration. 7. OR Mixup: Compared to classic Mixup <ref type="bibr" coords="3,299.47,315.31,16.90,9.94" target="#b11">[12]</ref>, OR Mixup uses the formula as follows:</p><formula xml:id="formula_0" coords="3,235.37,327.10,277.10,26.93">𝑥 = 𝑥 𝑖 + (1 -𝜏)𝑥 𝑗 (1) 𝑦 = 𝑦 𝑖 + (1 -𝜏)𝑦 𝑗</formula><p>(2) where (𝑥 𝑖 , 𝑦 𝑖 ) and (𝑥 𝑗 , 𝑦 𝑗 ) are the two randomly selected samples and 𝜏 is Mixup ratio.</p><p>For Mel-spectrograms, Frequency Masking and Time Masking <ref type="bibr" coords="3,385.51,383.35,18.44,9.94" target="#b16">[17]</ref> were implemented using torchaudio. Classic Mixup was also implemented to the Mel-spectrograms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Model Architecture</head><p>We used Custom CNN and Sound Event Detection Model, proposed in <ref type="bibr" coords="3,402.14,453.81,13.00,9.94" target="#b6">[7]</ref> and <ref type="bibr" coords="3,436.53,453.81,11.62,9.94" target="#b8">[9]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.1.">Sound Event Detection Model (SED)</head><p>As we can see in Figure <ref type="figure" coords="3,195.75,511.53,4.14,9.94" target="#fig_0">1</ref>, this model employs two-dimensional CNNs to extract and process time and frequency information from audio samples, then the information is processed by an attention head to calculate the probability of the appearance of birds over the time dimension.</p><p>We trained this model using 10 seconds audio clips randomly selected from the audio. For inference, we used 10 seconds audio clip, in which the 5 seconds to predict were in the center of the audio clip. With this implementation, we can make prediction with attention layer on the central 5 seconds of the deep features encoded by CNN, which contains extra global information useful for prediction. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.2.">CNNs with simple pooling layer (Custom CNN)</head><p>As we can see in Figure <ref type="figure" coords="3,198.97,747.14,4.14,9.94" target="#fig_1">2</ref>, this model splits the Mel-spectrogram along the time axis and extract deep features on each splitted Mel-spectrogram. After that, a GeM layer implemented to apply pooling on time and frequency to gather the overall information of each deep feature and create an embedding. Then the embedding is computed by a linear head to generate probabilities for each species. With this architecture, the model can be trained with long audio clip to deal with absence of bird call in short audio clip, while being able to make prediction on short audio clip. We trained this model using 15 to 20 seconds audio clips randomly selected from the audio. For inference, we used 5 seconds audio clips.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">Training Details</head><p>Virtual environment on Google Colaboratory with an A100 GPU has been used for training. We used Pytorch to train our models and the CNN encoders were provided by timm library <ref type="bibr" coords="4,448.42,396.43,16.99,9.94" target="#b17">[18]</ref>. For training, a two-stage approach was utilized. Initially, pretraining was conducted on the entire dataset comprising 834 species. Subsequently, fine-tuning was performed on the subset of 264 species. Throughout both of these stages, the model was trained using CrossEntropyLoss (CE Loss) prior to employing BCEWithLogitsLoss (BCE Loss). The model exhibited a more rapid convergence with CE Loss compared to BCE Loss. However, the latter proved to yield higher performance.</p><p>For validation, we randomly selected about 4000 audios covering 264 species as validation subset. The number of each species in the validation subset was in proportion to that in the whole dataset. We computed the Padded cmAP as Cross Validation score (CV) on the first 60 seconds of the audio.</p><p>To deal with the class imbalance of the dataset, we used WeightedRandomSampler <ref type="bibr" coords="4,458.84,510.33,18.34,9.94" target="#b18">[19]</ref> to sample the audios of each species according to a uniform distribution.</p><p>To enhance the diversity of the models in ensemble process, models were developed based on Melspectrogram generated by varied parameters, with some trained utilizing CE Loss only, and with some trained without pretraining process. Moreover, three of the models' head layers were additionally finetuned on 30-second audio clips. Details of Mel-spectrogram parameters for each model are shown in Table <ref type="table" coords="4,99.86,587.04,5.52,9.94" target="#tab_0">1</ref> and details of other training conditions mentioned above are shown in Table <ref type="table" coords="4,446.00,587.04,4.14,9.94" target="#tab_1">2</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.7.">Inference Acceleration using OpenVINO</head><p>In inference process, we generated predictions on each 5 seconds of the soundscape with 7 models and ensembled the predictions using weighted average method.</p><p>To accelerate the inference speed, we used OpenVINO toolkit <ref type="bibr" coords="5,361.39,285.43,16.90,9.94" target="#b19">[20]</ref>. OpenVINO is a comprehensive toolkit developed by Intel to facilitate the development and deployment of deep learning models for various applications. The toolkit supports several deep learning frameworks, such as TensorFlow, Caffe, and ONNX. For Pytorch framework, we first converted the models to ONNX format and then converted the ONNX model to OpenVINO format.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Experimental Results of Training Strategies</head><p>Padded cmAP was calculated as the metrics in BirdCLEF 2023 challenge's Leaderboard, denoted as LB which consists of two variants of public and private. Table <ref type="table" coords="5,359.95,423.45,5.52,9.94" target="#tab_2">3</ref> presents the experimental results of training strategies. In our experiment, increasing dataset size and applying OR Mixup on audios significantly improved the LB of single model. In addition, although class balanced sampling did not increase the LB of single model, it increased the LB of ensemble prediction.  <ref type="table" coords="5,266.45,744.00,4.14,9.94" target="#tab_3">4</ref>, we can see that the impact of adding background noise actually varies. Adding background noise improves the performance of SED model while worsening the performance of Custom CNN. In addition, with the same training dataset, SED model performs better than Custom CNN in the test set. The result indicates that model architecture with attention mechanism may be more robust to the complex acoustic environments in the real world. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Inference time with OpenVINO toolkit</head><p>Inference was conducted on Kaggle CPU environment. The inference time estimation of 10 minutes soundscape with EfficientNetV2-s based SED model in Pytorch format and that with OpenVINO format is presented in Figure <ref type="figure" coords="6,169.87,362.83,4.13,9.94" target="#fig_2">3</ref>. We can reduce inference time by about 45% with OpenVINO toolkit. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Performance of Final Submission Models</head><p>The performance of single model for final submission and ensemble result are listed in Table <ref type="table" coords="6,495.04,718.08,4.29,9.94" target="#tab_4">5</ref>. The final submission achieved 2nd rank among 1189 teams at BirdCLEF 2023. The top 2 best-performing models are SED with EfficienNetV2-s encoder and Custom CNN with ResNet34d encoder. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion and future work</head><p>This study demonstrates the effectiveness of employing Convolutional Neural Networks and effective training strategies for recognizing bird species in complex acoustic environments. By expanding the dataset, applying various augmentation techniques, and utilizing different model architectures, we were able to enhance the model's performance and mitigate challenges presented by weak labels, gap between train and test audios, and imbalanced data distribution. Our experiments suggest that model architecture containing attention layer is more robust to the environmental noise and is better suited for recognizing bird species in complex acoustic environments of the real world.</p><p>Furthermore, the implementation of OpenVINO toolkit substantially accelerated the inference speed, highlighting the potential for real-time bird species recognition in biodiversity monitoring applications.</p><p>Future work may include experiments on more diverse datasets and encoders. In order to better gauge the generalizability of our models, performance should be evaluated on more diverse and challenging datasets, including recordings from different geographical regions, seasons, and habitats, as well as those containing rare or endangered species. The effect of the training strategies should be evaluated on other CNN encoders, as well as Vision Transformers. Integration with IoT devices and real-time monitoring systems is another challenging future work for the ultimate goal to achieve the vision of restoring and protecting the planet at scale.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,72.02,688.18,160.47,11.04;3,72.00,597.35,451.00,88.10"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Model Architecture of SED</figDesc><graphic coords="3,72.00,597.35,451.00,88.10" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,72.02,286.85,200.08,11.04;4,72.00,122.60,451.00,161.40"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Model Architecture of Custom CNN</figDesc><graphic coords="4,72.00,122.60,451.00,161.40" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="6,72.02,645.70,451.13,11.04;6,72.02,659.14,191.33,11.04;6,126.50,385.41,341.30,257.64"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Inference time estimation of Pytorch model and OpenVINO model on 10 minutes soundscape, with 50 loops for each model.</figDesc><graphic coords="6,126.50,385.41,341.30,257.64" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,72.02,611.74,447.22,135.72"><head>Table 1</head><label>1</label><figDesc>Varied Mel-spectrogram parameters were set for each model to make difference in input train data.</figDesc><table coords="4,77.78,640.90,439.54,106.56"><row><cell>Model type</cell><cell>CNN encoder</cell><cell>Mel bins</cell><cell>Frequency</cell><cell cols="2">Window Hop length</cell></row><row><cell>SED</cell><cell>EfficientNetV2-s</cell><cell>128</cell><cell>(0 Hz, 16000 Hz)</cell><cell>2048</cell><cell>417</cell></row><row><cell>SED</cell><cell>EfficientNet-b3-ns</cell><cell>128</cell><cell>(50 Hz, 14000 Hz)</cell><cell>1024</cell><cell>535</cell></row><row><cell>SED</cell><cell>SeResnext26t-32x4d</cell><cell>128</cell><cell>(0 Hz, 16000 Hz)</cell><cell>2048</cell><cell>627</cell></row><row><cell>Custom CNN</cell><cell>EfficientNetV2-s</cell><cell>64</cell><cell>(50 Hz, 14000 Hz)</cell><cell>1024</cell><cell>320</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b3-ns</cell><cell>128</cell><cell>(50 Hz, 14000 Hz)</cell><cell>1024</cell><cell>535</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b0-ns</cell><cell>128</cell><cell>(0 Hz, 16000 Hz)</cell><cell>2048</cell><cell>627</cell></row><row><cell>Custom CNN</cell><cell>ResNet34d</cell><cell>128</cell><cell>(0 Hz, 16000 Hz)</cell><cell>2048</cell><cell>627</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,72.02,74.18,444.21,135.60"><head>Table 2</head><label>2</label><figDesc>To further enhance the diversity of models, different training conditions were set for each model.</figDesc><table coords="5,77.78,103.22,438.45,106.56"><row><cell>Model type</cell><cell>CNN encoder</cell><cell>Loss funtion</cell><cell cols="2">Pretrained 30s fine-tined</cell></row><row><cell>SED</cell><cell>EfficientNetV2-s</cell><cell>CE Loss and BCE Loss</cell><cell>Yes</cell><cell>Yes</cell></row><row><cell>SED</cell><cell>EfficientNet-b3-ns</cell><cell>CE Loss and BCE Loss</cell><cell>Yes</cell><cell>Yes</cell></row><row><cell>SED</cell><cell>SeResnext26t-32x4d</cell><cell>CE Loss</cell><cell>Yes</cell><cell>No</cell></row><row><cell>Custom CNN</cell><cell>EfficientNetV2-s</cell><cell>CE Loss and BCE Loss</cell><cell>Yes</cell><cell>Yes</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b3-ns</cell><cell>CE Loss and BCE Loss</cell><cell>Yes</cell><cell>No</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b0-ns</cell><cell>CE Loss</cell><cell>No</cell><cell>No</cell></row><row><cell>Custom CNN</cell><cell>ResNet34d</cell><cell>CE Loss and BCE Loss</cell><cell>Yes</cell><cell>No</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,72.02,486.19,451.19,267.74"><head>Table 3</head><label>3</label><figDesc>Experimental results of training strategies. Effective training strategies include increasing dataset size(No.2), adding background noise(No.3), OR Mixup(No.4), class balanced sampling(No.5) and ensemble(No.7 and No.8).From Table3, we can see that adding more background noise to SED model improves the performance, implying that heavy background noise augmentation can improve the robustness of the model. To further investigate the effect of background noise, additional experiment was conducted on Custom CNN with EfficientNetV2-s encoder. The results of the experiment are presented in table 4. Comparing the results in Table3 and Table</figDesc><table coords="5,78.50,542.11,439.73,133.47"><row><cell>No</cell><cell>Models</cell><cell>CNN encoder</cell><cell>CV</cell><cell cols="2">Public LB Private LB</cell></row><row><cell>1</cell><cell>SED (baseline)</cell><cell cols="2">EfficientNetV2-s 0.86547</cell><cell>0.81257</cell><cell>0.71667</cell></row><row><cell>2</cell><cell>SED (1 + additional audios)</cell><cell cols="2">EfficientNetV2-s 0.86741</cell><cell>0.81725</cell><cell>0.72584</cell></row><row><cell>3</cell><cell>SED (2 + more background noise)</cell><cell cols="2">EfficientNetV2-s 0.86484</cell><cell>0.81935</cell><cell>0.73047</cell></row><row><cell>4</cell><cell>SED (3 + OR Mixup)</cell><cell cols="2">EfficientNetV2-s 0.86053</cell><cell>0.82349</cell><cell>0.73141</cell></row><row><cell>5</cell><cell>SED (4 + class balanced sampling)</cell><cell cols="2">EfficientNetV2-s 0.85610</cell><cell>0.82209</cell><cell>0.73008</cell></row><row><cell>6</cell><cell>Custom CNN</cell><cell>ResNet34d</cell><cell>0.86511</cell><cell>0.81127</cell><cell>0.71187</cell></row><row><cell></cell><cell>(additional audios included)</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>7</cell><cell>Ensemble (4 + 6)</cell><cell>-</cell><cell>-</cell><cell>0.82922</cell><cell>0.73869</cell></row><row><cell>8</cell><cell>Ensemble (5 + 6)</cell><cell>-</cell><cell>-</cell><cell>0.83110</cell><cell>0.74318</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="6,72.02,124.82,451.02,162.51"><head>Table 4</head><label>4</label><figDesc>Experiment on background noise augmentation. The value in () shows the LB of SED model trained on whole dataset. The effect of aggressive background noise varies between SED and Custom CNN.</figDesc><table coords="6,78.38,167.30,429.29,120.03"><row><cell>No</cell><cell>Models</cell><cell>CNN encoder</cell><cell>Public LB</cell><cell>Private LB</cell></row><row><cell>1</cell><cell>SED</cell><cell>EfficientNetV2-s</cell><cell>0.81725</cell><cell>0.72584</cell></row><row><cell></cell><cell>(trained on training subset)</cell><cell></cell><cell></cell><cell></cell></row><row><cell>2</cell><cell>SED</cell><cell>EfficientNetV2-s</cell><cell>0.81935</cell><cell>0.73047</cell></row><row><cell></cell><cell>(1 + more background noise)</cell><cell></cell><cell>(0.82643)</cell><cell>(0.73754)</cell></row><row><cell>3</cell><cell>Custom CNN</cell><cell>EfficientNetV2-s</cell><cell>0.82162</cell><cell>0.73684</cell></row><row><cell></cell><cell>(trained on whole dataset)</cell><cell></cell><cell></cell><cell></cell></row><row><cell>4</cell><cell>Custom CNN</cell><cell>EfficientNetV2-s</cell><cell>0.81823</cell><cell>0.73426</cell></row><row><cell></cell><cell>(3 + more background noise)</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="7,72.02,74.18,410.93,149.04"><head>Table 5</head><label>5</label><figDesc>Single model performance of final submission models and the ensemble result.</figDesc><table coords="7,77.30,103.22,405.65,120.00"><row><cell>Model type</cell><cell>CNN encoder</cell><cell>Public LB</cell><cell>Private LB</cell></row><row><cell>SED</cell><cell>EfficientNetV2-s</cell><cell>0.82643</cell><cell>0.73754</cell></row><row><cell>SED</cell><cell>EfficientNet-b3-ns</cell><cell>0.82534</cell><cell>0.73602</cell></row><row><cell>SED</cell><cell>SeResnext26t-32x4d</cell><cell>0.81947</cell><cell>0.72688</cell></row><row><cell>Custom CNN</cell><cell>EfficientNetV2-s</cell><cell>0.82070</cell><cell>0.73681</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b3-ns</cell><cell>0.81652</cell><cell>0.71963</cell></row><row><cell>Custom CNN</cell><cell>EfficientNet-b0-ns</cell><cell>0.81564</cell><cell>0.71734</cell></row><row><cell>Custom CNN</cell><cell>ResNet34d</cell><cell>0.82593</cell><cell>0.73985</cell></row><row><cell>Ensemble</cell><cell>-</cell><cell>0.84123</cell><cell>0.76369</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,108.02,533.61,414.97,9.94;7,108.02,546.22,415.15,10.04;7,108.02,558.93,414.77,9.94;7,108.02,571.65,414.75,9.94;7,108.02,584.28,415.13,9.94;7,108.02,596.88,121.40,9.94" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,391.27,558.93,131.52,9.94;7,108.02,571.65,410.41,9.94">Overview of LifeCLEF 2023: evaluation of ai models for the identification and prediction of birds, plants, snakes and fungi</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Botella</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Picek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Deneu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Marcos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Estopinan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Leblanc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Larcher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Chamidullin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Šulc</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hrúz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Servajean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Eggel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bonnet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Müller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,127.45,584.28,395.70,9.94;7,108.02,596.88,45.46,9.94">International Conference of the Cross-Language Evaluation Forum for European Languages</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.02,609.60,414.97,9.94;7,108.02,622.20,414.92,9.94;7,108.02,634.81,415.01,10.05;7,108.02,647.52,32.16,9.94" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,207.06,622.20,315.88,9.94;7,108.02,634.92,62.03,9.94">Overview of BirdCLEF 2023: Automated bird species identification in Eastern Africa</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Reers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Cherutich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,176.84,634.81,346.19,10.05">Working Notes of CLEF 2023 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.02,660.12,415.15,9.94;7,108.02,672.73,272.09,10.05" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,206.09,660.12,203.17,9.94">Few-shot Long-Tailed Bird Audio Recognition</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">V</forename><surname>Conde</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Choi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,416.02,660.12,107.15,9.94;7,108.02,672.73,236.97,10.05">Working Notes of CLEF 2022 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.02,685.44,415.11,9.94;7,108.02,698.16,412.52,9.94" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Clapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Hopping</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+		<title level="m" coord="7,108.02,698.16,377.46,9.94">Overview of birdclef 2020: Bird sound recognition in complex acoustic environments</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.02,710.76,415.04,9.94;7,108.02,723.36,414.89,9.94;7,108.02,736.08,340.28,9.94" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,108.02,723.36,350.68,9.94">Overview of birdclef 2021: Bird call identification in soundscape recordings</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,483.81,723.36,39.10,9.94;7,108.02,736.08,305.31,9.94">Working Notes of CLEF 2021 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.02,74.68,415.12,9.94;8,108.02,87.28,415.04,9.94;8,108.02,100.00,415.06,9.94;8,108.02,112.60,64.32,9.94" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,197.84,87.28,325.22,9.94;8,108.02,100.00,97.82,9.94">Overview of birdclef 2022: Endangered bird species recognition in soundscape recordings</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Navine</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Klinck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Hart</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Glotin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Goëau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W.-P</forename><surname>Vellinga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Planqué</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,212.60,100.00,310.48,9.94;8,108.02,112.60,29.34,9.94">Working Notes of CLEF 2022 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.02,125.32,415.26,9.94;8,108.02,137.92,415.16,9.94" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="8,254.96,125.32,268.32,9.94;8,108.02,137.92,49.14,9.94">Recognizing bird species in diverse soundscapes under weak supervision</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Henkel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Pfeiffer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Singer</surname></persName>
+		</author>
+		<idno type="DOI">10.48550/ARXIV.2107.07728</idno>
+		<ptr target="https://arxiv.org/abs/2107.07728.doi:10.48550/ARXIV.2107.07728" />
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.02,150.52,414.82,9.94;8,108.02,163.13,383.96,10.05" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,239.09,150.52,279.54,9.94">Dealing with Class Imbalance in Bird Sound Classification</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Martynov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Uematsu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,108.02,163.13,349.01,10.05">Working Notes of CLEF 2022 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.02,175.84,414.89,9.94;8,108.02,188.56,414.76,9.94;8,108.02,201.16,415.01,9.94;8,108.02,213.76,281.93,9.94" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,335.16,175.84,187.75,9.94;8,108.02,188.56,294.62,9.94">Sound event localization and detection of overlapping sources using convolutional recurrent neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Adavanne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Politis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Nikunen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Virtanen</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/JSTSP.2018.2885636</idno>
+		<ptr target="https://ieeexplore.ieee.org/abstract/document/8567942.doi:10.1109/JSTSP.2018.2885636" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,410.56,188.56,112.22,9.94;8,108.02,201.16,147.26,9.94">IEEE Journal of Selected Topics in Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="34" to="48" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,226.48,378.95,9.94;8,108.02,239.08,414.77,9.94;8,108.02,251.83,268.73,9.94" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,262.22,226.48,260.75,9.94;8,108.02,239.08,81.71,9.94">freefield1010 -an open dataset for research on audio field recording archives</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Stowell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Plumbley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,214.59,239.08,308.20,9.94;8,108.02,251.83,110.64,9.94">Proceedings of the Audio Engineering Society 53rd Conference on Semantic Audio (AES53)</title>
+		<meeting>the Audio Engineering Society 53rd Conference on Semantic Audio (AES53)</meeting>
+		<imprint>
+			<publisher>Audio Engineering Society</publisher>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,264.43,379.19,9.94;8,108.02,277.15,414.85,9.94;8,108.02,289.75,414.99,9.94;8,108.02,302.35,371.48,9.94" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,427.18,264.43,96.03,9.94;8,108.02,277.15,229.18,9.94">Birdvox-full-night: A dataset and benchmark for avian flight call detection</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lostanlen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Salamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Farnsworth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kelling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bello</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/ICASSP.2018.8461410</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,344.14,277.15,178.73,9.94;8,108.02,289.75,281.39,9.94">ICASSP, IEEE International Conference on Acoustics, Speech and Signal Processing -Proceedings</title>
+		<imprint>
+			<publisher>Institute of Electrical and Electronics Engineers Inc</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="266" to="270" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,315.07,379.09,9.94;8,108.02,327.67,415.28,9.94;8,108.02,340.39,83.31,9.94" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Cissé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><forename type="middle">N</forename><surname>Dauphin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Lopez-Paz</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1710.09412" />
+		<title level="m" coord="8,386.58,315.07,136.53,9.94;8,108.02,327.67,56.79,9.94">mixup: Beyond empirical risk minimization</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,352.99,378.85,9.94;8,108.02,365.59,99.75,9.94" xml:id="b12">
+	<monogr>
+		<ptr target="https://xeno-canto.org" />
+		<title level="m" coord="8,144.02,352.99,315.61,9.94">Xeno-canto, Xeno-canto: Sharing bird sounds from around the world</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,378.31,378.86,9.94;8,108.02,390.91,414.74,9.94;8,108.02,403.63,160.47,9.94" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="8,108.02,390.91,232.42,9.94">librosa: Audio and music signal analysis in python</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mcfee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">P</forename><surname>Ellis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mcvicar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Battenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Nieto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,365.68,390.91,157.08,9.94;8,108.02,403.63,81.58,9.94">Proceedings of the 14th python in science conference</title>
+		<meeting>the 14th python in science conference</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+			<biblScope unit="volume">8</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,416.25,379.13,9.94;8,108.02,428.85,414.84,9.94;8,108.02,441.57,415.24,9.94;8,108.02,454.17,415.00,9.94;8,108.02,466.89,115.27,9.94" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y.-Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Ni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Chourdia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Astafurov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-F</forename><surname>Yeh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Puhrsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Pollack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Genzel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Greenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">Z</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mahadeokar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Hwang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Goldsborough</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narenthiran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Watanabe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Chintala</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Quenneville-Bélair</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Shi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2110.15018</idno>
+		<title level="m" coord="8,176.71,454.17,274.81,9.94">Torchaudio: Building blocks for audio and speech processing</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,144.02,479.49,379.02,9.94;8,108.02,492.09,415.03,9.94;8,108.02,504.81,62.13,9.94;8,189.17,504.81,9.36,9.94;8,217.48,504.81,37.55,9.94;8,273.97,504.81,106.87,9.94;8,399.74,504.81,35.76,9.94;8,454.44,504.81,24.72,9.94;8,498.11,504.81,24.91,9.94;8,108.02,517.41,292.49,9.94" xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Jordal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Tamazian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">T</forename><surname>Chourdakis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Angonin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Dhyani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Karpov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Sarioglu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">B</forename><surname>Bakerbunker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Çoban</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-Y</forename><surname>Mirus</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Marvinlvn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Solomidhero</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Alumäe</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.7885479</idno>
+		<idno>0.30.0</idno>
+		<ptr target="https://zenodo.org/record/7885479.doi:10.5281/zenodo.7885479" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,273.97,504.81,27.88,9.94">iver</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,530.13,378.99,9.94;8,108.02,542.73,414.78,9.94;8,108.02,555.33,415.16,9.94;8,108.02,568.05,167.55,9.94" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="8,108.02,542.73,393.88,9.94">SpecAugment: A simple data augmentation method for automatic speech recognition</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">S</forename><surname>Park</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Chan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-C</forename><surname>Chiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Zoph</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">D</forename><surname>Cubuk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<idno type="DOI">10.21437/interspeech.2019-2680</idno>
+		<ptr target="https://doi.org/10.21437%2Finterspeech.2019-2680.doi:10.21437/interspeech.2019-2680" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,108.02,555.33,110.31,9.94">Interspeech 2019, ISCA</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,580.68,379.12,9.94;8,108.02,593.40,415.16,9.94;8,108.02,606.00,415.16,9.94;8,108.02,618.72,415.09,9.94;8,108.02,631.32,415.28,9.94" xml:id="b17">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Wightman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Raw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Soare</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Arora</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Ha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Reich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kaczmarzyk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Mike</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Seefun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Rizin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kertész</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Mehta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cucurull</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Tatsunami</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lavin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhuang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hollemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Rashad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Sameni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Shults</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Lucain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kwon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Uchida</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.7618837</idno>
+		<ptr target="https://zenodo.org/record/7618837.doi:10.5281/zenodo.7618837" />
+		<title level="m" coord="8,369.79,618.72,148.38,9.94">rwightman/pytorch-image-models</title>
+		<imprint/>
+	</monogr>
+	<note>0.8.10dev0 Release</note>
+</biblStruct>
+
+<biblStruct coords="8,144.02,643.92,10.68,9.94;8,176.64,643.92,8.90,9.94;8,207.47,643.92,36.47,9.94;8,265.88,643.92,51.45,9.94;8,339.27,643.92,30.42,9.94;8,391.57,643.92,37.65,9.94;8,451.16,643.92,25.10,9.94;8,498.09,643.92,25.05,9.94;8,108.02,656.64,241.37,9.94" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="8,265.88,643.92,51.45,9.94;8,339.27,643.92,30.42,9.94;8,391.57,643.92,32.94,9.94">Imbalanced dataset sampler</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">S</forename><surname>Pytorch</surname></persName>
+		</author>
+		<ptr target="https://github.com/ufoym/imbalanced-dataset-sampler" />
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.02,669.24,379.11,9.94;8,108.02,681.96,24.84,9.94;8,162.73,681.96,25.05,9.94;8,217.73,681.96,305.53,9.94;8,108.02,694.56,131.55,9.94" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="8,230.21,669.24,292.92,9.94">Release Notes for Intel® Distribution of OpenVINO™ Toolkit</title>
+		<ptr target="https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html" />
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+		<respStmt>
+			<orgName>Intel Corporation</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

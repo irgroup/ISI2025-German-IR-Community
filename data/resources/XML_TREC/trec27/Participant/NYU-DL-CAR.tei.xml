@@ -1,0 +1,774 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,108.43,82.34,298.98,14.93;1,108.43,102.27,288.95,14.93">NEW YORK UNIVERSITY AT TREC 2018 COMPLEX ANSWER RETRIEVAL TRACK</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,113.98,137.70,76.65,8.96"><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+							<email>rodrigonogueira@nyu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">New York University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,317.96,137.70,70.00,8.96"><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+							<email>kyunghyun.cho@nyu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Facebook AI Research CIFAR Global Scholar</orgName>
+								<orgName type="institution">New York University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,108.43,82.34,298.98,14.93;1,108.43,102.27,288.95,14.93">NEW YORK UNIVERSITY AT TREC 2018 COMPLEX ANSWER RETRIEVAL TRACK</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">2CAE24840BDFF7DE0AAF9DA332B4F9ED</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we describe our submission to the TREC-CAR 2018. We use a method introduced by Nogueira et al. ( <ref type="formula" coords="1,299.77,258.78,17.71,8.64">2018</ref>) to efficiently learn diverse strategies in reinforcement learning for query reformulation and focus minimally on the ranking function. In this framework, an agent consists of multiple specialized subagents and a meta-agent that learns to aggregate the answers from sub-agents to produce a final answer. Sub-agents are trained on disjoint partitions of the training data, while the meta-agent is trained on the full training set. Our method makes learning faster, because it is highly parallelizable, and has better generalization performance than strong baselines, such as an ensemble of agents trained on the full data.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>In this work, we use a simple method introduced by <ref type="bibr" coords="1,330.42,405.64,91.95,8.64" target="#b19">Nogueira et al. (2018)</ref> to achieve efficient parallelized exploration of diverse query reformulation policies. We structure the agent into multiple sub-agents, which are trained on disjoint subsets of the training data. Sub-agents are co-ordinated by a meta-agent, called aggregator, that groups and scores answers from the sub-agents for each given input. Unlike sub-agents, the aggregator is a generalist since it learns a policy for the entire training set.</p><p>We argue that it is easier to train multiple sub-agents than a single generalist one since each sub-agent only needs to learn a policy that performs well for a subset of examples. Moreover, specializing agents on different partitions of the data encourages them to learn distinct policies, thus giving the aggregator the possibility to see answers from a population of diverse agents. Learning a single policy that results in an equally diverse strategy is more challenging.</p><p>Since each sub-agent is trained on a fraction of the data, and there is no communication between them, training can be done faster than training a single agent on the full data. Additionally, it is easier to parallelize than applying existing distributed algorithms such as asynchronous SGD or A3C <ref type="bibr" coords="1,130.28,571.02,76.08,8.64" target="#b16">(Mnih et al., 2016)</ref>, as the sub-agents do not need to exchange weights or gradients. After training the sub-agents, only their actions need to be sent to the aggregator.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">RELATED WORK</head><p>The approach used in this work is inspired by the mixture of experts, which was introduced more than two decades ago <ref type="bibr" coords="1,197.51,646.66,80.64,8.64" target="#b10">(Jacobs et al., 1991;</ref><ref type="bibr" coords="1,281.05,646.66,95.30,8.64" target="#b11">Jordan &amp; Jacobs, 1994)</ref> and has been a topic of intense study since then. The idea consists of training a set of agents, each specializing in some task or data. One or more gating mechanisms then select subsets of the agents that will handle a new input. Recently, <ref type="bibr" coords="1,147.74,679.54,82.41,8.64" target="#b22">Shazeer et al. (2017)</ref> revisited the idea and showed strong performances in the supervised learning tasks of language modeling and machine translation. Their method requires that output vectors of experts are exchanged between machines. Since these vectors can be large, the network bandwidth becomes a bottleneck. They used a variety of techniques to mitigate this problem. <ref type="bibr" coords="1,486.29,712.42,17.71,8.64;1,108.00,723.38,47.86,8.64" target="#b0">Anil et al. (2018)</ref> later proposed a method to further reduce communication overhead by only exchanging</p><formula xml:id="formula_0" coords="2,115.47,83.92,377.13,171.51">Search q 0 a 0 Search q 0 a i Reformulator q 0 a 0 ... (a) (b) (c) Selector q 1 a 1 q N a N ... Search q 0 a i Refor 1 q 0 a 0 ... Aggregator q 1 a 1 q N a N ...</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Search</head><p>Refor 2 q 0</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Search</head><p>Figure <ref type="figure" coords="2,136.17,276.24,3.88,8.64">1</ref>: a) A vanilla search system. The query q 0 is given to the system which outputs a list of documents a 0 . b) The search system with a reformulator. The reformulator queries the system with q 0 and its reformulations {q 1 , ...q N } and receives back the lists of documents {a 0 , ..., a N }. A selector then decides the best list of documents a i for q 0 . c) The method proposed by <ref type="bibr" coords="2,413.97,309.12,85.88,8.64" target="#b19">Nogueira et al. (2018)</ref>.</p><p>The original query is reformulated multiple times by different reformulators. Reformulations are used to obtain documents from the search system, which are then sent to the aggregator, which merges and re-ranks the list of documents based on a learned weighted majority voting scheme.</p><p>Reformulators are independently trained on disjoint partitions of the dataset thus increasing the variability of reformulations.</p><p>the probability distributions of the different agents. Our method, instead, requires only scalars (rewards) and short strings (original query, reformulations, and answers) to be exchanged. Therefore, the communication overhead is small.</p><p>Previous works used specialized agents to improve exploration in RL <ref type="bibr" coords="2,380.58,437.88,95.74,8.64" target="#b6">(Dayan &amp; Hinton, 1993;</ref><ref type="bibr" coords="2,478.26,437.88,25.74,8.64;2,108.00,448.84,22.69,8.64" target="#b23">Singh, 1992;</ref><ref type="bibr" coords="2,134.16,448.84,90.51,8.64" target="#b12">Kaelbling et al., 1996)</ref>. For instance, <ref type="bibr" coords="2,290.98,448.84,98.96,8.64" target="#b24">Stanton &amp; Clune (2016)</ref> and <ref type="bibr" coords="2,411.26,448.84,76.00,8.64" target="#b5">Conti et al. (2017)</ref> use a population of agents to achieve a high diversity of strategies that leads to better generalization performance and faster convergence. <ref type="bibr" coords="2,268.08,470.76,74.90,8.64" target="#b21">Rusu et al. (2015)</ref> use experts to learn subtasks and later merge them into a single agent using distillation <ref type="bibr" coords="2,302.09,481.72,79.28,8.64" target="#b8">(Hinton et al., 2015)</ref>.</p><p>The experiments are often carried out in simulated environments, such as robot control <ref type="bibr" coords="2,473.02,498.65,26.56,8.64;2,108.00,509.61,88.48,8.64" target="#b2">(Brockman et al., 2016) and</ref><ref type="bibr" coords="2,200.05,509.61,150.26,8.64">video-games (Bellemare et al., 2013)</ref>. In these environments, rewards are frequently available, the states have low diversity (e.g., same image background), and responses usually are fast (60 frames per second). We, instead, evaluate our approach on tasks whose inputs (queries) and states (documents and answers) are diverse because they are in natural language, and the environment responses are slow (0.5-5 seconds per query).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">METHOD</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">TASK</head><p>We describe the method using a generic end-to-end search task. The problem consists in learning to reformulate a query so that the underlying retrieval system can return a better list of documents.</p><p>Following <ref type="bibr" coords="2,152.12,668.58,98.66,8.64" target="#b18">Nogueira &amp; Cho (2017)</ref> and <ref type="bibr" coords="2,272.28,668.58,75.14,8.64" target="#b3">Buck et al. (2018)</ref> we frame the task as a reinforcement learning problem, in which the query reformulation system is an RL-agent that interacts with an environment that provides answers and rewards. The goal of the agent is to generate reformulations such that the expected returned reward (i.e., correct answers) is maximized. The environment is treated as a black-box, i.e., the agent does not have direct access to any of its internal mechanisms. Figure <ref type="figure" coords="2,136.50,723.38,15.93,8.64">1-(b</ref>) illustrates this framework.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">SYSTEM</head><p>Figure <ref type="figure" coords="3,136.71,105.86,15.49,8.64">1-(c</ref>) illustrates the main method used in our submissions. An input query q 0 is given to the N sub-agents. A sub-agent is any system that accepts as input a query and returns a corresponding reformulation. Thus, sub-agents can be heterogeneous.</p><p>Here we train each sub-agent on a partition of the training set. The i-th agent queries the underlying search system with the reformulation q i and receives a list of documents a i . The set {(q i , a i )|0 ≤ i ≤ N } is given to the aggregator, which then merges the lists of documents into a final list and re-rank it.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">SUB-AGENTS</head><p>The first step for training the new agent is to partition the training set. We randomly split it into equalsized subsets. For an analysis of how other partitioning methods affect performance, see <ref type="bibr" coords="3,466.93,233.61,37.07,8.64;3,108.00,244.57,46.76,8.64" target="#b19">Nogueira et al. (2018)</ref>. In our implementation, a sub-agent is a sequence-to-sequence model <ref type="bibr" coords="3,437.54,244.57,66.46,8.64;3,108.00,255.53,22.69,8.64" target="#b25">(Sutskever et al., 2014;</ref><ref type="bibr" coords="3,133.05,255.53,66.25,8.64" target="#b4">Cho et al., 2014)</ref> trained on a partition of the dataset. It receives as an input the original query q 0 and outputs a list of reformulated queries (q i ) using beam search.</p><p>Each reformulation q i is given to the same environment that returns a list of documents (a<ref type="foot" coords="3,468.32,281.53,3.97,6.12" target="#foot_0">1</ref> i , .., a K i ) and a reward r i . We then use REINFORCE <ref type="bibr" coords="3,292.53,294.38,68.55,8.64" target="#b26">(Williams, 1992)</ref> to train the sub-agent. At training time, instead of using beam search, we sample reformulations.</p><p>Note that we also add the identity agent (i.e., the reformulation is the original query) to the pool of sub-agents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">META-AGENT: AGGREGATOR</head><p>The aggregator receives as inputs q 0 and a list of candidate documents (a 1 i , ..a K i ) for each reformulation q i . We first compute the set of unique documents a j and two different scores for each query-document pair: the accumulated rank score s A j and the relevance score s R j .</p><p>The accumulated rank score is computed as</p><formula xml:id="formula_1" coords="3,284.84,418.90,48.18,14.11">s A j = N i=1</formula><p>1 ranki,j , where rank i,j is the rank of the j-th document when retrieved using q i . The relevance score s R j is the prediction that the document a j is relevant to query q 0 . It is computed as:</p><formula xml:id="formula_2" coords="3,230.21,461.93,273.79,12.69">s R j = σ(W 2 ReLU(W 1 z j + b 1 ) + b 2 ),<label>(1)</label></formula><p>where</p><formula xml:id="formula_3" coords="3,108.00,490.29,396.00,24.30">z j = f CNN (q 0 )||f BOW (a j )||f CNN (q 0 ) -f BOW (a j )||f CNN (q 0 ) f BOW (a j ), (2) W 1 ∈ R 4D×D and W 2 ∈ R D×1 are weight matrices, b 1 ∈ R D and b 2 ∈ R 1 are biases.</formula><p>The symbol || denotes the concatenation operation, σ is the sigmoid function, and ReLU is a Rectified Linear Unit function <ref type="bibr" coords="3,192.33,527.17,87.80,8.64" target="#b17">(Nair &amp; Hinton, 2010)</ref>. The function f CNN is implemented as a CNN encoder 1 followed by average pooling over the sequence <ref type="bibr" coords="3,306.24,538.13,48.67,8.64" target="#b13">(Kim, 2014)</ref>. The function f BOW is the average word embeddings of the document. At test time, the top-K answers with respect to s j = s A j s R j are returned.</p><p>We train the aggregator with stochastic gradient descent (SGD) to minimize the cross-entropy loss:</p><formula xml:id="formula_4" coords="3,223.43,592.58,280.57,22.60">L = - j∈J * log(s R j ) - j / ∈J * log(1 -s R j ),<label>(3)</label></formula><p>where J * is the set of indexes of the ground-truth documents. The architecture details and hyperparameters can be found in Appendix A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">EXPERIMENTS</head><p>We now present experiments and results in the TREC-CAR task. In this task, the goal is to rewrite a query so that the number of relevant documents retrieved by a search engine increases. We first train 20 reformulators as in RL-20-Sub (Section 4.5). We then freeze them (i.e., no further training) and train N aggregators, where N varies depending on the system (see the table on the top-right). Each aggregator receives as input the same 20 lists of documents produced by the 20 reformulators. Each aggregator architecture is randomly chosen (Section 4.6), and they are trained independently (i.e., no communication). Finally, the N lists of documents (a 1 , ..., a N ) produced by the N aggregators are merged and re-ranked by the aggregator that performed best out of the N aggregators on the development set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">ENVIRONMENT</head><p>The environment receives a query as an action, and it returns a list of documents as an observation/state and a reward computed using a list of ground truth documents. We use Lucene<ref type="foot" coords="4,475.91,537.57,3.49,6.05" target="#foot_1">2</ref> in its default configuration<ref type="foot" coords="4,191.57,548.52,3.49,6.05" target="#foot_2">3</ref> as our search engine. The input is a query, and the output is a ranked list of documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">DATASET</head><p>Introduced by <ref type="bibr" coords="4,166.39,606.41,78.19,8.64" target="#b7">Dietz &amp; Ben (2017)</ref>, in the TREC-CAR dataset, the input query is the concatenation of a Wikipedia article title with the title of one of its section. The ground-truth documents are the paragraphs within that section. The corpus consists of all of the English Wikipedia paragraphs, except the abstracts. We used corpus v2.0, as it has a better paragraph parsing than the last year's v1.5. The released dataset has five predefined folds, and we use the first four as a training set (approx. 3M queries), and the remaining as a validation set (approx. 700k queries). The test set is the same used evaluate the submissions to TREC-CAR 2017 (approx. 2,250 queries), and the ground-truth documents are from the automatic annotations. We did not use the manual annotations because not all documents in the corpus were annotated for each test query (as this would be very time-consuming), so systems that retrieve non-annotated but relevant documents would be unfairly penalized.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">REWARD</head><p>Since the main goal of query reformulation is to increase the proportion of relevant documents returned, we use recall as the reward: R@K = |D K ∩D * | |D * | , where D K are the top-K retrieved documents and D * are the relevant documents. We also experimented using as a reward other metrics such as NDCG, MAP, MRR, and R-Precision but these resulted in similar or slightly worse performance than Recall@40. Despite the agents optimizing for Recall, we report the results in MAP, NDCG, MRR, and R-Precision as these are more commonly used metrics in information retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">BASELINES LUCENE:</head><p>We give the original query to Lucene and use the retrieved documents as results.</p><p>PRF: This is the pseudo relevance feedback method <ref type="bibr" coords="5,333.76,592.95,64.03,8.64" target="#b20">(Rocchio, 1971)</ref>. We expand the original query with terms from the documents retrieved by the Lucene search engine using the original query. The top-N TF-IDF terms from each of the top-K retrieved documents are added to the original query, where N and K are selected by a grid search on the validation data. RELEVANCE MODEL (RM3): This is our implementation of the relevance model for query expansion <ref type="bibr" coords="5,141.53,660.71,101.53,8.64" target="#b15">(Lavrenko &amp; Croft, 2001)</ref>. The probability of adding a term t to the original query is given by: P (t|q 0 ) = (1 -λ)P (t|q 0 ) + λ d∈D0 P (d)P (t|d)P (q 0 |d),</p><p>where P (d) is the probability of retrieving the document d, assumed uniform over the set, P (t|d) and P (q 0 |d) are the probabilities assigned by the language model obtained from d to t and q 0 , re-spectively. P (t|q 0 ) = tf(t∈q) |q| , where tf(t, d) is the term frequency of t in d. We set the interpolation parameter λ to 0.65, which was the best value found by a grid-search on the development set.</p><p>We use a Dirichlet smoothed language model <ref type="bibr" coords="6,290.30,115.47,94.54,8.64" target="#b27">(Zhai &amp; Lafferty, 2001)</ref> to compute a language model from a document d ∈ D 0 :</p><formula xml:id="formula_6" coords="6,245.91,138.56,254.22,22.31">P (t|d) = tf(t, d) + uP (t|C) |d| + u , (<label>5</label></formula><formula xml:id="formula_7" coords="6,500.13,145.62,3.87,8.64">)</formula><p>where u is a scalar constant (u = 1500 in our experiments), and P (t|C) is the probability of t occurring in the entire corpus C.</p><p>We use the N terms with the highest P (t|q 0 ) in an expanded query, where N = 100 was the best value found by a grid-search on the development set.</p><p>RL-RNN: This is the sequence-to-sequence model trained with reinforcement learning from <ref type="bibr" coords="6,130.64,245.23,96.14,8.64" target="#b18">Nogueira &amp; Cho (2017)</ref>. The reformulated query is formed by appending new terms to the original query. The terms are selected from the documents retrieved using the original query. The agent is trained from scratch.</p><p>RL-N-ENSEMBLE: We train N RL-RNN agents with different initial weights on the full training set. At test time, we average the probability distributions of all the N agents at each time step and select the token with the highest probability, as done by <ref type="bibr" coords="6,331.67,314.59,88.04,8.64" target="#b25">Sutskever et al. (2014)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5">BASE MODELS</head><p>We evaluate the following variants of the method proposed by <ref type="bibr" coords="6,357.44,362.73,86.56,8.64" target="#b19">Nogueira et al. (2018)</ref>:</p><p>RL-N-FULL: We train N RL-RNN agents with different initial weights on the full training set. The answers are obtained using the best (greedy) reformulations of all the agents and are given to the aggregator.</p><p>RL-N-SUB: This agent is similar to RL-N-Full, but the multiple sub-agents are trained on random partitions of the dataset (see Figure <ref type="figure" coords="6,250.77,446.66,17.98,8.64">1-(c)</ref>).</p><p>RL-RNN SAMPLE + AGGREGATOR We sample K rewrites from a single reformulator trained on the full dataset. The K lists of ranked documents returned by the environment are then merged into a single list and re-ranked by the Aggregator.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6">SYSTEMS SUBMITTED TO TREC-CAR 2018</head><p>Our three submissions consist of 20 reformulators trained as in RL-20-Sub and an ensemble of N aggregators (Figure <ref type="figure" coords="6,189.08,553.21,3.60,8.64" target="#fig_0">2</ref>), where N is 9, 27, and 45 for NYU-M, NYU-L, and NYU-XL, respectively. Each architecture of the N aggregators is randomly chosen as follows: first, we sample the number of layers from {0, 1, 2, 3}. We then sample the number of hidden units for each layer from {256, 512, 1024}, such that a layer must have at most the same number of hidden units of the previous layer. A final layer with one hidden unit is always added so the model can output a score for each query-document pair (Equation 1, s R j ). We train these N aggregators using as input the documents from 20 reformulators. The final list of documents (a ) is the result of merging and re-ranking the N list of documents (a 1 , ..., a N ) using the aggregator that performed best on the development set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.7">RESULTS</head><p>The results using the TREC-CAR 2017 (Y1) test queries and ground-truth documents derived from the automatic annotations on the paragraph corpus v2.0 (2018/Y2 release) are shown in Table <ref type="table" coords="6,480.47,690.50,3.74,8.64" target="#tab_0">1</ref>. We estimate the number of floating point operations used to train a model by multiplying the training time, the number of GPUs used, and 2.7 TFLOPS as an estimate of the single-precision floatingpoint of a K80 GPU.</p><p>Since the sub-agents are frozen during the training of the aggregator, we pre-compute all (q 0 , q i , a i , r i ) tuples from the training set, thus avoiding sub-agent or environment calls. This reduces its training time to less than 6 hours (0.06 × 10 18 FLOPs). Since this cost is negligible when compared to the sub-agents', we do not include it in the table.</p><p>The methods RL-10-{Sub, Full} have 20-60% relative performance improvement over the standard ensemble (RL-10-Ensemble) while training ten times faster. More interestingly, RL-10-Sub has a better performance than the single-agent version (RL-RNN), uses the same computational budget, and trains on a fraction of the time. Lastly, we found that RL-10-Sub (pretrained) has the best balance between performance and training cost across all datasets.</p><p>For more experiments regarding varying number of sub-agents, training stability, and the aggregator's contribution to the overall performance, see <ref type="bibr" coords="7,304.50,206.88,86.32,8.64" target="#b19">Nogueira et al. (2018)</ref>.</p><p>Finally, we show on Table <ref type="table" coords="7,218.97,223.82,4.98,8.64" target="#tab_1">2</ref> the official results of our three TREC-CAR 2018 submissions when evaluated with manual annotations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSION</head><p>We evaluated a method to build a better query reformulation system by training multiple sub-agents on partitions of the data using reinforcement learning and a simple aggregator that learns to combine the answers of the multiple agents given a new query. We showed the effectiveness and efficiency of the approach on the TREC-CAR 2017 test set.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,108.00,403.41,396.00,8.64;4,108.00,414.37,396.00,8.64;4,108.00,425.32,396.00,8.64;4,108.00,436.28,396.00,8.64;4,108.00,447.24,396.00,8.64;4,108.00,458.20,356.50,8.64;4,464.50,462.40,3.97,6.12;4,468.97,457.88,24.16,8.96;4,493.13,462.67,6.31,6.12;4,500.68,458.20,3.32,8.64;4,108.00,469.16,396.00,8.64;4,108.00,480.12,178.14,8.64"><head>Figure 2 :</head><label>2</label><figDesc>Figure2: Illustration of the three systems (NYU-M, NYU-L, NYU-XL) we submitted to TREC-CAR 2018. We first train 20 reformulators as in RL-20-Sub (Section 4.5). We then freeze them (i.e., no further training) and train N aggregators, where N varies depending on the system (see the table on the top-right). Each aggregator receives as input the same 20 lists of documents produced by the 20 reformulators. Each aggregator architecture is randomly chosen (Section 4.6), and they are trained independently (i.e., no communication). Finally, the N lists of documents (a 1 , ..., a N ) produced by the N aggregators are merged and re-ranked by the aggregator that performed best out of the N aggregators on the development set.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,108.00,83.99,396.00,267.28"><head>Table 1 :</head><label>1</label><figDesc>Results on the test set of the TREC-CAR 2017 (Y1). The weights of the agents are initialized from a single model pretrained for ten days on the full training set. Each of the 27 aggregators costs 0.06 × 10 18 FLOPs, so their total training cost is 27 × 0.06 × 10 18 ≈ 1.6 × 10 18 FLOPs.</figDesc><table coords="5,113.98,83.99,388.08,267.28"><row><cell></cell><cell cols="6">R@40 MAP R-Prec MRR NDCG Training</cell><cell>FLOPs</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>(Days)</cell><cell>(×10 18 )</cell></row><row><cell>Lucene</cell><cell>25.7</cell><cell>9.4</cell><cell>8.3</cell><cell>17.7</cell><cell>15.4</cell><cell cols="2">N/A</cell></row><row><cell>PRF</cell><cell>26.8</cell><cell>9.8</cell><cell>8.6</cell><cell>18.4</cell><cell>16.1</cell><cell cols="2">N/A</cell></row><row><cell>RM3</cell><cell>28.0</cell><cell>10.2</cell><cell>9.0</cell><cell>19.2</cell><cell>16.8</cell><cell cols="2">N/A</cell></row><row><cell>RL-RNN</cell><cell>29.8</cell><cell>10.8</cell><cell>9.4</cell><cell>20.3</cell><cell>17.8</cell><cell>10</cell><cell>2.3</cell></row><row><cell>RL-10-Ensemble</cell><cell>30.1</cell><cell>10.9</cell><cell>9.5</cell><cell>20.5</cell><cell>18.0</cell><cell>10</cell><cell>23.0</cell></row><row><cell>RL-RNN 20 Sampled + Aggregator</cell><cell>30.7</cell><cell>11.1</cell><cell>9.7</cell><cell>20.8</cell><cell>18.3</cell><cell>10</cell><cell>2.3</cell></row><row><cell>RL-10-Full</cell><cell>33.9</cell><cell>12.2</cell><cell>10.5</cell><cell>22.8</cell><cell>20.2</cell><cell>1</cell><cell>2.3</cell></row><row><cell>RL-10-Sub</cell><cell>34.9</cell><cell>12.3</cell><cell>10.6</cell><cell>23.2</cell><cell>20.5</cell><cell>1</cell><cell>2.3</cell></row><row><cell>RL-10-Sub (Pretrained)</cell><cell>35.1</cell><cell>12.5</cell><cell>10.8</cell><cell>23.5</cell><cell>20.8</cell><cell>10 +1</cell><cell>4.6</cell></row><row><cell>RL-10-Full (Extra Budget)</cell><cell>35.9</cell><cell>12.9</cell><cell>11.0</cell><cell>24.1</cell><cell>21.1</cell><cell>10</cell><cell>23</cell></row><row><cell>NYU-L (Aggregators' Ensemble)</cell><cell>37.7</cell><cell>14.3</cell><cell>12.6</cell><cell>25.8</cell><cell>23.0</cell><cell>12</cell><cell>23+1.6</cell></row><row><cell cols="2">System</cell><cell cols="3">MAP R-Prec NDCG</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">NYU-M</cell><cell cols="2">15.76 17.58</cell><cell>33.27</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">NYU-L</cell><cell cols="2">15.64 17.69</cell><cell>34.18</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">NYU-XL 20.64 22.04</cell><cell>45.22</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,108.00,365.82,396.00,19.60"><head>Table 2 :</head><label>2</label><figDesc>Official results of our three submissions to the TREC-CAR 2018 (Y2 test queries) when evaluated with manual annotations.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,124.14,714.06,379.86,7.77;3,108.00,724.02,23.16,7.77"><p>In the preliminary experiments, we found CNNs to work better than LSTMs<ref type="bibr" coords="3,400.94,714.06,103.06,7.77;3,108.00,724.02,19.30,7.77" target="#b9">(Hochreiter &amp; Schmidhuber, 1997)</ref>.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,124.14,713.15,91.98,7.77"><p>https://lucene.apache.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="4,124.14,724.02,111.33,7.77"><p>The ranking function is BM25.</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX A HYPERPARAMETERS</head><p>SUB-AGENTS: We use mini-batches of size 256, ADAM <ref type="bibr" coords="9,346.22,109.00,88.50,8.64" target="#b14">(Kingma &amp; Ba, 2014)</ref> as the optimizer, and learning rate of 10 -4 . AGGREGATOR: The encoder f q0 is a word-level two-layer CNN with filter sizes of 9 and 3, respectively, and 128 and 256 kernels, respectively. D = 512. No dropout is used. ADAM is the optimizer with learning rate of 10 -4 and mini-batch of size 64. It is trained for 100 epochs.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,108.00,365.56,396.00,8.64;7,117.96,376.34,386.03,8.82;7,117.96,387.30,100.17,8.82" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Rohan</forename><surname>Anil</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gabriel</forename><surname>Pereyra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexandre</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><surname>Ormandi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">George</forename><forename type="middle">E</forename><surname>Dahl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1804.03235</idno>
+		<title level="m" coord="7,151.23,376.52,289.51,8.64">Large scale distributed neural network training through online distillation</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,108.00,405.72,396.00,8.64;7,117.96,416.50,386.04,8.82;7,117.96,427.64,22.42,8.64" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,406.00,405.72,98.00,8.64;7,117.96,416.68,216.79,8.64">The arcade learning environment: An evaluation platform for general agents</title>
+		<author>
+			<persName coords=""><forename type="first">Yavar</forename><surname>Marc G Bellemare</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joel</forename><surname>Naddaf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Veness</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Bowling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,344.69,416.50,101.86,8.59">J. Artif. Intell. Res.(JAIR)</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page" from="253" to="279" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.00,445.89,396.00,8.64;7,117.96,456.67,295.99,8.82" xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Brockman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vicki</forename><surname>Cheung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ludwig</forename><surname>Pettersson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jonas</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Schulman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jie</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wojciech</forename><surname>Zaremba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.01540</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Openai gym. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,108.00,475.09,396.00,8.64;7,117.96,486.05,386.04,8.64;7,117.96,496.83,218.96,8.82" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,256.76,486.05,247.24,8.64;7,117.96,497.01,89.60,8.64">Ask the right questions: Active question reformulation with reinforcement learning</title>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Buck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jannis</forename><surname>Bulian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Massimiliano</forename><surname>Ciaramita</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrea</forename><surname>Gesmundo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Neil</forename><surname>Houlsby</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wojciech</forename><surname>Gajewski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,225.85,496.83,81.35,8.59">Proceedings of ICLR</title>
+		<meeting>ICLR</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.00,515.26,396.00,8.64;7,117.96,526.22,386.04,8.64;7,117.96,537.00,293.22,8.82" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="7,264.21,526.22,239.79,8.64;7,117.96,537.18,131.32,8.64">Learning phrase representations using rnn encoder-decoder for statistical machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bart</forename><surname>Van Merriënboer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Caglar</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dzmitry</forename><surname>Bahdanau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Fethi</forename><surname>Bougares</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Holger</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1406.1078</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,108.00,555.43,396.00,8.64;7,117.96,566.38,386.04,8.64;7,117.96,577.16,312.84,8.82" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="7,167.67,566.38,336.34,8.64;7,117.96,577.34,145.69,8.64">Improving exploration in evolution strategies for deep reinforcement learning via a population of novelty-seeking agents</title>
+		<author>
+			<persName coords=""><forename type="first">Edoardo</forename><surname>Conti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vashisht</forename><surname>Madhavan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Felipe</forename><forename type="middle">Petroski</forename><surname>Such</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Joel</forename><surname>Lehman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenneth</forename><forename type="middle">O</forename><surname>Stanley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Clune</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1712.06560</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,108.00,595.41,396.00,8.82;7,117.96,606.37,188.00,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,260.50,595.59,120.14,8.64">Feudal reinforcement learning</title>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><surname>Dayan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,400.86,595.41,103.14,8.59;7,117.96,606.37,104.19,8.59">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="1993">1993</date>
+			<biblScope unit="page" from="271" to="278" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.00,624.62,396.00,8.82;7,117.96,635.58,84.67,8.82" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="7,240.69,624.80,208.29,8.64">Trec car: A data set for complex answer retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gamari</forename><surname>Ben</surname></persName>
+		</author>
+		<ptr target="http://trec-car.cs.unh.edu" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.00,653.83,396.00,8.82;7,117.96,664.78,134.95,8.82" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="7,298.28,654.00,175.71,8.64">Distilling the knowledge in a neural network</title>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oriol</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1503.02531</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,108.00,683.03,396.00,8.82;7,117.96,694.17,72.23,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,286.68,683.21,99.43,8.64">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,397.71,683.03,78.90,8.59">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,108.00,712.42,396.00,8.64;7,117.96,723.20,213.04,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,419.82,712.42,84.18,8.64;7,117.96,723.38,49.08,8.64">Adaptive mixtures of local experts</title>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><forename type="middle">A</forename><surname>Jacobs</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><forename type="middle">I</forename><surname>Jordan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><forename type="middle">J</forename><surname>Nowlan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,174.52,723.20,77.96,8.59">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="79" to="87" />
+			<date type="published" when="1991">1991</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,85.34,396.00,8.64;8,117.96,96.12,166.44,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,277.46,85.34,222.42,8.64">Hierarchical mixtures of experts and the em algorithm</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><forename type="middle">A</forename><surname>Jordan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Jacobs</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,117.96,96.12,77.96,8.59">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="181" to="214" />
+			<date type="published" when="1994">1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,115.23,396.00,8.64;8,117.96,126.01,269.82,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,392.82,115.23,111.18,8.64;8,117.96,126.19,24.09,8.64">Reinforcement learning: A survey</title>
+		<author>
+			<persName coords=""><forename type="first">Leslie</forename><surname>Pack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kaelbling</forename><surname>Michael L Littman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><forename type="middle">W</forename><surname>Moore</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,149.65,126.01,161.58,8.59">Journal of artificial intelligence research</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="237" to="285" />
+			<date type="published" when="1996">1996</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,145.11,48.03,8.64;8,173.36,145.11,252.09,8.64;8,442.79,144.94,61.21,8.59;8,117.96,155.89,95.19,8.82" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="8,173.36,145.11,248.46,8.64">Convolutional neural networks for sentence classification</title>
+		<author>
+			<persName coords=""><forename type="first">Yoon</forename><surname>Kim</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1408.5882</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,174.82,396.00,8.82;8,117.96,185.78,95.19,8.82" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Diederik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<title level="m" coord="8,256.45,175.00,180.50,8.64">Adam: A method for stochastic optimization</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,204.71,396.00,8.82;8,117.96,215.67,386.04,8.59;8,117.96,226.63,143.26,8.82" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="8,266.87,204.89,137.22,8.64">Relevance based language models</title>
+		<author>
+			<persName coords=""><forename type="first">Victor</forename><surname>Lavrenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,427.54,204.71,76.45,8.59;8,117.96,215.67,386.04,8.59;8,117.96,226.63,32.65,8.59">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="120" to="127" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,245.74,396.00,8.64;8,117.96,256.70,386.04,8.64;8,117.96,267.48,330.98,8.82" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="8,313.64,256.70,190.37,8.64;8,117.96,267.66,31.23,8.64">Asynchronous methods for deep reinforcement learning</title>
+		<author>
+			<persName coords=""><forename type="first">Volodymyr</forename><surname>Mnih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adria</forename><forename type="middle">Puigdomenech</forename><surname>Badia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mehdi</forename><surname>Mirza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alex</forename><surname>Graves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Timothy</forename><surname>Lillicrap</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Harley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Koray</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,167.48,267.48,187.46,8.59">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="1928" to="1937" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,286.58,396.00,8.64;8,117.96,297.36,386.04,8.82;8,117.96,308.50,22.42,8.64" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="8,249.79,286.58,238.61,8.64">Rectified linear units improve restricted boltzmann machines</title>
+		<author>
+			<persName coords=""><forename type="first">Vinod</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,117.96,297.36,326.04,8.59">Proceedings of the 27th international conference on machine learning (ICML-10)</title>
+		<meeting>the 27th international conference on machine learning (ICML-10)</meeting>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="807" to="814" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,327.43,396.00,8.64;8,117.96,338.21,198.30,8.82" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="8,282.40,327.43,221.61,8.64;8,117.96,338.39,31.23,8.64">Task-oriented query reformulation with reinforcement learning</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1704.04572</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,357.32,396.00,8.64;8,117.96,368.10,386.04,8.82;8,117.96,379.24,22.42,8.64" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="8,374.14,357.32,129.86,8.64;8,117.96,368.28,244.14,8.64">Learning to coordinate multiple reinforcement learning agents for diverse query reformulation</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jannis</forename><surname>Bulian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Massimiliano</forename><surname>Ciaramita</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1809.10658</idno>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,397.99,396.00,8.82;8,117.96,408.95,269.15,8.82" xml:id="b20">
+	<monogr>
+		<title level="m" type="main" coord="8,200.98,397.99,303.02,8.82;8,117.96,408.95,185.34,8.59">Relevance feedback in information retrieval. The SMART retrieval system: experiments in automatic document processing</title>
+		<author>
+			<persName coords=""><forename type="first">Joseph</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rocchio</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1971">1971</date>
+			<biblScope unit="page" from="313" to="323" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,428.05,396.00,8.64;8,117.96,439.01,386.04,8.64;8,117.96,449.79,188.35,8.82" xml:id="b21">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Andrei</forename><forename type="middle">A</forename><surname>Rusu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sergio</forename><surname>Gomez Colmenarejo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Caglar</forename><surname>Gulcehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Guillaume</forename><surname>Desjardins</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Kirkpatrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Razvan</forename><surname>Pascanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Volodymyr</forename><surname>Mnih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Koray</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raia</forename><surname>Hadsell</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1511.06295</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Policy distillation. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,468.90,396.00,8.64;8,117.96,479.86,386.04,8.64;8,117.96,490.64,159.58,8.82" xml:id="b22">
+	<monogr>
+		<title level="m" type="main" coord="8,179.09,479.86,321.27,8.64">Outrageously large neural networks: The sparsely-gated mixture-of-experts layer</title>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Azalia</forename><surname>Mirhoseini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Krzysztof</forename><surname>Maziarz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andy</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Geoffrey</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1701.06538</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,108.00,509.57,396.00,8.82;8,117.96,520.71,42.34,8.64" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="8,183.20,509.75,237.97,8.64">Reinforcement learning with a hierarchy of abstract models</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Satinder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Singh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,441.75,509.57,19.26,8.59">AAAI</title>
+		<imprint>
+			<date type="published" when="1992">1992</date>
+			<biblScope unit="page" from="202" to="207" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,539.64,396.00,8.64;8,117.96,550.42,386.04,8.82;8,117.96,561.55,22.42,8.64" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="8,251.88,539.64,252.12,8.64;8,117.96,550.59,273.56,8.64">Curiosity search: producing generalists by encouraging individuals to continually explore and acquire skills throughout their lifetime</title>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Stanton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jeff</forename><surname>Clune</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,397.93,550.42,33.56,8.59">PloS one</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<biblScope unit="page">162235</biblScope>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,580.48,396.00,8.64;8,117.96,591.26,307.39,8.82" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="8,293.61,580.48,206.07,8.64">Sequence to sequence learning with neural networks</title>
+		<author>
+			<persName coords=""><forename type="first">Ilya</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oriol</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc V</forename><surname>Le</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,128.75,591.26,202.83,8.59">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="3104" to="3112" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,610.37,396.00,8.64;8,117.96,621.15,204.60,8.82" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="8,186.87,610.37,317.13,8.64;8,117.96,621.33,31.23,8.64">Simple statistical gradient-following algorithms for connectionist reinforcement learning</title>
+		<author>
+			<persName coords=""><forename type="first">Williams</forename><surname>Ronald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,156.69,621.15,69.43,8.59">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="issue">3-4</biblScope>
+			<biblScope unit="page" from="229" to="256" />
+			<date type="published" when="1992">1992</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.00,640.26,396.00,8.64;8,117.96,651.04,386.03,8.82;8,117.96,662.00,370.50,8.82" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="8,260.17,640.26,243.83,8.64;8,117.96,651.22,125.00,8.64">A study of smoothing methods for language models applied to ad hoc information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,265.87,651.04,238.13,8.59;8,117.96,662.00,259.89,8.59">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="334" to="342" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,148.18,84.23,316.14,15.44">KASYS at the TREC 2022 NeuCLIR Track</title>
+				<funder ref="#_TP7EktD #_Fg2Fu9A">
+					<orgName type="full">JSPS KAKENHI</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,115.61,107.66,53.48,10.59"><forename type="first">Kenya</forename><surname>Abe</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Tsukuba</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,270.88,107.66,71.23,10.59"><forename type="first">Kohei</forename><surname>Shinden</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Tsukuba</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,433.18,107.66,74.93,10.59"><forename type="first">Makoto</forename><forename type="middle">P</forename><surname>Kato</surname></persName>
+							<email>mpkato@acm.org</email>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Tsukuba</orgName>
+								<address>
+									<country key="JP">Japan</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,148.18,84.23,316.14,15.44">KASYS at the TREC 2022 NeuCLIR Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">C1E14668B2D6D03F2BE0B5C37359733C</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>CLIR</term>
+					<term>Dense retrieval</term>
+					<term>TREC NeuCLIR</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes the KASYS team's participation in the TREC 2022 NeuCLIR track. Our approach is One-for-All, which employs a single multilingual pre-trained language model to retrieve documents of any languages in response to an English query. The basic architecture is the same as ColBERT and its application to CLIR, ColBERT-X, but only a single model was trained with the mixture of MS MARCO and its translated version, neuMARCO, in our approach. Through the run submission, we evaluated two variants of the One-for-All approach, namely, the end-to-end and reranking approaches. As the first-stage retriever, the former uses approximated nearest neighbor search proposed in ColBERT, while the latter uses the track organizers' (top 1,000 documents in the baseline run were used as the results of the first-stage retrieval). To evaluate our runs, we used the results provided by the track organizers as a baseline (document translation). The official evaluation results showed that the reranking approaches outperforms the baseline in all the languages. On the other hand, the end-to-end approach achieved higher scores than the baseline only in Russian.</p><p>In addition to the submissions to the TREC 2022 NeuCLIR track, we also conducted experiments with the development data called HC4. The results in HC4 also showed a similar trend: the reranking approach was superior to the end-to-end approach in Persian and Russian. We also found the discrepancy that even in the same language, the performance of our approaches varies depending on the datasets.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>This paper describes the KASYS team's participation in the TREC 2022 NeuCLIR track. We submitted three runs, each of which contains rankings for three languages, i.e., Chinese, Persian and Russian. Our main purpose to participate in this track is to examine the performance of One-for-All approach, which employs a single model trained with resources of multiple languages, for retrieving documents of all languages <ref type="foot" coords="1,154.44,579.95,3.38,6.44" target="#foot_0">1</ref> . The advantages of this approach include simplicity of the architecture to develop CLIR for multiple languages, and application to retrieval from mixed language collections. We also expected that training data in one language enhance the retrieval performance in the other languages, which can be seen in other NLP tasks <ref type="bibr" coords="1,123.94,636.89,9.39,7.94" target="#b0">[1]</ref>.</p><p>As a baseline approach (named "KASYS-run"), we tried to reproduce ColBERT-X <ref type="bibr" coords="1,117.21,658.81,10.54,7.94" target="#b7">[8]</ref> in the NeuCLIR test collection. ColBERT-X is an extension of ColBERT <ref type="bibr" coords="1,148.42,669.77,10.59,7.94" target="#b3">[4]</ref> to CLIR, and employs a multilingual pre-trained language model for encoding queries and documents. A zero-shot learning setting was used in our run, in which the model was trained with only English training data (the MS MARCO v1 passage dataset). ColBERT-X underperformed a baseline based on BM25 with document translation in all the languages, probably since our reproduction was not successfully conducted due to a different model used as the encoder <ref type="foot" coords="1,448.19,218.11,3.38,6.44" target="#foot_1">2</ref> .</p><p>Our proposed approaches train a single multilingual pre-trained language model with training data in multiple languages. The architecture is exactly the same as ColBERT. We submitted two variants of this approach (named "KASYS_one_model" and "KASYS_onemodel-rerank"). The first variant took an end-to-end approach that embed documents in a collection, retrieve them based on approximated nearest neighbor search, and rerank the retrieved documents. The other variant retrieved documents from a collection by a first-stage retriever, which were provided by the track organizers, and then reranked them based on the ColBERT model. Thus, only the difference between the two variants is the first-stage retriever. The evaluation results showed that, in terms Recall@1000, nDCG@20 and MAP,</p><p>(1) The reranking approach showed higher scores than baseline scores in the three languages. (2) The end-to-end approach did not perform well in terms of Recall@1000. In spite of this fact, there are some cases where the end-to-end approach achieved competitive scores in other metrics. (3) The reranking approach outperformed the end-to-end approach in the three languages. Additionally, we conducted experiments on HC4 (CLIR Common Crawl Collection) <ref type="bibr" coords="1,385.20,476.30,9.41,7.94" target="#b5">[6]</ref>, which is development datasets of NeuCLIR. The results were similar to those at the track; the reranking approach demonstrated better performance than end-to-end approach in Persian and Russian. However, there are results which are inconsistent with those at the track; the end-to-end approach did not perform well in Russian.</p><p>In the remainder of this paper, Section 2 describes the details of our runs and Section 3 presents results and discussion. Finally, we conclude this paper with some future work in Section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">METHODOLOGY</head><p>We first introduce ColBERT-X proposed by Nair et al. <ref type="bibr" coords="1,511.94,598.92,9.27,7.94" target="#b7">[8]</ref>, and then explain our approaches and submitted runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">ColBERT-X</head><p>Our approaches are mostly based on ColBERT-X <ref type="bibr" coords="1,491.46,644.83,9.27,7.94" target="#b7">[8]</ref>. ColBERT-X extends ColBERT <ref type="bibr" coords="1,373.93,655.79,10.43,7.94" target="#b4">[5]</ref> to perform CLIR. ColBERT has a late-interaction structure, which computes the similarity between encoded representations of query and document tokens. Due to much computational cost, ColBERT employs a multi-stage retrieval architecture. At the first stage, candidate documents are retrieved by approximated nearest neighbor search. At the second stage, the candidate documents are reranked by the sum of maximum similarity between query and document tokens. One can also use any light-weight retrieval algorithms at the first stage and apply ColBERT only for reranking at the second stage.</p><p>Equation 1 is the score function to rerank the documents based on the similarity between query and document tokens. Let 𝑞 represent a query and 𝑑 represent a document. The query 𝑞 is split into a sequence of tokens 𝑞 = (𝑞 1 , 𝑞 2 , . . . , 𝑞 |𝑞 | ) by a tokenizer. The document 𝑑 is also split into a sequence of tokens 𝑑 = (𝑑 1 , 𝑑 2 , . . . , 𝑑 |𝑑 | ) . The tokens are encoded into query and document embedding 𝜂 (𝑞 𝑖 ) and 𝜂 (𝑑 𝑗 ) by an encoder 𝜂 (e.g., BERT or XLM-RoBERTa). The score of 𝑑 in response to 𝑞 is defined as:</p><formula xml:id="formula_0" coords="2,107.03,266.81,187.55,27.63">𝑆 𝑞,𝑑 = |𝑞 | ∑︁ 𝑖=1 max 𝑗=1,...,|𝑑 | 𝜂 (𝑞 𝑖 ) 𝑇 𝜂 (𝑑 𝑗 ),<label>(1)</label></formula><p>This function computes the similarity of every query-documenttoken pairs, getting the maximum similarity for every query token. The sum of the maximum similarity scores is used to rank the documents.</p><p>At training, ColBERT uses pairwise softmax cross-entropy as a loss function and MS MARCO triples <ref type="bibr" coords="2,193.37,358.22,10.64,7.94" target="#b8">[9]</ref> as training data. Triples consist of a query, a positive passage and negative passage. For CLIR dense retrieval, we have no sufficient data other than English for fine-tuning multilingual language models. Therefore, two training approaches were proposed by Nair et al. <ref type="bibr" coords="2,224.37,402.06,9.63,7.94" target="#b7">[8]</ref>: Zero-Shot and Translate-Train. The former approach (Zero-Shot) fine-tunes an encoder such as XLM-RoBERTa (XLM-R) and mBERT using English training data. At query time, a query is translated into the document language. Since the query and document are expressed in the same language by translation, this approach is considered as monolingual retrieval. The latter approach (Translate-Train) translates the English training data into the target language (the language used in the collection) and uses it to train the encoder. Since the training data contains English queries and documents of the target language, the trained model is expected to retrieve documents in the target language in response to English queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Our Approaches</head><p>As we mentioned earlier, we aim to examine the capability of Onefor-All approach, which employs a single multilingual pre-trained language model trained with resources of multiple languages, for retrieving documents of any languages in response to an English query. This idea is similar to the Zero-Shot approach for ColBERT-X that uses a single model for all document languages. It is also similar to the Translate-Train approach in that translated resources are used for training. On the other hand, the One-for-All approach uses translated resources of multiple languages for training unlike Zero-Shot, and uses a single model for all document languages unlike Translate-Train.</p><p>In the One-for-All approach, we changed the composition of training data from monolingual triples to a mixture of triples of each language. The training data consists of MS MARCO v1 passage dataset <ref type="bibr" coords="2,345.81,172.29,9.33,7.94" target="#b8">[9]</ref>, and neuMARCO, which was created by translating MS MARCO into three languages (Chinese, Persian, and Russian) with a machine translation model built on the top of Sockeye <ref type="bibr" coords="2,521.74,194.21,9.29,7.94" target="#b2">[3]</ref>. When sampling negative passages, we chose from a BM25 top-𝑘 (𝑘 = 500) ranked list. We trained the model with the batch size of 32 for 100,000 steps. Our implementation is based on the publicly available code of ColBERT-v1<ref type="foot" coords="2,391.39,235.90,3.38,6.44" target="#foot_2">3</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Our Runs</head><p>We submitted three runs for TREC 2022 NeuCLIR track. They all have rankings for each of the three language, Chinese, Persian and Russian. Table <ref type="table" coords="2,349.99,306.00,4.18,7.94" target="#tab_0">1</ref> summarizes the submitted runs from KASYS team. The main differences are (1) the multilingual pre-trained language model used in the run, (2) the language(s) of the training data (English (the original MS MARCO data <ref type="bibr" coords="2,428.25,338.88,9.78,7.94" target="#b8">[9]</ref>) or Multilingual (the original MS MARCO data and neuMARCO data in Chinese, Persian and Russian)), and (3) the first-stage retriever (ColBERT-X or the baseline system developed by the track organizers).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">RESULTS AND DISCUSSION</head><p>We evaluated our runs in the TREC 2022 NeuCLIR track and with HC4 (development data in the NeuCLIR track).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">TREC 2022 NeuCLIR Results</head><p>Table <ref type="table" coords="2,339.19,452.88,4.09,7.94" target="#tab_1">2</ref> shows the results of our runs. We use BM25 with document translation as a baseline. We computed Recall@1000, nDCG@20 and MAP scores for each language. From the results, we can see that KASYS_one_model achieved better performances in Russian, but not in Persian and Chinese when compared to the baseline. Although KASYS_one_model did not perform well at Recall@1000, for some cases (especially in Russian), this approach achieved higher scores than baseline scores in other metrics. When we focus on KASYS_onemodel-rerank, it outperformed the end-to-end approach (KASYS_one_model) in all the languages. From these results, we conclude that KASYS_onemodel-rerank is the best runs from KASYS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">HC4 Results</head><p>In addition to the run submission, we performed experiments with HC4. Table <ref type="table" coords="2,361.94,619.47,4.25,7.94" target="#tab_2">3</ref> shows the results of BM25 with a translated query, and the end-to-end approach and reranking approach. Note that the reranking approach reranked top-1000 documents retrieved by BM25 with a translated query, and, accordingly, Recall@1000 is identical for both runs. As was done in the HC4 paper <ref type="bibr" coords="2,514.41,663.30,9.27,7.94" target="#b5">[6]</ref>, we used Patapsco <ref type="bibr" coords="2,353.50,674.26,9.52,7.94" target="#b1">[2]</ref>, an open-source CLIR toolkit, to perform the BM25 retrieval. Unfortunately, however, we failed to reproduce the BM25 did not perform in Chinese, althogh the reranking approach makes better results than baseline results (First-stage). Whereas, in Persian and Russian, the reranking approach outperformed the end-to-end approach (KASYS_one_model). This finding is consistent with that in the NeuCLIR track (see Section 3.1). The end-to-end approach (KASYS_one_model) showed better performances than the baseline in Chinese and Persian, but underperformed in Russian. This finding is inconsistent with the trend observed in Table <ref type="table" coords="3,230.08,653.44,3.07,7.94" target="#tab_1">2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSIONS</head><p>In this paper, we introduced the One-for-All approach for CLIR, which uses only a single multilingual pre-trained language model trained with resources of multiple languages, for retrieving documents of any languages in response to an English query. Two variants of the One-for-All approach were evaluated in the Neu-CLIR track and HC4, namely, the end-to-end and reranking approaches. The experimental results, though preliminary, showed the following findings:</p><p>(1) The reranking approaches achieved much higher performances than the NeuCLIR baseline in the three languages. In HC4, the reranking approaches also worked well in Persian and Russian. (2) For NeuCLIR, the end-to-end approach performed well in Russian but not in Chinese and Russian. In HC4, an opposite trend was found: it was better than the baseline in Chinese and Persian but not in Russian. (3) The reranking approach outperformed the end-to-end approach in many cases: all of the three languages in NeuCLIR, and Persian and Russian in HC4. We observed that our approach has a weakness at addressing some languages depending on the datasets. To study in more detail, we will compare our approaches with the model trained only with English. Another important finding is that the reranking approach outperformed the end-to-end approach. We hypothesize that the results might be different in different training settings (e.g., the negative sampling method and the number of triples). We will analyze the above two issues in our future work.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,324.30,85.73,223.07,63.71"><head>Table 1 :</head><label>1</label><figDesc>KASYS's submitted runs.</figDesc><table coords="2,324.30,110.90,223.07,38.54"><row><cell></cell><cell>Encoder</cell><cell cols="2">Training data First-stage</cell></row><row><cell>KASYS-run</cell><cell>XLM-R-base</cell><cell>English</cell><cell>ColBERT-X</cell></row><row><cell>KASYS_one_model</cell><cell cols="3">XLM-R-large Multilingual ColBERT-X</cell></row><row><cell cols="3">KASYS_onemodel-rerank XLM-R-large Multilingual</cell><cell>Baseline</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,60.66,85.73,235.90,227.99"><head>Table 2 :</head><label>2</label><figDesc>Evaluation results of KASYS at the NeuCLIR.</figDesc><table coords="3,60.66,111.41,235.90,202.31"><row><cell></cell><cell cols="3">Recall@1000 nDCG@20 MAP</cell></row><row><cell>Chinese</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25 (document translation)</cell><cell>0.7814</cell><cell>0.3399</cell><cell>0.2636</cell></row><row><cell>KASYS_run</cell><cell>0.5249</cell><cell>0.2855</cell><cell>0.1659</cell></row><row><cell>KASYS_one_model</cell><cell>0.5628</cell><cell>0.3639</cell><cell>0.2217</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.7814</cell><cell>0.3961</cell><cell>0.2864</cell></row><row><cell>Persian</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25 (document translation)</cell><cell>0.8292</cell><cell>0.3546</cell><cell>0.2532</cell></row><row><cell>KASYS_run</cell><cell>0.5423</cell><cell>0.3101</cell><cell>0.1615</cell></row><row><cell>KASYS_one_model</cell><cell>0.5909</cell><cell>0.3304</cell><cell>0.2003</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.8292</cell><cell>0.4152</cell><cell>0.2854</cell></row><row><cell>Russian</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25 (document translation)</cell><cell>0.7744</cell><cell>0.2919</cell><cell>0.2162</cell></row><row><cell>KASYS_run</cell><cell>0.5108</cell><cell>0.2571</cell><cell>0.1509</cell></row><row><cell>KASYS_one_model</cell><cell>0.6014</cell><cell>0.3655</cell><cell>0.2256</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.7744</cell><cell>0.4499</cell><cell>0.3205</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,53.80,338.68,240.78,235.03"><head>Table 3 :</head><label>3</label><figDesc>Experiment results in HC4.</figDesc><table coords="3,53.80,364.36,240.78,209.35"><row><cell></cell><cell cols="3">Recall@1000 nDCG@100 MAP</cell></row><row><cell>Chinese</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25</cell><cell>0.4207</cell><cell>0.2051</cell><cell>0.1337</cell></row><row><cell>KASYS_one_model</cell><cell>0.7359</cell><cell>0.4171</cell><cell>0.2576</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.4207</cell><cell>0.3095</cell><cell>0.1996</cell></row><row><cell>Persian</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25</cell><cell>0.7587</cell><cell>0.3535</cell><cell>0.2272</cell></row><row><cell>KASYS_one_model</cell><cell>0.8207</cell><cell>0.4443</cell><cell>0.2729</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.7587</cell><cell>0.4531</cell><cell>0.2897</cell></row><row><cell>Russian</cell><cell></cell><cell></cell><cell></cell></row><row><cell>BM25</cell><cell>0.7104</cell><cell>0.3469</cell><cell>0.2233</cell></row><row><cell>KASYS_one_model</cell><cell>0.6008</cell><cell>0.2856</cell><cell>0.1792</cell></row><row><cell>KASYS_onemodel-rerank</cell><cell>0.7104</cell><cell>0.3694</cell><cell>0.2282</cell></row><row><cell cols="4">results of the original paper especially in Chinese. Possibly due to</cell></row><row><cell cols="4">this problem, the reranking approach (KASYS_onemodel_rerank)</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,56.47,702.79,198.36,6.18"><p>A similar approach was proposed right before the run submission<ref type="bibr" coords="1,245.09,702.79,7.31,6.18" target="#b6">[7]</ref>.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,320.77,694.57,237.43,6.18;1,317.96,702.79,45.44,6.18"><p>XLM-RoBERTa-large was used in the original paper, while XLM-RoBERTa-base was used in our run.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,321.00,702.79,139.20,6.18"><p>https://github.com/stanford-futuredata/ColBERT</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>ACKNOWLEDGMENTS</head><p>This work was supported by <rs type="funder">JSPS KAKENHI</rs> Grant Numbers <rs type="grantNumber">JP22H03905</rs> and <rs type="grantNumber">JP21H03554</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_TP7EktD">
+					<idno type="grant-number">JP22H03905</idno>
+				</org>
+				<org type="funding" xml:id="_Fg2Fu9A">
+					<idno type="grant-number">JP21H03554</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,331.15,433.65,228.24,6.18;3,331.15,441.90,227.82,6.18;3,331.15,449.87,227.06,6.18;3,331.15,457.79,227.76,6.23;3,331.15,465.76,82.10,6.23" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="3,410.40,449.87,147.80,6.18;3,331.15,457.84,20.11,6.18">Unsupervised Cross-lingual Representation Learning at Scale</title>
+		<author>
+			<persName coords=""><forename type="first">Alexis</forename><surname>Conneau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kartikay</forename><surname>Khandelwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vishrav</forename><surname>Chaudhary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Guillaume</forename><surname>Wenzek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Francisco</forename><surname>Guzmán</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Édouard</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,363.11,457.79,195.79,6.23;3,331.15,465.76,46.45,6.23">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="8440" to="8451" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,473.78,227.88,6.18;3,331.15,481.75,227.05,6.18;3,331.15,489.67,183.11,6.23" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="3,529.36,473.78,29.66,6.18;3,331.15,481.75,215.92,6.18">Patapasco: a Python framework for cross-language information retrieval experiments</title>
+		<author>
+			<persName coords=""><forename type="first">Cash</forename><surname>Costello</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dawn</forename><surname>Lawrie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Mayfield</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,331.15,489.67,126.62,6.23">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="276" to="280" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,497.69,227.06,6.18;3,331.15,505.66,227.06,6.18;3,330.90,513.58,146.45,6.23" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="3,405.27,505.66,152.93,6.18;3,330.90,513.63,32.71,6.18">The sockeye 2 neural machine translation toolkit at AMTA 2020</title>
+		<author>
+			<persName coords=""><forename type="first">Tobias</forename><surname>Domhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Denkowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Vilar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xing</forename><surname>Niu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Felix</forename><surname>Hieber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenneth</forename><surname>Heafield</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2008.04885</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,331.15,521.60,227.05,6.18;3,331.15,529.52,227.05,6.23;3,331.15,537.49,227.06,6.23;3,331.15,545.46,46.11,6.23" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,446.97,521.60,111.23,6.18;3,331.15,529.57,148.36,6.18">Colbert: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,492.44,529.52,65.76,6.23;3,331.15,537.49,227.06,6.23;3,331.15,545.46,23.44,6.23">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,553.48,227.05,6.18;3,331.15,561.40,227.05,6.23;3,331.15,569.37,227.06,6.23;3,331.15,577.34,46.11,6.23" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,446.97,553.48,111.23,6.18;3,331.15,561.45,148.36,6.18">Colbert: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,492.44,561.40,65.76,6.23;3,331.15,569.37,227.06,6.23;3,331.15,577.34,23.44,6.23">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,585.36,227.06,6.18;3,331.15,593.28,227.06,6.23;3,331.15,601.25,79.93,6.23" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,538.89,585.36,19.31,6.18;3,331.15,593.33,117.74,6.18">HC4: a new suite of test collections for ad hoc CLIR</title>
+		<author>
+			<persName coords=""><forename type="first">Dawn</forename><surname>Lawrie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Mayfield</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Douglas</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Yang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,460.21,593.28,98.00,6.23;3,331.15,601.25,23.44,6.23">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="351" to="366" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,609.27,228.24,6.18;3,331.15,617.19,166.50,6.23" xml:id="b6">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Dawn</forename><surname>Lawrie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Douglas</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Mayfield</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2209.01335</idno>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Multilingual ColBERT-X. arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,331.15,625.21,227.06,6.18;3,331.15,633.18,227.06,6.18;3,331.15,641.10,227.05,6.23;3,331.15,649.07,114.68,6.23" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="3,476.88,633.18,81.32,6.18;3,331.15,641.15,145.68,6.18">Transfer learning approaches for building cross-language dense retrieval models</title>
+		<author>
+			<persName coords=""><forename type="first">Suraj</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dawn</forename><surname>Lawrie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Duh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Mcnamee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Mayfield</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Douglas</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,489.85,641.10,68.34,6.23;3,331.15,649.07,58.19,6.23">European Conference on Information Retrieval</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="382" to="396" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,331.15,657.09,227.06,6.18;3,331.15,665.06,227.06,6.18;3,331.15,672.98,113.02,6.23" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="3,416.80,665.06,141.40,6.18;3,331.15,673.03,64.55,6.18">MS MARCO: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,407.75,672.98,33.61,6.23">CoCo@ NIPs</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

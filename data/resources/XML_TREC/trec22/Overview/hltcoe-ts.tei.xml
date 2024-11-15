@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,146.89,80.93,318.23,14.85">HLTCOE at TREC 2013: Temporal Summarization</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,134.12,132.31,37.77,12.37"><forename type="first">Tan</forename><surname>Xu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Maryland</orgName>
+								<address>
+									<settlement>College Park</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,267.05,132.31,77.90,12.37"><forename type="first">Paul</forename><surname>Mcnamee</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Johns Hopkins University HLTCOE</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,414.88,132.31,88.24,12.37"><forename type="first">Douglas</forename><forename type="middle">W</forename><surname>Oard</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Maryland</orgName>
+								<address>
+									<settlement>College Park</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,146.89,80.93,318.23,14.85">HLTCOE at TREC 2013: Temporal Summarization</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">A17C20437C0CE3CCFF4098B8DB9C18ED</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Our team submitted runs for the first running of the TREC Temporal Summarization track. We focused on the Sequential Update Summarization task. This task involves simulating processing a temporally ordered stream of over 1 billion documents to identify sentences that are relevant to a specific breaking news stories which contain new and important content. In this paper, we describe our approach and evaluation results.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Temporal Summarization is a new track for this year's TREC evaluation. Its intention is to show a user "what just happened" about a topic in real-time from an evolving data stream. Given a time series set of documents, there are two tasks defined in this track: (1) sequential update summarization, where the goal is to identify sentences that are relevant, novel, and important to an topic of interest; and (2) value tracking, where the goal is to track and emit accurate values for particular attributes of an topic of interest. For this year, we focused only on temporal update summarization. This paper describes our approach and evaluation results in detail.</p><p>Update summarization has been a focus of recent automatic summarization research. For example, DUC, and later TAC, included an Update Summarization track from 2007 to 2011 ( <ref type="bibr" coords="1,258.10,644.87,40.70,10.45;1,72.00,658.42,80.16,10.45" target="#b3">Dang and Owczarzak, 2008)</ref>. The task in that track was to generate summaries from a set of newswire articles under the assumption that a user has already read a set of earlier articles. Although the motivation for that track was similar to that of this year's TREC Temporal Summarization task, which is to inform readers of important novel information about a particular topic, the DUC and TAC Update Summarization tasks were designed as a single-pass batch process, processing all new documents at once, while in this year's TREC Temporal Summarization track the task design requires generation of continuous and immediate updates. As with earlier work, sentences are the unit of selection.</p><p>Boiling this problem down to its essence, there are three key challenges that any system must address: (1) topicality: select sentences that are about the given topic; (2) novelty: select sentences that contain novel content; and (3) importance: select sentences that a person would put into a summary. In order to address this problem, we designate a set of representative features to capture a sentence's topicality, novelty, and salience, and a composite function F to synthesize these features into a singlevalued decision basis. We then employ a thresholdbased approach, which determines whether a sentence should be included in the temporal summary. Both the feature weights and threshold are manually tuned based on the single training topic that was provided to task participants. We extend this basic approach using a number of additional steps to improve effectiveness or efficiency (e.g., Wikipediabased query expansion, and a preprocessing step designed to efficiently prune non-relevant documents).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>Our system is designed by following instruction in the track guidelines, 1 which is structured as in Algorithm 1. The inputs to our system include: a system configuration S, the time-ordered corpus C, the topic q, and the time-interval of interest [t start , t end ]. In line 1, an empty output summary U is initialized; in line 2, we initialize our system with the topic query. We store a representation of this query for later processing and filtering; in line 3, we iterate over the corpus in temporal order, processing each document in sequence in line 4. If a document is within the specified time-interval (line 5), then we check this document's topicality in line 6. For each document that our system decides is on-topic, an instantaneous decision is made for each sentence of that document about whether to include it in the summary; if so, we note the decision time (line 7-8). Finally, we add the selected sentences to the summary with the time of the decision, and we update our knowledge about the topic (lines 9-11). Below we give more details about the main components of our system.</p><formula xml:id="formula_0" coords="2,77.46,331.56,210.44,168.86">Algorithm 1: Sequential Update Summariza- tion U {} S.INITIALIZE(q) for d 2 C do S.PROCESS(d) if d.TIME() 2 [t start , t end ] then if S.FILTER(d, q) == true then for u 2 d do u t S.DECIDE(u) if u t == true then U .APPEND(u, t) S.UPDATE(q)</formula><p>return U</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Preprocessing</head><p>In 2013, the Temporal Summarization track uses the same document collection as the TREC Knowledge Base Acceleration (KBA) track. 2 This collection contains over a time-series of over 1 billion documents that were obtained from the Web between <ref type="bibr" coords="2,282.45,627.43,10.90,10.45;2,72.00,640.98,66.62,10.45">October 2011 and</ref><ref type="bibr" coords="2,141.93,640.98,125.56,10.45">January 2013 (11,948 hours)</ref>. Each document in the collection is marked with its access time, which generally was as close as possible to its creation time. Documents that are believed to be written in English have been segmented</p><p>2 http://trec-kba.org/trec-kba-2013.shtml</p><p>Figure <ref type="figure" coords="2,344.97,266.73,4.24,10.45">1</ref>: Hourly document counts for TREC KBA Stream Corpus 2013 sources <ref type="bibr" coords="2,441.07,280.28,81.95,10.45" target="#b4">(Frank et al., 2013)</ref>.</p><p>into sentences and annotated for named entities using the Stanford tagger. The document counts per hour for each composite "source" type is shown in Figure <ref type="figure" coords="2,345.15,354.94,4.09,10.45">1</ref>. The major types of document in the corpus are newswire articles, social media data aggregated from blogs and forums, and linking records from Bitly.com. We built a KBA corpus reader to simulate a timeordered document stream. The original corpus is organized in a shallow hour-structured directory, and within each hourly folder, documents are stored as JSON objects with certain metadata into "chunk" files. Each file contains around 100-300 JSON documents of the same type, and is serialized with Apache Thrift and compressed with XZ Utils. Our corpus reader was developed based on the streamcorpus toolkit provided by the TREC KBA track. <ref type="foot" coords="2,535.52,529.50,3.99,7.64" target="#foot_1">3</ref>We first iterate through folders, and then for each chunk file, after decompression and deserialization, we loop over contained documents, and decode each into a Factorie document object with additional POS (Part-of-Speech) tagging. <ref type="foot" coords="2,426.07,597.24,3.99,7.64" target="#foot_2">4</ref> Finally, we sort these document objects according to their timestamp and sequentially pass them to the rest of the system.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Topic Representation</head><p>In this track, the topics are presented to us in SGML, where the root element is named "event" (because all topics are temporally acute). A topic definition is illustrated in Figure <ref type="figure" coords="3,233.41,219.77,4.09,10.45" target="#fig_0">2</ref>, where title is a short description of the topic, query is a keyword representation of the topic, type is one of {accident, bombing, earthquake, shooting, storm}, and start and end are the start and ending times for the documents to be processed when building the summary. 5  We create three Bag-of-Words (BoW) representations for each topic: unigrams (after stopword removal), Named Entities (NE), and predicates (i.e., verbs). Each BoW representation is initialized from the topic's title and query fields. As we select sentences for inclusion in the summary, we update each of these BoW representations.</p><p>In the topic updating process, one challenge is how best to adapt to the shifting focus of a topic. This problem was also noted in the Topic Detection and Tracking (TDT) evaluations <ref type="bibr" coords="3,219.91,450.77,58.26,10.45" target="#b1">(Allan, 2002)</ref>. In our work, we tried a basic "Epoch" strategy, as described by Goyal et al., which was initially designed to approximate n-gram frequencies in a streaming setting <ref type="bibr" coords="3,103.47,504.97,82.07,10.45" target="#b5">(Goyal et al., 2009)</ref>. As a fine-grained implementation of this strategy, we treat the selection of a sentence for inclusion in the summary as an epoch; after each epoch (i.e., each selected sentence), we update each BoW by adding the appropriate terms from the new sentence and then we prune the lowest frequency terms, retaining only the top k terms for each BoW. For our experiments we arbitrarily made the following choices: k unigram = 1000, and</p><formula xml:id="formula_1" coords="3,72.00,627.03,109.40,11.04">k NE = k predicate = 200.</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Document Filtering</head><p>Because of the high rate at which KBA documents were collected (approximately 1,395 documents per 5 Additional topic fields are available to relevance assessors; the topics provided to systems are referred to as "masked." minute), we introduce a document filtering stage into our system. We seek to identify irrelevant documents (i.e., those not topically relevant), and preclude any sentences from these documents from further consideration for our temporal summary. To determine a document's relevance to the topic, we use a cascade of progressively more complex models.</p><p>• The first "model" just uses the time-interval specified in the topic to filter out documents that are timestamped before the specified start time or after the specified end time.</p><p>• The second model uses Boolean conjunction to filter out documents that do not contain every word in query field of the topic.</p><p>• The third model calculates the cosine similarity between the unigram BoW vectors for the document and the topic. For each BoW vector, terms are weighted with either TF (term frequency) or TF-IDF (term frequency times inverse document frequency), depending on the system configuration. IDF weights are computed using the Google n-gram corpus (LDC2006T13) <ref type="bibr" coords="3,407.45,400.98,112.90,10.45" target="#b6">(Klein and Nelson, 2008)</ref>. A threshold is used to determine whether a document should be considered pertinent for the topic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Sentence Selection</head><p>Sentences should be selected based on three criteria: relevance of the extracted text to the topic, the amount of new information, and the degree to which important aspects of the news event are covered. In order to understand these factors, we manually analyzed the gold standard nuggets selected for the training topic "2012 East Azerbaijan earthquakes" and several Wikipedia pages that report similar types of news (specifically, one of {accident, bombing, earthquake, shooting, storm}).</p><p>We examined only Wikipedia pages describing events that predated the KBA collection.</p><p>No off-topic or redundant sentences are observed, comporting well with the design of the task, and it seemed to us that named entities and predicates related to the topic might be informative. For example, for the 103 selected nuggets for the training topic, we observed 6 nuggets containing the verb to kill (or one of its inflected forms) and 7 containing some form of to die. Both can expected to be a indicative predicate for stories about earthquakes. We also observed that the chance a sentence would be selected was higher if it contained numeric values.</p><p>Therefore, although it is still a far-reaching and open-ended question to select an optimal feature set for sentence selection, in this work we focus on a baseline implementation which includes the following features:</p><p>• f 1 : context document's relevance to the topic, as measured by cosine similarity between the unigram BoW term vectors for the sentence and the dynamically updated unigram BoW term vector for the topic.</p><p>• f 2 : a sentence's relevance to the topic, as measured by cosine similarity between the sentence's unigram BoW term vector and the topic's initial, static unigram BoW term vector.</p><p>• f 3 : a sentence's novelty score with regard to previously selected sentences, calculated as one minus cosine similarity between the sentence's unigram BoW term vector and the topic's updated unigram BoW term vector.</p><p>• f 4 : a sentence's topical salience, calculated using a weighted dot product of namedentities (i.e., effectively a language model from NEs). For example, given a topic q = {Iran(2/5), Ahar(2/5), V arzaqan(1/5)}, and a sentence "Iranian state television reported the quake hit near the towns of Ahar, Heris and Varzaqan", then f 4 = (0 + 2/5 + 0 + 1/5)/4 = 0.15. • f 5 : similar to f 4 , this feature estimates salience for a sentence using predicates, where a predicate's topical salience is calculated by its normalized occurrences within the topic's predicate BoW representation.</p><p>• f 6 : a binary score 2 {0, 1} that indicates whether a sentence contains numeric values.</p><p>We then use convex combination to synthesize the effects of all these features as defined in Equation <ref type="formula" coords="4,290.62,699.07,4.09,10.45">1</ref>, where i denotes the weight for the ith feature.</p><formula xml:id="formula_2" coords="4,344.20,89.81,195.80,32.93">F(u t+1 |q, U t ) = X i i f i , k k 1 = 1 (1)</formula><p>Because we lacked adequate training data in this first year of the task, we manually tuned by reviewing system output (i.e., the sentences selected for the summary) for the single available training topic. Figure <ref type="figure" coords="4,380.60,188.30,5.45,10.45" target="#fig_1">3</ref> shows the sentences selected for the first 24 hours of the training topic after handoptimization of these weights.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Wikipedia-Based Predicate Expansion</head><p>One factor limiting the effectiveness of our basic approach is that the topics are terse, and thus the resulting BoW representations are quite impoverished. Since the gold standard updates are generated based on the revision history of the corresponding Wikipedia page, we imagine that Wikipedia pages for similar events might be a useful source of topicrelated vocabulary for our predicate BoW representation. For example, if the topic is about a specific earthquake, we might find that similar words were used to describe important nuggets for previous earthquakes. Therefore, we added a Wikipedia retrieval component to find a small set of topically relevant Wikipedia pages to expand the initial topic. Apache Lucene standard indexing and searching<ref type="foot" coords="4,535.52,443.32,3.99,7.64" target="#foot_3">6</ref> was utilized for this purpose. To avoid using "future" data, this search was based on a Wikipedia dump from October 11th, 2010 (that precedes the KBA Stream Corpus). For each topic, we chose the 10 most highly ranked Wikipedia pages, and extracted predicates to expand query topics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation</head><p>We submitted five runs, which are described in section 3.1. In section 3.2, we introduce the track's evaluation metrics for measuring effectiveness. We compare our results to the mean and maximum results provided by NIST in section 3.3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Data Set and Submissions</head><p>This year's task included 10 topics (2 accidents, 2 shootings, 4 storms, 1 earthquake, and 1 bombing). For each topic, the summarization time window was limited to 10 days. Our team contributed 5 of the 26 submissions to the track. Shortly after submission, we found that in three of our runs {Baseline, BasePred, EXTERNAL} we had mistakenly calculated f 4 and f 5 by neglecting to normalize the frequency with which named entities or predicates (respectively) were observed in the topic. Because other parameters were set appropriately, those three runs are still useful as a basis for comparison with our other two runs that were normalized correctly {TuneBasePred2, TuneExternal2}. The configurations of each of the 5 runs is given in Table <ref type="table" coords="5,262.48,445.73,4.09,10.45" target="#tab_0">1</ref>.</p><p>We experienced one other notable difficulty while producing our runs. In some cases, processing for a topic was prematurely halted due to a memory leak caused by too many in-memory document objects while simulating the temporal stream of documents. The effect of this early termination was to reduce recall somewhat. In every case, the unprocessed documents were those latest in the time window. For sudden-onset events of the type used as topics this year, the reporting is often concentrated early in the period. As a result, the adverse effect on recall of our unintended early termination (when it occurred) might be far less than the loss of temporal coverage might otherwise suggest. Table 2 reports the fraction of the time window that was actually processed for each topic in each submitted run.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Evaluation Metrics</head><p>Traditional evaluation measures for automatic summarization such as ROUGE <ref type="bibr" coords="5,435.59,329.28,49.41,10.45" target="#b7">(Lin, 2004)</ref> focus on the presence or absence of a sentence in a summary. In the Sequential Update Summarization task, by contrast, the key question is about latency (with absence simply being an extreme case of latency). A set of gold standard updates (nuggets) were manually extracted from the Wikipedia page corresponding to the event that is the focus of the topic. Each update is timestamped according to the revision history of that page. A generated sequential-update summary is a set of sentences, each timestamped by the decision time. The evaluation measures are thus analogous to the traditional set-based measures of precision and recall, but extended to include a latency penalty.</p><p>More specifically, following the track guidelines, we evaluate effectiveness using Expected Latency Gain (EG L ), which is similar to traditional notion of precision, and Latency Comprehensiveness (C L ), which is similar to traditional notion of recall, between the summaries produced by human annotators (N ) and our system (S). M (n, S) denotes the earliest matching update u from our system to a given gold standard nugget n, which can be expressed as argmin {u2S:n⇡u} u.t. g L (u, n) denotes latency-discounted gain getting from u for n, computed as (u.t n.t) ⇥ R(n), where R(n) denotes the importance of n. In N , each nugget has an associated relevance grade assigned by human annotators, R : N ! [0, 1].</p><formula xml:id="formula_3" coords="5,321.02,630.42,218.98,92.10">EGL(S) = 1 |S| X {n2N :M (n,S)6 = } gL(M (n, S), n) (2) CL(S) = 1 P n2N R(n) X {n2N :M (n,S)6 = } gL(M (n, S), n)<label>(3)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Results</head><p>The results for our five submissions are plotted in Figure <ref type="figure" coords="6,103.29,454.55,4.09,10.45" target="#fig_2">4</ref>, where for each evaluation topic q1 ⇠ q10, the solid triangle, circle and square points represent the NIST reported maximum, average and minimum EG L and C L scores over all TREC submissions respectively. 7 The curved lines show contours at intervals of 0.1 points of the balanced harmonic mean of the two measures. 8 We omit topic 7, which all participants did poorly on because there were not enough (detected) relevant documents within the specified time window.</p><p>As Figure <ref type="figure" coords="6,134.14,590.46,5.45,10.45" target="#fig_2">4</ref> shows, we generally did well on topics 3 and 10 by the EG L (precision-like) measure and on topics 1 and 10 by the C L (recall-like) measure; we did poorly on topic 5 by both mea-7 Note: The MAX and MIN values reported by NIST are computed over each measure independently. Because both recall-tuned and precision-tuned systems contributed runs, plotting the MAX values for both measures as a single point is not indicative of what any single system achieved.</p><p>8 If these were precision and recall, these would be F1 contours; they are calculated by 2 • EGLCL/(EGL + CL)).</p><p>sures. Interesting, the three runs in which we mistakenly failed to normalize (⇤ BasePred, Baseline, 4 EXTERNAL) yielded relatively high C L scores. The lower C L scores for our other two runs (+ TuneBasePred2, ⇥ TuneExternal2) can not be explained by early termination, since the other three unintentionally unnormalized runs have similar (or more severe) early termination. As Table <ref type="table" coords="6,501.26,398.84,5.45,10.45" target="#tab_0">1</ref> shows, the threshold we selected (after examining sample output) was higher for the two "properly" normalized runs. From this we can infer that our "properly" normalized runs are more conservative about allowing sentences into the summaries, although we do not at this point know whether that is because we are computing scores differently or that we set the threshold to different values. We should also note that our manual parameter selection was based on getting results that "looked good" to us, and of course we would be more likely to notice bad selections than to notice what was missing. As a result, we may have been precision-biased in our parameter selections. The fact that our two "properly" normalized runs do better by the EG L measure comports with that speculation. We note similar effects from the use of IDF and Wikipedia query expansion regardless of whether correct normalization was applied (see Table <ref type="table" coords="6,384.73,656.27,5.45,10.45" target="#tab_0">1</ref> for run configurations).</p><p>Focusing now on the two "properly" normalized runs, and especially for topics q1, q8, q9 and q10, which did not suffer from early termination, another observation is that the use of IDF increased EG L (the precision-like measure). However, Wikipediabased predicate did not increase the C L score as we had expected it would. Indeed, predicate expansion decreased C L in most cases (the exception being q8). Inspection of the retrieved Wikipedia pages that were used to expand these query topics revealed that the top 10 returned pages were often about similar entities rather than similar events. Thus the predicates extracted from these pages did not provide event-focused information as we had hoped, but rather added noise. We believe that idea still has merit, but our technique needs refinement.</p><p>Looking more broadly at our approach, our sentence selection model can be thought of as a variant of Maximal Marginal Relevance (MMR), where the key idea is to balance relevance and novelty <ref type="bibr" coords="8,276.00,280.22,18.24,10.45;8,72.00,293.76,123.65,10.45" target="#b2">(Carbonell and Goldstein, 1998)</ref>; in our case, we must also balance salience. Similar to MMR, we measure a sentence's novelty by considering its difference from past sentences (represented by updated unigram BoW, as described in section 2.2). However, as these past sentences were themselves selected according to their topicality, relevance, and novelty, they are inextricably linked by the nature of the evidence that we use. This issue has also been observed by <ref type="bibr" coords="8,128.30,415.71,48.91,10.45">Allan et al.</ref> in their early work of temporal summarization <ref type="bibr" coords="8,164.72,429.26,80.74,10.45" target="#b0">(Allan et al., 2001)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>4</head><p>For this first running of the Temporal Summarization track at TREC, we designed an extractive summarization system using a simple linear model and straightforward features to detect sentences that contain novel and salient information. These sentences come from a large streaming collection, and our system makes binary decisions about each incoming document in real-time as it arrives. We explored dynamic updating of the topic representation as sentences were selected, and we tried a variant of query expansion using Wikipedia pages. The scale of the data posed some challenges, but we have been able to draw some useful insights from our results. Our analysis of those results to date suggests several areas for future work, including:</p><p>(1) optimizing both document and sentence selection thresholds; (2) finding better exemplars for similar (historical) events in Wikipedia (e.g., by exploit-ing the Wikipedia category system); (3) designing additional features to represent a sentence's properties of topicality, novelty, and topical salience; and (4) investigating more sophisticated models for sentence extraction. With the new labeled data from this year's track, our work is just beginning.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,72.00,170.73,226.80,10.45;3,72.00,184.27,106.21,10.45;3,93.00,72.11,184.80,82.21"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Masked Topic Definition for '2012 East Azerbaijan earthquakes'</figDesc><graphic coords="3,93.00,72.11,184.80,82.21" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,142.43,263.45,327.15,10.45;5,72.00,72.10,467.91,174.75"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Summary for '2012 East Azerbaijan earthquakes' (first 24 hours)</figDesc><graphic coords="5,72.00,72.10,467.91,174.75" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="7,123.85,633.19,270.09,10.45;7,396.66,633.19,42.00,11.07;7,441.38,633.19,46.77,11.07"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Sequential update summarization evaluation results, EG L and C L scores.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,109.09,82.02,393.82,89.02"><head>Table 1 :</head><label>1</label><figDesc>Parameter settings for each run</figDesc><table coords="6,109.09,99.04,393.82,71.99"><row><cell></cell><cell></cell><cell cols="2">External Resource</cell><cell>Feature Weights</cell><cell>Sentence</cell></row><row><cell>TuneBasePred2 TuneExternal2</cell><cell cols="3">Predicate IDF Wikipedia X X X X</cell><cell>1 0.24 0.28 0.12 0.13 0.20 0.03 2 3 4 5 6 0.24 0.28 0.12 0.13 0.20 0.03</cell><cell>Threshold 0.30 0.30</cell></row><row><cell>Baseline BasePred EXTERNAL</cell><cell>X X</cell><cell>X</cell><cell>X</cell><cell>0.30 N/A 0.30 0.30 N/A 0.10 0.23 N/A 0.23 0.23 0.23 0.08 0.23 N/A 0.23 0.23 0.23 0.08</cell><cell>0.20 0.20 0.20</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,92.38,197.22,427.25,77.42"><head>Table 2 :</head><label>2</label><figDesc>Fraction of documents processed for each topic, by run</figDesc><table coords="6,92.38,214.25,427.25,60.40"><row><cell></cell><cell cols="10">Topic1 Topic2 Topic3 Topic4 Topic5 Topic6 Topic7 Topic8 Topic9 Topic10</cell></row><row><cell cols="2">TuneBasePred2 100%</cell><cell>87%</cell><cell>38%</cell><cell>11%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell></row><row><cell>TuneExternal2</cell><cell>100%</cell><cell>100%</cell><cell>77%</cell><cell>10%</cell><cell>100%</cell><cell>82%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell></row><row><cell>Baseline</cell><cell>100%</cell><cell>23%</cell><cell>9%</cell><cell>11%</cell><cell>91%</cell><cell>63%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell></row><row><cell>BasePred</cell><cell>100%</cell><cell>23%</cell><cell>9%</cell><cell>11%</cell><cell>94%</cell><cell>63%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell><cell>100%</cell></row><row><cell>EXTERNAL</cell><cell>100%</cell><cell>24%</cell><cell>27%</cell><cell>10%</cell><cell>53%</cell><cell>61%</cell><cell>100%</cell><cell>94%</cell><cell>100%</cell><cell>78%</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,329.34,713.93,81.44,8.59"><p>http://www.trec-ts.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="2,329.34,703.06,149.82,8.59"><p>https://github.com/trec-kba/streamcorpus/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="2,329.34,713.93,100.77,8.59"><p>http://factorie.cs.umass.edu/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_3" coords="4,329.34,713.93,88.49,8.59"><p>http://lucene.apache.org/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,313.20,196.42,226.80,9.54;8,324.11,207.38,215.89,9.54;8,324.11,218.41,215.89,9.35;8,324.11,229.29,115.63,9.54" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,324.11,207.38,162.16,9.54">Topic models for summarizing novelty</title>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rahul</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vikas</forename><surname>Khandelwal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,514.89,207.46,25.11,9.35;8,324.11,218.41,215.89,9.35;8,324.11,229.37,24.81,9.35">ARDA Workshop on Language Modeling and Information Retrieval</title>
+		<meeting><address><addrLine>Pittsburgh, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,247.34,226.80,9.54;8,324.11,258.30,215.89,9.54;8,324.11,269.26,215.89,9.54;8,324.11,280.22,106.26,9.54" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,399.41,247.34,140.59,9.54;8,324.11,258.30,31.23,9.54;8,458.71,258.38,81.29,9.35;8,324.11,269.34,33.39,9.35">Introduction to topic detection and tracking</title>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Allan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,420.35,269.34,119.65,9.35;8,324.11,280.30,13.95,9.35">The Information Retrieval Series</title>
+		<editor>
+			<persName><forename type="first">James</forename><surname>Allan</surname></persName>
+		</editor>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="1" to="16" />
+			<date type="published" when="2002">2002</date>
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+	<note>Topic Detection and Tracking</note>
+</biblStruct>
+
+<biblStruct coords="8,313.20,298.26,226.80,9.54;8,324.11,309.22,215.89,9.54;8,324.11,320.18,215.89,9.54;8,324.11,331.22,215.89,9.35;8,324.11,342.18,215.89,9.35;8,324.11,353.06,215.89,9.54;8,324.11,364.02,49.69,9.54" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,496.44,298.26,43.56,9.54;8,324.11,309.22,215.89,9.54;8,324.11,320.18,138.58,9.54">The use of MMR, diversity-based reranking for reordering documents and producing summaries</title>
+		<author>
+			<persName coords=""><forename type="first">Jaime</forename><surname>Carbonell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jade</forename><surname>Goldstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,490.65,320.26,49.35,9.35;8,324.11,331.22,215.89,9.35;8,324.11,342.18,215.89,9.35;8,324.11,353.06,74.62,9.54">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;98</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;98<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="335" to="336" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,382.06,189.02,9.54;8,517.58,382.06,22.42,9.54;8,324.11,393.02,215.89,9.54;8,324.11,403.98,215.89,9.54;8,324.11,414.94,201.43,9.54" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,324.11,393.02,212.18,9.54">Overview of the TAC 2008 update summarization task</title>
+		<author>
+			<persName coords=""><forename type="first">Trang</forename><surname>Hoa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Karolina</forename><surname>Dang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Owczarzak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,337.81,404.06,173.10,9.35">Proceedings of Text Analysis Conference</title>
+		<meeting>Text Analysis Conference<address><addrLine>TAC; Gaithersburg, MD, USA. NIST</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2008">2008. 2008</date>
+			<biblScope unit="page" from="1" to="16" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,432.99,226.80,9.54;8,324.11,443.94,215.89,9.54;8,324.11,454.90,215.89,9.54;8,324.11,465.86,215.89,9.54;8,324.11,476.82,215.89,9.54;8,324.11,487.78,176.99,9.54" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,350.22,465.86,189.78,9.54;8,324.11,476.82,87.33,9.54">Evaluating stream filtering for entity profile updates for TREC 2013</title>
+		<author>
+			<persName coords=""><forename type="first">John</forename><forename type="middle">R</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><forename type="middle">J</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Max</forename><surname>Kleimanaweine</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><forename type="middle">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nilesh</forename><surname>Tripuraneni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ce</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Re</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,436.44,476.90,103.56,9.35;8,324.11,487.86,43.68,9.35">TREC The Text Retrieval Conference</title>
+		<meeting><address><addrLine>Gaithersburg, MD, USA. NIST</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,505.83,226.80,9.54;8,324.11,516.79,215.89,9.54;8,324.11,527.74,215.89,9.54;8,324.11,538.78,215.89,9.35;8,324.11,549.74,215.89,9.35;8,324.11,560.62,215.89,9.54;8,324.11,571.58,117.03,9.54" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,394.92,516.79,145.07,9.54;8,324.11,527.74,62.14,9.54">Streaming for large scale nlp: language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Amit</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hal</forename><surname>Daumé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iii</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Suresh</forename><surname>Venkatasubramanian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,405.88,527.82,134.13,9.35;8,324.11,538.78,215.89,9.35;8,324.11,549.74,215.89,9.35;8,324.11,560.62,144.11,9.54">Proceedings of Human Language Technologies: The 2009 Annual Conference of the North American Chapter of the Association for Computational Linguistics, NAACL &apos;09</title>
+		<meeting>Human Language Technologies: The 2009 Annual Conference of the North American Chapter of the Association for Computational Linguistics, NAACL &apos;09<address><addrLine>Stroudsburg, PA, USA. ACL</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="512" to="520" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,589.63,226.80,9.54;8,324.11,600.59,215.89,9.54;8,324.11,611.54,215.89,9.54;8,324.11,622.58,215.89,9.35;8,324.11,633.46,215.89,9.54;8,324.11,644.42,24.79,9.54" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,494.07,589.63,45.93,9.54;8,324.11,600.59,215.89,9.54;8,324.11,611.54,112.63,9.54">A comparison of techniques for estimating IDF values to generate lexical signatures for the web</title>
+		<author>
+			<persName coords=""><forename type="first">Martin</forename><surname>Klein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><forename type="middle">L</forename><surname>Nelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,455.38,611.62,84.62,9.35;8,324.11,622.58,215.89,9.35;8,324.11,633.54,68.41,9.35">WIDM &apos;08: Proceeding of the 10th ACM workshop on Web information and data management</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="page" from="39" to="46" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,313.20,662.47,226.80,9.54;8,324.11,673.43,215.89,9.54;8,324.11,684.38,215.89,9.54;8,324.11,695.34,215.89,9.54;8,324.11,706.30,110.01,9.54" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,406.67,662.47,133.33,9.54;8,324.11,673.43,96.34,9.54">Rouge: A package for automatic evaluation of summaries</title>
+		<author>
+			<persName coords=""><forename type="first">Chin-Yew</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,421.35,684.46,118.65,9.35;8,324.11,695.42,168.77,9.35">Text Summarization Branches Out: Proceedings of the ACL-04 Workshop</title>
+		<editor>
+			<persName><forename type="first">Stan</forename><surname>Szpakowicz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Marie-Francine</forename><surname>Moens</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACL</publisher>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="74" to="81" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

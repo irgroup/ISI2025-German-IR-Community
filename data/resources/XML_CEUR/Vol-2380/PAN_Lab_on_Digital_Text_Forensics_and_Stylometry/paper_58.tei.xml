@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,157.99,115.90,299.38,12.90;1,238.28,133.83,138.80,12.90;1,223.43,153.68,168.50,10.75">Detecting Bot Accounts on Twitter by Measuring Message Predictability Notebook for PAN at CLEF 2019</title>
+				<funder ref="#_xFu7MwP">
+					<orgName type="full">Polish National Agency for Academic Exchange</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,279.04,190.08,57.28,8.64"><forename type="first">Piotr</forename><surname>Przybyła</surname></persName>
+							<email>piotr.przybyla@ipipan.waw.pl</email>
+							<affiliation key="aff0">
+								<orgName type="department">Institute of Computer Science</orgName>
+								<orgName type="institution">Polish Academy of Sciences Warsaw</orgName>
+								<address>
+									<country key="PL">Poland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,157.99,115.90,299.38,12.90;1,238.28,133.83,138.80,12.90;1,223.43,153.68,168.50,10.75">Detecting Bot Accounts on Twitter by Measuring Message Predictability Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">9E3745787C83CE983F72880B8BD4CBEF</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:00+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We present a method for deciding whether a given Twitter user is a bot or a human based on the textual content of their feed. Since messages published from the same bot account frequently follow simple, repetitive patterns, we propose to recognise such accounts by measuring message predictability. This is performed using two language modelling solutions: based on a linear model operating on hand-crafted features or a pre-trained neural language model (BERT). When evaluated within PAN 2019 bot detection shared task, our solution reaches an accuracy of 91% for tweets in English and 88% for tweets in Spanish.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The problem of assessing credibility of content published and shared on the web remains one of the important challenges brought by the growing importance of the Internet. Many undesirable phenomena of the new communication platforms, such as social media, stem from the fact that their users have limited or no knowledge on the identity of their interlocutors. This anonymity combined with digital interfaces of online services makes it possible for computer programs to automatically generate messages that would look similar to those composed by human users.</p><p>Such applications, called bots, could serve good purposes as a means for automatic distribution of information valuable for a wider audience, e.g. a weather forecast. They could also be used to send undesired advertisement of products or services, similarly to email spam messages. Finally, some exploit bots to manipulate public opinion and heat up discussions on controversial issues for political purposes, as it has been demonstrated in the past <ref type="bibr" coords="1,182.39,568.03,15.09,8.64" target="#b14">[15,</ref><ref type="bibr" coords="1,197.48,568.03,7.55,8.64" target="#b0">1,</ref><ref type="bibr" coords="1,205.02,568.03,7.55,8.64" target="#b6">7,</ref><ref type="bibr" coords="1,212.57,568.03,7.55,8.64" target="#b1">2]</ref>. In any of the above cases, it seems beneficial for the quality of online conversations to make their participants aware, which of the accounts they interact with are bots.</p><p>Several attempts have been made to use machine learning (ML) to automatically detect bots in popular social media services, especially Twitter. Most of these solution rely on observation of a given account in terms of social interactions specific to Twitter: number of following and followed users, frequency of messages, occurrences of mentions, retweets, hashtags etc. The textual content of the messages in the user's feed seems to be less commonly analysed in this task.</p><p>In our study we aim to contribute to this relatively under-explored direction by building a bot detection algorithm, which recognises bot accounts based solely on the textual content of the messages in their Twitter feed. The feature that is used to differentiate these accounts is message predictability. We notice that while bot users publish different types of content, the messages within one account usually follow a single, repetitive pattern. Therefore, the more easily a message could be predicted given the rest of the feed, the more likely the corresponding account is to be a bot one. Humans appear less predictable and post more diverse messages.</p><p>In order to measure message predictability, we employ two language models: one based on logistic regression using a collection of manually designed features, and one based on a pre-trained neural model. We aggregate the predictability values of all messages from an account to compute its feed predictability measures, which in turn are used as features for a final bot detection model. The model is trained and evaluated using the datasets of a Bots and Gender Profiling shared task <ref type="bibr" coords="2,381.00,323.45,16.60,8.64" target="#b13">[14]</ref> at PAN workshop at CLEF 2019. The source code and models of our approach are available online<ref type="foot" coords="2,445.58,333.73,3.49,6.05" target="#foot_0">1</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Social bots have been investigated thoroughly <ref type="bibr" coords="2,322.29,395.66,11.62,8.64" target="#b7">[8]</ref> due to the role they play <ref type="bibr" coords="2,438.25,395.66,16.60,8.64" target="#b16">[17]</ref> in the proliferation of non-credible information through the web and social media <ref type="bibr" coords="2,446.19,407.62,16.60,8.64" target="#b9">[10]</ref> and increasing political polarisation <ref type="bibr" coords="2,265.71,419.57,15.27,8.64" target="#b17">[18]</ref>, both processes motivating very active research. Nevertheless, accounts using bots remain challenging to identify, partly because the underlying applications actively try to prevent that (i.e. by simulating a human-like behaviour), as in many cases such identification would defeat their purpose.</p><p>Botometer <ref type="bibr" coords="2,194.87,467.84,16.60,8.64" target="#b18">[19]</ref> is the best known bot detection program. It uses a random forest and a plethora of features describing an account, including the associated user profile; number and user profiles of 'follower' and 'followed' accounts; contents and sentiment of messages in the feed; the network of retweets and mentions; tweeting time patterns. The tool runs as a service allowing internet users to check a selected Twitter account <ref type="bibr" coords="2,134.77,527.62,16.60,8.64" target="#b19">[20]</ref> and has been employed to analyse the influence of Russian bots on the discussion around vaccination <ref type="bibr" coords="2,212.85,539.57,11.62,8.64" target="#b1">[2]</ref> and the contribution of bots in spreading low-credibility content <ref type="bibr" coords="2,134.77,551.53,15.27,8.64" target="#b16">[17]</ref>. Other solutions <ref type="bibr" coords="2,223.69,551.53,11.62,8.64" target="#b5">[6]</ref> are based on the sentiment of messages from the analysed account compared to either its followers and or all users discussing the topic of interest (elections in India). Neural sequential models (LSTM) have also been applied to learn from a behaviour of the user, represented through sequence of words in messages and their posting times <ref type="bibr" coords="2,211.43,599.35,10.58,8.64" target="#b2">[3]</ref>.</p><p>To sum up, the methods that were applied to the task so far achieve good performance by combining some representation of the content of a Twitter feed with its social context. Nevertheless, the research suggests the content component may be sufficient on its own, as even a simple representation of it (through part-of-speech tags) constitutes a strong group of features in Botometer <ref type="bibr" coords="3,287.45,131.27,15.27,8.64" target="#b18">[19]</ref>. A content-based bot detection model could also be seen as a step towards a multi-platform solution, as it would be less dependent on Twitter-specific social features.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Task</head><p>The solution described in this paper is evaluated within the Bots and gender profiling shared task <ref type="bibr" coords="3,182.46,218.66,16.60,8.64" target="#b13">[14]</ref> of the PAN workshop <ref type="bibr" coords="3,291.83,218.66,11.62,8.64" target="#b3">[4]</ref> at the CLEF 2019 (Conference and Labs of the Evaluation Forum) conference<ref type="foot" coords="3,271.46,228.94,3.49,6.05" target="#foot_1">2</ref> . We participate in the bot profiling problem, where the goal is to recognise whether a given Twitter feed was produced by a bot or a human. The task consists of two sub tasks, one involving tweets in English, the other one in Spanish.</p><p>Each author is represented through text of 100 messages from their feed, with no information on social media context, apart from the in-text mentions of other user names. Figure <ref type="figure" coords="3,163.94,302.34,4.98,8.64" target="#fig_0">1</ref> shows fragments of two feeds from the training set from a human (left) and a bot (right) account. The whole training dataset includes 4120 such feeds in English and 3000 in Spanish. During the evaluation, participants of the shared task submit their software to TIRA infrastructure <ref type="bibr" coords="3,263.99,338.21,15.27,8.64" target="#b11">[12]</ref>, where it is automatically executed on hidden test data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Methods</head><p>In order to decide whether a given Twitter feed comes form a bot account, we perform a three-step procedure.</p><p>Firstly, we compute a predictability score for each message in the feed, which measures how well this message could be predicted in the context of the feed. This is essentially a language modelling task and is performed using two ML models: a logistic regression on hand-crafted features (LASSO) or a pre-trained and fine-tuned neural language representation model (BERT).</p><p>Secondly, we gather the predictability scores of all the messages in the feed and compute several measures of their distribution, such as mean or standard deviation, that describe the overall feed predictability. In case of bot accounts it could be expected that the messages will be similar and easy to predict, which corresponds to higher mean predictability.</p><p>Finally, the measured values are treated as features for a logistic regression model, trained on all gold-standard cases of bot and human feeds, which returns a score indicating the likelihood of a given feed coming from a bot account. The same procedure is applied to tweets in English and Spanish (with separate models).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">LASSO Model of Predictability</head><p>Measuring message predictability using this approach requires converting all messages to features and building linear regression models, one for each feed, predicting whether @Dale1690 It's a World Cup quarter final dale? � � � �� � � � cautious approach by both! It's no Preston pre season friendly! � � � �</p><formula xml:id="formula_0" coords="4,138.15,151.78,105.21,6.69">Great choice of soundtrack!!! � � � � � � � � � � �� � � � � � � � � � �� � � � � � � � � � �</formula><p>@ivyedinburgh food &amp; service superb. #chocolatebomb https://t.co/c3QhmUsKdV @ivyedinburgh #chocolatebomb food fantastic again! https://t.co/D3TRuqsenG I can even see me making a Scotland qualifier appearance this season � � � � � � � � �� � � � �� � � �� � � �� � � � � � @keekomcnulty some cracking games btw! Wednesday away to ram it up them! � � � � � � RT @sparkymcnulty: What an opportunity for me joining a club like @ReadingFC can't wait to test myself! What a league. Bring on the new sea… @keekomcnulty Just tick me down for that 1.... � � � � � �� � @FourFourTwo Mickey rourkes looking well! @GaryKnox7 @keekomcnulty Under the bridge round zampa road! � � � � � �  a given message belongs to this feed or not. The predictability score for a message is obtained by computing the response of the model corresponding to the feed the message is taken from. High value of the score indicate that the message is easily recognised by the LASSO model of the feed and could be considered predictable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Millwall on Boxing Day</head><formula xml:id="formula_1" coords="4,204.56,331.64,72.74,6.69">! � � � � � � � � �� � � � � @keekomcnulty � � � � �</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Message Features</head><p>The purpose of the prepared feature set was to enable the linear models to learn properties characteristic to each feed, but at the same time to avoid overfitting. The features describing a message include:</p><p>length of the message text (number of characters), number of tokens in the message, number of occurrences of unigrams, bigrams and trigrams of word tags, excluding those with less than 10 occurrences in the corpus.</p><p>Splitting messages into tokens is performed using the Stanford CoreNLP <ref type="bibr" coords="4,426.73,565.67,16.60,8.64" target="#b10">[11]</ref> toolkit. Because of the informal language style of tweets, we have decided that the role of word tags should not be played by part of speech categories, but we use a Twitterspecific tagging scheme instead. The scheme assigns each token one of the following tags:</p><p>-@mention for Twitter mentions, -#hashtag for hashtags, -RT for retweet indications, median, standard deviation, fraction of scores above 0.9, fraction of scores below 0.1, skewness (or 0, if undefined), kurtosis (or 100, if undefined).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Bot Detection Model</head><p>Finally, once each feed is described by predicability features, we can build a prediction model that would use them to decide whether the feed comes from a bot account or not. We use logistic regression in R <ref type="bibr" coords="7,283.08,257.60,16.60,8.64" target="#b12">[13]</ref> again, but this time the regularisation is not necessary due to low number of features, so we simply employ the glm() function from the stats package. The bot detection model could be built using feed predictability features computed based on LASSO, those coming from BERT, or the concatenation of both (LASSO+BERT).</p><p>The regression model is trained on the training data using gold-standard labels and, when applied to new data, return a continuous score between 0 (human) and 1 (bot). Given that the evaluation requires a single decision for each feed and the dataset is balanced, we apply a threshold of 0.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Evaluation</head><p>Our bot account detection method is evaluated in two scenarios:</p><p>-PAN: the basic evaluation scenario prepared by task organisers involves preparing models using the training data provided, uploading scoring software to TIRA infrastructure and applying it to unseen test data, -Internal: additional evaluation is performed internally by dividing the training data into internal training and internal test in order to compare the performance of different approaches.</p><p>The training data provided by the organisers include 4120 feeds in the English subtask (2060 humans and 2060 bots) and 3000 feeds in the Spanish sub-task (1500 humans and 1500 bots). For the purpose of internal evaluation, the feeds are randomly divided into internal training (80% of feeds) and internal test (20% of feeds). The BERT finetuning and bot detection model inference are then performed on the internal training data and applied to the internal test. For the purpose of PAN evaluation, the LASSO features and the corresponding bot detection model are re-trained on the whole training set.</p><p>For internal evaluation, we execute three versions of our approach:</p><p>using features based on message predictability from logistic regression (LASSO), using features based on message predictability from the BERT model (BERT), using both of the above sets of features (LASSO+BERT).</p><p>Internal PAN Feature set English Spanish English Spanish LASSO 0.9090 0.8783 0.9155 0.8844 BERT 0.9260 0.8983 --LASSO+BERT 0.9369 0.8933 --Table <ref type="table" coords="8,158.94,174.41,3.36,8.06">1</ref>. Bot detection accuracy of our approach in internal and PAN evaluation scenarios for English and Spanish tweets with respect to the feature set involved.</p><p>In each case, the output on the test is was converted to binary decision using an 0.5 threshold and compared to the gold standard labels through accuracy.</p><p>Unfortunately, we were unable to execute the BERT-based versions within the constraints of the PAN evaluation. Given the computational resources on the TIRA machines, calculating an output of a BERT model takes around 5 minutes per feed, which means scoring the whole test set would exceed the evaluation time limits imposed by the PAN organisers.</p><p>Table <ref type="table" coords="8,174.85,319.79,4.98,8.64">1</ref> includes the results of the evaluation. We can see that the BERT features provide better predictability estimates than LASSO, resulting in higher classification accuracy for both English and Spanish. In case of English the best results are achieved by combining the features from BERT and LASSO. In case of Spanish there is no benefit from combining the features and the overall results are substantially worse. This could be explained by smaller amount of training data available and using a multilingual BERT model instead of a language-specific one, like in case of English.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusions</head><p>The performance of the algorithm, with the accuracy on unseen test data around 90%, seems satisfactory. Nevertheless, there remains an open question of how this results would translate to a real-life bot detection ability. The answer depends on how well the data of the PAN shared task reflect the overall population of bot and human users on Twitter. Representative datasets of this kind are typically challenging to obtain, as people and organisations publishing content through bot accounts do not intend to disclose this fact. Additionally, the distinction between 'human' and 'bot' may not be clear-cut in case of so-called 'cyborg' accounts, where some messages come from a bot program and some others are written by humans <ref type="bibr" coords="8,293.31,559.17,10.58,8.64" target="#b1">[2]</ref>.</p><p>Our hope that the proposed approach could perform well on other datasets and related tasks is justified by the fact that it does not rely on any features specific to Twitter, but builds on the very nature of bots. Such programs will always be more predictable than humans, as long as they generate content through automatic processes. Moreover, our method casts the bot detection problem as a language modelling problem, which is a fundamental task in natural language processing. Further advances in the field could therefore be used to improve the predictability measurement and bot recognition accuracy.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,134.77,357.47,345.82,8.12;4,134.77,368.78,100.85,7.77"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Partial Twitter feeds of two training examples from the PAN training set, labelled as human (left) and bot (right).</figDesc></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,144.73,657.08,132.91,7.77"><p>https://github.com/piotrmp/bothunter</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="3,144.73,657.08,116.20,7.77"><p>http://clef2019.clef-initiative.eu/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="6,144.73,634.98,141.35,7.77"><p>https://github.com/google-research/bert</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="6,144.73,646.13,289.08,7.77;6,144.73,657.08,141.63,7.77"><p>https://colab.research.google.com/github/tensorflow/tpu/blob/master/tools/colab/ bert_finetuning_with_cloud_tpus.ipynb</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><p>-URL for web addresses, number for numerical expressions, w for individual lowercase letters, -W for individual uppercase letters, wooord for alphabetic strings containing a character repeated three times, word for alphabetic strings in lower case, -WORD for alphabetic strings in upper case, -Word for alphabetic strings with only the first letter in upper case, -wOrD for alphabetic strings with other casing scheme, -: for colons, -( for opening brackets (regular, square or curly), -) for closing brackets (regular, square or curly), --for hyphens, minus signs, dashes and tildes, -' for all quotation marks and apostrophes, -. for full stops, -, for commas, -! for exclamation marks, -? for question marks, -/ for slashes, -E for individual emojis, -EE for strings of emojis, -* for any of the following characters: $, +, &amp;, &lt;, &gt;, %, *, #, -** for strings including the above characters, -... for ellipsis (marking a tweet extending beyond a character limit), -w0rd for alphanumeric strings, -&lt;?&gt; for any token not matching any of the above.</p></div>
+<div><head>Acknowledgements</head><p>This work was supported by the <rs type="funder">Polish National Agency for Academic Exchange</rs> through a <rs type="grantName">Polish Returns</rs> grant number <rs type="grantNumber">PPN/PPO/2018/1/00006</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_xFu7MwP">
+					<idno type="grant-number">PPN/PPO/2018/1/00006</idno>
+					<orgName type="grant-name">Polish Returns</orgName>
+				</org>
+			</listOrg>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Additionally, the tags ^and $ at the beginning and end, respectively, of the tag sequence, could also be included in the n-grams.</p><p>Computing Predictability Scores In order to assess the predicability of the i-th tweet from the j-th feed (t i,j ), the following procedure is followed:</p><p>1. Build a dataset consisting of all N tweets t 1,j . . . t N,j from the feed in question and N additional tweets from the training set t * 1 . . . t * N (coming from other users than j), represented through their features, 2. Create a class variable y, such that y(t i,j ) = 1 and y(t * i ) = 0, 3. Build a logistic regression model on the dataset using the glmnet <ref type="bibr" coords="5,423.07,607.39,11.62,8.64" target="#b8">[9]</ref> package in R <ref type="bibr" coords="5,161.37,619.35,15.27,8.64" target="#b12">[13]</ref>, using L 1 regularisation (LASSO) and selecting the λ parameter through Bayesian information criterion <ref type="bibr" coords="5,276.49,631.30,15.27,8.64" target="#b15">[16]</ref>, 4. Apply the model to the same dataset and collect its response ŷ(t i,j ) as predicability score for the i-th tweet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">BERT Model of Predictability</head><p>The second approach exploits a pre-trained deep language model BERT <ref type="bibr" coords="6,422.29,138.87,10.58,8.64" target="#b4">[5]</ref>. One of the tasks BERT was trained on is predicting whether two given sentences could follow each other in a text, which resembles our problem of assessing likelihood a message given other messages from the same feed. Therefore, we use a pre-trained BERT model and fine-tune it to the task by providing examples of subsequent messages from the training data. In order to measure how predictable a given feed is, we check how the tuned BERT model responds to pairs of messages from it. Similarly to the LASSO approach, high values of output mean that our model has found messages from the given account likely to occur in the same context and predictable.</p><p>Fine-tuning To fine-tune the BERT model, we first prepare a dataset including pairs of messages coming either from the same feed or from different ones. Specifically, for the i-th message from the j-th feed (t i,j ), two training cases could be generated:</p><p>x = (t i,j , t i * ,j ), y = 1, comparing the message with another one (randomly selected) from the same feed (i * = i), x = (t i,j , t i,j * ), y = 0, comparing the message with one from another (randomly selected) feed (j * = j).</p><p>In order to limit the fine-tuning time, the training cases are only generated for 20% of the messages. Next, we load a BERT model from the checkpoints available online (for English: uncased_L-12_H-768_A-12, Spanish: multi_cased_L-12_H-768_A-12) and perform the fine-tuning process according to BRAT documentation 3 and using code shared as a Google Colab notebook 4 .</p><p>Obtaining the Predictability Scores Using the BERT next sentence prediction model, now fine-tuned to detect Twitter messages coming from the same feed, we can assess the predictability of any given feed. To do that, we generate test cases according to the procedure described above, except only pairs from the same feed are used and no messages are skipped, and observe the model response. If the returned values are close to 1, it means it was easy for the model to recognise the similarities between the tweets. Therefore, the model response to the pair (t i,j , t i * ,j ) is treated as predictability score for message t i,j .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Feed Predictability Features</head><p>The message predicability scores are aggregated as feed predictability features using seven measures:</p><p>mean,</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="9,142.61,203.97,306.96,7.77;9,150.95,214.93,144.70,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="9,230.88,203.97,218.68,7.77;9,150.95,214.93,37.81,7.77">Social Bots Distort the 2016 US Presidential Election Online Discussion</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bessi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,194.79,214.93,48.57,7.77">First Monday</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,225.38,327.11,7.77;9,150.95,236.34,305.64,7.77;9,150.95,247.30,327.24,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="9,216.20,236.34,240.39,7.77;9,150.95,247.30,94.72,7.77">Weaponized health communication: Twitter bots and Russian trolls amplify the vaccine debate</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">A</forename><surname>Broniatowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Jamison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">H</forename><surname>Qi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Alkulaib</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Benton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">C</forename><surname>Quinn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dredze</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,251.57,247.30,125.01,7.77">American Journal of Public Health</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="issue">10</biblScope>
+			<biblScope unit="page" from="1378" to="1384" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,257.74,309.24,7.77;9,150.95,268.70,320.23,7.77;9,150.95,279.66,63.25,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="9,244.10,257.74,191.52,7.77">Behavior enhanced deep bot detection in social media</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zengi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,150.95,268.70,320.23,7.77;9,150.95,279.66,37.10,7.77">International Conference on Intelligence and Security Informatics: Security and Big Data (ISI 2017)</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,290.11,312.25,7.77;9,150.95,301.07,301.85,7.77;9,150.95,312.03,316.87,7.77;9,150.95,322.99,321.36,7.77;9,150.95,333.94,318.14,7.77;9,150.95,344.90,328.59,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="9,150.95,312.03,316.87,7.77;9,150.95,322.99,140.81,7.77">Overview of PAN 2019: Author Profiling, Celebrity Profiling, Cross-domain Authorship Attribution and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavancas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,415.55,333.94,53.54,7.77;9,150.95,344.90,243.92,7.77">Proceedings of the Tenth International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Braschler</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Rauber</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">E</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Heinatz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting>the Tenth International Conference of the CLEF Association (CLEF</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,355.35,335.45,7.77;9,150.95,366.31,321.23,7.77" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="9,328.63,355.35,149.43,7.77;9,150.95,366.31,151.63,7.77">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>arXiv</idno>
+		<ptr target="http://arxiv.org/abs/1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,376.76,324.70,7.77;9,150.95,387.72,306.94,7.77;9,150.95,398.67,325.87,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,317.10,376.76,150.21,7.77;9,150.95,387.72,147.68,7.77">Using sentiment to detect bots on Twitter: Are humans more opinionated than bots?</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">P</forename><surname>Dickerson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Kagan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Subrahmanian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,313.08,387.72,144.82,7.77;9,150.95,398.67,248.79,7.77">IEEE/ACM International Conference on Advances in Social Networks Analysis and Mining (ASONAM 2014)</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="620" to="627" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,409.12,325.12,7.77;9,150.95,420.08,175.33,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,193.77,409.12,273.96,7.77;9,150.95,420.08,73.14,7.77">Disinformation and Social Bot Operations in the Run Up to the 2017 French Presidential Election</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,229.90,420.08,48.57,7.77">First Monday</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,430.53,306.67,7.77;9,150.95,441.49,185.68,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,367.85,430.53,77.99,7.77">The rise of social bots</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,150.95,441.49,106.49,7.77">Communications of the ACM</title>
+		<imprint>
+			<biblScope unit="volume">59</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="96" to="104" />
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.61,451.93,337.56,7.77;9,150.95,462.89,244.70,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,292.93,451.93,187.24,7.77;9,150.95,462.89,82.52,7.77">Regularization Paths for Generalized Linear Models via Coordinate Descent</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Friedman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Hastie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Tibshirani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,239.60,462.89,108.24,7.77">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,473.34,335.35,7.77;9,150.95,484.30,112.61,7.77" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="9,227.41,473.34,195.44,7.77">False Information on Web and Social Media: A Survey</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shah</surname></persName>
+		</author>
+		<idno>arXiv</idno>
+		<ptr target="http://arxiv.org/abs/1804.08559" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,494.75,312.14,7.77;9,150.95,505.71,322.28,7.77;9,150.95,516.66,326.27,7.77;9,150.95,527.62,136.13,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,440.44,494.75,13.94,7.77;9,150.95,505.71,201.99,7.77">The Stanford CoreNLP Natural Language Processing Toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Finkel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">J</forename><surname>Bethard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mcclosky</surname></persName>
+		</author>
+		<ptr target="http://aclweb.org/anthology/P14-5010" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,370.88,505.71,102.35,7.77;9,150.95,516.66,297.88,7.77">Proceedings of 52nd Annual Meeting of the Association for Computational Linguistics: System Demonstrations</title>
+		<meeting>52nd Annual Meeting of the Association for Computational Linguistics: System Demonstrations</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,538.07,335.40,7.77;9,150.95,549.03,309.15,7.77;9,150.95,559.99,208.31,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,333.86,538.07,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,259.53,549.03,200.58,7.77;9,150.95,559.99,144.35,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,570.44,301.11,7.77;9,150.95,581.40,89.73,7.77" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Team</forename><surname>Core</surname></persName>
+		</author>
+		<ptr target="http://www.r-project.org/" />
+		<title level="m" coord="9,203.37,570.44,211.59,7.77">R: A Language and Environment for Statistical Computing</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,591.84,323.41,7.77;9,150.95,602.80,324.64,7.77;9,150.95,613.76,313.05,7.77;9,150.95,624.72,23.90,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,229.20,591.84,236.44,7.77;9,150.95,602.80,58.90,7.77">Overview of the 7th Author Profiling Task at PAN 2019: Bots and Gender Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,433.49,602.80,42.10,7.77;9,150.95,613.76,72.99,7.77">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="9,230.42,613.76,198.98,7.77">Notebook Papers. CEUR Workshop Proceedings. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">E</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,142.24,635.17,313.73,7.77;9,150.95,646.13,303.58,7.77;9,150.95,657.08,249.79,7.77" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="9,150.95,646.13,198.53,7.77">Detecting and Tracking Political Abuse in Social Media</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ratkiewicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Conover</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">R</forename><surname>Meiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Gonçalves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,368.12,646.13,86.42,7.77;9,150.95,657.08,223.64,7.77">Proceedings of the Fifth International AAAI Conference on Weblogs and Social Media</title>
+		<meeting>the Fifth International AAAI Conference on Weblogs and Social Media</meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,142.24,119.96,336.12,7.77;10,150.95,130.92,23.90,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="10,199.66,119.96,133.21,7.77">Estimating the Dimension of a Model</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Schwarz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,339.39,119.96,85.92,7.77">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="461" to="464" />
+			<date type="published" when="1978">1978</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,142.24,141.88,330.99,7.77;10,150.95,152.84,301.12,7.77" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="10,433.64,141.88,39.59,7.77;10,150.95,152.84,141.78,7.77">The spread of low-credibility content by social bots</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Shao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L</forename><surname>Ciampaglia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">C</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,298.42,152.84,87.92,7.77">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">4787</biblScope>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,142.24,163.80,311.66,7.77;10,150.95,174.76,325.57,7.77;10,150.95,185.71,228.62,7.77;10,150.95,196.67,309.17,7.77;10,150.95,207.63,97.16,7.77" xml:id="b17">
+	<monogr>
+		<title level="m" type="main" coord="10,192.30,174.76,284.23,7.77;10,150.95,185.71,83.49,7.77">Social Media, Political Polarization, and Political Disinformation: A Review of the Scientific Literature</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">A</forename><surname>Tucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Guess</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Barberá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Vaccari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Siegel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Sanovich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Stukal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Nyhan</surname></persName>
+		</author>
+		<ptr target="https://hewlett.org/library/social-media-political-polarization-political-disinformation-review-scientific-literature/" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<publisher>Hewlett Foundation</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,142.24,218.59,303.31,7.77;10,150.95,229.55,321.38,7.77;10,150.95,240.51,293.61,7.77" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="10,376.56,218.59,68.99,7.77;10,150.95,229.55,202.82,7.77">Online Human-Bot Interactions: Detection, Estimation, and Characterization</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">A</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,371.84,229.55,100.49,7.77;10,150.95,240.51,267.47,7.77">Proceedings of the Eleventh International AAAI Conference on Web and Social Media (ICWSM 2017)</title>
+		<meeting>the Eleventh International AAAI Conference on Web and Social Media (ICWSM 2017)</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,142.24,251.47,336.28,7.77;10,150.95,262.43,289.29,7.77;10,150.95,273.39,117.91,7.77" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="10,412.77,251.47,65.75,7.77;10,150.95,262.43,169.65,7.77">Arming the public with artificial intelligence to counter social bots</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">A</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,326.28,262.43,113.96,7.77;10,150.95,273.39,47.68,7.77">Human Behavior and Emerging Technologies</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="48" to="61" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,951 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,88.78,84.74,381.46,15.42;1,89.29,106.66,264.24,15.42">Transformer-based Language Models for Factoid Question Answering at BioASQ9b</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,134.97,76.46,11.96"><forename type="first">Urvashi</forename><surname>Khanna</surname></persName>
+							<email>urvashi.khanna@mq.edu.au</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Macquarie University</orgName>
+								<address>
+									<country key="AU">Australia</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,177.59,134.97,59.79,11.96"><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Macquarie University</orgName>
+								<address>
+									<country key="AU">Australia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,88.78,84.74,381.46,15.42;1,89.29,106.66,264.24,15.42">Transformer-based Language Models for Factoid Question Answering at BioASQ9b</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">ABE7B294C6FC88947D7B275314B8787F</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:12+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Transfer learning</term>
+					<term>DistilBERT</term>
+					<term>ALBERT</term>
+					<term>Question Answering</term>
+					<term>BioASQ9b</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this work, we describe our experiments and participating systems in the BioASQ Task 9b Phase B challenge of biomedical question answering. We have focused on finding the ideal answers and investigated multi-task fine-tuning and gradual unfreezing techniques on transformer-based language models. For factoid questions, our ALBERT-based systems ranked first in test batch 1 and fourth in test batch 2. Our DistilBERT systems outperformed the ALBERT variants in test batches 4 and 5 despite having 81% fewer parameters than ALBERT. However, we observed that gradual unfreezing had no significant impact on the model's accuracy compared to standard fine-tuning.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Nowadays, the use of language models that have been pretrained on massive amounts of data are the norm <ref type="bibr" coords="1,149.19,382.17,11.31,10.91" target="#b0">[1,</ref><ref type="bibr" coords="1,163.23,382.17,7.45,10.91" target="#b1">2,</ref><ref type="bibr" coords="1,173.42,382.17,7.54,10.91" target="#b2">3]</ref>. Rather than making significant task-specific architecture improvements, these pretrained models can be fine-tuned for various tasks by making minor changes to the language model architecture, such as adding an output layer on top. Fine-tuning approaches are critical for learning the distributions of the target task and improving the language model's adaptability. However, fine-tuning a language model on small datasets like BioASQ can lead to catastrophic forgetting and overfitting. Furthermore, training all layers simultaneously on data of different target tasks may result in poor performance and an unstable model <ref type="bibr" coords="1,439.20,463.47,11.33,10.91" target="#b3">[4]</ref>. A schedule for updating the pretrained weights may be critical for preventing catastrophic forgetting of the source task's knowledge. Scheduling techniques like chain thaw <ref type="bibr" coords="1,373.35,490.57,12.71,10.91" target="#b4">[5]</ref> and gradual unfreezing <ref type="bibr" coords="1,493.28,490.57,12.71,10.91" target="#b5">[6]</ref> have improved the performance of multiple Natural Language Processing (NLP) tasks. Gradual unfreezing involves gradually fine-tuning model layers rather than fine-tuning all layers at once.</p><p>Pretrained language models are usually trained on general language and then adapted to downstream tasks of varied domains. Many domain-specific tasks, however, face the problem of the scarcity of labelled datasets. Auxiliary signal through multi-task fine-tuning helps the language model to adapt on smaller datasets better <ref type="bibr" coords="1,311.54,585.41,11.23,10.91" target="#b6">[7,</ref><ref type="bibr" coords="1,325.16,585.41,7.42,10.91" target="#b7">8,</ref><ref type="bibr" coords="1,334.98,585.41,7.49,10.91" target="#b8">9]</ref>. Multi-task fine-tuning (also referred to as sequential adaptation in some literature <ref type="bibr" coords="2,288.26,86.97,11.91,10.91" target="#b3">[4]</ref>) is the intermediate fine-tuning stage in which the model is fine-tuned on a larger dataset before fine-tuning on a low-resource dataset. In this paper, we describe the experiments of our participating systems<ref type="foot" coords="2,374.93,112.31,3.71,7.97" target="#foot_0">1</ref> at the BioASQ9b challenge<ref type="foot" coords="2,501.05,112.31,3.71,7.97" target="#foot_1">2</ref> . We discuss two of our systems, mainly focusing on factoid questions. Both systems adapt the multi-task fine-tuning technique of fine-tuning on a larger dataset before fine-tuning on the BioASQ9b dataset. Our first system fine-tunes the pre-trained model ALBERT on SQuAD2.0 and then on the BioASQ9b dataset. This system performed exceedingly well on BioASQ9b Test batches 1 and 2. Our second system investigates the effect of the gradual unfreezing technique on the smaller, compact transformer-based model, DistilBERT. We assess this system via two of our submissions at the BioASQ9b Challenge. One of our submissions of DistilBERT ranked sixth in the BioASQ9b leaderboard <ref type="foot" coords="2,284.89,220.70,3.71,7.97" target="#foot_2">3</ref> . From our results, we conclude that gradually unfreezing DistilBERT had no significant improvement in the accuracy of the BioASQ9b test data in comparison to standard fine-tuning.</p><p>The rest of this paper is structured as follows. In Section 2, we briefly discuss related work for background. Section 3 describes the BioASQ dataset and the processing steps involved. Section 4 details our experimental setup for both our systems. Section 5 discusses the results of our systems on the BioASQ public leaderboard. Finally, Section 6 provides a conclusion to our work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>Transfer learning has been widely used to transfer knowledge across multiple domains. The scarcity of sizable domain-specific datasets and the cost associated with manually annotating them are driving this trend. In this section, we discuss previous works that used transfer learning for the BioASQ biomedical question answering task <ref type="bibr" coords="2,321.86,416.58,16.25,10.91" target="#b9">[10]</ref>.</p><p>In the 5th BioASQ challenge, Wiese et al. <ref type="bibr" coords="2,301.65,430.13,18.06,10.91" target="#b10">[11]</ref> explored domain adaptation to transfer knowledge from an already existing neural Question Answering (QA) system named FastQA <ref type="bibr" coords="2,89.29,457.22,17.89,10.91" target="#b11">[12]</ref> that was trained on SQuAD <ref type="bibr" coords="2,235.48,457.22,16.23,10.91" target="#b12">[13]</ref>. They initialised their model with the pretrained FastQA models' parameters during the fine-tuning phase. Using a combination of fine-tuning and biomedical Word2vec embeddings, their model achieved state-of-the-art results. They also used optimisation approaches such as L2 weight regularisation and forgetting cost term to minimise catastrophic forgetting.</p><p>Lee et al. <ref type="bibr" coords="2,142.00,524.97,17.76,10.91" target="#b13">[14]</ref> discovered the potential to adapt the general domain language model BERT for the biomedical domain. They presented BioBERT, the first biomedical language model. In the pretraining step, BioBERT was initialised with BERT weights and then pretrained on biomedical domain corpora. BioBERT produced benchmark results on a wide range of biomedical text mining tasks, including question answering, relation extraction, and named entity recognition. Yoon et al.'s <ref type="bibr" coords="2,144.98,592.72,18.05,10.91" target="#b14">[15]</ref> submission for task 7b topped the leaderboard in the 7th BioASQ challenge. They used a sequential adaptation technique in which pretrained BioBERT was fine-tuned first on the SQuAD dataset and then on the BioASQ dataset.</p><p>Similarly, BioELMo <ref type="bibr" coords="3,189.33,86.97,17.94,10.91" target="#b15">[16]</ref> is a biomedical version of ELMo that outperforms BioBERT on the authors' probing tasks when used as a feature extractor. However, the fine-tuned BioBERT outperforms BioELMo on named entity recognition and Natural Language Inference (NLI) tasks.</p><p>Hosein et al. <ref type="bibr" coords="3,156.85,127.61,17.75,10.91" target="#b16">[17]</ref> studied domain portability and error propagation of BERT-based QA models through their BioASQ7b submissions. Their results concluded that general domain language models could generalise and give good results for domain-specific tasks. They also observed that pretraining is more critical than fine-tuning when improving the domain portability of BERT QA models. For yes/no questions in the BioASQ7 Phase B challenge, Resta et al. <ref type="bibr" coords="3,465.59,181.81,17.76,10.91" target="#b17">[18]</ref> used an ensemble of classifiers with input from various transformer-based language models. They employed contextual embeddings from multiple pretrained language models, such as BERT and ELMO, as features to capture long-term dependencies.</p><p>Jeong et al. <ref type="bibr" coords="3,156.39,236.01,12.99,10.91" target="#b8">[9]</ref> expanded the prior work on BioBERT models <ref type="bibr" coords="3,385.06,236.01,16.55,10.91" target="#b13">[14,</ref><ref type="bibr" coords="3,404.89,236.01,14.11,10.91" target="#b14">15]</ref> in the 8th BioASQ challenge. They adapted multiple stages of fine-tuning by first fine-tuning BioBERT on the NLI dataset <ref type="bibr" coords="3,123.75,263.11,16.30,10.91" target="#b18">[19]</ref>, then on the SQuAD dataset <ref type="bibr" coords="3,272.43,263.11,16.30,10.91" target="#b12">[13]</ref>, and finally on the downstream BioASQ dataset. Their results established that tasks like NLI that capture the relationships between sentence pairs improve the accuracy of the QA systems. Additionally, they analysed and reported the number of unanswerable questions from the BioASQ7b dataset in the QA setting. Kazaryan et al. <ref type="bibr" coords="3,102.84,317.30,17.97,10.91" target="#b19">[20]</ref> used ALBERT <ref type="bibr" coords="3,188.74,317.30,12.90,10.91" target="#b1">[2]</ref> as their base language model which was fine-tuned first on SQuAD v2.0 <ref type="bibr" coords="3,109.71,330.85,16.25,10.91" target="#b20">[21]</ref>, and subsequently on the BioASQ8b data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">BioASQ Data Processing</head><p>BioASQ <ref type="bibr" coords="3,126.76,389.48,17.87,10.91" target="#b9">[10]</ref> is an international biomedical challenge that comprises annual tasks on semantic indexing and biomedical question answering. The ninth BioASQ challenge consists of two shared tasks. Task 9a is a semantic indexing task that aims to annotate new PubMed articles automatically <ref type="bibr" coords="3,151.41,430.13,17.76,10.91" target="#b21">[22]</ref> with Medical Subject Headings (MeSH). Task 9b is a question answering task devised for systems to answer four types of biomedical questions: factoid, summary, list, and yes/no. The participants are provided with questions along with relevant snippets. The output generated by their systems is either an exact answer (for yes/no, factoid, and list questions) or ideal answers (for summary questions), or both. The tasks are released in five batches over two months, with 24 hours to submit the answers after the release of each test batch.</p><p>We primarily concentrate on factoid questions from the BioASQ9b dataset. The dataset contains a total of 3743 questions, 1092 of which are factoid questions. An example of a factoid question is shown in Figure <ref type="figure" coords="3,212.39,538.52,3.66,10.91">1</ref>. Our system returns exact answers for factoid-type questions that can either be a single entity or a list of entities. We regard the BioASQ challenge task as an extractive QA task because the answer to the query is extracted from the relevant snippet. The metrics used for evaluating the systems on the BioASQ leaderboard are: Strict Accuracy (SAcc), Lenient Accuracy (LAcc), and Mean Reciprocal Rank (MRR). However, MRR is the official metric used by the BioASQ organisers for factoid questions since it is often used to evaluate other factoid QA tasks and challenges <ref type="bibr" coords="3,233.91,619.81,16.25,10.91" target="#b9">[10]</ref>.</p><p>The BioASQ dataset is transformed into the SQuAD format and vice versa using pre-processing and post-processing steps. In a typical span-extractive question answering task, the system is provided with a passage P and a question Q, and it must identify an answer span A (𝑎 𝑠𝑡𝑎𝑟𝑡 , 𝑎 𝑒𝑛𝑑 ) Figure <ref type="figure" coords="4,121.44,179.47,3.82,8.93">1</ref>: Sample factoid question <ref type="bibr" coords="4,235.23,179.52,14.92,8.87" target="#b22">[23]</ref>. The answer to the question is in bold and is extracted from snippet 2.</p><p>in P. The SQuAD dataset is an example of a span prediction QA task containing many questionanswer pairs and a passage that answers the given question. In contrast, the training dataset of BioASQ includes a question, an answer, and multiple relevant snippets. Therefore, we begin by pairing each snippet with its question and transforming it into multiple question-snippet pairs. Also, based on the exact answer provided, we locate the answer's position in the snippet and populate it as the start position of the answer span in the dataset. After performing these pre-processing steps, the BioASQ9b training data samples increased five-fold from 1092 to 5447. Table <ref type="table" coords="4,142.35,323.73,5.11,10.91" target="#tab_0">1</ref> shows the number of questions in the training and test batches before and after pre-processing. Our system returns the prediction span for each question. Because we divided the snippets into several question-snippet pairs during the pre-processing stage, we now have predictions of multiple answer spans and their probabilities for each question. Each system must submit a list of up to five responses for the official BioASQ evaluation. As a result, we select the top five answers for each question in decreasing order of probability as our submission. Thus, for each factoid question, our system returns a list of up to five responses sorted by their likelihood.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Systems Overview</head><p>This section describes our systems and the experimental setup of our submissions at the BioASQ9b challenge. Our submissions in the BioASQ9b challenge are based on two pretrained models: "DistilBERT" and "ALBERT". As mentioned above, we focus mainly on factoid questions. We submitted ALBERT variants for all the BioASQ9b test batches except test batch 3. DistilBERT-based systems were submitted in test batches 2, 4, and 5. In this section, we detail the models, the methodology used, and the experimental setup.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">ALBERT</head><p>For the system using ALBERT, we follow a staged fine-tuning approach by fine-tuning on a large dataset before fine-tuning on the smaller dataset. This preliminary stage of fine-tuning on a large QA task is ideal due to the small size of the BioASQ dataset. However, large-scale bio-medical QA datasets are not readily available that could be used for the first stage of finetuning. Therefore, we use the SQuAD dataset, a widely used extractive QA dataset. Thus, we first fine-tune ALBERT on SQuAD2.0 and later on our downstream BioASQ task. This approach is illustrated in Figure <ref type="figure" coords="5,189.80,231.54,3.74,10.91" target="#fig_0">2</ref>. ALBERT is a lighter version of BERT with considerably fewer parameters. Lan et al. <ref type="bibr" coords="5,470.42,431.38,12.69,10.91" target="#b1">[2]</ref> used two parameter-reduction strategies to lower the memory usage and increase the training speed of BERT. Since ALBERT models scale better than BERT, we have used the xxlarge version of ALBERT for our experiments. The BioASQ task was set up as a span-extraction QA task in which the model predicts the start and end span of answers for a given context and question. In both stages of fine-tuning, the input to the model is the concatenation of passage and question with a special token [SEP] separating them. This input is tokenized using WordPiece embeddings <ref type="bibr" coords="5,488.21,512.67,17.77,10.91" target="#b23">[24]</ref> to handle the out-of-vocabulary issues. After WordPiece tokenization, the maximum allowable input sequence length is 512 for both the ALBERT and DistilBERT models. The input has three embeddings: token, position, and sentence. In order to differentiate between the sentences, sentence embedding is appended to each sentence, and a special position token is added to identify the position of each token. The model returns the start and end scores for each word. The output of the model is the candidate span with the highest score and where the end position is greater than or equal to the start position.</p><p>We employed "ALBERT-xxlarge" version 2 as our pretrained language model along with its tokenizer, which are publicly available from the Huggingface Transformers Library <ref type="bibr" coords="5,462.85,634.62,16.26,10.91" target="#b24">[25]</ref>. This model has an additional task-specific linear question answering layer on top to output the start and end spans. Unless otherwise specified, the hyperparameters for both fine-tuning stages were set to the default values used by the ALBERT developers. The systems were validated on the BioASQ7b test batches 1 and 2.</p><p>All the three ALBERT-based submissions use the same fine-tuning approach discussed above with slight changes to the fine-tuning hyper-parameters. The systems along with hyperparameters are listed in Table <ref type="table" coords="6,190.37,141.16,5.07,10.91" target="#tab_1">2</ref> and their results are listed in Table <ref type="table" coords="6,355.18,141.16,3.74,10.91">3</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Gradual Unfreezing DistilBERT</head><p>In recent years, the pretrained language models are getting bigger and deeper with millions, sometimes billions of parameters <ref type="bibr" coords="6,238.62,320.48,11.34,10.91" target="#b1">[2,</ref><ref type="bibr" coords="6,252.70,320.48,12.31,10.91" target="#b25">26]</ref>. The success of these models on NLP tasks has fueled the race to scale up the models further. However, deploying these massive models on mobile and edge devices has implications such as environmental impact and computational cost <ref type="bibr" coords="6,486.84,347.58,16.28,10.91" target="#b26">[27]</ref>, making them unsuitable for use in real-world applications. Sanh et al. <ref type="bibr" coords="6,401.63,361.13,17.88,10.91" target="#b27">[28]</ref> applied knowledge distillation <ref type="bibr" coords="6,138.77,374.68,17.76,10.91" target="#b28">[29]</ref> and proposed a smaller language model, DistilBERT, that achieves performance comparable to BERT on various NLP tasks. DistilBERT, a distilled, compact version of BERT, has 60% fewer parameters than BERT. The focus for our second system was to study the effect of gradual unfreezing on the transformer-based language models. We used DistilBERT as our pretrained model to conduct the experiments of gradually unfreezing the transformer layers. The reason for this choice was the small size of DistilBERT and its ability to achieve close to 95% of all the NLP task benchmarks when compared to BERT.</p><p>The process of fine-tuning allows the model to learn the distribution of the downstream task. In standard fine-tuning, all the layers of the model are trained on the target task simultaneously. Howard et al. <ref type="bibr" coords="6,151.26,510.17,12.69,10.91" target="#b5">[6]</ref> introduced a fine-tuning approach of gradually unfreezing one layer at a time, starting from the top layer. They used a standard Long Short-Term Memory (LSTM) network without any attention mechanism for their experiments. Our work investigates the gradual unfreezing approach on DistilBERT using BioASQ9b as our target dataset.</p><p>DistilBERT has three blocks of layers: one embedding layer, six transformer layers, and a top task-specific layer. In our approach shown in Figure <ref type="figure" coords="6,346.16,577.91,3.81,10.91" target="#fig_1">3</ref>, we begin by fine-tuning only the top task-specific layer for one epoch while keeping all other layers frozen. Then we unfreeze the transformer layers consecutively in groups of three, fine-tune all the unfrozen layers for one epoch, and repeat until all layers are fine-tuned except the embedding layer. The decision to keep the embedding layer always frozen was based on the preliminary experiments in our previous work <ref type="bibr" coords="6,156.18,645.66,16.24,10.91" target="#b22">[23]</ref>. As a result, DistilBERT's trainable parameters have been reduced from 65 million to 42 million. In this system, "distilbert-base-cased" <ref type="bibr" coords="7,268.50,368.21,17.88,10.91" target="#b24">[25]</ref> is first fine-tuned on SQuAD1.1 data and then on BioASQ9b task. Our gradual unfreezing approach is only applied during the second stage of fine-tuning. In the second phase of fine-tuning, we fine-tune the model at a constant learning rate of 3e-5, sequence length of 512, and for three epochs. We evaluate the unfreezing approach through two submissions at the BiOASQ challenge. The system "DistilBERT" is our baseline system. In this system, all the layers of DistilBERT are fine-tuned simultaneously. The system "Unfreezing DistilBERT" is the model that was fine-tuned using our unfreezing approach. Both systems are fine-tuned with the same hyperparameters for a fair comparison. Table <ref type="table" coords="7,462.57,463.06,5.06,10.91">3</ref> lists our systems with the results, along with the top-ranked system in the BioaASQ9b leaderboard. We have reported the MRR in the results table since it is the main metric used by the BioASQ organisers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Results</head><p>The results of our submissions to the BioASQ9b Phase B challenge are shown in Table <ref type="table" coords="7,472.17,562.33,3.71,10.91">3</ref>. From the results, we observe that "ALBERT 2" system was the best system for batch 1, and the "ALBERT 3" system was ranked fourth on the public leaderboard of the BioASQ9b challenge. Overall, the systems using the pretrained ALBERT weights have performed exceedingly well on test batches 1 and 2. However, our ALBERT variants received poor results for test batches 4 and 5. It is worth noting that all the systems will be evaluated by humans experts after the competition. However, because this data was not accessible at the time of writing this study, we rely on automatic evaluations available on the BioASQ leaderboard.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 3</head><p>Results of our five submissions along with the top-ranked system from the BioASQ9b leaderboard. The first column of the table lists the unique submission identifier along with the system names as displayed on the public leaderboard. The highest score for each batch is in bold. Results from our previous work <ref type="bibr" coords="8,219.49,278.31,16.46,8.87" target="#b22">[23]</ref> on the BioASQ7b dataset. The system 'KU DMIS Team' <ref type="bibr" coords="8,466.78,278.31,15.05,8.87" target="#b29">[30,</ref><ref type="bibr" coords="8,484.21,278.31,12.86,8.87" target="#b14">15]</ref> is BioBERT based system that was top of the leaderboard in the BioASQ7b challenge.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Submission</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Systems</head><p>Mean Reciprocal Rank KU-DMIS Team <ref type="bibr" coords="8,264.11,327.31,15.05,8.87" target="#b29">[30,</ref><ref type="bibr" coords="8,281.66,327.31,12.86,8.87" target="#b14">15]</ref> 0.5235 DistilBERT-fine-tuned 0.4844 DistilBERT-unfreeze-3 0.4841</p><p>The most noticeable difference between our DistilBERT and ALBERT variants, apart from their sizes, is the initial fine-tuning stage. In our systems, ALBERT was fine-tuned on SQuAD2.0, whereas DistilBERT was fine-tuned on SQuAD1.1. The SQuAD2.0 dataset is a reading comprehension dataset that, in addition to the SQuAD1.1 dataset, contains approximately 50,000 unanswerable questions. We need to look into whether test batches 1 and 2 had more unanswered questions after the organisers release the golden answers, and if so, how it has affected the results.</p><p>From the results of Table <ref type="table" coords="8,213.20,481.64,3.71,10.91">3</ref>, we observe that both "DistilBERT" and "Unfreezing DistilBERT" outperformed the ALBERT variants for the test batches 4 and 5. Our system "Unfreezing DistilBERT" is ranked sixth in the BioASQ9b public leaderboard. The average MRR score of test batches 2, 4 and 5 for systems "DistilBERT" and "Unfreezing DistilBERT" is 0.5209 and 0.5232 respectively, and the difference is not statistically significant <ref type="foot" coords="8,367.48,534.08,3.71,7.97" target="#foot_3">4</ref> . Thus, we can conclude that gradually unfreezing the transformer-based models has no significant impact on the model's accuracy compared to typical fine-tuning. These results further support the findings of our previous work <ref type="bibr" coords="8,155.63,576.48,17.83,10.91" target="#b22">[23]</ref> on gradually unfreezing DistilBERT with the BioASQ7b dataset, the results of which are shown in Table <ref type="table" coords="8,225.41,590.03,3.81,10.91" target="#tab_2">4</ref>. The results show that gradually unfrozen models produce promising results for a few test batches, but have no overall significant impact across all the test batches.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>Our participation in BioASQ9b was primarily focused on generating the ideal answers for factoid questions. We participated in four test batches, with our systems employing pretrained ALBERT and DistilBERT language models. The results were mixed, with ALBERT-based systems ranking amongst the top systems for test batches 1 and 2. For test batch 4, the compact DistilBERT variants, although having 81 percent fewer parameters, scored considerably better than ALBERT. This paves the way for a biomedical version of DistilBERT for mobile and edge devices for real life biomedical QA applications. In addition, we investigated the effect of gradual unfreezing on transformer-based language models using the BioASQ9b dataset. We conclude that gradually unfreezing the layers of DistilBERT had no significant impact on the model's accuracy in comparison to standard fine-tuning. We also investigated an unfreezing approach that makes use of only 66% of DistilBERT's parameters when fine-tuning. In the future, we will aim to investigate ensemble or hybrid models of DistilBERT and ALBERT.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,89.29,401.73,259.24,8.93;5,97.97,254.25,396.84,134.92"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Diagram depicting our system's fine-tuning strategy.</figDesc><graphic coords="5,97.97,254.25,396.84,134.92" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="7,89.29,330.61,220.25,8.93;7,112.14,84.19,368.50,233.85"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Diagram showing our unfreezing approach.</figDesc><graphic coords="7,112.14,84.19,368.50,233.85" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,88.99,366.22,358.89,117.69"><head>Table 1</head><label>1</label><figDesc>Summary of BioASQ9bTraining and Test data before and after pre-processing.</figDesc><table coords="4,147.40,397.83,300.48,86.07"><row><cell>Dataset</cell><cell>Number of Factoid Questions Before Pre-processing</cell><cell>Number of Factoid Questions After Pre-processing</cell></row><row><cell>Training</cell><cell>1092</cell><cell>5447</cell></row><row><cell>Batch 1</cell><cell>29</cell><cell>139</cell></row><row><cell>Batch 2</cell><cell>34</cell><cell>151</cell></row><row><cell>Batch 4</cell><cell>28</cell><cell>132</cell></row><row><cell>Batch 5</cell><cell>36</cell><cell>148</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,88.98,167.72,360.96,81.83"><head>Table 2</head><label>2</label><figDesc>ALBERT-based systems along with the hyperparameters.</figDesc><table coords="6,145.33,199.34,304.61,50.21"><row><cell cols="5">System Name Learning Rate Batch Size Sequence Length Epochs</cell></row><row><cell>ALBERT 1</cell><cell>3e-5</cell><cell>4</cell><cell>512</cell><cell>3</cell></row><row><cell>ALBERT 2</cell><cell>2e-5</cell><cell>4</cell><cell>512</cell><cell>4</cell></row><row><cell>ALBERT 3</cell><cell>1e-5</cell><cell>4</cell><cell>512</cell><cell>3</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="8,88.99,146.01,408.73,129.21"><head>Table 4</head><label>4</label><figDesc></figDesc><table coords="8,97.55,146.01,400.17,98.04"><row><cell>( Display name)</cell><cell>System</cell><cell cols="4">Factoid -Mean Reciprocal Rank (MRR) Batch 1 Batch 2 Batch 4 Batch 5</cell></row><row><cell>MQ TL1 (ALBERT)</cell><cell>ALBERT 1</cell><cell>0.4379</cell><cell>0.4667</cell><cell>0.369</cell><cell>0.4468</cell></row><row><cell>MQ TL2 (Ensemble)</cell><cell>ALBERT 2</cell><cell>0.4632</cell><cell>0.501</cell><cell>0.4167</cell><cell>0.4731</cell></row><row><cell>MQ TL-3 (Another ALBERT)</cell><cell>ALBERT 3</cell><cell>0.4621</cell><cell>0.5319</cell><cell>0.4375</cell><cell>0.4778</cell></row><row><cell>MQ TL4 (Final BERT)</cell><cell>DistilBERT</cell><cell>-</cell><cell>0.5059</cell><cell>0.5399</cell><cell>0.5171</cell></row><row><cell cols="3">MQ Transfer Learning (MRes) Unfreezing DistilBERT -</cell><cell>0.4887</cell><cell>0.5893</cell><cell>0.4917</cell></row><row><cell>Top Ranked System</cell><cell>-</cell><cell>0.4632</cell><cell>0.5539</cell><cell>0.6929</cell><cell>0.588</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,649.10,330.97,8.97"><p>Code associated with this paper is available at https://github.com/urvashikhanna/bioasq9b</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,108.93,660.06,63.73,8.97"><p>http://bioasq.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,108.93,671.02,196.12,8.97"><p>http://participants-area.bioasq.org/results/9b/phaseB/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="8,108.93,649.09,397.06,8.97;8,89.29,660.05,416.93,8.97;8,89.29,671.01,121.13,8.97"><p>Paired t-tests were used to compute the statistical significance since the MRR can be considered as a normal distribution as it is an average of samples. We find no statistically significant difference between the gradually unfrozen model and the baseline.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="9,112.66,318.95,393.33,10.91;9,112.66,332.50,393.33,10.91;9,112.66,346.05,393.32,10.91;9,112.66,359.59,393.33,10.91;9,112.66,373.14,394.03,10.91;9,112.66,386.69,234.20,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="9,323.15,318.95,182.83,10.91;9,112.66,332.50,186.91,10.91">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+		<ptr target="https://www.aclweb.org/anthology/N19-1423.doi:10.18653/v1/N19-1423" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,327.87,332.50,178.11,10.91;9,112.66,346.05,393.32,10.91;9,112.66,359.59,99.97,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Long and Short Papers</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,400.24,393.53,10.91;9,112.66,413.79,393.33,10.91;9,112.33,427.34,29.19,10.91" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Lan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Gimpel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Soricut</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.11942</idno>
+		<title level="m" coord="9,408.01,400.24,98.18,10.91;9,112.66,413.79,237.41,10.91">Albert: A lite bert for self-supervised learning of language representations</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,440.89,394.53,10.91;9,112.30,454.44,393.68,10.91;9,112.66,467.99,107.17,10.91" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1907.11692</idno>
+		<title level="m" coord="9,173.53,454.44,256.77,10.91">Roberta: A robustly optimized bert pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,481.54,393.33,10.91;9,112.66,495.09,393.32,10.91;9,112.28,508.64,309.50,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="9,334.50,481.54,171.48,10.91;9,112.66,495.09,44.71,10.91">Transfer learning in natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">E</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Swayamdipta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wolf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,180.19,495.09,325.79,10.91;9,112.28,508.64,232.11,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Tutorials</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Tutorials</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="15" to="18" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,522.18,395.17,10.91;9,112.66,535.73,394.53,10.91;9,112.66,549.28,395.17,10.91;9,112.66,562.83,394.53,10.91;9,112.41,576.38,394.72,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="9,371.16,522.18,136.67,10.91;9,112.66,535.73,389.85,10.91">Using millions of emoji occurrences to learn any-domain representations for detecting sentiment, emotion and sarcasm</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Felbo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mislove</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Søgaard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Rahwan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Lehmann</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D17-1169</idno>
+		<ptr target="https://www.aclweb.org/anthology/D17-1169.doi:10.18653/v1/D17-1169" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,127.42,549.28,380.41,10.91;9,112.66,562.83,29.82,10.91">Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2017 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Copenhagen, Denmark</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1615" to="1625" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,589.93,394.62,10.91;9,112.66,603.48,393.32,10.91;9,112.33,617.03,394.86,10.91;9,112.66,630.58,394.51,10.91;9,112.66,646.57,50.37,7.90" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,212.35,589.93,272.23,10.91">Universal language model fine-tuning for text classification</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P18-1031</idno>
+		<ptr target="https://www.aclweb.org/anthology/P18-1031.doi:10.18653/v1/P18-1031" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.66,603.48,393.32,10.91">Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 56th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Melbourne, Australia</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="328" to="339" />
+		</imprint>
+	</monogr>
+	<note>Long Papers</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,86.97,393.32,10.91;10,112.66,100.52,393.75,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="10,259.52,86.97,196.80,10.91">How to fine-tune bert for text classification?</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Qiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Huang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,479.02,86.97,26.96,10.91;10,112.66,100.52,263.46,10.91">China National Conference on Chinese Computational Linguistics</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="194" to="206" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,114.06,393.33,10.91;10,112.66,127.61,393.33,10.91;10,112.66,141.16,198.72,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="10,241.82,114.06,264.16,10.91;10,112.66,127.61,134.68,10.91">Tanda: Transfer and adapt pre-trained transformer models for answer sentence selection</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Garg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Vu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moschitti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,275.28,127.61,230.70,10.91;10,112.66,141.16,50.10,10.91">Proceedings of the AAAI Conference on Artificial Intelligence</title>
+		<meeting>the AAAI Conference on Artificial Intelligence</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="volume">34</biblScope>
+			<biblScope unit="page" from="7780" to="7788" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,154.71,394.53,10.91;10,112.66,168.26,173.79,10.91" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="10,150.87,154.71,351.41,10.91">Transferability of natural language inference to biomedical question answering</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.00217</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,181.81,395.17,10.91;10,112.66,195.36,393.32,10.91;10,112.66,208.91,393.33,10.91;10,112.66,222.46,304.82,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="10,387.50,195.36,118.48,10.91;10,112.66,208.91,358.40,10.91">An overview of the bioasq large-scale biomedical semantic indexing and question answering competition</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Tsatsaronis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Balikas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Malakasiotis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Partalas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zschunke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">R</forename><surname>Alvers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Weissenborn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krithara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Petridis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Polychronopoulos</surname></persName>
+		</author>
+		<idno type="DOI">10.1186/s12859-015-0564-6</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="10,482.92,208.91,23.07,10.91;10,112.66,222.46,64.57,10.91">BMC bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="1" to="28" />
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,236.01,393.32,10.91;10,112.66,249.56,393.33,10.91;10,112.66,263.11,394.53,10.91;10,112.66,276.66,394.51,10.91;10,112.66,292.65,50.37,7.90" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="10,280.85,236.01,225.13,10.91;10,112.66,249.56,44.34,10.91">Neural domain adaptation for biomedical question answering</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wiese</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Weissenborn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Neves</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/K17-1029</idno>
+		<ptr target="https://www.aclweb.org/anthology/K17-1029.doi:10.18653/v1/K17-1029" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,180.56,249.56,325.43,10.91;10,112.66,263.11,298.60,10.91">Proceedings of the 21st Conference on Computational Natural Language Learning (CoNLL 2017), Association for Computational Linguistics</title>
+		<meeting>the 21st Conference on Computational Natural Language Learning (CoNLL 2017), Association for Computational Linguistics<address><addrLine>Vancouver, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="281" to="289" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,303.75,393.33,10.91;10,112.66,317.30,393.33,10.91;10,112.66,330.85,394.53,10.91;10,112.66,344.40,394.51,10.91;10,112.66,360.39,50.37,7.90" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="10,284.00,303.75,221.99,10.91;10,112.66,317.30,31.30,10.91">Making neural QA as simple as possible but not simpler</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Weissenborn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wiese</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Seiffe</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/K17-1028</idno>
+		<ptr target="https://www.aclweb.org/anthology/K17-1028.doi:10.18653/v1/K17-1028" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,171.34,317.30,334.64,10.91;10,112.66,330.85,298.60,10.91">Proceedings of the 21st Conference on Computational Natural Language Learning (CoNLL 2017), Association for Computational Linguistics</title>
+		<meeting>the 21st Conference on Computational Natural Language Learning (CoNLL 2017), Association for Computational Linguistics<address><addrLine>Vancouver, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="271" to="280" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,371.50,393.33,10.91;10,112.66,385.05,393.33,10.91;10,112.66,398.60,394.52,10.91;10,112.66,412.15,394.51,10.91;10,112.36,428.14,68.18,7.90" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="10,320.68,371.50,185.30,10.91;10,112.66,385.05,98.54,10.91">SQuAD: 100,000+ questions for machine comprehension of text</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rajpurkar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lopyrev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Liang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D16-1264</idno>
+		<ptr target="https://www.aclweb.org/anthology/D16-1264.doi:10.18653/v1/D16-1264" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,233.64,385.05,272.35,10.91;10,112.66,398.60,324.64,10.91">Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing, Association for Computational Linguistics</title>
+		<meeting>the 2016 Conference on Empirical Methods in Natural Language Processing, Association for Computational Linguistics<address><addrLine>Austin, Texas</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="2383" to="2392" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,439.25,393.32,10.91;10,112.66,452.79,393.33,10.91;10,112.33,466.34,29.19,10.91" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="10,366.73,439.25,139.25,10.91;10,112.66,452.79,247.84,10.91">Biobert: pre-trained biomedical language representation model for biomedical text mining</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yoon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">H</forename><surname>So</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1901.08746</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,479.89,393.33,10.91;10,112.66,493.44,267.54,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="10,310.77,479.89,195.22,10.91;10,112.66,493.44,84.94,10.91">Pre-trained language model for biomedical question answering</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yoon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Jeong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.08229</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,506.99,393.33,10.91;10,112.66,520.54,393.33,10.91;10,112.66,534.09,395.01,10.91;10,112.66,547.64,372.02,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="10,288.63,506.99,217.36,10.91;10,112.66,520.54,28.72,10.91">Probing biomedical embeddings from language models</title>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Jin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Dhingra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Lu</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W19-2011</idno>
+		<ptr target="https://www.aclweb.org/anthology/W19-2011.doi:10.18653/v1/W19-2011" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,164.54,520.54,341.45,10.91;10,112.66,534.09,229.82,10.91">Proceedings of the 3rd Workshop on Evaluating Vector Space Representations for NLP, Association for Computational Linguistics</title>
+		<meeting>the 3rd Workshop on Evaluating Vector Space Representations for NLP, Association for Computational Linguistics<address><addrLine>Minneapolis, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="82" to="89" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,561.19,393.33,10.91;10,112.66,574.74,241.73,10.91" xml:id="b16">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hosein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Andor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.09704</idno>
+		<title level="m" coord="10,262.40,561.19,243.59,10.91;10,112.66,574.74,59.72,10.91">Measuring domain portability and error propagation in biomedical qa</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,588.29,393.32,10.91;10,112.66,601.84,393.33,10.91;10,112.66,615.39,232.59,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="10,306.57,588.29,199.41,10.91;10,112.66,601.84,41.28,10.91">Transformer models for question answering at bioasq</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Resta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Arioli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Fagnani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Attardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,204.24,601.84,301.75,10.91;10,112.66,615.39,101.82,10.91">Joint European Conference on Machine Learning and Knowledge Discovery in Databases</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019. 2019</date>
+			<biblScope unit="page" from="711" to="726" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,628.93,393.33,10.91;10,112.66,642.48,393.33,10.91;10,112.28,656.03,393.71,10.91;10,112.33,669.58,394.86,10.91;11,112.66,86.97,265.66,10.91" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="10,284.97,628.93,221.02,10.91;10,112.66,642.48,148.23,10.91">A broad-coverage challenge corpus for sentence understanding through inference</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Nangia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bowman</surname></persName>
+		</author>
+		<ptr target="http://aclweb.org/anthology/N18-1101" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,284.46,642.48,221.52,10.91;10,112.28,656.03,393.71,10.91;10,112.33,669.58,56.93,10.91">Proceedings of the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2018 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1112" to="1122" />
+		</imprint>
+	</monogr>
+	<note>Long Papers</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,100.52,393.33,10.91;11,112.66,114.06,212.00,10.91" xml:id="b19">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Kazaryan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Sazanovich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Belyaev</surname></persName>
+		</author>
+		<title level="m" coord="11,302.87,100.52,203.12,10.91;11,112.66,114.06,180.08,10.91">Transformer-based open domain biomedical question answering at bioasq8 challenge</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,127.61,393.53,10.91;11,112.66,141.16,393.33,10.91;11,112.66,154.71,395.17,10.91;11,112.66,168.26,395.00,10.91;11,112.66,181.81,138.14,10.91" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="11,245.77,127.61,260.41,10.91;11,112.66,141.16,29.70,10.91">Know what you don&apos;t know: Unanswerable questions for SQuAD</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rajpurkar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Liang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P18-2124</idno>
+		<ptr target="https://www.aclweb.org/anthology/P18-2124.doi:10.18653/v1/P18-2124" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,166.12,141.16,339.86,10.91;11,112.66,154.71,49.38,10.91;11,286.92,154.71,192.00,10.91">Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting>the 56th Annual Meeting of the Association for Computational Linguistics<address><addrLine>Melbourne, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="784" to="789" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,195.36,393.33,10.91;11,112.66,208.91,395.01,10.91;11,112.66,222.46,185.81,10.91" xml:id="b21">
+	<monogr>
+		<title level="m" type="main" coord="11,152.90,195.36,353.09,10.91;11,112.66,208.91,33.09,10.91">Pubmed® comprises more than 30 million citations for biomedical literature from medline</title>
+		<ptr target="https://pubmed.ncbi.nlm.nih.gov" />
+		<imprint>
+			<date type="published" when="2020-01">2020. 1-December-2020</date>
+		</imprint>
+	</monogr>
+	<note>life science journals, and online books</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,236.01,393.33,10.91;11,112.66,249.56,394.52,10.91;11,112.28,263.11,183.89,10.91" xml:id="b22">
+	<monogr>
+		<title level="m" type="main" coord="11,162.10,236.01,343.88,10.91;11,112.66,249.56,44.78,10.91">Gradual unfreezing transformer-based language models for biomedical question answering</title>
+		<author>
+			<persName coords=""><forename type="first">U</forename><surname>Khanna</surname></persName>
+		</author>
+		<ptr target="http://hdl.handle.net/1959.14/1280832" />
+		<imprint>
+			<date type="published" when="2021-03">2021. 03-June-2021</date>
+			<pubPlace>Sydney, Australia Online</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Macquarie University</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,276.66,394.53,10.91;11,112.66,290.20,393.33,10.91;11,112.66,303.75,322.12,10.91" xml:id="b23">
+	<monogr>
+		<title level="m" type="main" coord="11,198.02,290.20,307.97,10.91;11,112.66,303.75,140.18,10.91">Google&apos;s neural machine translation system: Bridging the gap between human and machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Norouzi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Macherey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Krikun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Macherey</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1609.08144</idno>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,317.30,394.53,10.91;11,112.66,330.85,394.53,10.91;11,112.66,344.40,395.17,10.91;11,112.66,357.95,393.33,10.91;11,112.66,371.50,394.53,10.91;11,112.66,385.05,385.60,10.91" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="11,315.63,344.40,192.20,10.91;11,112.66,357.95,72.82,10.91">Transformers: State-of-the-art natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Delangue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Cistac</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Rault</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Louf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Funtowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Davison</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shleifer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Von Platen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Jernite</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Plu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">L</forename><surname>Scao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gugger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Drame</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Lhoest</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Rush</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/2020.emnlp-demos.6" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,207.25,357.95,298.74,10.91;11,112.66,371.50,390.37,10.91">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations, Association for Computational Linguistics</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations, Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="38" to="45" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,398.60,393.33,10.91;11,112.66,412.15,253.81,10.91" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="11,407.93,398.60,98.05,10.91;11,112.66,412.15,141.16,10.91">Language models are unsupervised multitask learners</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Luan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Amodei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="11,262.00,412.15,56.95,10.91">OpenAI blog</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,425.70,393.33,10.91;11,112.66,439.25,393.32,10.91;11,112.66,452.79,395.01,10.91;11,112.66,466.34,367.55,10.91" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="11,279.17,425.70,226.82,10.91;11,112.66,439.25,27.37,10.91">Energy and policy considerations for deep learning in NLP</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Strubell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ganesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mccallum</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/P19-1355</idno>
+		<ptr target="https://www.aclweb.org/anthology/P19-1355.doi:10.18653/v1/P19-1355" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="11,163.69,439.25,342.30,10.91;11,112.66,452.79,234.04,10.91">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics</title>
+		<meeting>the 57th Annual Meeting of the Association for Computational Linguistics, Association for Computational Linguistics<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="3645" to="3650" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="11,112.66,479.89,394.53,10.91;11,112.66,493.44,295.45,10.91" xml:id="b27">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wolf</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1910.01108</idno>
+		<title level="m" coord="11,303.00,479.89,204.19,10.91;11,112.66,493.44,113.82,10.91">Distilbert, a distilled version of bert: smaller, faster, cheaper and lighter</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,506.99,393.59,10.91;11,112.66,520.54,146.44,10.91" xml:id="b28">
+	<monogr>
+		<title level="m" type="main" coord="11,262.21,506.99,206.62,10.91">Distilling the knowledge in a neural network</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1503.02531</idno>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="11,112.66,534.09,394.04,10.91;11,112.66,547.64,394.86,10.91" xml:id="b29">
+	<monogr>
+		<author>
+			<persName coords=""><surname>Tsatsaronis</surname></persName>
+		</author>
+		<ptr target="http://participants-area.bioasq.org/results/7b/phaseB/" />
+		<title level="m" coord="11,198.47,534.09,270.28,10.91">Bioasq participants area task 7b: Test results of phase b</title>
+		<imprint>
+			<date type="published" when="2021-01-17">17-January-2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

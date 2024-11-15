@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,79.55,84.23,455.09,15.44;1,99.16,104.15,413.69,15.44">Experiments with Adaptive ReRanking and ColBERT-PRF: University of Glasgow Terrier Team at TREC DL 2022</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,156.10,134.31,54.18,10.59"><forename type="first">Xiao</forename><surname>Wang</surname></persName>
+							<email>x.wang.8@research.gla.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,313.94,134.31,79.51,10.59"><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,402.38,134.31,80.66,10.59"><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,491.67,134.31,53.61,10.59"><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,79.55,84.23,455.09,15.44;1,99.16,104.15,413.69,15.44">Experiments with Adaptive ReRanking and ColBERT-PRF: University of Glasgow Terrier Team at TREC DL 2022</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">B7A83E0ABF118AC0ED063B173F3564B9</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our participation in the TREC 2022 Deep Learning Track. In our participation, we applied the Adaptive ReRanking technique on the constructed corpus graph from various first-stage retrieval models, namely the BM25 and SPLADE retrieval models, before applying the reranker, namely the ELECTRA reranking model. In addition, we employed the ColBERT-PRF technique on various first stage retrieval models. Finally, we experimented with ensemble retrieval for implementing both the Adaptive ReRanking and the ColBERT-PRF techniques. We submitted 14 passage ranking runs (including six baseline runs). Among the submitted runs, the run where the Adaptive ReRanking technique is applied on the ensemble of BM25 and SPLADE retrieval, namely uogtr_e_gb, is the most effective in terms of nDCG@10.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The University of Glasgow Terrier team participated in the TREC 2022 Deep Learning track to evaluate the effectiveness of a variety of newly-proposed retrieval and ranking approaches, including ColBERT-PRF <ref type="bibr" coords="1,121.99,394.64,14.85,7.94" target="#b15">[16]</ref> and Adaptive ReRanking <ref type="bibr" coords="1,234.27,394.64,9.52,7.94" target="#b7">[8]</ref>, on the large MS MARCO v2 corpus. These approaches are both designed to identify new potentially-relevant documents from the corpus, however they accomplish the task in different ways. ColBERT-PRF refines the query representation using clusters of term embeddings from the top-retrieved documents. Meanwhile, Adaptive ReRanking is applied at the re-ranking stage and iteratively retrieves documents that are close to the top-scored ones discovered by system so far.</p><p>We sought to explore the following research questions: (1) whether ColBERT-PRF can be effectively applied over a variety of initial ranking models; <ref type="bibr" coords="1,113.88,504.23,9.32,7.94" target="#b1">(2)</ref> whether Adaptive ReRanking is affected by the large number of duplicate documents in the corpus; and (3) whether it is possible to achieve competitive results without using a learned first-stage retrieval function (since they are expensive to run over a large corpus).</p><p>To answer these questions, we conducted our experiments using our PyTerrier <ref type="bibr" coords="1,103.94,569.99,13.40,7.94" target="#b9">[10,</ref><ref type="bibr" coords="1,119.40,569.99,11.47,7.94" target="#b10">11]</ref> information retrieval (IR) toolkit, allowing us to easily define and execute flexible retrieval pipelines. In particular, we applied our ColBERT-PRF <ref type="bibr" coords="1,167.44,591.90,14.85,7.94" target="#b15">[16]</ref> technique on several learned first-stage retrieval models, including single-representation models, such as TCT-ColBERT <ref type="bibr" coords="1,142.48,613.82,9.43,7.94" target="#b5">[6,</ref><ref type="bibr" coords="1,155.27,613.82,7.43,7.94" target="#b6">7]</ref> and SPLADE <ref type="bibr" coords="1,218.62,613.82,9.44,7.94" target="#b2">[3,</ref><ref type="bibr" coords="1,231.43,613.82,6.29,7.94" target="#b3">4]</ref>, and multiplerepresentation dense retrieval, specifically ColBERT, as well as an ensemble of different dense retrieval models as the first-stage retrieval. We also constructed several Adaptive ReRanking pipelines over a variety of first-stage models, using both nearest neighbour information from BM25 and TCT-ColBERT.</p><p>The structure of the remainder of this paper is structured as follows: Section 2 introduces the notations of retrieval pipelines in PyTerrier. Section 3 describes the models and the frameworks we used as well as the experimental setup used in this work. Both the baseline and the group's submitted runs are detailed in Section 4. the results and analysis are presented in Section 5. Concluding remarks follow in Section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">PYTERRIER RETRIEVAL PIPELINES</head><p>All of our experiments and submitted runs for the TREC 2022 Deep Learning track are built upon PyTerrier, the expressive Python bindings for Terrier <ref type="bibr" coords="1,390.78,273.55,13.41,7.94" target="#b9">[10,</ref><ref type="bibr" coords="1,406.43,273.55,10.05,7.94" target="#b10">11]</ref>. In particular, in PyTerrier, all retrieval components (rankers or rerankers) to take the form of transformer objects, which transform one dataframe to another. To create flexible pipelines composed of multiple transformers, PyTerrier overloads standard Python operators for transformer objects as follows:</p><p>• » (then): Passes the output of one transformer into another.</p><p>• | (result set union): Combines the results of two transformers by selecting query-document pairs that appear in either result set.</p><p>All ranking approaches described in the rest of this paper were expressed as pipelines of transformers using these operators. We refer the reader to <ref type="bibr" coords="1,387.62,405.11,14.84,7.94" target="#b10">[11]</ref> for more information about the PyTerrier platform, the flexibility of its operators, and and its wider ecosystem of plugins for a variety of retrieval techniques implemented as transformers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">METHODS</head><p>In this section, we introduce the background knowledge of the graph-based Adaptive ReRanking technique in Section 3.1 and the ColBERT-PRF dense retrieval technique in Section 3.2, respectively. This is followed by the experimental setup details in Section 3.3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Graph-based Adaptive ReRanking (GAR)</head><p>In our participation, we implemented the graph-based Adaptive ReRanking <ref type="bibr" coords="1,361.23,559.03,9.44,7.94" target="#b7">[8,</ref><ref type="bibr" coords="1,373.30,559.03,7.43,7.94" target="#b8">9]</ref> technique. The Adaptive ReRanking algorithm works within a pipelined cascading retrieval architecture. The Adaptive ReRanking technique leverages a pre-computed corpus graph, where the nodes represent the documents and an edge between two nodes represents a high degree of similarity between the pair of documents. More specifically, different techniques are used to construct corpus graphs, namely a graph of BM25 similarities and a TCT-ColBERT built from an Hierarchical Navigable Small World (HNSW) <ref type="bibr" coords="1,350.28,646.70,14.60,7.94" target="#b11">[12]</ref> graph. Based on such graphs, given an initial ranking pool of documents, the Adaptive ReRanking algorithm extracts the documents from the corpus that are most similar to the highestranked documents to improve the retrieval effectiveness.</p><p>In the following, we present one experimental pipeline using BM25 retrieval, which is then adaptively re-ranked using ELECTRA and a BM25 corpus graph:</p><formula xml:id="formula_0" coords="2,109.74,103.14,184.84,8.43">𝐵𝑀25 » 𝐺𝐴𝑅 𝐵𝑀25 (𝐸𝐿𝐸𝐶𝑇 𝑅𝐴),<label>(1)</label></formula><p>where 𝐺𝐴𝑅 𝐵𝑀25 (𝐸𝐿𝐸𝐶𝑇 𝑅𝐴) represents the Adaptive ReRanking procedure over a BM25 graph using an 𝐸𝐿𝐸𝐶𝑇 𝑅𝐴 scorer <ref type="bibr" coords="2,262.37,130.41,13.36,7.94" target="#b13">[14]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">ColBERT-PRF</head><p>ColBERT-PRF is a pseudo-relevant feedback (PRF) mechanism, which operates entirely in the embedding space of the ColBERT model. More specifically, the stages of ColBERT-PRF <ref type="bibr" coords="2,251.27,187.74,13.61,7.94" target="#b15">[16,</ref><ref type="bibr" coords="2,267.14,187.74,11.59,7.94" target="#b16">17]</ref> can be summarised as follows:</p><p>(a) After obtaining the top ranked documents and their corresponding document embeddings from a first stage that deploys Approximate Nearest Neighbour (ANN) retrieval, ColBERT-PRF employs KMeans clustering to obtain the representative (centroid) embeddings.</p><p>(b) Among the representative (centroid) embeddings, to identify the most discriminative embeddings, ColBERT-PRF resorts to an approximate nearest neighbour index to obtain the nearest tokens as the most likely tokens for a given representative embedding. By doing so, the Inverse Document Frequency (IDF) of the most likely token is used as the weight of the given centroid embedding. Thus, the representative embeddings with high discriminative power are selected as the expansion embeddings to be appended to the original query representation.</p><p>(c) Finally, to control the emphasis of the expansion embeddings in the final exact scoring stage, a hyperparameter 𝛽 is used. Thus the weight of an expansion embedding is influenced by both IDF and 𝛽.</p><p>Following our notations in Section 2, the full ColBERT-PRF pipeline, which performs query embedding expansion on the retrieved documents from an earlier stage, applied to a passage ranking can be formulated as:</p><formula xml:id="formula_1" coords="2,91.08,455.62,203.50,7.94">𝐶𝑜𝑙𝐵𝐸𝑅𝑇 -𝑃𝑅𝐹 » 𝐶𝑜𝑙𝐵𝐸𝑅𝑇 -𝑀𝑎𝑥𝑆𝑖𝑚,<label>(2)</label></formula><p>where 𝐶𝑜𝑙𝐵𝐸𝑅𝑇 -𝑀𝑎𝑥𝑆𝑖𝑚 denotes the Max-Sim reranking stage of ColBERT. ColBERT-PRF has been shown to be effective upon the reranking of a ColBERT dense retrieval first stage <ref type="bibr" coords="2,237.87,493.37,13.36,7.94" target="#b15">[16]</ref>, i.e.:</p><formula xml:id="formula_2" coords="2,62.58,509.20,232.00,7.94">𝐶𝑜𝑙𝐵𝐸𝑅𝑇 » 𝐶𝑜𝑙𝐵𝐸𝑅𝑇 -𝑃𝑅𝐹 » 𝐶𝑜𝑙𝐵𝐸𝑅𝑇 -𝑀𝑎𝑥𝑆𝑖𝑚.<label>(3)</label></formula><p>This year in our participation, we varied the first stage retrieval for ColBERT-PRF, namely applying ColBERT-PRF on top of Col-BERT, TCT-ColBERT as well as SPLADE. The retrieval pipelines are all similar, but vary the source of the the first stage retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Experimental Setup Details</head><p>We use the following pipeline components, grouped into methods that perform retrieval, document re-scoring, and pseudo-relevance feedback (PRF): Retrievers:</p><p>• DPH <ref type="bibr" coords="2,83.11,639.59,10.43,7.94" target="#b1">[2]</ref> and BM25 <ref type="bibr" coords="2,134.99,639.59,13.34,7.94" target="#b14">[15]</ref>: Lexical retrieval from a Terrier inverted index over the msmarco-passage-v2 corpus. • SPLADE <ref type="bibr" coords="2,98.36,661.50,9.33,7.94" target="#b2">[3,</ref><ref type="bibr" coords="2,109.93,661.50,6.32,7.94" target="#b3">4]</ref>: A distilled SPLADE++ retrieval model. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">SUBMITTED RUNS</head><p>We submitted eight group runs to the passage ranking task. We also submitted six baseline runs. We did not participate in the document ranking task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Baseline Runs</head><p>The baselines that we submitted to the 2022 Deep Learning passage ranking track, including two traditional sparse retrieval runs with and without query expansion, two SPLADE runs with and without ELECTRA reranking, one BM25 run reranking using ELECTRA and one ColBERT end-to-end run. All the baseline runs are summarised as follows:</p><p>• uogtr_dph: Conducts DPH on our passage sparse index.</p><p>• uogtr_dph_bo1: Conducts DPH and Bo1 query expansion on our passage sparse index. • uogtr_s: Conducts SPLADE retrieval on an msmarco-passage-v2 SPLADE learned sparse index. • uogtr_se: Conducts SPLADE retrieval, followed by re-ranking with ELECTRA. • uogtr_be: Conducts BM25 retrieval then re-ranked using ELEC-TRA. • uogtr_c: Conducts ColBERT end-to-end (E2E) retrieval on the ColBERT dense index.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Group Runs</head><p>For the 2022 Deep Learning passage ranking track, we submitted the following 8 runs:</p><p>• uogtr_be_gb: Conducts BM25 retrieval, adaptively re-ranked using the ELECTRA and a BM25 graph. • uogtr_se_gb: Conducts SPLADE retrieval, adaptively re-ranked using the ELECTRA with a BM25 graph. Run ID Pipeline nDCG@10 MAP@100 RR@100 P@10 Recall@100 Judged@10 • uogtr_e_gb: Conducts the ensemble of BM25 and SPLADE retrieval, adaptively re-ranked using ELECTRA with a BM25 graph. • uogtr_se_gt: Conducts SPLADE retrieval, adaptively re-ranked using ELECTRA with a TCT-ColBERT graph constructed using HNSW data. • uogtr_t_cprf: Conducts ColBERT-PRF on top of the TCT-ColBERT retrieval, then reranks using ColBERT. • uogtr_s_cprf: Conducts ColBERT-PRF on top of the SPLADE retrieval, then reranks using ColBERT.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• uogtr_c_cprf: Conducts the ColBERT-PRF reranker on top of</head><p>ColBERT end-to-end (E2E), then reranks using ColBERT. • upgtr_e_cprf_t5: Conducts the ensemble of the retrieved documents from the TCT_ColBERT reranking using ColBERT-PRF and ColBERT E2E reranking using ColBERT-PRF, then reranking using the monoT5 reranker.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">RESULTS &amp; ANALYSIS</head><p>Table <ref type="table" coords="3,76.04,559.03,4.25,7.94" target="#tab_1">1</ref> lists the obtained effectiveness results for all our passage ranking task runs, including six baseline runs and eight submitted group runs, as well as the TREC per-topic best and median scores across all participating systems, in terms of nDCG@10, MAP@100, MRR and P@10. In addition, we also report the Recall@100 and the Judged@10 for each model. Firstly, we analyse the performance of our submitted baseline runs in Table <ref type="table" coords="3,102.23,635.74,3.01,7.94" target="#tab_1">1</ref>. The top part shows the baseline runs, which consist of two sparse retrieval -namely uogtr_dph and uogtr_dph_bo1 with the Bo1 query expansion model -while the other four are the neural retrieval models. Comparing between the sparse and neural retrieval baselines, we find that all four neural retrieval models outperform both the sparse retrieval models across all metrics. In addition, comparing between uogtr_dph and uogtr_dph_bo1, we observe that sparse query expansion shows slight improvements over sparse retrieval on all reported metrics. Comparing between uogtr_s and uogtr_se runs, where we conduct SPLADE with and without the ELECTRA reranker, we find that the ELECTRA reranker run improves effectiveness. Besides, comparing between the uogtr_se and uogtr_be runs, we find that SPLADE is better than the BM25 first stage retrieval. In addition, we find that the ColBERT model exhibits lower performance than SPLADE. Overall, SPLADE and the two ELECTRA reranking baseline runs exhibit higher performances than the TREC Median performance, while two sparse retrieval and ColBERT baseline runs underperform the TREC Median performance.</p><p>Next, we turn our attention to our submitted group runs, in the lower part of Table <ref type="table" coords="3,406.05,491.87,3.13,7.94" target="#tab_1">1</ref>. The submitted group runs can be categorised into two families: the Adaptive ReRanking runs, namely the uogtr_be_gb, uogtr_be_gb and uogtr_be_gb as well as uogtr_be_gt, and the ColBERT-PRF reranking runs, namely the uogtr_t_cprf, uogtr_s_cprf and uogtr_c_cprf as well as uogtr_e_cprf_t5.</p><p>From Table <ref type="table" coords="3,359.18,546.67,3.01,7.94" target="#tab_1">1</ref>, we can see that when comparing between the uogtr_c and uogtr_c_cprf runs, we find that on the TREC 2022 query set, ColBERT-PRF shows a slightly lower performance than the Col-BERT model. On the other hand, all four of the Adaptive ReRanking models outperform the ColBERT-PRF models across all the metrics. Comparing among the Adaptive ReRanking models, we find that for nDCG@10, the run uogtr_e_gb, where we perform the ensemble of BM25 and SPLADE retrieval, adaptively re-ranked using ELECTRA with a BM25 graph, exhibits the highest performance. In addition, the run upgtr_se_gt, where we apply a SPLADE first stage retrieval, adaptively re-ranked using ELECTRA with a TCT-ColBERT graph constructed using HNSW data, shows the highest MAP@100 performance. This indicates the superiority of SPLADE retrieval over BM25 retrieval, particularly in terms of Recall@100. Similarly, applying Adaptive ReRanking upon SPLADE using a Table <ref type="table" coords="4,77.99,85.73,3.48,7.70">2</ref>: Results on the TREC Deep Learning track 2022 Passage Ranking track with duplicate documents removed. The best performing run for each measure is emphasised. The symbols ↑ and ↓ indicate that the corresponding metric improves or degrades compared to the model performance for the same metric presented in Table <ref type="table" coords="4,401.06,107.64,3.40,7.70" target="#tab_1">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run ID</head><p>Pipeline nDCG@10 MAP@100 RR@100 P@10 Recall@100 Judged@10 baseline runs (post-deduped) BM25 corpus graph shows the highest RR@100, P@10, Recall@100 performance, as well as a higher Judged@10. Overall, all the four Adaptive ReRanking runs markedly outperform the TREC Median performance.</p><p>We now explore the specific research questions posed in Section 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">ColBERT-PRF over Various Initial Retrieval Models</head><p>Among the different first stage retrieval models implemented with the ColBERT-PRF approach, we find that the SPLADE model has the best performance, namely the uogtr_s_cprf. In addition, comparing among the four ColBERT-PRF models, we find that the run uogtr_e_cprf_t5, which conducts the monoT5 reranker upon the ensemble of the results from the SPLADE reranking with ColBERT-PRF and the ColBERT E2E reranking with the ColBERT-PRF approach, exhibits the highest performance. In summary, we observe that applying ColBERT-PRF using the SPLADE initial retrieval and with monoT5 as reranker runs exhibit a higher performance than the TREC Median performance. Hence, in answer to the question about the performance of ColBERT-PRF over various initial retrieval models, we find that ColBERT-PRF can be extended to be implemented upon various initial retrieval result sets and that the ensemble run gives the highest effectiveness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Impact of the Duplicates in the Corpus</head><p>Next, we turn our attention to the heavily-duplicated nature of the MS MARCO version 2 corpus, and the effects that this duplication might have on the retrieval models. The task organisers identified 19M duplicates (around 14% of the corpus). However, the duplicated items are included in the official evaluation setting (the results of which are presented in Table <ref type="table" coords="4,160.13,701.49,2.90,7.94" target="#tab_1">1</ref>). To test the effect of the duplicates, in both post-hoc duplicate removal and pre-hoc duplicate removal settings, on the performance of our submitted runs, we construct a version of the relevance assessments where the duplicated assessments are removed. The results using these assessments are presented in Table <ref type="table" coords="4,387.51,389.51,3.07,7.94">2</ref>. We find that for all runs, the nDCG@10, MAP@100, RR@100 and Recall@100 performance decrease. More importantly, however, we find that the order of the systems is highly correlated; in particular, the Spearman 𝜌 correlation coefficient is 0.96 for nDCG@10, indicating a very strong correlation (correlation computed over 14 runs in Table <ref type="table" coords="4,350.36,455.26,4.25,7.94" target="#tab_1">1</ref> and<ref type="table" coords="4,373.14,455.26,25.59,7.94">Table 2</ref>). This suggests that the official evaluation setting is unlikely to change the conclusions when evaluated w/o duplication removal. <ref type="foot" coords="4,393.23,475.03,3.38,6.44" target="#foot_3">5</ref></p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Lexical-only First-stage Retrieval</head><p>Finally, we examined the effect of the lexical-only first-stage retrieval, namely the traditional BM25 retrieval and the learned sparse retrieval, namely SPLADE. Comparing the runs where we apply the ELECTRA reranker on top of BM25 and SPLADE, we find that the SPLADE »ELECTRA run can result in a 4.4% improvement in terms of nDCG@10 (from 0.6235 to 0.6510 in Table <ref type="table" coords="4,501.23,570.94,2.88,7.94" target="#tab_1">1</ref>). Furthermore, we observe that GAR BM25 (ELECTRA) on top of BM25 and SPLADE can both result in improvements. We note that the difference between the BM25 and SPLADE runs is very close (nDCG@10: 0.6480 vs. 0.6508 in Table <ref type="table" coords="4,389.25,614.78,3.00,7.94" target="#tab_1">1</ref>), indicating that the traditional lexical-only first-stage retrieval is effective enough to replace the expensive learned-sparse retrieval under the advanced Adaptive ReRanking approach.</p><p>Overall, our participation in the TREC 2022 Deep Learning track was a useful activity to explore a number of recently-proposed deep learning retrieval pipelines. We found that: (i) ColBERT-PRF can be extended to various first stage retrieval approaches; (ii) in terms of the retrieval effectiveness, the ensemble run with Apdative ReRanking gives the highest retrieval effectiveness; (iii) the large number of duplicates in the corpus has little impact on the order of the systems to be compared; and (iv) lexical-only retrieval is effective enough compared to the learned-sparse retrieval for Adaptive ReRanking.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,53.80,87.79,505.92,620.77"><head></head><label></label><figDesc>ANN and maximum similarity search, denoted as ColBERT-MaxSim in this paper.• TCT<ref type="bibr" coords="2,345.65,109.71,9.37,7.94" target="#b5">[6]</ref>: A TCT-ColBERT single-representation retrieval model.2   ColBERT-PRF<ref type="bibr" coords="2,385.28,207.80,13.40,7.94" target="#b15">[16]</ref>: A dense pseudo-relevance feedback model. The default ColBERT-PRF is implemented on top of ColBERT. • GAR 𝐺 (𝑆) [8]: Graph-based Adaptive ReRanking using corpus graph 𝐺 and scoring function 𝑆. We use both a BM25-based corpus graph and a TCT-based corpus graph, and ELECTRA as our scoring function. We use a re-ranking budget of 5000 and corpus graphs with 8 nearest neighbours. All our experiments were conducted on the PyTerrier [10, 11] IR experimentation platform. PyTerrier is available from https:// github.com/terrier-org/pyterrier.</figDesc><table coords="2,317.96,123.50,240.25,91.52"><row><cell>Scorers:</cell></row><row><cell>• ELECTRA [14]: A version of the monoELECTRA scoring model</cell></row><row><cell>trained with hard negatives. 3</cell></row><row><cell>• monoT5 [13]: A monoT5 scoring function. 4</cell></row><row><cell>Pseudo-Relevance Feedback:</cell></row><row><cell>• Bo1 [1]: Pseudo-relevance feedback using the DFR Bo1 model</cell></row><row><cell>over a Terrier index.</cell></row><row><cell>•</cell></row></table><note coords="2,262.51,659.36,3.38,6.44;2,53.80,671.98,241.94,8.43;2,61.97,683.42,233.06,7.94;2,53.80,701.13,142.52,7.43;2,326.40,87.79,82.36,7.94"><p><p><p><p><p><p>1  </p>• ColBERT</p><ref type="bibr" coords="2,100.75,672.46,9.37,7.94" target="#b4">[5]</ref></p>: A late-interaction end-to-end dense retrieval model (E2E), which consists of approximate nearest neighbour search,</p>1 </p>naver/splade-cocondenser-ensembledistil denoted as ColBERT-</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,53.50,85.73,504.70,18.66"><head>Table 1 :</head><label>1</label><figDesc>Results on the TREC Deep Learning track 2022 Passage Ranking track. The best performing run for each measure is emphasised. The symbol ⋄ indicates that the corresponding metric improves over the TREC Median value.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,324.49,693.55,108.09,5.60"><p>castorini/tct_colbertv2-msmarco</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="2,445.39,693.55,115.07,5.60"><p>crystina-z/monoELECTRA_LCE_nneg31</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="2,324.36,702.96,101.12,5.60"><p>castorini/monot5-base-msmarco</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3" coords="4,324.49,686.60,233.71,6.18;4,317.96,694.57,240.50,6.18;4,317.96,702.79,240.25,6.18"><p>The earlier notebook version of this paper contained an analysis of the impact of the duplicates on Adaptive ReRanking. As the NIST organisers have since changed how duplicates are applied in the evaluation methodology, we have removed this analysis.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,69.23,233.11,224.81,6.18;5,69.23,241.03,203.56,6.23" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="5,144.36,233.11,149.69,6.18;5,69.23,241.08,90.58,6.18">Probability models for information retrieval based on divergence from randomness Ph</title>
+		<author>
+			<persName coords=""><forename type="first">Giambattista</forename><surname>Amati</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003">2003. 2003</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Glasgow</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">D. thesis</note>
+</biblStruct>
+
+<biblStruct coords="5,69.23,249.05,224.81,6.18;5,69.23,256.97,111.18,6.23" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,147.89,249.05,146.15,6.18;5,69.23,257.02,22.90,6.18">Frequentist and bayesian approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Giambattista</forename><surname>Amati</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,104.01,256.97,53.27,6.23">Proceedings of ECIR</title>
+		<meeting>ECIR</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="13" to="24" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,264.99,225.88,6.18;5,69.23,272.96,224.81,6.18;5,69.23,280.88,165.81,6.23" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,87.04,272.96,207.00,6.18;5,69.23,280.93,62.69,6.18">From Distillation to Hard Negative Sampling: Making Sparse Neural IR Models More Effective</title>
+		<author>
+			<persName coords=""><forename type="first">Thibault</forename><surname>Formal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carlos</forename><surname>Lassance</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benjamin</forename><surname>Piwowarski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stéphane</forename><surname>Clinchant</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,143.88,280.88,55.27,6.23">Proceedings of SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="2353" to="2359" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,288.90,225.64,6.18;5,69.23,296.82,224.81,6.23;5,69.23,304.79,50.15,6.23" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,269.24,288.90,25.63,6.18;5,69.23,296.87,172.21,6.18">SPLADE: Sparse Lexical and Expansion Model for First Stage Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Thibault</forename><surname>Formal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Benjamin</forename><surname>Piwowarski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stéphane</forename><surname>Clinchant</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,254.10,296.82,39.94,6.23;5,69.23,304.79,14.26,6.23">Proceedings of SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2288" to="2292" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,312.81,224.81,6.18;5,69.23,320.73,223.56,6.23" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,181.52,312.81,112.53,6.18;5,69.23,320.78,137.56,6.18">ColBERT: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,217.56,320.73,53.24,6.23">Proceedings of SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,69.23,328.75,224.81,6.18;5,69.23,336.72,225.88,6.18;5,333.39,89.05,108.13,6.23" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,239.53,328.75,54.51,6.18;5,69.23,336.72,223.15,6.18">In-batch Negatives for Knowledge Distillation with Tightly-coupled Teachers for Dense Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,340.99,89.05,70.76,6.23">RepL4NLP-2021 Workshop</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="163" to="173" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,97.07,225.99,6.18;5,333.39,104.99,224.81,6.23;5,333.18,113.01,18.66,6.18" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="5,500.35,97.07,59.03,6.18;5,333.39,105.04,159.56,6.18">Distilling Dense Representations for Ranking using Tightly-Coupled Teachers</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><forename type="middle">J</forename><surname>Lin</surname></persName>
+		</author>
+		<idno>ArXiv abs/2010.11386</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,120.98,225.99,6.18;5,333.39,128.95,142.65,6.18" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="5,521.75,120.98,37.63,6.18;5,333.39,128.95,118.33,6.18">Adaptive Re-Ranking as an Information-Seeking Agent</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,136.92,225.99,6.18;5,333.39,144.84,178.75,6.23" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2208.08942</idno>
+		<title level="m" coord="5,521.75,136.92,37.63,6.18;5,333.39,144.89,83.88,6.18">Adaptive Re-Ranking with a Corpus Graph</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,152.86,224.81,6.18;5,333.39,160.78,210.43,6.23" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="5,467.53,152.86,90.67,6.18;5,333.39,160.83,106.82,6.18">Declarative Experimentation in Information Retrieval Using PyTerrier</title>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,452.37,160.78,55.51,6.23">Proceedings of ICTIR</title>
+		<meeting>ICTIR</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="4526" to="4533" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,168.80,225.88,6.18;5,333.39,176.77,225.89,6.18;5,333.39,184.69,99.48,6.23" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,333.39,176.77,223.36,6.18">PyTerrier: Declarative experimentation in Python from BM25 to dense retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,340.99,184.69,55.28,6.23">Proceedings of CIKM</title>
+		<meeting>CIKM</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="4526" to="4533" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,192.71,224.81,6.18;5,333.39,200.63,224.81,6.23;5,333.39,208.60,220.38,6.23" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="5,463.07,192.71,95.13,6.18;5,333.39,200.68,206.24,6.18">Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dmitry</forename><forename type="middle">A</forename><surname>Malkov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Yashunin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,545.15,200.63,13.05,6.23;5,333.39,208.60,158.51,6.23">IEEE transactions on pattern analysis and machine intelligence</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="824" to="836" />
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,216.62,224.81,6.18;5,333.39,224.54,223.08,6.23" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="5,486.84,216.62,71.36,6.18;5,333.39,224.59,110.44,6.18">Document ranking with a pretrained sequence-to-sequence model</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiying</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2003.06713</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="5,333.39,232.56,225.88,6.18;5,333.39,240.53,224.81,6.18;5,333.39,248.45,225.57,6.23;5,333.39,256.47,24.81,6.18" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="5,352.03,240.53,206.17,6.18;5,333.39,248.50,124.52,6.18">Squeezing Water from a Stone: A Bag of Tricks for Further Improving Cross-Encoder Effectiveness for Reranking</title>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuqi</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xinyu</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yilin</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,471.81,248.45,55.54,6.23">Proceedings of ECIR</title>
+		<meeting>ECIR</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2022">2022</date>
+			<biblScope unit="page" from="655" to="670" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,264.44,225.58,6.18;5,333.39,272.36,225.58,6.23;5,333.23,280.38,11.26,6.18" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="5,405.14,272.41,45.31,6.18">Okapi at TREC-3</title>
+		<author>
+			<persName coords=""><forename type="first">Steve</forename><surname>Stephen E Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Susan</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Micheline</forename><forename type="middle">M</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Gatford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,456.06,272.36,71.71,6.23">Nist Special Publication Sp</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="1995">1995. 1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,288.35,225.99,6.18;5,333.39,296.27,224.81,6.23;5,333.39,304.24,51.01,6.23" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,420.37,288.35,139.02,6.18;5,333.39,296.32,180.96,6.18">Nicola Tonellotto, and Iadh Ounis. 2021. Pseudo-Relevance Feedback for Multiple Representation Dense Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Xiao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,526.30,296.27,31.90,6.23;5,333.39,304.24,21.55,6.23">Proceedings of ICTIR</title>
+		<meeting>ICTIR</meeting>
+		<imprint>
+			<biblScope unit="page" from="297" to="306" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,333.39,312.26,225.99,6.18;5,333.39,320.23,224.81,6.18;5,333.39,328.15,133.53,6.23" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="5,531.49,312.26,27.89,6.18;5,333.39,320.23,224.81,6.18;5,333.39,328.20,24.30,6.18">ColBERT-PRF: Semantic Pseudo-Relevance Feedback for Dense Passage and Document Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Xiao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,362.90,328.15,83.52,6.23">ACM Transactions on the Web</title>
+		<imprint>
+			<date type="published" when="2022">2022. 2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

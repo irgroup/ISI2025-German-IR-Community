@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,125.13,72.35,359.46,16.84">Query Transformations for Result Merging</title>
+				<funder ref="#_DpjNEJc">
+					<orgName type="full">National Science Foundation</orgName>
+					<orgName type="abbreviated">NSF</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,135.67,118.05,112.43,11.06"><forename type="first">Shriphani</forename><surname>Palakodety</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,383.41,118.05,68.85,11.06"><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+							<email>callan@cmu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,125.13,72.35,359.46,16.84">Query Transformations for Result Merging</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E88D578B154A1D3B2F37F3DEF3B8D7D5</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>H.4 [Information Search and Retrieval]: Federated Search Algorithms</term>
+					<term>Experimentation Federated search</term>
+					<term>result merging</term>
+					<term>distributional word vectors</term>
+					<term>term dependence</term>
+					<term>query expansion</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes Carnegie Mellon University's entry at the TREC 2014 Federated Web Search track (FedWeb14). Federated search pipelines typically have two components: (i) resource-selection, and (ii) result-merging. This work documents experiments to modify queries to merge results in the federated-search pipeline. Approaches from previous attempts at solving this problem involved custom querydocument similarity scores or rank-combination methods. In this document, we explore how term-dependence models and query expansion strategies influence result-merging.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Federated search deals with the problem of aggregating results from multiple search engines. The invidual search engines are (i) typically focused on a particular domain or a particular corpus, (ii) employ diverse retrieval models, and (iii) do not necessarily expose statistics used in information retrieval algorithms.</p><p>The problem of federated search thus involves (i) analyzing a query to determine which search engines are appropriate for addressing the information need (resource selection), and (ii) merging the results returned by each of these engines (result merging).</p><p>The TREC Federated Web Search Track is a setting for evaluating approaches to federated search. The FedWeb14 track contained three components: (i) vertical selection, (ii) resource selection, (iii) results merging. Vertical selection involves predicting the quality of verticals (like sports and news) for a query. Resource selection involves ranking the available search engines given a particular query. Result merging involves mixing results from a few chosen resources for a given query. A typical system usually leverages vertical selection and resource selection for producing a ranked list of resources (search engines). Then, the query is issued to a few highly-ranked resources and the documents returned by these resources are merged in the result-merging phase.</p><p>In this work, we focus on the result-merging phase of federated-search systems. In particular, we explore some techniques that either modify or expand the query-terms to improve performance on result merging tasks. Among the approaches implemented, we leverage term-dependence models and neural network word embeddings.</p><p>In the following sections, we describe existing approaches, the methods implemented in this work and an evaluation of the methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">RELATED WORK</head><p>Federated search is a well-explored problem in information retrieval research. The subproblems of resource-selection and result-merging have been well studied in the past. Shokouhi &amp; Si <ref type="bibr" coords="1,361.82,481.05,14.32,7.86" target="#b16">[16]</ref> presented a comprehensive survey of techniques in federated search. Si &amp; Callan <ref type="bibr" coords="1,489.98,491.51,14.31,7.86" target="#b18">[18]</ref> presented a semi-supervised approach to result merging in that used the documents acquired by query-based sampling as training data and linear regression to learn the resource and queryspecific merging models. Shokouhi &amp; Zobel <ref type="bibr" coords="1,493.07,533.35,14.32,7.86" target="#b17">[17]</ref> presented a technique for using documents sampled from a resource for estimating the global scores of documents for a query.</p><p>A set of more than 150 real world search engines and query-based samples from each were provided in the TREC FedWeb13, 2013. Several approaches were employed for merging results. For instance, Mourao et al <ref type="bibr" coords="1,499.82,596.12,14.31,7.86" target="#b13">[13]</ref> presented approaches that combined several rank-combination techniques. Di Buccio et al <ref type="bibr" coords="1,409.62,617.04,9.72,7.86" target="#b6">[6]</ref> presented a round-robin approach for merging results. At TREC 2013, Guang et al <ref type="bibr" coords="1,508.75,627.50,9.20,7.86">[7]</ref>, Bellogin et al <ref type="bibr" coords="1,338.34,637.96,9.71,7.86" target="#b1">[1]</ref> and Pal et al <ref type="bibr" coords="1,407.63,637.96,14.31,7.86" target="#b14">[14]</ref> showed approaches where global document scores for ranking were produced using a combination of query-document similarity measures that at times included scores assigned to resources. However, several of the successful methods assumed that (i) the entire set of documents retrieved from the selected resources were available during the result-merging phase, and (ii) documents retrieved by the resources were available for indexing and searching. In a typical setting, these assumptions are not necessarily valid.</p><p>Word embeddings are mappings from a word to a vector which typically belongs to a continuous vector space. These embeddings allow us to reason about the syntactic and semantic words through linear algebra operations like similarity and distance functions. Word-embeddings have been extensively studied in the past. One of the earliest works in this area was the LSI algorithm by Deerwester et al <ref type="bibr" coords="2,260.84,141.32,9.20,7.86" target="#b4">[4]</ref>. The LSI algorithm constructed word embeddings from a Term × Document matrix using a dimension-reduction operation. Recent approaches for constructing these embeddings have leveraged neural networks extensively. Bengio et al <ref type="bibr" coords="2,271.70,183.17,9.71,7.86" target="#b2">[2,</ref><ref type="bibr" coords="2,285.75,183.17,7.16,7.86" target="#b3">3]</ref> demonstrated the benefits of using these embeddings in language modeling. Embeddings produced by neural networks have provided significant gains over the state-of-the-art approaches in several natural language processing (NLP) applications like sentiment classification, word clustering and so on. Mikolov et al <ref type="bibr" coords="2,126.69,245.93,14.32,7.86" target="#b11">[11,</ref><ref type="bibr" coords="2,144.18,245.93,11.50,7.86" target="#b12">12]</ref>) produced word embeddings that have been used in other NLP tasks. Our paper leverages the embeddings from Mikolov et al <ref type="bibr" coords="2,179.52,266.85,14.32,7.86" target="#b12">[12]</ref> to augment queries with additional terms and for weighting.</p><p>Metzler &amp; Croft <ref type="bibr" coords="2,134.63,287.77,9.71,7.86" target="#b9">[9]</ref> modeled the dependencies between query-terms in a query and demonstrated that these queries produced performed better than a query that used individual query terms. In this paper, we use the sequential dependence model (SDM) for modeling term dependencies.</p><p>Term weighting approaches have been used extensively in information retrieval systems. Robertson &amp; Zaragoza <ref type="bibr" coords="2,278.59,350.54,14.32,7.86" target="#b15">[15]</ref> provide a survey of probablistic models -a few of which contain term-weighting schemes (like the BM25 model). In this paper, we use the word-embedding from <ref type="bibr" coords="2,224.52,381.92,14.31,7.86" target="#b12">[12]</ref> for weighing terms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">APPROACH</head><p>In a federated search pipeline, the result-merging task follows a resource-selection step. The resource-selection step returns a ranked-list of resources. The query (or a transformation) is issued to a few of the top-ranked resources and the results from all these resources are combined in the resource-selection phase.</p><p>In FedWeb14, only the snippets returned by each of the resources were provided. Thus, the following approaches operate on an index of all the snippets returned by the top resources for a query. In the following subsections we describe the various methods implemented.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Unstructured Queries</head><p>Each of the documents (whose snippets we have access to) is ranked using a classic retrieval model -Language-Modeling with Dirichlet smoothing <ref type="bibr" coords="2,197.92,592.87,13.49,7.86" target="#b19">[19]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Sequential Dependence Model Queries</head><p>Sequential-dependence models assume a dependence between neighboring query terms. Essentially, the similarity between a query and a document is measured as a weighted combination of (i) a unigram score (each term individually), (ii) an exact-match bigram score, and (iii) an unorderedwindow bigram score. Table <ref type="table" coords="2,170.06,679.80,4.61,7.86">1</ref> shows an example of a query and its sequential dependence variant.</p><p>In this approach, for each query, the new rankings of all the snippets are given by the scores obtained from executing Query burning man tickets SDM Query Indri Expression #weight( λ1 #combine(burning man tickets) λ2 #combine( #1(burning man) #1(man tickets)) λ3 #combine( #uw8(burning man) #uw8(man tickets))) Table <ref type="table" coords="2,347.53,139.51,4.12,7.89">1</ref>: An example of a query and the associated indri expression for the sequential dependency model (SDM) query.</p><p>the sequential-dependence query on the index. The retrieval model employed is the standard Indri retrieval model <ref type="bibr" coords="2,534.58,201.40,13.49,7.86" target="#b19">[19]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Expanding Using Word Embeddings</head><p>Word-embeddings are a mapping from words to a vector space. These embeddings often capture and/or preserve linguistic properties of words. This allows scores or probabilities that are computed for a term to be applied to a semantically similar term. A brief introduction to continuous vector representations is provided below and the query-expansion strategies used are described after.</p><p>Bengio et al <ref type="bibr" coords="2,375.30,307.37,9.72,7.86" target="#b2">[2]</ref> proposed the use of continuous representations of words for language modeling. The intuition behind this approach was that these embeddings could capture semantic similarities between words and thus help overcome data sparsity issues in language modeling tasks. For example, if the sentence the cat is walking in the room is observed in the training corpus, then the evidence gathered from this example must generalize to a sentence like the dog is walking in the house. Data-sparsity issues can lead to the latter sentence having zero evidence.</p><p>Generating a continuous vector representation for each word allows us to transfer evidence from the term cat to the term dog and from room to house. The representations for (semantically) similar terms are thus expected to be similar. Several approaches have been studied to construct such representations. Neural network based language models aim to learn these representations and a statistical language model for the underlying text. These models mainly belong to two categories described below.</p><p>• Models that learn the word representations and the language model jointly. The language model described in <ref type="bibr" coords="2,349.96,536.73,9.72,7.86" target="#b2">[2]</ref> falls in this category.</p><p>• Models that learn the word vector representations first and then train the language model with the word vectors. These models are computationally easier to construct.</p><p>The Continuous Bag-of-Words model and the Continuous Skip-gram model proposed by Mikolov et al in <ref type="bibr" coords="2,509.31,617.04,13.49,7.86" target="#b10">[10]</ref>, belong to the latter category. Word vector representations on a Google News corpus with 100 billion words for a vocabulary of 3 million words can be learned in less than one day using modest hardware. Word vectors learned by both models have performed well in several semantic related task evaluations as shown in <ref type="bibr" coords="2,392.78,679.80,13.49,7.86" target="#b10">[10]</ref>. An example is shown in </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Query Expansion Strategies</head><p>We used two approaches to augment a query with additional terms. These approaches find additional terms that are either (i) similar to the query as a whole, or (ii) similar to individual terms in a query. In both approaches, the terms retrieved for a query are similar to a vector (which represents terms or a query aggregate). For computing a vector that represents the entire query, we obtain the vectors for each of the terms and compute the mean vector.</p><p>Thus, in the first expansion strategy, we add a few terms to the query that are closest to the query mean vector. In the second strategy, for each term, we retrieve additional words closest to the vector. In both cases, the terms added are obtained from the global vocabulary of the word embeddings available.</p><p>Once the additional terms are added to the query, the snippets are scored based on this newer query using the language-model with dirichlet smoothing retrieval model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5">Term Weighting Strategies</head><p>Our approach uses word-embeddings from <ref type="bibr" coords="3,233.25,369.29,14.31,7.86" target="#b10">[10]</ref> to produce weights for individual query-terms. We use two strategies to weigh terms. In both cases, the weights applied to each term are the distance between the term's embedding and a certain global vector. The distance metric is euclidean distance in both approaches. The intuition behind using distance from a vector is that the farther a term is from the global vector, the more information it contains and thus it merits a higher weight.</p><p>In the first of these approaches, the global vector used is the query mean vector obtained by averaging the vectors corresponding to the terms in the query. In the second approach, the global vector used is the average vector of the entire vocabulary of the learned embeddings (close to 3 million words and phrases).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">EVALUATION</head><p>In this section, we elaborate on the FedWeb13 and Fed-Web14 collections and present the results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Data collections</head><p>FedWeb13 contains results sampled from from 157 real world search engines in 24 verticals. 2000 queries were issued to the search engines during the sampling phase. See Table <ref type="table" coords="3,53.80,627.50,4.61,7.86" target="#tab_2">3</ref> for a summary of data statistics of FedWeb13. In this paper, we report experiments and analysis on the FedWeb13 dataset since as of this paper, the tools for evaluating on FedWeb14 have not yet been released.</p><p>The data collection of FedWeb14 is built from 149 web search engines crawled between April and May 2014. 4000 queries were issued to the search engines in the sampling phase. Only the results provided by the organizers are provided for the FedWeb14 dataset since tools for performing a per-query analysis are not yet released (as of this paper).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Experimental setup</head><p>We use the Indri search engine to index and search the snippets for each search engine. Stop-word removal and stemming did not aid system performance significantly and since the embeddings were built on a large english corpus, the risk of missing term vectors is minimal. In case, an out-of-vocabulary term (OOV) was encountered, we did not include the term vectors. All our approaches used a classic retrieval model -language model with dirichlet smoothing. The parameter µ for this retrieval model was set the Indri default of 2500. For the sequential-dependence model implementation, the weights assigned to the unigram, exactmatch bigram and window bigram components were 0.5, 0.25 and 0.25 respectively. For the query-expansion strategies, at most 5 additional terms with cosine similarity scores above 0.7 were chosen for both the strategies. For term weighting, OOV terms were assigned a default weight of 1.0. The word-vector representations used were 300-dimensional vectors released by Google, trained on a Google News corpus of about 100 billion words.</p><p>We assessed the runs with the gdeval.pl tool provided by TREC and focus on NDCG@20 for the result merging task. The results for the FedWeb13 data are in Table <ref type="table" coords="3,548.76,501.97,3.58,7.86" target="#tab_4">5</ref>. Performance of our system alone on FedWeb14 is provided in Table <ref type="table" coords="3,355.34,522.89,4.61,7.86" target="#tab_5">6</ref> (since the best runs were not available at the time of submission). In both tables, plain refers to the approach in section 3.1, sdm refers to the approach in section 3.2, and Exp-Avg and Exp-Term refer to the query-expansion strategies explained above.</p><p>All the result-merging scores were based on baseline resourceselection runs provided by the organizers. In addition to the best performing system we include the best performing system that only used snippets since the FedWeb13 task allowed participants to use the documents returned by each of the resources during the result-merging phase. In FedWeb14, only snippets were available for use. The results of the plain retrieval model, the SDM queries and the expansion strategies are also provided for FedWeb14. The term-weighting approach was not submitted to the FedWeb14 task and thus we only provide results on FedWeb13 for this approach.</p><p>Table <ref type="table" coords="3,351.28,690.26,4.61,7.86" target="#tab_4">5</ref> lists the performance of our system and the best FedWeb13 runs. We observe that (i) in all cases, using only snippets as opposed to documents automatically leads to a massive drop in system performance. This is consistent with the observations of the FedWeb13 organizers <ref type="bibr" coords="4,238.43,329.22,9.20,7.86" target="#b5">[5]</ref>. Thus, for a realistic comparison we only consider the best submission from FedWeb13 that did not use documents (shown as FW13-SNIPPET-BEST). Our approaches clearly outperform the best result-merging score from the FedWeb13 track (that only considered snippets). In particular we note that most of the models perform very similar to each other and there is a minor drop when expanding a query with terms close to the query mean vector.</p><p>We also report results for some of our techniques on the FedWeb14 corpus (shown in Table <ref type="table" coords="4,192.64,433.83,3.58,7.86" target="#tab_5">6</ref>). In this corpus, we notice that our approaches are extremely close to the median score and the performance gap between our approach and the best system is slightly larger than the gap for the Fed-Web13 corpus. In this case, the expansion strategies slightly outperform the other approaches.</p><p>On a per-query basis, there are no particular kind of queries in the FedWeb13 corpus that were aided by our approaches. Between the various approaches implemented, the variance is not particularly high.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSIONS</head><p>In this work, we explored how query transformations can be leveraged for merging results in the federated search pipeline. The first observation from the FedWeb13 collection is that when restricted to using snippets, the performance drops quite severely -an observation made by the organizers as well in <ref type="bibr" coords="4,83.09,617.04,9.20,7.86" target="#b5">[5]</ref>. The best performance on the FedWeb13 dataset was obtained by employing sequential-dependence models. The query-expansion approaches did not provide a performance improvement compared to sequential-dependence models and classic retrieval models like the language-model with dirichlet smoothing. On FedWeb14 however, the queryexpansion using word-vector provided a slight improvement in performance. Newer advances in learning continuous representations of paragraphs or documents (as demonstrated by <ref type="bibr" coords="4,65.92,711.19,9.97,7.86" target="#b8">[8]</ref>) can be leveraged in the future to provide a more prin-cipled approach to query expansion and document(snippet) representation.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,316.81,679.80,239.11,39.25"><head>Table 2</head><label>2</label><figDesc></figDesc><table coords="3,59.18,55.47,137.19,60.19"><row><cell>Word</cell><cell>Cosine Similarity</cell></row><row><cell>spain</cell><cell>0.678515</cell></row><row><cell>belgium</cell><cell>0.665923</cell></row><row><cell>netherlands</cell><cell>0.652428</cell></row><row><cell>italy</cell><cell>0.633130</cell></row><row><cell>switzerland</cell><cell>0.622323</cell></row></table><note coords="2,539.92,679.80,16.01,7.86;2,316.81,690.26,239.10,8.12;2,316.81,700.73,239.11,7.86;2,316.81,711.19,159.47,7.86"><p>. In this example, the top 5 words close to the word france are displayed. It is clear that the retrieved words are semantically similar (at least for this example).</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,53.80,128.55,239.11,7.89"><head>Table 2 :</head><label>2</label><figDesc>Five words most similar to the word france.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,53.80,55.47,482.99,663.58"><head>Table 3 :</head><label>3</label><figDesc>Table 4  presents the data statistics of FedWeb14. For the result merging phase, only snippets were provided. FedWeb13 collection statistics.</figDesc><table coords="3,322.19,55.47,214.60,132.32"><row><cell></cell><cell></cell><cell>Total</cell><cell>Per Engine</cell></row><row><cell>Samples</cell><cell cols="2">Snippets 1,973,591</cell><cell>12,570.6</cell></row><row><cell>(2000 Queries)</cell><cell>Pages</cell><cell>1,894,463</cell><cell>12,066.6</cell></row><row><cell>Topics</cell><cell>Snippets</cell><cell>143,298</cell><cell>912.7</cell></row><row><cell></cell><cell>Pages</cell><cell>136,103</cell><cell>866.9</cell></row><row><cell></cell><cell></cell><cell>Total</cell><cell>Per Engine</cell></row><row><cell>Samples</cell><cell cols="2">Snippets 1,422,758</cell><cell>9548.7</cell></row><row><cell>(4000 Queries)</cell><cell>Pages</cell><cell>3,471,773</cell><cell>23300.5</cell></row><row><cell>Topics</cell><cell>Snippets</cell><cell>51458</cell><cell>345.3</cell></row><row><cell></cell><cell>Pages</cell><cell>0</cell><cell>0</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="3,344.29,200.68,184.16,7.89"><head>Table 4 :</head><label>4</label><figDesc>FedWeb13 collection statistics.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="4,59.18,55.47,206.25,222.94"><head>Table 5 :</head><label>5</label><figDesc>FedWeb13 collection statistics.</figDesc><table coords="4,59.18,55.47,174.76,222.94"><row><cell>Approach</cell><cell></cell><cell>NDGC@20</cell></row><row><cell>FedWeb13-Docs-Best</cell><cell></cell><cell>0.257</cell></row><row><cell>FedWeb13-Docs-Median</cell><cell></cell><cell>0.162</cell></row><row><cell cols="2">FedWeb13-Snippets-Best</cell><cell>0.161</cell></row><row><cell cols="2">FedWeb13-Snippets-Median</cell><cell>0.142</cell></row><row><cell>FedWeb13-plain</cell><cell></cell><cell>0.210</cell></row><row><cell>FedWeb13-sdm</cell><cell></cell><cell>0.224</cell></row><row><cell>FedWeb13-expansion-1</cell><cell></cell><cell>0.188</cell></row><row><cell>FedWeb13-expansion-2</cell><cell></cell><cell>0.201</cell></row><row><cell>FedWeb13-weighting-1</cell><cell></cell><cell>0.213</cell></row><row><cell>FedWeb13-weighting-2</cell><cell></cell><cell>0.211</cell></row><row><cell>Approach</cell><cell cols="2">NDGC@20</cell></row><row><cell>FedWeb14-Best</cell><cell></cell><cell>0.323</cell></row><row><cell>FedWeb14-Median</cell><cell></cell><cell>0.289</cell></row><row><cell>FedWeb14-plain</cell><cell></cell><cell>0.277</cell></row><row><cell>FedWeb14-sdm</cell><cell></cell><cell>0.276</cell></row><row><cell>FedWeb14-expansion-1</cell><cell></cell><cell>0.285</cell></row><row><cell>FedWeb14-expansion-2</cell><cell></cell><cell>0.286</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="4,81.28,291.05,184.16,7.89"><head>Table 6 :</head><label>6</label><figDesc>FedWeb13 collection statistics.</figDesc><table /></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="6.">ACKNOWLEDGMENTS</head><p>This research was in part supported by <rs type="funder">National Science Foundation (NSF)</rs> grant <rs type="grantNumber">IIS-1160862</rs>. Any opinions, findings, conclusions, and recommendations expressed in this paper are the authors' and do not necessarily reflect those of the sponsor.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_DpjNEJc">
+					<idno type="grant-number">IIS-1160862</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="4,321.30,164.74,96.81,10.75" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,175.20,220.32,7.86;4,335.61,185.66,220.32,7.86;4,335.61,196.12,196.66,7.86;4,335.61,206.58,220.32,7.86;4,335.61,217.04,212.17,7.86" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="4,518.67,185.66,37.25,7.86;4,335.61,196.12,196.66,7.86;4,335.61,206.58,186.62,7.86">CWI and TU delft at TREC 2013: Contextual Suggestion, Federated Web Search, KBA, and Web Tracks</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bellogín</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">G</forename><surname>Gebremeskel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Said</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Samar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">P</forename><surname>De Vries</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">B</forename><surname>Vuurens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,540.40,206.58,15.52,7.86;4,335.61,217.04,126.60,7.86">The 22nd Text Retrieval Conference</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note>TREC 2013</note>
+</biblStruct>
+
+<biblStruct coords="4,335.60,228.50,212.11,7.86;4,335.61,238.96,194.71,7.86;4,335.61,249.42,148.98,7.86" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="4,335.61,238.96,151.55,7.86">A neural probabilistic language model</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Ducharme</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Vincent</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Janvin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,494.69,238.96,35.63,7.86;4,335.61,249.42,44.60,7.86">J. Mach. Learn. Res</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="1137" to="1155" />
+			<date type="published" when="2003-03">Mar. 2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,260.87,210.81,7.86;4,335.61,271.34,212.39,7.86;4,335.61,281.80,210.99,7.86;4,335.61,292.26,60.37,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="4,396.51,271.34,147.13,7.86">Neural probabilistic language models</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-S</forename><surname>Senécal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Morin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-L</forename><surname>Gauvain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,347.10,281.80,132.39,7.86">Innovations in Machine Learning</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="137" to="186" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,303.71,218.73,7.86;4,335.61,314.17,173.22,7.86" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="4,335.61,314.17,145.41,7.86">Indexing by latent semantic analysis</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">C</forename><surname>Deerwester</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">T</forename><surname>Dumais</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">A</forename><surname>Harshman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,325.63,187.23,7.86;4,335.61,336.09,213.16,7.86;4,335.61,346.55,189.63,7.86;4,335.61,357.01,161.87,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="4,390.53,336.09,158.23,7.86;4,335.61,346.55,72.93,7.86">Overview of the TREC 2013 Federated Web Search Track</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Demeester</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Trieschnigg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,427.45,346.55,97.79,7.86;4,335.61,357.01,44.31,7.86">The 22nd Text Retrieval Conference</title>
+		<imprint>
+			<publisher>TREC</publisher>
+			<date type="published" when="2013">2013. 2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,368.47,212.98,7.86;4,335.61,378.93,196.42,7.86;4,335.61,389.39,50.13,7.86" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="4,507.32,368.47,41.26,7.86;4,335.61,378.93,76.83,7.86">University of Padua at TREC</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Di Buccio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Masiero</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Melucci</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013">2013. 2013</date>
+			<publisher>Federated Web Search Track</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,400.85,193.07,7.86;4,335.61,411.31,220.32,7.86;4,335.61,421.77,212.17,7.86" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="4,335.61,411.31,186.71,7.86">ICTNET at Federated Web Search Track 2013</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Xue</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Cheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,540.40,411.31,15.52,7.86;4,335.61,421.77,183.97,7.86">The 22nd Text Retrieval Conference (TREC 2013)</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,433.23,215.77,7.86;4,335.61,443.69,212.21,7.86;4,335.61,454.15,215.60,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="4,441.58,433.23,109.79,7.86;4,335.61,443.69,109.63,7.86">Distributed representations of sentences and documents</title>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,452.86,443.69,94.96,7.86;4,335.61,454.15,187.40,7.86">Proceedings of The 31st International Conference on Machine Learning</title>
+		<meeting>The 31st International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,465.61,211.56,7.86;4,335.61,476.07,204.98,7.86;4,335.61,486.53,214.62,7.86;4,335.61,496.99,205.97,7.86;4,335.61,507.45,111.24,7.86" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="4,453.78,465.61,93.38,7.86;4,335.61,476.07,114.26,7.86">A markov random field model for term dependencies</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Metzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">B</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,468.65,476.07,71.93,7.86;4,335.61,486.53,214.62,7.86;4,335.61,496.99,202.42,7.86">Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 28th annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="472" to="479" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,518.91,192.13,7.86;4,335.61,529.37,213.62,7.86;4,335.61,539.83,127.55,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="4,335.61,529.37,213.62,7.86;4,335.61,539.83,20.08,7.86">Efficient estimation of word representations in vector space</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="4,362.76,539.83,21.80,7.86">CoRR</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="1" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,551.29,215.99,7.86;4,335.61,561.75,190.79,7.86;4,335.61,572.21,174.62,7.86;4,335.61,582.67,67.98,7.86" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="4,397.74,561.75,128.65,7.86;4,335.61,572.21,60.71,7.86">Recurrent neural network based language model</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Karafiát</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Burget</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Cernockỳ</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Khudanpur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,415.35,572.21,63.96,7.86">INTERSPEECH</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="1045" to="1048" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,594.12,219.06,7.86;4,335.61,604.59,201.41,7.86;4,335.61,615.05,203.56,7.86;4,335.61,625.51,185.63,7.86;4,335.61,635.97,67.98,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="4,372.43,604.59,164.58,7.86;4,335.61,615.05,136.79,7.86">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,490.96,615.05,48.20,7.86;4,335.61,625.51,156.21,7.86">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,647.43,220.32,7.86;4,335.61,657.89,182.78,7.86;4,335.61,668.35,201.94,7.86;4,335.61,678.81,168.91,7.86" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="4,509.35,647.43,46.58,7.86;4,335.61,657.89,182.78,7.86;4,335.61,668.35,124.38,7.86">NovaSearch at TREC 2013 Federated Web Search Track: Experiments with Rank Fusion</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mourao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Martins</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Magalhaes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,478.77,668.35,58.78,7.86;4,335.61,678.81,140.70,7.86">The 22nd Text Retrieval Conference (TREC 2013)</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="4,335.60,690.26,178.98,7.86;4,335.61,700.73,174.95,7.86;4,335.61,711.19,129.89,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="4,424.85,690.26,89.73,7.86;4,335.61,700.73,58.75,7.86">ISI at the TREC 2013 Federated task</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mitra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="4,412.76,700.73,97.79,7.86;4,335.61,711.19,101.69,7.86">The 22nd Text Retrieval Conference (TREC 2013)</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.59,57.64,196.11,7.86;5,72.59,68.10,195.06,7.86;5,72.59,78.56,172.85,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="5,200.11,57.64,68.59,7.86;5,72.59,68.10,159.87,7.86">The probabilistic relevance framework: Bm25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,240.02,68.10,27.63,7.86;5,72.59,78.56,67.06,7.86">Found. Trends Inf. Retr</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009-04">Apr. 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.59,90.02,218.62,7.86;5,72.59,99.52,208.29,10.13;5,72.59,112.25,20.96,7.86" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="5,169.08,90.02,66.13,7.86">Federated search</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Shokouhi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Si</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,242.19,90.02,49.02,7.86;5,72.59,99.52,156.93,10.13">Foundations and Trends Âő in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="102" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.59,123.71,199.81,7.86;5,72.59,134.17,214.67,7.86;5,72.59,144.63,137.60,7.86" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="5,182.63,123.71,89.77,7.86;5,72.59,134.17,139.51,7.86">Robust result merging using sample-based score estimates</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Shokouhi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,219.17,134.17,68.09,7.86;5,72.59,144.63,18.19,7.86">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2009-05">May 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.59,156.09,220.32,7.86;5,72.59,166.55,220.01,7.86;5,72.59,177.01,102.74,7.86" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="5,154.31,156.09,138.60,7.86;5,72.59,166.55,120.14,7.86">A semisupervised learning method to merge search engine results</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Si</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,199.39,166.55,89.57,7.86">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="457" to="491" />
+			<date type="published" when="2003-10">Oct. 2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.59,188.47,220.31,7.86;5,72.59,198.93,212.33,7.86;5,72.59,209.39,199.80,7.86" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="5,169.28,188.47,123.62,7.86;5,72.59,198.93,208.77,7.86">A study of smoothing methods for language models applied to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,72.59,209.39,89.57,7.86">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="179" to="214" />
+			<date type="published" when="2004-04">Apr. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

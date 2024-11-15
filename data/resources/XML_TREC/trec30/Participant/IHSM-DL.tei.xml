@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,84.76,99.57,442.50,14.93;1,286.39,119.50,39.19,14.93;1,267.30,160.43,77.41,8.64">QUALITY AND COST TRADE-OFFS IN PASSAGE RE-RANKING TASK NOTEBOOK PAPER</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,82.55,192.24,75.12,8.96"><forename type="first">Pavel</forename><surname>Podberezko</surname></persName>
+							<email>pavel.podberezko@ihsmarkit.com</email>
+						</author>
+						<author>
+							<persName coords="1,174.20,192.24,87.78,8.96"><forename type="first">Vsevolod</forename><surname>Mitskevich</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,278.52,192.24,75.96,8.96"><forename type="first">Raman</forename><surname>Makouski</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,371.01,192.24,72.61,8.96"><forename type="first">Pavel</forename><surname>Goncharov</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,460.15,192.24,69.30,8.96"><forename type="first">Andrei</forename><surname>Khobnia</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,169.96,220.42,70.20,8.96"><forename type="first">Nikolai</forename><surname>Bushkov</surname></persName>
+						</author>
+						<author>
+							<persName coords="1,344.10,220.42,97.94,8.96"><forename type="first">Marina</forename><surname>Chernyshevich</surname></persName>
+						</author>
+						<title level="a" type="main" coord="1,84.76,99.57,442.50,14.93;1,286.39,119.50,39.19,14.93;1,267.30,160.43,77.41,8.64">QUALITY AND COST TRADE-OFFS IN PASSAGE RE-RANKING TASK NOTEBOOK PAPER</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">446C74E47989ED3007DCCC6DA6AA2AAC</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Deep learning models named transformers achieved state-of-the-art results in a vast majority of NLP tasks at the cost of increased computational complexity and high memory consumption. Using the transformer model in real-time inference becomes a major challenge when implemented in production, because it requires expensive computational resources. The more executions of a transformer are needed the lower the overall throughput is, and switching to the smaller encoders leads to the decrease of accuracy. Our paper is devoted to the problem of how to choose the right architecture for the ranking step of the information retrieval pipeline, so that the number of required calls of transformer encoder is minimal with the maximum achievable quality of ranking. We investigated several lateinteraction models such as Colbert and Poly-encoder architectures along with their modifications. Also, we took care of the memory footprint of the search index and tried to apply the learning-to-hash method to binarize the output vectors from the transformer encoders. The results of the evaluation are provided using TREC 2019-2021 and MS Marco dev datasets.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Transformer based models achieved state-of-the-art results on a diverse set of tasks across different domains but most of the architectures have quadratic memory and computational complexity <ref type="bibr" coords="1,400.61,517.10,80.57,8.64" target="#b0">[Devlin et al., 2019]</ref>. Some recent studies introduced models with the reduction of original complexity <ref type="bibr" coords="1,350.73,528.01,69.58,8.64" target="#b1">[Tay et al., 2020]</ref> either in terms of memory or computational type, but nevertheless, they are slow too in comparison with the other steps of the information retrieval pipeline considered in this article. Thus, often the execution of inference of a transformer model dominates the total runtime of a prediction pipeline and it becomes a real challenge when millions of documents should be processed using the transformer as a backbone.</p><p>Classical information retrieval pipeline includes several phases -building a searching index; vectorization of an incoming query; retrieving a top of nearest neighbors, e.g. examples from the index which are the most similar to the input query; re-ranking of the extracted top in order to provide the user with results sorted by their relevancy to query. Building a search index phase could be done offline, but vectorization of the incoming query, extraction of the top of relevant examples, and re-ranking must be executed in real-time. Re-ranking becomes the most time-consuming step if the transformer models are used for that.</p><p>Our work addresses the problem of choosing the right architecture of the model for re-ranking in order to increase throughput without losing much of the ranking quality. By architecture we mean not the encoder model itself, but the way of obtaining the final ranking score. We investigate the application of several late-interaction models (also called split-encoders) like Colbert <ref type="bibr" coords="1,181.20,691.70,110.63,8.64" target="#b2">[Khattab and Zaharia, 2020]</ref> and poly-encoder <ref type="bibr" coords="1,364.78,691.70,85.43,8.64" target="#b3">[Humeau et al., 2020]</ref> to the task of passages re-ranking. We experiment with the type of rankers on the top of transformer backbones, the size of output vectors, and the data type for weights. Besides, we provide experiments with binarization of the output vectors from encoder models using the learning-to-hash method <ref type="bibr" coords="2,208.01,75.48,83.78,8.64" target="#b4">[Yamada et al., 2021]</ref> to save the disk space when storing the pre-computed index for re-ranking. The results and their analysis are provided in the last section of the work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Works</head><p>Deep transformer models pretrained as language models, for example BERT <ref type="bibr" coords="2,384.21,137.07,81.56,8.64" target="#b0">[Devlin et al., 2019]</ref> or RoBERTa <ref type="bibr" coords="2,522.53,137.07,17.46,8.64;2,72.00,147.98,48.17,8.64" target="#b5">[Liu et al., 2019]</ref>, have proven highly effective in a diverse set of classification and sequence labeling tasks in natural language processing. Nogueira and Cho <ref type="bibr" coords="2,233.58,158.89,57.05,8.64">[Nogueira and</ref><ref type="bibr" coords="2,293.12,158.89,137.29,8.64">Cho, 2020] [Nogueira et al., 2019]</ref> demonstrated effectiveness of deep transformer models in ranking tasks. These types of models are usually referred to as cross-encoders. The main disadvantage of such models is the necessity to perform full self-attention over the query-document pair, so these models are slow for practical use. Due to this fact, it is impractical to apply inference to every document in a corpus with respect to a query, so these techniques are typically applied to re-rank a rather small list of candidates.</p><p>Also, there is a broad class of models that map the input and a candidate label separately into a common feature space wherein typically a dot product or cosine is used to measure their similarity. These models are usually referred to as Bi-encoders. Researchers also consider the hybrid type of models that use separate encoding for query and document and different types of late interaction between encoded vectors. We refer to these models as split-architectures. One of the examples is poly-encoders <ref type="bibr" coords="2,211.45,262.55,89.04,8.64" target="#b3">[Humeau et al., 2020]</ref>. It is an architecture with an additional learned attention mechanism that represents more global features from which to perform self-attention, resulting in performance gains over Bi-encoders and large speed gains over Cross-Encoders. But authors provided experimental results only for four downstream tasks without measurements on the most popular IR benchmarks like TREC or MS <ref type="bibr" coords="2,453.94,295.28,87.30,8.64;2,72.00,306.19,21.19,8.64">MARCO [Bajaj et al., 2018]</ref>. Another example of split-architectures is ColBERT <ref type="bibr" coords="2,305.07,306.19,109.86,8.64" target="#b2">[Khattab and Zaharia, 2020]</ref>. It introduces a late interaction architecture that independently encodes the query and the document using BERT and then employs a cheap yet powerful interaction step that models their fine-grained similarity. By delaying and yet retaining this fine-granular interaction, ColBERT can leverage the expressiveness of deep LMs while simultaneously gaining the ability to pre-compute document representations offline, considerably speeding up query processing. Experimental results of ColBERT training for MS MARCO and TREC CAR <ref type="bibr" coords="2,238.50,360.74,75.60,8.64" target="#b8">[Nanni et al., 2017]</ref> datasets were provided. Another approach called PreTTR (Precomputing Transformer Term Representations), <ref type="bibr" coords="2,282.67,371.64,101.93,8.64" target="#b9">[MacAvaney et al., 2020]</ref> suggested using separate encoding for query and document and then several neural layers to merge them at query time to compute the final ranking score. Like in the approaches above, this allows one to precompute part of the document term representations at indexing time. Two benchmark results are available for this approach: WebTrack 2012 and Robust 2004.</p><p>Another direction to find quality and cost trade-offs for ranking models is vector size optimization and reduction. One of the promising approaches is a vector binarization <ref type="bibr" coords="2,268.16,431.67,82.92,8.64" target="#b4">[Yamada et al., 2021]</ref>. It is a memory-efficient neural retrieval model that integrates a learning-to-hash technique into the state-of-the-art Dense Passage Retriever. It reduces the memory cost from 65GB to 2GB without a loss of accuracy on two standard open-domain question answering benchmarks: Natural Questions and TriviaQA.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methodology</head><p>We trained our models on MS Marco passage ranking dataset using triples.train.small from the official website<ref type="foot" coords="2,514.83,513.42,3.49,6.05" target="#foot_0">1</ref> . The data consists of around 40M triples in the format (query, positive passage, negative passage), where positives for each query were taken from sparsely annotated index of 8.8M passages, while negatives are sampled from passages retrieved by bm25 model. It is well known that such approach leads to the large amount of false negative examples, so besides training on triples and considering first passage as positive and the last one as negative, we also tried distillation based training where labels for train examples were generated by other model. For this work we used labels generated by <ref type="bibr" coords="2,126.83,580.54,92.71,8.64" target="#b10">Hofstätter et al. [2020]</ref> and available at authors' github<ref type="foot" coords="2,350.00,578.87,3.49,6.05" target="#foot_1">2</ref> . These labels are logits from the ensemble of three cross-encoder models: bert-base, bert-large and albert-large.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">ColBert</head><p>One of the architectures chosen for this work is ColBert, which is the late interaction model with separate vectorization of a query and a passage.</p><p>Confirming results from the <ref type="bibr" coords="2,183.22,662.77,108.20,8.64" target="#b2">Khattab and Zaharia [2020]</ref> where ColBert was introduced, we found '[MASK]' augmentation of query to be helpful in terms of final ranking quality across all our experiments. We use fixed maximum length of a query (32 tokens) and pad any shorter query to this length with '[MASK]' token, while truncating any longer one.</p><p>ColBert uses MaxSim ranker as a scoring function, which can use L2 distance, dot product or cosine as a similarity metric between two vectors. In our experiments best results were achieved with L2 distance, so further in this paper ColBert is presented only with L2 ranking function.</p><p>Also, comparing to the original implementation in <ref type="bibr" coords="3,276.10,113.68,109.74,8.64" target="#b2">Khattab and Zaharia [2020]</ref>, we found that additional LayerNorm after hidden states dimension reduction layer (for example, from 768 of bert-base to 128 as in original ColBert implementation) generally improves quality throughout most of the experiments, so any further results with ColBert in this paper are presented with this layer included.</p><p>Another degree of freedom in Colbert model is the size of output vectors for a query and a passage. In this work we carried out several experiments with sizes of 128, 64, 32 to study possible trade-offs between ranking quality, vectors storage cost and response latency. Finally, to achieve best possible quality in terms of ranking metrics, while maintaining low response latency, we trained ColBert model with a range of transformer encoders as its backbone. Among those is T5, which has different tokenizer compared to Bert and Bert-like models (Electra, Albert, etc.), and this leads to a few subtleties in ColT5 implementation. First, T5 tokenizer does not have '[MASK]' token, so instead of it for query augmentation we tried several options and found '&lt;unk&gt;' token to be the best replacement. Second, '&lt;/s&gt;' token was inserted instead of usual '[SEP]' and no replacement for '[CLS]' was used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Applying learning-to-hash to Colbert</head><p>One of the experiments we have done is the application of learning-to-hash approach to our ColBert models. The objective of this research is to reduce index memory size, and evaluate trade-off between size and ranking metrics. Our implementation mostly follows the approach introduced in Yamada et al. <ref type="bibr" coords="3,363.17,322.55,24.80,8.64">[2021]</ref>. We have modified two-stage scheme from original paper into one-stage, which means binarization of re-ranking stage only.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Poly-encoder</head><p>Also we explore Poly-Encoder model. We trained the classic Poly-Encoder described in the <ref type="bibr" coords="3,441.00,378.64,83.39,8.64" target="#b3">Humeau et al. [2020]</ref>. In the classical model, we found that the number of codes does not play a big role with our requests, because the requests had a limited length (about 10 tokens), so we settled on 8 codes. As an initial checkpoint in Poly-Encoder training Castorini TCTColbert <ref type="bibr" coords="3,162.22,411.36,67.24,8.64" target="#b11">[Lin et al., 2020]</ref> was used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experimental Setup</head><p>All models were trained on 40M triples of MS Marco triples.train.small for one epoch. For evaluation, the following datasets for passage reranking task were used:</p><p>• TREC 2019 DL and TREC 2020 DL: test sets with 43 and 54 densely judged queries correspondingly with candidates scores varying between 0 and 3.</p><p>• MS Marco dev: 6980 sparsely judged queries with typically one relevant passage per query.</p><p>• TREC 2021 DL: 53 densely judged multiple graded relevance labels. Three runs (ihsm_colbert64, ihsm_bicolbert and ihsm_poly8q) were submitted to top-100 passage reranking task of TREC 2021.</p><p>Official lists of top candidates selected with bm25 algorithm and provided by datasets authors were used.</p><p>For all runs we set the maximum length of a query to be 32 tokens and for the passages 192 tokens. As optimizer, AdamW was used, learning rate was set to 2e-5 for the weights of pretrained transformer and to 5e-5 for new weights (such as linear compression layer in ColBert model). Typically for most runs batch size for base models was 32 and the number of gradient accumulation steps was set to 4. For all our experiments we used pytorch and transformers libraries.</p><p>Training was performed in automatic mixed precision setting.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Results and Analysis</head><p>Our main results are presented in Table <ref type="table" coords="3,231.41,680.79,3.75,8.64" target="#tab_0">1</ref>. It shows ranking metrics on four evaluation datasets, as well as latency per query for reranking task. The latency is measured on single RTX 2080 TI GPU and Intel Xeon E5-2680 (restricting pytorch to use 8 threads) and shown in two components: query vectorization and candidates reranking when all vectors are already loaded in RAM.</p><p>ColT5-base on the first row is the experiment with T5Encoder model as a backbone for ColBert model. It was trained on MS Marco triples using cross-entropy loss and gave the best result among all tested transformer encoders in the setting without distillation. All the rest rows in the table show results for experiments with distillation, when margin-mse loss was used on labels described in section 3.1.</p><p>Among presented experiments with distillation are ColBert runs with backbones of Bert-base, Bert-large, Electragenerator-small, Electra-generator-large and MiniLM-L4. Besides them, also T5Encoder and Electra-discriminator were tested, but they gave quite poor results.</p><p>For the case of T5Encoder, which shows great effectiveness without distillation, we can argue that the differences in the range of output scores between T5 and Bert might be the cause of failure, because distillation labels were mainly produced by Bert model.</p><p>As for Electra-discriminator model, it shows extremely low results both with and without distillation and seems to be unsuitable choice for ColBert backbone. To understand the reason behind such behavior, we analyzed output vectors from different transformers. We observed that output embeddings of Electra-discriminator model are much more context dependent than vectors from most other transformers as shown in Figure <ref type="figure" coords="4,403.46,233.73,3.81,8.64" target="#fig_0">1</ref>. The analysis was conducted as follows: two example sentences were taken, which share at least one word in common and the meaning of that word is the same in both sentences. Then the values of the vector of difference between embeddings of this word from the first and the second sentence are calculated (plotted as green distribution in Figure <ref type="figure" coords="4,383.90,266.46,3.60,8.64" target="#fig_0">1</ref>).</p><p>After that, any other word, which has clearly different from meaning from the previously selected word, is taken from the first sentence and its embedding is compared in the same way with the embedding of the first word produced both in the context of the first sentence (yellow histogram -different words, same sentences) and in the context of the second sentence (blue histogram -different words, different sentences). Namely, plotted here are the results of calculation for the following example sentences from Wikipedia: 1) "Discoveries in organometallic chemistry have led to important insights into chemical bonding.", 2) "The 18-electron rule is the equivalent of the octet rule in main group chemistry". The word, which is compared between sentences is "chemistry", the word with different meaning is "have". Plots a), c), and d), which represent bert-base-uncased, electra-base-generator and t5-base correspondingly, show that for all these models the word "chemistry" is closer to itself from different contexts, than to the word "have", while plot b) for electra-base-discriminator shows that this model considers "have" to be closer to "chemistry", when this word are used in the same sentence, than "chemistry" from a different sentence. The observed peculiarity of Electra-discriminator's output embeddings might be the explanation of its poor results, because ColBert's ranker heavily relies on token-to-token similarity from different contexts.</p><p>Experiments presented in the Table <ref type="table" coords="5,211.96,102.77,4.88,8.64" target="#tab_0">1</ref> on rows from 2 to 4 deal with the size of the output vectors and mainly investigate the trade-off between effectiveness and the storage cost. ColBert with the largest output dimension of 128 is indeed seems to be the best in terms of ranking quality, but the model with 64-dimensional vectors is not that far behind, with this gap being slightly smaller than the one between 64-and 32-dimensional models. So overall vectors size of 64 looks like the optimal value to balance between quality and costs and this variant ColBert-base was chosen as a submission to TREC 2021 DL.</p><p>Experiment on the 5th row presents results for the bert-large model as a backbone for ColBert. As one can see, it does not show any advantage over the base model in terms of ranking quality, but performs vectorization of query significantly slower. Lack of quality improvement might be caused by suboptimal selection of hyperparameters for training as larger models tend to be more sensitive to the variations in training conditions.</p><p>The following lines from 6 to 8 show results for the models with fewer parameters than bert-base. ColEctra-largegenerator (which is ColBert with electra-large-generator as a backbone encoder) with 64-dimensional vectors is quite close in ranking quality to the result of ColBert with 32-dimensional vectors, while having 51M parameters compared to 110M in bert-base-uncased. 2 times larger output embeddings mean 2 times larger storage costs and 2 times slower online ranking operation. Also, ColEctra-large-generator is 2 times slower than ColBert-base in query vectorization on GPU due to its encoder having twice as many layers as bert-base-uncased. Nevertheless ColEctra-large-generator has two advantages over ColBert-base: firstly, it is roughly 40% faster in offline index vectorization on GPU (measured on RTX 2080 TI) and secondly, it is 15% faster in online query vectorization when it has to be performed on CPU (measured on Intel Xeon E5-2680), both advantages emerging from the smaller number of parameters. ColEctra-small-generator with only 13.5M parameters pushes speed gains even further: both offline index vectorization on GPU and online query vectorization on CPU are roughly 2.2 times faster compared to ColBert-base. Though the drop in ranking quality is much more pronounced in this case when compared to the best results of ColBert-base, the result is still decent and better than we the best we could achieve with bert-base sized models in training setting without distillation. The effectiveness of ColMiniLM-L4, based on MiniLM-L4 model with only 4 layers and 19M parameters, is very similar to that of ColEctra-small-generator. The speed of offline index vectorization on GPU is also roughly the same. But due to fewer layers it is faster in online query vectorization both on GPU and CPU than any other model presented in this work. Comparing to ColBert-base, the gain is of factor of 3 for GPU and up to 5 for CPU vectorization.</p><p>The 9th row of the Table <ref type="table" coords="6,180.50,244.59,5.08,8.64" target="#tab_0">1</ref> represents our experiment with application of learning-to-hash technique to ColBert. Binarization reduces the size of output embeddings by the factor of 32 compared to the output of standard ColBert (which produces vectors in float32) and dramatically reduces storage costs. But in our experiments binarized ColBert showed quite significant drop in ranking quality. In order to mitigate this, we increased the number of elements in vectors from 64 to 256, which helps in reaching competitive quality. When comparing to ColBert-base-64, the presented result has 1.5% lower mrr10 score on MS Marco dev dataset and its re-ranking stage is 4 times slower due to larger vectors, but it reduces storage costs by the factor of 8. Among our submits to TREC 2021 DL, ihsm_bicolbert gives the lowest score in terms of ndcg10, but margins are quite small and the gap to ihsm_colbert64 is only around 1%.</p><p>The last line of the Table <ref type="table" coords="6,178.66,337.35,5.08,8.64" target="#tab_0">1</ref> is the result of poly-encoder model with 8 attention codes. As one can see, two main advantages of this model are fast ranking function and low storage costs both due to keeping only one vector per index passage. The result on MS Marco dev dataset shows that such benefits come at the cost of quality drop below the level of ColT5 model trained without distillation. On the other hand, according to the ranking metrics of TREC DL 2019-2021 poly-encoder has competitive results, being above binarized ColBert on TREC 2021 DL. Overall, poly-encoder can be considered as a reasonable choice for some search tasks due to its practical benefits.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>We trained and evaluated a bunch of re-ranking models on popular passage re-ranking datasets and studied the qualitycost trade-offs for various design choices. The best quality can be achieved with ColBert architecture and bert-base model as its backbone, setting output vector size to 64: either increasing this size or choosing larger bert variant does not lead to significant improvement in ranking metrics. In order to reduce storage costs, one can reduce vector size by a factor of 2 with rather small loss of ranking quality. On the other hand, to increase inference speed (on CPU for online vectorization and on GPU for offline) one can change encoder model to electra-generator-larger with similar trade-off in quality. We showed that large storage costs reduction with reasonable ranking metrics can be achieved with binarization of ColBert output vectors or by opting for Poly-encoder model. Also we confirmed the result of <ref type="bibr" coords="6,450.50,519.97,89.50,8.64" target="#b10">Hofstätter et al. [2020]</ref> that cross-architecure knowledge distillation can dramatically improve the end quality of smaller models. Large latency reduction can be achieved with such models as electra-generator-small or MiniLM-L4 serving as a ColBert's backbone, while ranking metrics will be maintained at the level of larger models trained without knowledge distillation.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,72.00,677.51,468.00,8.64;5,72.00,688.42,468.00,8.64;5,72.00,699.33,469.50,8.64;5,72.00,710.24,139.30,8.64"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Distributions of differences between word vectors from various transformers. Differences are calculated as vec1-vec2, where vec1 and vec2 are vectors of either different tokens or same token from different sentences and are taken from the last layer of transformer encoder. a -bert-base-uncased, b -electra-base-discriminator, celectra-base-generator, d -t5-base.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,71.69,434.81,468.31,279.57"><head>Table 1 :</head><label>1</label><figDesc>Re-ranking quality achieved with different models on four datasets. Latency both for CPU and GPU is shown as well. The last column presents throughput measurements on GPU.</figDesc><table coords="4,76.81,463.08,459.96,251.30"><row><cell cols="2">Row Model</cell><cell>Vector size</cell><cell>TREC 2019 DL ndcg10</cell><cell>TREC 2020 DL ndcg10</cell><cell>TREC 2021 DL ndcg10</cell><cell>MS Marco dev mrr10</cell><cell cols="5">Latency, ms/query (1000 passages) Index vec-torization, ms/passage GPU CPU</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="3">Q vec Rank Q vec</cell><cell>Rank</cell><cell></cell></row><row><cell>1</cell><cell>ColT5-base</cell><cell>N×128</cell><cell>0.6903</cell><cell>0.7101</cell><cell>-</cell><cell>0.3449</cell><cell>15</cell><cell>30</cell><cell>45</cell><cell>400</cell><cell>2.5</cell></row><row><cell>2</cell><cell>ColBert-base</cell><cell>N×128</cell><cell>0.7253</cell><cell>0.7442</cell><cell>-</cell><cell>0.3743</cell><cell>15</cell><cell>30</cell><cell>45</cell><cell>400</cell><cell>2.5</cell></row><row><cell>3</cell><cell>ColBert-base</cell><cell>N×64</cell><cell>0.7324</cell><cell>0.7415</cell><cell>0.6453</cell><cell>0.371</cell><cell>15</cell><cell>15</cell><cell>45</cell><cell>200</cell><cell>2.5</cell></row><row><cell></cell><cell>(ihsm_colbert64)</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>4</cell><cell>ColBert-base</cell><cell>N×32</cell><cell>0.7408</cell><cell>0.723</cell><cell>-</cell><cell>0.3664</cell><cell>15</cell><cell>7.5</cell><cell>45</cell><cell>100</cell><cell>2.5</cell></row><row><cell>5</cell><cell>ColBert-large</cell><cell>N×128</cell><cell>0.7347</cell><cell>0.7293</cell><cell>-</cell><cell>0.3715</cell><cell>35</cell><cell>30</cell><cell>120</cell><cell>400</cell><cell>7.5</cell></row><row><cell>6</cell><cell>ColEctra-small-</cell><cell>N×64</cell><cell>0.7223</cell><cell>0.7169</cell><cell>-</cell><cell>0.358</cell><cell>15</cell><cell>15</cell><cell>20</cell><cell>200</cell><cell>1.1</cell></row><row><cell></cell><cell>generator</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>7</cell><cell>ColEctra-large-</cell><cell>N×64</cell><cell>0.7298</cell><cell>0.7247</cell><cell>-</cell><cell>0.3657</cell><cell>30</cell><cell>15</cell><cell>40</cell><cell>200</cell><cell>1.8</cell></row><row><cell></cell><cell>generator</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>8</cell><cell>ColMiniLM-L4</cell><cell>N×64</cell><cell>0.7092</cell><cell>0.7258</cell><cell>-</cell><cell>0.3561</cell><cell>5</cell><cell>15</cell><cell>12</cell><cell>200</cell><cell>1.1</cell></row><row><cell>9</cell><cell>BinaryColBert-</cell><cell>N×256</cell><cell>0.7304</cell><cell>0.7303</cell><cell>0.6342</cell><cell>0.3553</cell><cell>15</cell><cell>60</cell><cell>45</cell><cell>800</cell><cell>2.9</cell></row><row><cell></cell><cell>base</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>(ihsm_bicolbert)</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>10</cell><cell>Polyencoder</cell><cell>1×768</cell><cell>0.7223</cell><cell>0.7205</cell><cell>0.6393</cell><cell>0.3315</cell><cell>15</cell><cell>3</cell><cell>55</cell><cell>5</cell><cell>2.5</cell></row><row><cell></cell><cell>bert-base</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell>(ihsm_poly8q)</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,88.14,703.31,131.16,7.77"><p>https://microsoft.github.io/msmarco/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,88.14,714.16,208.59,7.77"><p>https://github.com/sebastian-hofstaetter/neural-ranking-kd</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,72.00,598.93,468.00,8.64;6,81.96,609.84,189.25,8.64" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,374.86,598.93,165.14,8.64;6,81.96,609.84,160.13,8.64">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,624.67,468.00,8.82;6,81.96,635.58,100.17,8.82" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Yi</forename><surname>Tay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mostafa</forename><surname>Dehghani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dara</forename><surname>Bahri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donald</forename><surname>Metzler</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2009.06732</idno>
+		<title level="m" coord="6,335.18,624.85,133.90,8.64">Efficient transformers: A survey</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,72.00,650.77,468.00,8.64;6,81.96,661.68,62.78,8.64" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="6,212.64,650.77,327.36,8.64;6,81.96,661.68,34.28,8.64">Colbert: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,676.69,467.99,8.64;6,81.96,687.60,290.81,8.64" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,360.74,676.69,179.25,8.64;6,81.96,687.60,261.92,8.64">Poly-encoders: Transformer architectures and pre-training strategies for fast and accurate multi-sentence scoring</title>
+		<author>
+			<persName coords=""><forename type="first">Samuel</forename><surname>Humeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kurt</forename><surname>Shuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marie-Anne</forename><surname>Lachaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,702.61,468.00,8.64;6,81.96,713.51,68.34,8.64" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="6,283.47,702.61,256.52,8.64;6,81.96,713.51,39.09,8.64">Efficient passage retrieval with hashing for open-domain question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Ikuya</forename><surname>Yamada</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Akari</forename><surname>Asai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hannaneh</forename><surname>Hajishirzi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,75.48,469.25,8.64;7,81.96,86.39,343.99,8.64" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Yinhan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Myle</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Naman</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jingfei</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mandar</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Danqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Omer</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Veselin</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Roberta</surname></persName>
+		</author>
+		<title level="m" coord="7,210.88,86.39,185.83,8.64">A robustly optimized bert pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,101.28,304.47,8.64" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="7,235.51,101.28,112.46,8.64">Passage re-ranking with bert</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,116.17,444.52,8.64;7,72.00,131.07,468.36,8.64;7,81.96,141.98,459.78,8.64;7,81.96,152.89,313.52,8.64" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="7,330.29,116.17,157.73,8.64;7,81.96,152.89,284.85,8.64">Ms marco: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kyunghyun</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin ; Payal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nick</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xiaodong</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alina</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Stoica</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tong</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Wang</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018">2019. 2018</date>
+		</imprint>
+	</monogr>
+	<note>Multi-stage document ranking with bert</note>
+</biblStruct>
+
+<biblStruct coords="7,72.00,167.78,461.40,8.64" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="7,343.42,167.78,161.55,8.64">Benchmark for complex answer retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Federico</forename><surname>Nanni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bhaskar</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Magnusson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Laura</forename><surname>Dietz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,182.68,469.74,8.64;7,81.96,193.41,458.04,8.82;7,81.71,204.31,460.03,8.82;7,81.96,215.40,368.26,8.70" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,81.96,193.58,363.28,8.64">Efficient document re-ranking for transformers by precomputing term representations</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maria</forename><surname>Franco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raffaele</forename><surname>Nardini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Perego</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nazli</forename><surname>Tonellotto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ophir</forename><surname>Goharian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Frieder</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3397271.3401093</idno>
+		<ptr target="http://dx.doi.org/10.1145/3397271.3401093" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,459.92,193.41,80.08,8.59;7,81.71,204.31,413.78,8.59">Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020-07">Jul 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,230.30,468.00,8.64;7,81.96,241.21,301.08,8.64" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="7,461.60,230.30,78.41,8.64;7,81.96,241.21,272.70,8.64">Improving efficient neural ranking models with cross-architecture knowledge distillation</title>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hofstätter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sophia</forename><surname>Althammer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Schröder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mete</forename><surname>Sertkan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Allan</forename><surname>Hanbury</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,72.00,256.10,467.99,8.64;7,81.96,267.01,60.03,8.64" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="7,284.62,256.10,255.38,8.64;7,81.96,267.01,31.22,8.64">Distilling dense representations for ranking using tightly-coupled teachers</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

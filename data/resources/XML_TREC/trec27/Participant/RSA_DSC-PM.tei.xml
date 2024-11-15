@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,143.53,116.26,328.29,12.45;1,287.90,134.19,39.56,12.45">RSA DSc on TREC&apos;s 2018 Precision Medicine Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,208.54,171.78,105.56,8.80"><forename type="first">Alexandros</forename><surname>Bampoulidis</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Studio Data Science Vienna</orgName>
+								<orgName type="institution">Research Studios Austria</orgName>
+								<address>
+									<country key="AT">Austria</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,355.49,171.78,51.33,8.80"><forename type="first">Mihai</forename><surname>Lupu</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Studio Data Science Vienna</orgName>
+								<orgName type="institution">Research Studios Austria</orgName>
+								<address>
+									<country key="AT">Austria</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,143.53,116.26,328.29,12.45;1,287.90,134.19,39.56,12.45">RSA DSc on TREC&apos;s 2018 Precision Medicine Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">0000BA5A51538F035878BFA6541B0E60</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we describe our approach to TREC's 2018 Precision Medicine challenge. We describe how we developed a system that semantically enriches the text documents and the disease part of the topic and issues extensive and detailed boolean queries to the Information Retrieval system and we present its results.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The TREC 2018 Precision Medicine (PM) track challenge, as in 2017 <ref type="bibr" coords="1,455.91,359.42,9.96,8.80" target="#b0">[1]</ref>, is to retrieve the most relevant documents from a collection of literature articles' (LAs) abstracts and clinical trials' (CTs) descriptions, given a patient's form of cancer, demographic and genomic information.</p><p>Each document collection (LAs abstracts and CTs descriptions) corresponds to a subtask, although the topics that are to be queried to the Information Retrieval (IR) system are common for both. The LAs collection consists of 27 million abstracts from MEDLINE and the CTs collection consists of 241 thousand descriptions from ClinicalTrials.gov. Both collections are in XML format and each document includes at least a title.</p><p>The track defines two degrees of relevance: definite and partial. Both specify that a document's demographic must match the topic's one. Definite relevance specifies that the document's discussed form of cancer is the topic's exact or more specific form of cancer and that the document's discussed gene(s) match at least one of the topic's genes. Partial relevance specifies the same things as the definite one, except that the type of cancer can be of a more general form and the discussed gene(s) can be missing a variant or have a different variant of the gene.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>In this section, we describe our approach to TREC's 2018 PM challenge. Specifically: how we preprocessed and indexed the data, how we processed the topics and retrieved the documents and, finally, the details of our submitted runs. Note that the whole process is automated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Preprocessing</head><p>We defined two types of text corresponding to importance: primary and secondary. We concatenated the text of specific XML elements of the provided data to either primary or secondary and, then, annotated them with a GATE annotation pipeline that was especially developed within the KConnect project <ref type="foot" coords="2,473.36,170.77,3.97,6.16" target="#foot_0">1</ref> .</p><p>Figure <ref type="figure" coords="2,181.61,184.28,4.98,8.80">1</ref> depicts how the annotation pipeline works: Given a text, it annotates terms with a class (Anatomy, Disease, Drug or Investigation) and a UMLS Concept Unique Identifier (CUI) 2 . Using this annotation pipeline we extracted all the Disease CUIs from the primary and secondary texts and concatenated them to the fields primary text annotations and secondary text annotations, respectively, with the CUIs being separated by a semicolon.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. 1: GATE annotation pipeline</head><p>The primary text of the LAs consists only of the title and the secondary text consists only of the abstract. The primary text of the CTs consists of the elements: brief title, official title, condition, keyword and mesh term. The secondary text of the CTs consists of the elements: brief summary, detailed description and arm group label. Additionally, we extracted the information from the gender, minimum age and maximum age elements of the CTs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Indexing</head><p>After the preprocessing step, we indexed the two collections into elasticsearch 3 with the following fields:</p><p>docid primary text primary text annotations secondary text secondary text annotations gender (CTs only) -minimum age (CTs only) -maximum age (CTs only)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Retrieval</head><p>Each topic consists of 3 fields: disease, gene and demographic (Fig. <ref type="figure" coords="3,430.13,141.69,3.87,8.80">2</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Fig. 2: TREC 2018 PM track topics</head><p>Disease We applied the GATE annotation pipeline to the disease and extracted its CUI. Then, we created three lists of CUIs: exact, more specific and more general. These lists contain disease CUIs that are related to the topic's one, as retrieved from NCBI's MedGen MGREL database<ref type="foot" coords="3,354.27,438.25,3.97,6.16" target="#foot_2">4</ref> (Fig. <ref type="figure" coords="3,386.28,439.80,3.87,8.80" target="#fig_0">3</ref>). Specifically:</p><p>-Exact</p><p>• RELA in has alias, alias of -More specific</p><p>• RELA in has alias, alias of</p><formula xml:id="formula_0" coords="3,140.99,515.47,186.64,34.97">• RELA = isa • RELA = "" and REL in PAR, CHD -More general</formula><p>• RELA in has alias, alias of</p><formula xml:id="formula_1" coords="3,158.68,567.81,98.60,8.80">• RELA = inverse isa</formula><p>Gene We created two lists of genes: exact and missing/different variant. The former contains the text as it is specified in the topic, while the latter contains only the genes (e.g. BRAF, PTEN and NRAS in Fig. <ref type="figure" coords="3,371.01,634.67,3.87,8.80">2</ref>). Then, we created different rankings of the query types that were to be issued to the index (in total 34 query types, including the case of no disease CUIs and no genes). After conducting extensive experiments on the collections with different rankings and using the challenge's 2017 topics, we submitted the best performing ones shown at Tables <ref type="table" coords="4,282.43,620.19,4.98,8.80">1</ref> and<ref type="table" coords="4,310.42,620.19,3.87,8.80">2</ref>. The queries were issued in the order displayed at Tables 1 and 2 until the IR system has retrieved 1000 documents. Each retrieved document that was not retrieved by the preceding queries was stacked in a list and was scored from 1.1 (1st retrieved document) decreasing by 0.001 until the 1000th document was retrieved. The retrieved documents of each query were ranked by elasticsearch's default ranking system.</p><p>A simple example of this procedure: If pr ex pr ex retrieves documents (A, B, C), then the list of stacked documents would be [(A, 1.1), (B, 1.099), (C, 1.098)]. Then, if pr sp pr ex retrieves documents (B, E, C, D, A), then the list of stacked documents would be [(A, 1.1), (B, 1.099), (C, 1.098), (E, 1.097), (D, 1.096)], and so on.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Literature Articles Runs Run 1</head><p>Run 2 Run 3 Run 4 Run 5 pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ex pr md pr ex se ex pr ex pr md pr ex se ex pr ex se ex pr sp pr md pr sp se ex pr sp pr md pr sp se ex pr sp se ex pr ge pr md pr ge se ex pr ge pr md pr ge se ex pr ge se ex pr ex se ex se ex se ex pr ex se ex pr ex pr md pr ex pr md pr sp se ex se sp se ex pr sp se ex pr sp pr md pr sp pr md pr ge se ex se ge se ex pr ge se ex pr ge pr md pr ge pr md pr ex se md pr ex pr md se ex se ex se ex se ex pr ex pr md pr sp se md pr sp pr md se sp se ex se sp se ex pr sp pr md pr ge se md pr ge pr md se ge se ex se ge se ex pr ge pr md Table <ref type="table" coords="5,161.82,442.02,3.87,8.80">1</ref>: Rank of the first 12 queries for the LAs runs. The first four letters refer to the disease CUIs part of the query and the last four letter refer to the genes part of the query.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>The performance of our runs is presented in Table <ref type="table" coords="5,352.30,536.07,3.87,8.80">3</ref>. There are minor differences in performance across the runs, with run 5 of both LAs and CTs performing the best in most of the challenge's evaluation metrics. Note that despite the fact that the first 3 queries issued to the index are the same across all runs, they do not retrieve more than 5 documents in all topics, as it is evident from Table <ref type="table" coords="5,469.96,583.89,3.87,8.80">3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>In this paper, we describe our approach to TREC's 2018 Precision Medicine challenge. Our approach consists of splitting the text into two categories corresponding to importance, semantically enriching the documents and the disease</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Clinical Trials Runs Run 1</head><p>Run 2 Run 3 Run 4 Run 5 pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr sp pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ge pr ex pr ex pr md pr ex pr md pr ex pr md pr ex se ex pr ex se ex pr sp pr md pr sp pr md pr sp pr md pr sp se ex pr sp se ex pr ge pr md pr ge pr md pr ge pr md pr ge se ex pr ge se ex se ex pr ex se ex se ex pr ex se ex se ex se ex pr ex pr md se sp pr ex se sp se ex pr sp se ex se sp se ex pr sp pr md se ge pr ex se ge se ex pr ge se ex se ge se ex pr ge pr md se ex pr md se ex se md pr ex se md pr ex pr md se ex se ex se sp pr md se sp se md pr sp se md pr sp pr md se sp se ex se ge pr md se ge se md pr ge se md pr ge pr md se ge se ex Table <ref type="table" coords="6,161.83,337.04,3.87,8.80">2</ref>: Rank of the first 12 queries for the CTs runs. The first four letters refer to the disease CUIs part of the query and the last four letter refer to the genes part of the query. part of the topic, issuing multiple detailed queries to the IR system, stacking the retrieved documents and assigning them a symbolic score.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,215.61,326.82,184.14,8.80;4,134.77,115.83,345.84,199.52"><head>Fig. 3 :</head><label>3</label><figDesc>Fig. 3: NCBI's MedGen MGREL database</figDesc><graphic coords="4,134.77,115.83,345.84,199.52" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" coords="3,134.77,174.85,345.84,160.57"><head></head><label></label><figDesc></figDesc><graphic coords="3,134.77,174.85,345.84,160.57" type="bitmap" /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,144.73,634.83,31.51,7.92"><p>Horizon</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2020" xml:id="foot_1" coords="2,200.81,634.83,263.34,7.92;2,137.50,644.04,3.65,5.28;2,144.73,645.79,334.90,7.92;2,137.50,654.99,3.65,5.28;2,144.73,656.74,91.49,7.92"><p>research and innovation programme, grant agreement No. 644753 2 https://www.nlm.nih.gov/research/umls/new users/online learning/Meta 005.html 3 https://www.elastic.co</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="3,144.73,656.74,231.74,7.92"><p>ftp://ftp.ncbi.nlm.nih.gov/pub/medgen/MGREL.RRF.gz</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,138.35,464.62,342.24,7.92;6,146.91,475.58,333.68,7.92;6,146.91,486.53,86.54,7.92;7,245.46,259.56,124.46,14.16;7,161.46,279.87,29.98,14.16;7,220.63,279.87,254.85,14.16" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,342.92,475.58,137.68,7.92;6,146.91,486.53,57.62,7.92">Overview of the trec 2017 precision medicine track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Lazar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Pant</surname></persName>
+		</author>
+		<idno>Run iNDCG Rprec P@5 P@10 P@15</idno>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">LAs/CTs Results</note>
+</biblStruct>
+
+<biblStruct coords="7,134.77,512.13,345.82,8.80" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,134.77,512.13,139.52,8.80">Table 3: Inferred NDCG, R-prec</title>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,282.14,512.13,194.11,8.80">P@5, P@10 and P@15 of our submitted runs</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

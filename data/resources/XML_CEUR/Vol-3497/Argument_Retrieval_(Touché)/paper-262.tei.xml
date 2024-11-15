@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,417.00,15.42;1,89.29,106.66,204.95,15.42;1,89.29,129.00,381.75,11.96">Evidence Retrieval for Causal Questions Using Query Expansion And Reranking Notebook for the Touché Lab on Argument and Causal Retrieval at CLEF 2023</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,88.87,154.90,57.04,11.96"><forename type="first">Aron</forename><surname>Gaden</surname></persName>
+							<email>aron.gaden@uni-jena.de</email>
+						</author>
+						<author>
+							<persName coords="1,157.66,154.90,66.70,11.96"><forename type="first">Niklas</forename><surname>Rausch</surname></persName>
+							<email>niklas.rausch@uni-jena.de</email>
+						</author>
+						<author>
+							<persName coords="1,235.79,154.90,77.06,11.96"><forename type="first">Bruno</forename><surname>Reinhold</surname></persName>
+							<email>bruno.reinhold@uni-jena.de</email>
+						</author>
+						<author>
+							<persName coords="1,340.31,154.90,95.52,11.96"><forename type="first">Lukas</forename><surname>Zeit-Altpeter</surname></persName>
+							<email>lukas.zeit-altpeter@uni-jena.de</email>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,417.00,15.42;1,89.29,106.66,204.95,15.42;1,89.29,129.00,381.75,11.96">Evidence Retrieval for Causal Questions Using Query Expansion And Reranking Notebook for the Touché Lab on Argument and Causal Retrieval at CLEF 2023</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">0493637C282CD972F9BA0DC32429176D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:32+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>information retrieval</term>
+					<term>query expansion</term>
+					<term>reranking</term>
+					<term>touche</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We present our runs to the Touché Lab on Argument and Causal Retrieval at CLEF 2023, aiming to retrieve relevant documents for given causal questions. Our approaches rely heavily on query expansions. Both a transformer-based and a technique using expansions using prior knowledge on the stated relationships are used. The retrieved documents are then retrieved using the ChatNoir search engine before being subjected to a simple reranking scheme, ranking documents higher the earlier the causal relationship in question is mentioned.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>In this paper, we explain our approach to evidence retrieval for causal questions, as an entry for shared task 2 of Touché at CLEF 2023 <ref type="bibr" coords="1,273.08,380.18,14.44,10.91" target="#b0">[1]</ref> 1 . Submissions were made via TIRA <ref type="bibr" coords="1,446.19,380.18,15.95,10.91" target="#b1">[2]</ref> Evidence retrieval concerns itself with identifying whether a causal relationship between two events or actions exist. Currently, search machines do not recognize such queries, nor do they retrieve those kinds of relationships. We approached the topic under the aspects of query analysis, query expansion, and document scoring. The goal of the shared task is to retrieve and rank documents by relevance to the topic and detect the document "causal" stance, that is "for", "against", or neutral. In our case, we opt to not determine a stance, and only rank documents based on whether they make a claim about possible causal relationships. We (Team He-Man) propose three methods for obtaining causal relationships. The first run (no-expansion) is to be considered a baseline, using only the task's query as search input. The second run (gpt-expansion) uses responses from manual prompts to ChatGPT as expansions for each query. The third run (causenet-expansion) tries to find terms similar to the search terms in the CauseNet corpus <ref type="bibr" coords="1,492.38,529.22,11.46,10.91" target="#b2">[3]</ref>. In this paper, we explain the general methods we applied, as well as attempts we made during development. Whenever it is not obvious, we mention which run the information applies to. Finally, we discuss possible shortcomings and improvements of our approaches.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Query Preprocessing</head><p>Finding documents that confirm or refute causal relations between two entities, forming part of the query, is a stricter constraint than just finding any documents containing those entities. Hence, we attempted to connect both cause and effect with some entity in every query. Broadly speaking, this process consists of two steps: the extraction of the two entities for which the causal relation is to be found from the tokenized queries, and what the relation between them is (i.e. which is cause and which effect). Before analyzing the terms of the query, we split each tokenized query in two parts. This was facilitated by the design of the tasks, which were all following the formula of "Does A cause B?" or similar, where the cause and effect would be divided by some kind of connection structure.</p><p>Sentences like "Is there a causal relation between A and B?" were not part of the dataset, and therefore not considered in our processing algorithm. For tokenizing the queries, we used the NLTK python package <ref type="foot" coords="2,192.17,258.57,3.71,7.97" target="#foot_0">2</ref> . We extracted all the dividing patterns found in the dataset for this initial split of the query. Here, we disambiguated active and passive patterns. Active patterns (e.g. "lead to") form part of a query with the structure "A causes B?", while passive patterns (e.g. "result of") reverse the relation: "B causes A?". The data set with 50 questions contained 11 patterns -7 active and 4 passive patterns. With these patterns, we could exhaustively and correctly split the queries of the data set. After splitting the query in two parts and extracting the relation between the entities, we had to identify the entities in the query parts. In an initial experiment, we queried Wikidata<ref type="foot" coords="2,234.75,353.41,3.71,7.97" target="#foot_1">3</ref> for each n-gram contained within the partial query for every n from 1 to the length of the partial query. We assumed the largest substring of the query that returned a result from the Wikidata query as cause or effect, respectively.</p><p>We were able to identify cause and effect correctly in 33 of the 50 tasks, where the cause and effect were individually extracted correctly 41 and 44 times, respectively. Often times, this approach would leave out important context of the query term, such as increased insurance premiums being identified as insurance or high blood pressure medication as high blood pressure. Semantically, these differ drastically from the actual search term.</p><p>Hence, we used another solution with a different approach. Using Stanza <ref type="bibr" coords="2,431.89,463.56,11.54,10.91" target="#b3">[4]</ref>, we built and analyzed the constituency tree of the query. With the knowledge of having two relevant search terms, we could still split the query into two parts. We assigned the longest noun phrase in each query part to be the relevant query term. Using the aforementioned rule-based strategy for identifying cause and effect, we were able to automatically recognize all cause and effect pairs in the data set correctly, hence all he-man runs used the latter method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Query Expansion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">ChatGPT Expansion</head><p>GPT stands for "Generative Pre-trained Transformer" <ref type="bibr" coords="2,328.72,610.90,11.41,10.91" target="#b4">[5]</ref>. It refers to a type of artificial neural network architecture that is widely used in natural language processing tasks, such as text generation, translation, understanding or expansion of existing text. The "generative" aspect { " q u e r y s " : [ { " q u e r y " : " Does d r i n k i n g s p a r k l i n g w a t e r c a u s e w e i g h t g a i n ? " , " e x p a n s i o n s " : [ { " q u e r y " : " Does d r i n k i n g s p a r k l i n g w a t e r l e a d t o w e i g h t g a i n ? " , " c a u s e " : " d r i n k i n g s p a r k l i n g w a t e r " , " c a u s a l _ p h r a s e " : " l e a d t o " , " e f f e c t " : " w e i g h t g a i n " , " v o i c e " : " a c t i v e " } , . . . } of GPT refers to the model's ability to generate new text based on the input it receives. It can produce coherent and contextually relevant text that resembles human language. However, one needs to keep in mind that ChatGPT occasionally generates inaccurate or nonsensical information. Furthermore, "Pre-trained" means that the model is trained on a large dataset before being fine-tuned for specific tasks. In the case of GPT, it is trained on a massive amount of text data, mainly from a dataset of websites called Common Crawl. This pre-training allows the model to learn patterns, grammar, vocabulary, and other linguistic features from the data. Additionally, ChatGPT has been moderated in order to make the interaction with the AI-tool more natural and safer for humans to use. "Transformer" refers to the specific architecture used in GPT. Transformers are deep learning models that rely on self-attention mechanisms <ref type="bibr" coords="3,481.30,467.91,12.93,10.91" target="#b5">[6]</ref> to process input data. They are known for their effectiveness in capturing long-range dependencies in sequences, making them suitable for tasks involving natural language.</p><p>The chat tool has been instructed to expand each of the 50 causal queries. All the original queries are interrogative sentences. The cause-and-effect relationship is clearly identifiable by a causal phase, such as e.g. "leads to" or "caused by". Furthermore, the queries can be posed in an active-or passive voice. The exact prompt is stated in figure <ref type="figure" coords="3,359.47,549.20,3.74,10.91" target="#fig_1">2</ref>.</p><p>The accuracy of the generated expansions is satisfactory in the way that the generative AI-tool follows the provided structure and generates correct and non-repetitive expansions. However, the amount of generated extension varies between four and seven. Moreover, the process of obtaining the query expansions was quite laborious. This was due to the limited and varying output size and the unsteady availability of the online tool at the time. Each query was expanded individually and composed together afterwards by concatting the query field of each expansion returned as json.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Expand t h e q u e r i e s by f o l l o w i n g t h i s j s o n h i e r a r c h y . A q u e r y can</head><p>o n l y have one " c a u s e " one " c a u s a l p h r a s e " and one " e f f e c t " which a r e e x t r a c t e d from t h e q u e r y i n an i n f o r m a t i o n r e t r i e v a l t a s k , i n o r d e r t o f i n d documents c o n t a i n i n g t h e c a u s a l r e l a t i o n s h i p . F i n d b o t h e x p a n s i o n s t h a t a r e f o r m u l a t e d i n a p a s s i v e and a c t i v e v o i c e . T r y t o u s e c a u s a l p h r a s e s l i k e : " c a u s e s , r e s u l t s i n , l e a d s to , e f f e c t of , e t c . Tr y t o f i n d a t l e a s t 5 q u e r y e x p a n s i o n s . t h e newly g e n e r a t e d q u e r i e s s h o u l d be q u e s t i o n s t o o . Only r e s p o n d i n t h e s p e c i f i e d j s o n f o r m a t ! </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">CauseNet Expansion</head><p>A second way of expanding the queries derived from the given topics consists of using prior knowledge on causal questions, to improve the original query. For this we used the CauseNet dataset <ref type="bibr" coords="4,124.84,297.91,12.99,10.91" target="#b2">[3]</ref> that contains sources on causal relations between given concepts. We used the CauseNet-Precision variant, featuring around 200,000 relations between 80,000 different concepts along with snippets and IDs of pages in the ClueWeb12 corpus, stating the supposed causal links.</p><p>We faced that the challenge that not all cause-effect-pairs had exact matches within the dataset. To find matching pairs, we embedded all CauseNet-concepts alongside our extracted terms from the topics using the BERT-Uncased model <ref type="bibr" coords="4,303.17,379.20,12.98,10.91" target="#b6">[7]</ref> and performed the matching by choosing those CauseNet-pairs that had the lowest mean cosine-distance to the given cause-effect-pair generated from the topics. The fulltext for the sources given for the matched relation were then retrieved using the ChatNoir-Cache <ref type="bibr" coords="4,275.71,419.85,11.52,10.91" target="#b7">[8]</ref>. We extracted the top 5 terms across all sources. This was done by first tokenizing the relevant documents using the pre-trained Punkt tokenizer provided by the NLTK python package <ref type="foot" coords="4,262.79,445.19,3.71,7.97" target="#foot_2">4</ref> . The tokens were then converted to lowercase letters before counting occurences across all documents.</p><p>These terms were then added to the original topic to form the expanded query. The topic Is child labor an effect of poverty? was thus expanded with the terms child labour children education work <ref type="foot" coords="4,333.84,499.39,3.71,7.97" target="#foot_3">5</ref> , highlighting the role of education in prevention child labour. The complete query created by query expansion is thus: Is child labor an effect of poverty? child labour children education work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Reranking</head><p>Across all three runs one query per topic was submitted to the ChatNoir search engine <ref type="bibr" coords="4,492.22,586.85,11.59,10.91" target="#b7">[8]</ref>. The top 50 document ids were retrieved alongside their full text before being subjected to a custom reranking scheme. For each sentence in the retrieved document, we then detected if a postulation of the given causal relation was present. The method used here was analogous to the method described in section 2. We then counted the number of mentions of the given relations, weighing each occurrence by its position within the document with a weight of 1 indicating the very first sentence of the document and the weight getting closer to 0 the further back the occurence is located. All weights were then summed to get the document's occurence score.</p><p>ChatNoir returns scores for each retrieved document. The original score and the occurence score were combined using the following formula:</p><formula xml:id="formula_0" coords="5,201.45,315.25,189.74,15.41">score reranked = score ChatNoir 1+ scoreoccurrence 2</formula><p>We experimented around with different approaches for combining the scores but came to the conclusion use the exponent-based method to make sure that our score has a sufficient impact on the ranking. 1 is added to the score to make sure that those documents that do not contain and explicit mention are still ranked highly if ChatNoir returns a high enough score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Evaluation</head><p>In total we submitted three different runs. Our baseline run by submitting the topics' titles to ChatNoir before reranking as described above. The ChatNoir and ChatGPT runs additionally expanded the title as described above before retrieving and reranking the results.</p><p>Overall, our baseline run archieved the best NDCG across all submitted runs with a NDCG of 0.657 (cf. Table <ref type="table" coords="5,160.39,492.65,3.57,10.91" target="#tab_0">1</ref>). Both expansion techniques significally lowered the retrieval performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>We have been successful in using constituency parsing and simple rules to identify cause and effect in all queries of the data set. Nevertheless, the approach was engineered for this particular data set and will not perform to this standard in general application. Future causal retrieval models may want to improve on this procedure.</p><p>The expansion of the queries with the help of ChatGPT worked well. Although the generation of the expansions was quite manual labor intensive due to the lack of an API. With regards to the CauseNet based expansion it should be noted that while most of the given cause-effectcombinations were succesfully matched to a fitting counterpart, some cases failed, resulted in nonsense expansions. The pair of "drinking wine" and "blood urine" was for example matched to the pair of "eating food" and "diarrhea", resulting in an expansion with the top terms of food, pork, peanut, milk, health.</p><p>The evaluation of retrieval results show that both expansion runs submitted by us do not improve the retrieval performance compared to the run solely using our custom reranking scheme. This might be due to a to high number of ill-fitting for the CauseNet run and too long queries formulated by the ChatGPT expansion.</p><p>The scoring algorithm can be considered a basic measure. It works similarly to the query analysis method. Since the search corpus is much more complicated and varied than the task queries, we struggled to find many matches in the found documents. This means our proposal leans more towards a high-precision, low-recall solution. Still, the scoring lead to an improvement regarding the retrieval performance in relation to the other baseline run submitted.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,308.36,335.10,8.93"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Example output of ChatGPT when prompted to rephrase a given query.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,212.72,270.00,8.93"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Prompt to ChatGPT for generation of query expansions</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,88.98,90.49,395.74,93.56"><head>Table 1</head><label>1</label><figDesc>All runs submitted for the retrieval task ranked by normalized discounted cumulative gain.</figDesc><table coords="5,108.06,122.10,376.66,61.95"><row><cell>Team</cell><cell>Run</cell><cell cols="2">NDCG@5 95% confidence interval</cell></row><row><cell>He Man</cell><cell>heman_no_expansion_rerank</cell><cell>0.657</cell><cell>[0.564, 0.740]</cell></row><row><cell cols="2">Puss In Boots puss-in-boots_baseline</cell><cell>0.585</cell><cell>[0.503, 0.673]</cell></row><row><cell>He Man</cell><cell>heman_gpt_expansion_rerank</cell><cell>0.374</cell><cell>[0.284, 0.469]</cell></row><row><cell>He Man</cell><cell>heman_causenet_expansion_rerank</cell><cell>0.268</cell><cell>[0.172, 0.368]</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="2,92.57,660.08,80.21,8.97"><p>https://www.nltk.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="2,92.57,671.04,94.38,8.97"><p>https://www.wikidata.org</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="4,92.57,649.12,184.63,8.97"><p>https://www.nltk.org/api/nltk.tokenize.punkt.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3" coords="4,92.30,660.08,413.68,8.97;4,92.57,671.04,198.99,8.97"><p>The duplicate of child labour in both original topic and expansion terms is due to the word-based tokenization that was used when extracting the sources' top words.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,107.59,281.08,399.60,10.91;6,107.41,294.63,398.58,10.91;6,107.59,308.18,398.40,10.91;6,107.59,321.73,398.61,10.91;6,107.59,335.28,291.42,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,293.64,294.63,212.35,10.91;6,107.59,308.18,38.08,10.91">Overview of Touché 2023: Argument and Causal Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Schlatt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Barriere</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ravenet</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Hemamou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Luck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Reimer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,168.46,308.18,337.52,10.91;6,107.59,321.73,272.22,10.91">Experimental IR Meets Multilinguality, Multimodality, and Interaction. 14th International Conference of the CLEF Association (CLEF 2023)</title>
+		<title level="s" coord="6,386.79,321.73,119.40,10.91;6,107.59,335.28,31.10,10.91">Lecture Notes in Computer Science</title>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+	<note>to appear</note>
+</biblStruct>
+
+<biblStruct coords="6,107.59,348.83,399.60,10.91;6,107.59,362.38,399.68,10.91;6,107.41,375.93,399.77,10.91;6,107.20,389.48,398.78,10.91;6,107.59,403.03,398.80,10.91;6,107.27,416.58,399.90,10.91;6,107.59,432.57,123.08,7.90" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,170.50,362.38,298.77,10.91">Continuous Integration for Reproducible Shared Tasks with TIRA</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Kolyada</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Grahm</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Elstner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Loebe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-031-28241-6_20</idno>
+		<ptr target="https://doi.org/10.1007/978-3-031-28241-6_20.doi:10.1007/978-3-031-28241-6_20" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,189.26,389.48,316.73,10.91;6,107.59,403.03,91.10,10.91">Advances in Information Retrieval. 45th European Conference on IR Research (ECIR 2023)</title>
+		<title level="s" coord="6,205.60,403.03,151.87,10.91">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Maistro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Joho</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Davis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Gurrin</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Caputo</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2023">2023</date>
+			<biblScope unit="page" from="236" to="241" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,443.67,398.40,10.91;6,107.59,457.22,399.60,10.91;6,107.59,470.77,400.24,10.91;6,107.59,484.32,399.60,10.91;6,107.59,497.87,402.55,10.91;6,107.59,513.86,43.94,7.90" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,417.25,443.67,88.74,10.91;6,107.59,457.22,190.30,10.91">CauseNet: Towards a Causality Graph Extracted from the Web</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Heindorf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Scholten</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Ngomo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3340531.3412763</idno>
+		<ptr target="https://doi.org/10.1145/3340531.3412763.doi:10.1145/3340531.3412763" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,226.60,470.77,281.22,10.91;6,107.59,484.32,165.07,10.91">CIKM &apos;20: The 29th ACM International Conference on Information and Knowledge Management</title>
+		<editor>
+			<persName><forename type="first">M</forename><surname>D'aquin</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Dietze</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Hauff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Curry</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Cudré-Mauroux</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Virtual Event, Ireland</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2020">October 19-23, 2020. 2020</date>
+			<biblScope unit="page" from="3023" to="3030" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,524.97,398.40,10.91;6,107.59,538.52,398.40,10.91;6,107.59,552.07,356.53,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,346.38,524.97,159.61,10.91;6,107.59,538.52,198.54,10.91">Stanza: A Python natural language processing toolkit for many human languages</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Qi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bolton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,329.06,538.52,176.92,10.91;6,107.59,552.07,326.19,10.91">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,565.62,400.25,10.91;6,107.59,579.17,166.08,10.91" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Narasimhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<title level="m" coord="6,364.75,565.62,143.09,10.91;6,107.59,579.17,134.16,10.91">Improving language understanding by generative pre-training</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,592.72,399.59,10.91;6,107.20,606.27,309.70,10.91" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="6,107.20,606.27,111.97,10.91">Attention Is All You Need</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1706.03762" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,619.81,400.24,10.91;6,107.59,633.36,399.11,10.91;6,107.59,646.91,168.68,10.91" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="6,298.99,619.81,208.84,10.91;6,107.59,633.36,161.31,10.91">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,107.59,660.46,398.40,10.91;7,107.59,86.97,398.40,10.91;7,107.26,100.52,398.73,10.91;7,107.59,114.06,386.90,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,324.52,660.46,181.46,10.91;7,107.59,86.97,150.41,10.91">Elastic ChatNoir: Search Engine for the ClueWeb and the Common Crawl</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,136.67,100.52,369.31,10.91;7,107.59,114.06,21.62,10.91">Advances in Information Retrieval. 40th European Conference on IR Research (ECIR 2018)</title>
+		<title level="s" coord="7,136.26,114.06,155.05,10.91">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Hanbury</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Pasi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Piwowarski</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

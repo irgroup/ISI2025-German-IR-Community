@@ -1,0 +1,740 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,390.38,15.42;1,88.93,107.08,164.42,11.96">UniNE at PAN-CLEF 2021: Authorship Verification (Notebook for PAN at CLEF 2021)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,132.98,71.72,11.96"><forename type="first">Catherine</forename><surname>Ikae</surname></persName>
+							<email>catherine.ikae@unine.ch</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Neuchâtel</orgName>
+								<address>
+									<addrLine>Avenue du 1er-Mars 26</addrLine>
+									<postCode>2000</postCode>
+									<settlement>Neuchâtel</settlement>
+									<country>Switzerland, Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,390.38,15.42;1,88.93,107.08,164.42,11.96">UniNE at PAN-CLEF 2021: Authorship Verification (Notebook for PAN at CLEF 2021)</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">44CEDFAC55D378122FF4FBCDC45CA0D6</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Author verification</term>
+					<term>Ensemble classifier</term>
+					<term>TF-IDF</term>
+					<term>Open-set author verification</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This work proposes to solve the Open-set author verification problem using a Term Frequency Inverse Document Frequency (TF-IDF) model with a majority-voting ensemble that incorporates five component models (machine-learning classifiers). The task is to verify if a given pair of text is written by the same or different authors. The training sample contains verification cases from previously unseen authors and topics. Transforming this question into a similarity problem, we can determine whether one or two authors have written a given text pair. Evaluation with 800 unigram features shows an overall performance of AUC = 0.9041, c@1 = 0.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The increase in the volume of online text in communication, blogging, messaging, commentaries and entertainment content has generated the need for verification and authentication of authorship of the corresponding message. This is crucial in application areas such as analysis of anonymous emails for forensic investigations <ref type="bibr" coords="1,314.50,418.24,11.58,10.91" target="#b0">[1]</ref>, verification of historical literature <ref type="bibr" coords="1,492.99,418.24,13.00,10.91" target="#b1">[2]</ref> continuous authentication used in cybersecurity <ref type="bibr" coords="1,302.51,431.79,11.28,10.91" target="#b2">[3]</ref>, detection of changes in writing styles with Alzheimer patients <ref type="bibr" coords="1,176.25,445.33,11.43,10.91" target="#b3">[4]</ref>. Authorship verification is the application of linguistic style learning to detect whether two or more texts have been written by the same person or by more than one person <ref type="bibr" coords="1,446.84,472.43,11.58,10.91" target="#b4">[5]</ref>. By using prior information from the training dataset, we model the style representing the same author text as well as different author text used to construct a classifier that can be used to classify previously unseen text. In open-set verification, the true author could be absent from the training set. Thus the system cannot generate a stylistic representation for each distinct author. So, the main question to be solved is to determine the level of similarity between two stylistic representations to reach the decision that this pair of texts has been written by the same author. As the decision must be based on the author style, one can consider extracting stylistic features from each text. To achieve this, linguistic features reflecting the style must be extracted from the training dataset. By applying these selected features to the test dataset, the representation of each pair of text is possible. In a second step, a classifier must compute a degree of similarity upon which the final decision can be taken. In this work, we use the term frequency-inverse document frequency (TF-IDF) to determine useful features to discriminate between distinct authors <ref type="bibr" coords="2,333.73,127.61,11.28,10.91" target="#b5">[6]</ref>. For this purpose, we create a model using an ensemble of five machine-learning classifiers. By using this method, we take into account all vocabulary from all texts extracted by n-grams (of words or letters) weighted by TF-IDF, and using only a small fraction of them to perform the classification, we determine the optimal performance of the classifier. The rest of this paper is organized as follows. Section 2 describes the text datasets while Section 3 describes the features used for the classification. Section 4 explains the similarity measure and Section 5 depicts some of our evaluation results. A conclusion draws the main findings of our experiments.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Corpus</head><p>The corpus consists of data obtained from fanfiction.net, a sharing platform for fanfiction that comes from various topical domains (or 'fandoms') <ref type="bibr" coords="2,321.98,308.18,27.25,10.91">[7] [8]</ref>. The contents are mainly fictional texts produced by non-professional authors in the tradition of a specific cultural domain (or 'fandom'), such as a famous author or a specific influential work. Fanfiction is now abundantly available on the internet, as the fastest growing form of online writing providing a platform for data collection. This corpus contains 52,590 text pairs (denoted problems) from which 27,823 pairs correspond to the same author and 24,767 are pairs written by two distinct persons. Each text excerpt contains, in mean, 2,200 word-tokens. Based on the training sample of the entire corpus, Figure <ref type="figure" coords="2,345.85,403.03,5.09,10.91" target="#fig_0">1</ref> depicts the top 25 most frequently used words. To quantify the differences and similarities that occur when considering same author text pairs and different author pairs we use the technique of shift graphs. In shift graphs, words are sorted by their absolute contribution to the difference between text pairs. Word shifts quantify how each word contributes to the difference between two text pairs <ref type="bibr" coords="2,371.03,470.77,11.43,10.91" target="#b8">[9]</ref>. Figure <ref type="figure" coords="2,120.66,484.32,5.12,10.91" target="#fig_1">2</ref> shows the relative occurrence frequency difference between tokens occurring in the same author pairs. In this graph, the words appear in decreasing order of their occurrence frequency. As one can see, there are only two tokens with a large difference in this text namely the two pronouns I, and she. Otherwise the rest of the tokens appear with small differences. Figure <ref type="figure" coords="2,121.04,538.52,5.17,10.91" target="#fig_2">3</ref> represents the same information as Figure <ref type="figure" coords="2,323.39,538.52,5.17,10.91" target="#fig_1">2</ref> but with a pair of messages written by two distinct authors. In this case, one can observe that several tokens present large frequency differences (e.g., lola, joseph, said, tone, with, hikaru, normal). The presence of such numerous large differences must be interpreted as evidence of the presence of more than one author. For this reason, we use a difference vector to encode the data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Feature Selection</head><p>To determine whether two text chunks have been written by the same author, we need to determine a text representation that can characterize the stylistic idiosyncrasies of each possible As a simple and fast solution, and knowing that we are working with 52,590 text pairs, we will focus on the word uni-gram. In addition, each of them must have a weight computed according to the frequency (TF) which measures how frequently a term occurs in a document and the inverse document frequency (IDF) reflecting how important a term is compared to the entire corpus <ref type="bibr" coords="3,121.95,629.65,17.91,10.91" target="#b9">[10]</ref>  <ref type="bibr" coords="3,142.59,629.65,16.25,10.91" target="#b10">[11]</ref>. TF-IDF is a statistical measure used in information retrieval and text mining that quantifies the importance of a word in a document by evaluating how relevant a word is to a document in  a collection of documents <ref type="bibr" coords="4,205.44,488.36,36.79,10.91">[10] [12]</ref>. This is done by multiplying two metrics: how many times a word appears in a document, and the inverse document frequency of the word across a set of documents. It works by increasing proportionally to the number of times a word appears in a document, but is offset by the number of documents that contain the word. So, words that are common in every document, such as "this", "what", and "if", rank low even though they may appear many times, since they don't mean much to that document in particular. Applying our mathematical notation, the TF-IDF score for the word t in the document d from the document set (corpus) is calculated An n-gram is a sequence of n-words in a sentence. Here, n is an integer which stands for the number of words in the sequence. For example, if we put n=1, then it is referred to as a uni-gram. For our vectorization we apply the uni-gram of TF-IDF for term weighting. Then, based on the weight associated with each term, one can apply a feature extraction by selecting the top k words having the largest TF-IDF value.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Ensemble Classifier</head><p>Ensemble learning could improve the effectiveness of isolated machine learning systems by combining several models. Such a combined approach should produce better predictive performance compared to a single model. In this view, democracy is viewed as a better system than the tyranny of a single classifier <ref type="bibr" coords="5,234.64,322.53,16.25,10.91" target="#b12">[13]</ref>. Our Ensemble model trains different classifiers including:</p><p>1. Linear Discriminant Analysis (LDA) finds a linear combination of features that separates two or more classes of objects in order to classify them <ref type="bibr" coords="5,363.86,369.95,16.39,10.91" target="#b13">[14]</ref>; 2. Gradient Boosting (GB) which modifies weak learners to propose a strong learner <ref type="bibr" coords="5,482.76,384.86,16.39,10.91" target="#b14">[15]</ref>; 3. Extra Trees (EF) is an ensemble learning technique which aggregates the results of multiple de-correlated decision trees constructed from the original training sample to obtain its classification result <ref type="bibr" coords="5,204.82,426.86,16.39,10.91" target="#b15">[16]</ref>; 4. Support Vector Machine (SVM) determines the best decision boundary between vectors that belong to a given group and vectors that do not belong to it dividing the space into two subspaces <ref type="bibr" coords="5,183.15,468.86,11.56,10.91" target="#b1">[2]</ref>; 5. Stochastic gradient descent (SGD) optimises an objective function equipped with the parameters of a model and updates parameters for each training sample <ref type="bibr" coords="5,438.87,497.31,16.39,10.91" target="#b16">[17]</ref>;</p><p>Finally, we integrate these classifiers into an ensemble predictor to leverage complementary information of the feature representation method encoded by TF-IDF and classifiers. We used the scikit-learn Python machine learning library that provides an implementation of stacking for machine learning <ref type="bibr" coords="5,185.33,558.29,11.43,10.91" target="#b5">[6]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Evaluation</head><p>To conduct experiments with our approach to distinguish between same author pairs and different author pairs, we used a sample of the provided small training data set split as follows: 10,000 for training and 4,000 for testing. Each of the partitions used is balanced with an equal number of same author pairs and different author pairs. As a performance measure, five evaluation indicators have been used. The area under the curve (AUC) which measures the ability of systems to assign higher scores to positive cases in comparison to negative cases. F1-score combines precision and recall into a unique value. c@1 measures the accuracy of binary predictions but also the ability of systems to leave difficult cases unanswered <ref type="bibr" coords="6,173.75,141.16,11.58,10.91" target="#b0">[1]</ref>. F_0.5u a measure that puts more emphasis on deciding same-author cases correctly <ref type="bibr" coords="6,159.44,154.71,16.42,10.91" target="#b17">[18]</ref>. Brier a score used for evaluating the goodness of (binary) probabilistic classifiers.</p><p>The proposed method is validated by comparing the AUC values of 15 classifiers. Based on the generated output, an ensemble is made by combining classifiers with consistent high AUC values. As seen on Table <ref type="table" coords="6,201.14,208.91,5.08,10.91" target="#tab_0">1</ref> increasing the unigram TF IDF values from k = 100 to 1000, we see consistent good performance in Linear Discriminant Analysis (LDA), Gradient Boosting (GB), Extra Trees (EF), Support Vector Machine (SVM), Stochastic gradient descent (SGD).</p><p>These chosen classifiers are combined using the hard voting (majority voting), every individual classifier votes for a class, and the majority determines the predicted class. With k=800, this is the point where most of the classifiers are at their maximum AUC values. The chosen classifiers had at least an AUC value of 0.87. With the results obtained from the Ensemble classifier, we view the distribution of AUC results for the two classes, namely "same author" and "different authors", As one can see in Figure <ref type="figure" coords="6,121.13,660.73,3.81,10.91" target="#fig_4">4</ref>, "same author" distribution presents a higher similarity mean (mean: 0.64, sd: 0.19) The final evaluation result is obtained on the TIRA platform <ref type="bibr" coords="7,364.14,480.29,17.76,10.91" target="#b18">[19]</ref> is exposed in Table <ref type="table" coords="7,469.66,480.29,3.66,10.91">2</ref>. These results were obtained with a model trained on the 52,590 text pairs (small training set) and tested on 19,999 text pairs (official test set). By considering all results as computed by the proposed system, we achieve an overall score of 0.778 in the early bird submission without mapping any score to 0.5. The second run was made by adjusting some score to 0.5 based on the analysis of the similarity distribution. The values greater than 0.4 but less than 0.6 ( 0.4 &lt; x &lt; 0.6) where equated to 0.5 leading to an improved overall score of 0.8050.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>This report has presented the proposed solution for open-set author verification at PAN 2021. Our approach is based on modeling the fandom pairs using word unigram TF-IDF features with a majority-voting ensemble that incorporates five machine-learning classifiers. With the ensemble classifier, we achieved an overall score of 0.8050. This simple approach proves to be effective in distinguishing text written by the same author and text written by different authors. For future work, the idea is to include longer word n-gram models to enrich the current feature and to hopefully boost performance of the current technique.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,510.76,247.34,8.93;3,89.29,84.19,416.69,402.05"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Word frequency distribution in the corpus Sample</figDesc><graphic coords="3,89.29,84.19,416.69,402.05" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,450.76,118.77,8.93;4,89.29,84.18,208.34,342.06"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Same Author Pairs</figDesc><graphic coords="4,89.29,84.18,208.34,342.06" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,297.64,446.00,133.19,8.93;4,297.64,88.95,208.34,332.53"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Different Author Pairs</figDesc><graphic coords="4,297.64,88.95,208.34,332.53" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="4,265.08,596.76,47.01,10.91;4,89.29,610.30,280.93,10.91;4,89.29,623.85,207.81,10.91;4,89.29,637.40,179.74,10.91;5,272.25,112.21,128.80,9.57;5,194.23,128.74,206.82,9.57;5,201.83,145.28,199.22,9.57"><head></head><label></label><figDesc>as follows: tf(t,d) = number of occurrences of t in d/ number of tokens in d df(t) = number of documents in which t occurs D = Number of documents in the corpus 𝑖𝑑𝑓 (𝑡) = 𝑙𝑜𝑔(𝐷/(𝑑𝑓 (𝑡) + 1)) 𝑡𝑓 -𝑖𝑑𝑓 (𝑡, 𝑑) = 𝑡𝑓 (𝑡, 𝑑) * 𝑙𝑜𝑔(𝐷/(𝑑𝑓 (𝑡) + 1)) 𝑇 𝐹 -𝐼𝐷𝐹 = 𝑡𝑓 (𝑡, 𝑑) * 𝑙𝑜𝑔(𝐷/(𝑑𝑓 (𝑡) + 1))</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="6,89.29,601.54,373.70,8.93;6,89.29,310.47,416.68,266.55"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Distribution of AUC values for the two classes, same or distinct authors (k = 800)</figDesc><graphic coords="6,89.29,310.47,416.68,266.55" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="7,88.99,90.49,418.28,387.16"><head>Table 1</head><label>1</label><figDesc>Evaluation based on different feature sizes</figDesc><table coords="7,88.99,116.35,418.28,361.29"><row><cell></cell><cell></cell><cell></cell><cell cols="6">Number of TF-IDF unigram features</cell><cell></cell></row><row><cell>Classifiers</cell><cell>100</cell><cell>200</cell><cell>300</cell><cell>400</cell><cell>500</cell><cell>600</cell><cell>700</cell><cell>800</cell><cell cols="2">900 1000</cell></row><row><cell>LDA</cell><cell cols="10">0.85 0.87 0.88 0.89 0.89 0.88 0.88 0.89 0.88 0.87</cell></row><row><cell>GradientBoost</cell><cell cols="10">0.84 0.86 0.87 0.87 0.87 0.88 0.87 0.88 0.88 0.88</cell></row><row><cell>ExtraTrees</cell><cell cols="10">0.84 0.85 0.86 0.86 0.86 0.86 0.86 0.87 0.86 0.86</cell></row><row><cell>KNN</cell><cell cols="10">0.76 0.76 0.77 0.76 0.74 0.73 0.73 0.70 0.70 0.68</cell></row><row><cell>GaussianNB</cell><cell cols="10">0.82 0.82 0.84 0.83 0.82 0.82 0.81 0.81 0.79 0.77</cell></row><row><cell cols="11">MultinomialNB 0.67 0.71 0.73 0.74 0.74 0.73 0.73 0.74 0.72 0.72</cell></row><row><cell>BernoulliNB</cell><cell cols="10">0.54 0.66 0.72 0.74 0.76 0.75 0.76 0.76 0.77 0.78</cell></row><row><cell>DecisionTree</cell><cell cols="10">0.63 0.64 0.64 0.64 0.63 0.63 0.64 0.64 0.64 0.63</cell></row><row><cell>RandomForest</cell><cell cols="10">0.83 0.85 0.86 0.86 0.87 0.87 0.87 0.87 0.87 0.87</cell></row><row><cell>LogisticReg</cell><cell cols="10">0.84 0.85 0.87 0.87 0.87 0.87 0.87 0.87 0.86 0.86</cell></row><row><cell>AdaBoost</cell><cell cols="10">0.82 0.83 0.85 0.85 0.85 0.85 0.85 0.84 0.85 0.84</cell></row><row><cell>Bagging</cell><cell cols="10">0.78 0.78 0.78 0.79 0.78 0.78 0.77 0.78 0.78 0.76</cell></row><row><cell>SGD</cell><cell cols="10">0.84 0.85 0.87 0.87 0.87 0.87 0.87 0.87 0.86 0.86</cell></row><row><cell>XGB</cell><cell cols="10">0.84 0.86 0.87 0.88 0.87 0.87 0.88 0.88 0.87 0.87</cell></row><row><cell>SVM</cell><cell cols="10">0.85 0.88 0.89 0.89 0.89 0.89 0.89 0.89 0.88 0.88</cell></row><row><cell>Ensemble</cell><cell cols="10">0.85 0.87 0.89 0.89 0.90 0.90 0.90 0.90 0.90 0.89</cell></row><row><cell>Table 2</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">Official Evaluation with (k = 800)</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="5">800 TF-IDF unigram features</cell><cell></cell></row><row><cell>Classifiers</cell><cell></cell><cell>AUC</cell><cell></cell><cell>c@1</cell><cell cols="3">F1-score F_0.5u</cell><cell cols="2">Brier</cell><cell>overall</cell></row><row><cell cols="2">Ensemble (Early Bird)</cell><cell>0.904</cell><cell></cell><cell>0.71</cell><cell>0.769</cell><cell></cell><cell>0.685</cell><cell cols="2">0.821</cell><cell>0.778</cell></row><row><cell>Ensemble (Final )</cell><cell></cell><cell>0.9041</cell><cell></cell><cell>0.7586</cell><cell cols="2">0.8145</cell><cell>0.7233</cell><cell cols="2">0.8247</cell><cell>0.8050</cell></row><row><cell cols="11">representing mainly the higher values while the "different authors" distribution (mean: 0.32, sd:</cell></row><row><cell cols="4">0.18) mainly contains the lower values.</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,112.66,172.69,393.33,10.91;8,112.66,186.24,313.21,10.91" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="8,311.60,172.69,194.38,10.91;8,112.66,186.24,56.08,10.91">E-mail authorship verification for forensic investigation</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Iqbal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Khan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Fung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Debbabi</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1774088.1774428</idno>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="1591" to="1598" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,199.79,377.57,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,208.31,199.79,108.10,10.91">Support vector networks</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Cortes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vapnik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,325.23,199.79,81.07,10.91">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="273" to="297" />
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,213.34,393.32,10.91;8,112.66,226.89,394.53,10.91;8,112.66,240.44,231.13,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,284.37,213.34,221.62,10.91;8,112.66,226.89,117.67,10.91">Exploiting linguistic style as a cognitive biometric for continuous verification</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Neal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Sundararajan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Woodard</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/ICB2018.2018.00048</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,253.03,226.89,224.36,10.91">2018 International Conference on Biometrics (ICB)</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="270" to="276" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,253.99,393.32,10.91;8,112.33,267.54,73.79,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,190.90,253.99,227.29,10.91">Changes in style in authors with alzheimer&apos;s disease</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hirst</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Feng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,426.29,253.99,67.02,10.91">English Studies</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page" from="357" to="370" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,281.08,393.33,10.91;8,112.66,294.63,211.87,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,315.13,281.08,190.85,10.91;8,112.66,294.63,46.09,10.91">The &quot;fundamental problem&quot; of authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Winter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,166.87,294.63,68.27,10.91">English Studies</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page" from="284" to="291" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,308.18,394.53,10.91;8,112.66,321.73,394.53,10.91;8,112.66,335.28,393.32,10.91;8,112.66,348.83,176.63,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,228.10,335.28,182.14,10.91">Scikit-learn: Machine learning in Python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,419.22,335.28,86.76,10.91;8,112.66,348.83,82.55,10.91">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,362.38,395.17,10.91;8,112.66,375.93,394.53,10.91;8,112.66,389.48,393.33,10.91;8,112.66,403.03,395.01,10.91;8,112.66,416.58,393.33,10.91;8,112.66,430.13,380.05,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,169.75,389.48,336.24,10.91;8,112.66,403.03,253.20,10.91">Overview of pan 2020: Authorship verification, celebrity profiling, profiling fake news spreaders on twitter, and style change detection</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ghanem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Giachanou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,361.42,416.58,144.57,10.91;8,112.66,430.13,125.83,10.91">11th International Conference of the CLEF Association (CLEF</title>
+		<editor>
+			<persName><forename type="first">T</forename><forename type="middle">T S V H J C L C E A N L C N F</forename><surname>Avi Arampatzis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Evangelos</forename><surname>Kanoulas</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,443.67,394.53,10.91;8,112.66,457.22,393.33,10.91;8,112.14,470.77,227.36,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,112.66,457.22,248.55,10.91">Overview of the Authorship Verification Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,412.17,457.22,93.81,10.91;8,112.14,470.77,47.32,10.91">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="8,167.44,470.77,103.05,10.91">Notebook Papers, CEUR</title>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,484.32,394.52,10.91;8,112.66,497.87,395.17,10.91;8,112.66,511.42,237.55,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,112.66,497.87,395.17,10.91;8,112.66,511.42,85.69,10.91">Generalized word shift graphs: a method for visualizing and explaining pairwise comparisons between texts</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">J</forename><surname>Gallagher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Frank</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Mitchell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">J</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">J</forename><surname>Reagan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Danforth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Dodds</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,206.23,511.42,75.26,10.91">EPJ Data Science</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="1" to="29" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,524.97,395.01,10.91;8,112.66,538.52,116.83,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,210.03,524.97,237.39,10.91">Term-weighting approaches in automatic text retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Salton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buckley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,455.17,524.97,52.49,10.91;8,112.66,538.52,32.89,10.91">Inf. Process. Manag</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="513" to="523" />
+			<date type="published" when="1988">1988</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,552.07,394.53,10.91;8,112.66,565.62,290.87,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,184.43,552.07,317.75,10.91">Text mining: Use of tf-idf to examine the relevance of words to documents</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Qaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Ali</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,112.66,565.62,212.01,10.91">International Journal of Computer Applications</title>
+		<imprint>
+			<biblScope unit="volume">181</biblScope>
+			<biblScope unit="page" from="25" to="29" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,579.17,393.33,10.91;8,112.66,592.72,226.47,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,385.97,579.17,120.02,10.91;8,112.66,592.72,64.34,10.91">Authenticating the writings of julius caesar</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Stover</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Karsdorp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,185.15,592.72,80.19,10.91">Expert Syst. Appl</title>
+		<imprint>
+			<biblScope unit="volume">63</biblScope>
+			<biblScope unit="page" from="86" to="96" />
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,606.27,394.62,10.91;8,112.66,619.81,393.94,10.91" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Bramer</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-1-4471-4884-5_14</idno>
+		<ptr target="https://doi.org/10.1007/978-1-4471-4884-5_14.doi:10.1007/978-1-4471-4884-5_14" />
+		<title level="m" coord="8,165.42,606.27,105.84,10.91">Ensemble Classification</title>
+		<meeting><address><addrLine>London, London</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="209" to="220" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,633.36,393.72,10.91;8,112.34,646.91,395.32,10.91;8,112.66,660.46,181.18,10.91" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="8,314.02,633.36,125.47,10.91">Linear Discriminant Analysis</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Xanthopoulos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">M</forename><surname>Pardalos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">B</forename><surname>Trafalis</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-1-4419-9878-1_4</idno>
+		<ptr target="https://doi.org/10.1007/978-1-4419-9878-1_4.doi:10.1007/978-1-4419-9878-1_4" />
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<publisher>Springer</publisher>
+			<biblScope unit="page" from="27" to="33" />
+			<pubPlace>New York, New York, NY</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,86.97,345.15,10.91" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="9,179.89,86.97,146.43,10.91">The strength of weak learnability</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">E</forename><surname>Schapire</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,348.93,86.97,78.76,10.91">Machine Learning</title>
+		<imprint>
+			<date type="published" when="1990">1990</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,100.52,360.01,10.91" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="9,159.65,100.52,123.73,10.91">Extremely randomized trees</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Geurts</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003">2003. 2006</date>
+			<publisher>MACHINE LEARNING</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,114.06,394.52,10.91;9,112.66,127.61,394.51,10.91;9,112.36,143.61,304.26,7.90" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="9,262.11,114.06,240.75,10.91">Optimization methods for large-scale machine learning</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">E</forename><surname>Curtis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename></persName>
+		</author>
+		<idno type="DOI">10.1137/16M1080173</idno>
+		<ptr target="https://doi.org/10.1137/16M1080173" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,112.66,127.61,59.67,10.91">SIAM Review</title>
+		<imprint>
+			<biblScope unit="volume">60</biblScope>
+			<biblScope unit="page" from="223" to="311" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,154.71,394.62,10.91;9,112.66,168.26,393.53,10.91;9,112.66,181.81,393.33,10.91;9,112.66,195.36,394.53,10.91;9,112.66,208.91,389.62,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="9,317.53,154.71,170.67,10.91">Generalizing unmasking for short texts</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1068</idno>
+		<ptr target="https://www.aclweb.org/anthology/N19-1068.doi:10.18653/v1/N19-1068" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.66,168.26,393.53,10.91;9,112.66,181.81,267.14,10.91">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="654" to="659" />
+		</imprint>
+	</monogr>
+	<note>Long and Short Papers</note>
+</biblStruct>
+
+<biblStruct coords="9,112.66,222.46,394.53,10.91;9,112.66,236.01,270.41,10.91" xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-22948-1_5</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,327.23,222.46,175.37,10.91">TIRA Integrated Research Architecture</title>
+		<imprint>
+			<biblScope unit="page" from="123" to="160" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,249.56,394.53,10.91;9,112.66,263.11,395.17,10.91;9,112.66,276.66,393.33,10.91;9,112.66,290.20,393.33,10.91;9,112.66,303.75,222.66,10.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="9,194.78,276.66,311.21,10.91;9,112.66,290.20,221.30,10.91">Overview of PAN 2021: Authorship Verification,Profiling Hate Speech Spreaders on Twitter,and Style Change Detection</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L D L P</forename><surname>Sarracén</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Manjavacas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Markov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mayerl</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wolska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Zangerle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,357.51,290.20,148.47,10.91;9,112.66,303.75,150.17,10.91">12th International Conference of the CLEF Association (CLEF 2021)</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,317.30,393.33,10.91;9,112.66,330.85,393.33,10.91;9,112.33,344.40,345.15,10.91" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="9,406.65,317.30,99.33,10.91;9,112.66,330.85,145.39,10.91">Profiling Hate Speech Spreaders on Twitter Task at PAN</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L D L P</forename><surname>Sarracén</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,137.96,344.40,139.49,10.91">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="9,285.44,344.40,103.05,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">A</forename><forename type="middle">J M M F P</forename><surname>Guglielmo Faggioli</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Nicola</forename><surname>Ferro</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,357.95,395.17,10.91;9,112.66,371.50,393.33,10.91;9,112.66,385.05,265.47,10.91" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="9,295.40,357.95,212.43,10.91;9,112.66,371.50,122.58,10.91">A Low Dimensionality Representation for Language Variety Identification</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Franco-Salvador</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,257.97,371.50,248.02,10.91;9,112.66,385.05,135.18,10.91">International Conference on Intelligent Text Processing and Computational Linguistics</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="156" to="169" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

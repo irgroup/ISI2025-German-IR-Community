@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,123.92,148.79,355.17,15.48;1,195.92,170.71,211.16,15.48">Question Answering using Sentence Parsing and Semantic Network Matching</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,269.34,204.99,64.32,8.64"><forename type="first">Sven</forename><surname>Hartrumpf</surname></persName>
+							<email>sven.hartrumpf@fernuni-hagen.de</email>
+							<affiliation key="aff0">
+								<orgName type="department">Intelligent Information and Communication Systems</orgName>
+								<orgName type="institution">University of Hagen (FernUniversität in Hagen</orgName>
+								<address>
+									<postCode>58084</postCode>
+									<settlement>Hagen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,123.92,148.79,355.17,15.48;1,195.92,170.71,211.16,15.48">Question Answering using Sentence Parsing and Semantic Network Matching</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">64DC36C2B3429E4E1634CF7E6D380CDB</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:06+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The paper describes a question answering system for German called InSicht. All documents in the system are analyzed by a syntactico-semantic parser in order to represent each document sentence by a semantic network (in the MultiNet formalism) or a partial semantic network (if only a parse in chunk mode succeeds). A question sent to InSicht is parsed yielding its semantic network representation and its sentence type. The semantic network is expanded to equivalent or similar semantic networks (query expansion stage) by applying equivalence rules, implicational rules (in backward chaining), and concept variations based on semantic relations in computer lexicons and other knowledge sources. During the search stage, every semantic network generated for the question is matched with semantic networks for document sentences. For efficiency, a concept index server is applied to reduce the number of matches tried. If a match succeeds, an answer string is generated from the matching semantic network in the supporting document by answer generation rules. Among competing answers, one answer is chosen by combining a preference for longer answers and a preference for more frequent answers.</p><p>The system is evaluated on the QA@CLEF 2004 test set. A hierarchy of problem classes is proposed and a sample of suboptimally answered questions is annotated with problem classes from this hierarchy. Finally, some conclusions are drawn, main problems are identified, and directions for future work as suggested by these problems are indicated.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.275" lry="841.889"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This paper presents the InSicht question answering (QA) system currently implemented for German. Its key characteristics are:</p><p>• Deep syntactico-semantic analysis with a parser for questions and documents.</p><p>• Independence from other document collections. No other documents, e.g. from the World Wide Web (WWW), are accessed, which helps to avoid unsupported answers. QA that works on WWW documents is sometimes called web-based QA in contrast to textual QA, see for example <ref type="bibr" coords="1,470.95,645.34,42.05,8.64;1,114.91,657.30,55.48,8.64" target="#b11">(Neumann and Xu, 2003)</ref>.</p><p>• Generation of the answer from the semantic representation of the documents that support the answer. Answers are not directly extracted from the documents.</p><p>There are few QA systems for German. The system described by <ref type="bibr" coords="1,380.97,709.10,102.68,8.64" target="#b11">Neumann and Xu (2003)</ref> differs mainly in its general approach: it relies on shallow, but robust methods, while InSicht builds on deep sentence parsing. In this respect, InSicht resembles the (English) QA system presented by Harabagiu et al.  <ref type="bibr" coords="2,90.00,370.32,24.90,8.64">(2001)</ref>. In contrast to InSicht, this system applies a theorem prover and a large knowledge base to validate candidate answers.</p><p>The following Sections 2-7 present InSicht's main components. In Section 8, the system is evaluated on the QA@CLEF 2004 questions. Furthermore, problem classes are defined and attributed to individual questions. The final Section 9 draws conclusions and describes perspectives for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Document Processing</head><p>The corpus files distributed for QA@CLEF 2004 are split in a first preprocessing step into article files using an SGML parser (nsgmls) and a shell script. Then, each article is tokenized, split into sentences, and stored in a separate SGML file conforming to the Corpus Encoding Standard <ref type="bibr" coords="2,394.73,497.94,63.45,8.64" target="#b9">(Ide et al., 1996)</ref>. The tags for words (w) and sentences (s) are annotated, but it is not attempted to determine paragraph borders because of the mixed encoding quality of the original files.</p><p>Duplicate articles are eliminated. Especially in the subcorpus of the Frankfurter Rundschau (FR), the percentage of articles with one or more articles showing the same word sequence (ignoring white space and control characters) is astonishingly high (12.3%); for details, see Table <ref type="table" coords="2,370.91,557.72,3.74,8.64" target="#tab_0">1</ref>. Duplicate elimination has several advantages: selecting among candidate answers (see Section 7) becomes more accurate, and debugging during further development of the QA system becomes clearer and faster.</p><p>After document preprocessing, the WOCADI (WOrd ClAss based DIsambiguating) parser <ref type="bibr" coords="2,465.90,593.59,47.10,8.64;2,90.00,605.54,69.46,8.64" target="#b7">(Helbig and Hartrumpf, 1997;</ref><ref type="bibr" coords="2,161.68,605.54,70.01,8.64" target="#b3">Hartrumpf, 2003)</ref> parses article by article. For each sentence in an article, the syntacticosemantic (deep) parser tries to generate a correct representation as a semantic network of the MultiNet formalism <ref type="bibr" coords="2,134.51,629.45,59.19,8.64" target="#b5">(Helbig, 2001;</ref><ref type="bibr" coords="2,197.26,629.45,111.54,8.64" target="#b6">Helbig and Gnörlich, 2002)</ref>. To speed up this parsing step, which takes 5-6 months for the whole document collection, parser instances were run in parallel in a Linux cluster of 4-6 standard PCs. Each PC was equipped with one AMD Athlon XP 2000+ or similar CPU. The documents must be parsed only once; questions never require any reprocessing of documents. The subcorpus from the Schweizerische Depeschenagentur (SDA) is parsed with a special WOCADI option that triggers the reconstruction of ß from ss, because WOCADI is not primarily developed for Swiss German.</p><p>The parser produced complete semantic networks for 48.7% of all sentences and only partial semantic networks (corresponding to a WOCADI parse in chunk mode) for 20.4%. The percentages for the three subcorpora differ considerably (see Table <ref type="table" coords="2,255.06,725.09,3.60,8.64" target="#tab_1">2</ref>). This reflects the differences in encoding quality of the original SGML files and in language complexity. For example, the SDA subcorpus is parsed best because newswire sentences are typically simpler in structure than newspaper sentences and the original SGML files show fewer encoding errors than the ones for FR and Der Spiegel (SP). The numbers in the second column of Table <ref type="table" coords="3,115.25,374.78,4.98,8.64" target="#tab_1">2</ref> are slightly smaller than the corresponding numbers in the third column of Table <ref type="table" coords="3,458.15,374.78,4.98,8.64" target="#tab_0">1</ref> because for efficiency reasons the analysis of a text will be stopped if a certain maximal number of semantic network nodes is produced during parsing the sentences of the text. A semantic network for a simplified document sentence is shown in Figure <ref type="figure" coords="3,205.83,410.64,3.74,8.64" target="#fig_0">1</ref>. Edges labeled with the relations PRED, SUB, SUBS, and TEMP are folded (printed below the name of the start node) if the network topology allows this, e.g. SUB name below node name c8. As a last step, semantic networks are simplified and normalized as described in Section 5.</p><formula xml:id="formula_0" coords="3,110.00,113.35,382.73,165.27">indien.0 fe c345 l         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         *IN c s c5?declarative-sentence dn SUBS sterben TEMP past.0 [GENER sp] AFF c s / / LOC s s o o c10 d PRED mensch    FACT real QUANT nfquant CARD 523 ETYPE 1    c8 na SUB name    GENER sp QUANT one CARD 1 ETYPE 0    VAL c s O O c7 d∨io SUB staat         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         ATTR c c o o c339 as SUBS hitzewelle         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         CAUS s s O O PROP p s / / anhaltend tq</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Question Processing</head><p>A question posed by a user (online) or drawn from a test collection (offline; like the 200 questions for QA@CLEF 2004), is parsed by the same parser that produced the semantic networks for the documents.</p><p>The parser relies only on the question string and ignores for example the annotated question type (in 2004, this could be F for factoid or D for definition). The parsing result is a semantic network from the MultiNet formalism plus additional information relevant for the QA system: the (question) focus (marked in graphical semantic networks by a question mark) and the sentence type (written directly behind the focus mark in graphical semantic networks). The MultiNet for question 164 from QA@CLEF 2004 is shown in graphical form in Figure <ref type="figure" coords="3,190.16,574.13,3.74,8.64" target="#fig_1">2</ref>.</p><p>For the questions of QA@CLEF 2004, the sentence type is determined with 100% correctness. Only 3 of 10 values for the sentence type attribute occur for these questions, namely wh-question, count-question, and definition-question.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Query Expansion</head><p>For a semantic network representing a question, equivalent networks are generated by applying equivalence rules (or paraphrase rules) for MultiNet. In contrast to such semantic rules, some QA systems (e.g. the one described by <ref type="bibr" coords="3,143.51,689.80,85.96,8.64" target="#b0">Echihabi et al. (2003)</ref>) use reformulation rules working on strings. Surface string operations are the more problematic the freer the word order is. As the word order in German is less constrained than in English, such operations may be more problematic and less effective in German.</p><p>For maintenance reasons, many rules are abstracted by so-called rule schemas. For example, three rule schemas connect a state with its inhabitant and with the state adjective, e.g. Spanien ('Spain'), Spanier ((rule ( (subs ?n1 "ermorden.1.1") (aff ?n1 ?n2) → (subs ?n3 "sterben.1.1") (aff ?n3 ?n2))) (ktype categ) (name "ermorden.1.1 entailment"))</p><formula xml:id="formula_1" coords="4,115.89,113.35,370.72,177.22">c22 l         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         *IN c s / / c19 d∨io SUB staat         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         ATTR c c / / c20 na SUB name    GENER sp QUANT one CARD 1 ETYPE 0    VAL c s / / indien.0 fe c13 as SUBS hitzewelle         FACT real GENER sp QUANT one REFER det CARD 1 ETYPE 0 VARIA con         LOC s s O O c4 dn SUBS sterben TEMP past.0 [GENER sp] AFF c s / / TEMP c s o o c3?count-question d PRED mensch      FACT real GENER sp QUANT mult REFER det ETYPE 1     </formula><p>Figure <ref type="figure" coords="4,200.18,467.75,4.15,8.96">3</ref>: Entailment rule for ermorden ('kill') and sterben ('die') ('Spaniard'), and spanisch ('spanish'). In addition, the female and male nouns for the inhabitant are connected in the computer lexicon HaGenLex (Hagen German Lexicon; see <ref type="bibr" coords="4,400.72,513.56,95.14,8.64" target="#b4">(Hartrumpf et al., 2003)</ref>) by a certain MultiNet relation. Similar rule schemas exist for regions.</p><p>In addition to equivalence rules, implicational rules for lexemes are used in backward chaining, e.g. the logical entailment between ermorden.1.1<ref type="foot" coords="4,252.00,547.50,3.69,6.39" target="#foot_0">1</ref> ('kill') and sterben.1.1 ('die'); see Figure <ref type="figure" coords="4,422.66,549.43,3.74,8.64">3</ref>. All rules are applied to find answers that are not explicitly contained in a document but only implied by it. Figure <ref type="figure" coords="4,479.86,561.38,4.98,8.64">4</ref> shows one of the 109 semantic networks<ref type="foot" coords="4,230.42,571.41,3.69,6.39" target="#foot_1">2</ref> generated for question 164 from Figure <ref type="figure" coords="4,405.32,573.34,4.98,8.64" target="#fig_1">2</ref> during query expansion. This semantic network was derived by applying two default rules for MultiNet relations (in backward chaining). The first rule transfers the LOC edge from the abstract situation (subordinated to hitzewelle) to the situation node (subordinated to sterben). The second rule (shown in Figure <ref type="figure" coords="4,413.99,609.20,4.15,8.64" target="#fig_2">5</ref>) expresses as a default that a causal relation (CAUS) implies (under certain conditions, indicated by a sort constraint) a temporal overlap (TEMP). Reconsidering the semantic network in Figure <ref type="figure" coords="4,348.01,633.12,4.98,8.64" target="#fig_0">1</ref> for a document sentence, the similarity to the question variant from Figure <ref type="figure" coords="4,232.52,645.07,4.98,8.64">4</ref> becomes obvious. This similarity allows a match and the generation of a correct answer (namely just a number: 523) in the remaining stages of the InSicht system.</p><p>Besides rules, InSicht applies other means to generate equivalent (or similar) semantic networks: Each concept in a semantic network can be replaced by concepts that are synonyms, hyponyms, etc. Such concept variations are based on lexico-semantic relations in HaGenLex. As HaGenLex contains a mapping from lexemes to GermaNet concept IDs <ref type="bibr" coords="4,259.50,704.85,65.33,8.64" target="#b12">(Osswald, 2004)</ref>  GermaNet were used in a separate experiment in addition to the lexico-semantic relations from HaGenLex. For the questions from the test set, this extension led to no changes in the answers given. On average, query expansion using rules led to 6.5 additional semantic networks for a question from QA@CLEF 2004. If one counts the combination with concept variations, around 215 semantic networks are used per question.</p><p>The use of inference rules during a query expansion stage is just a pragmatic decision. In an ideal system without memory constraints, rules could come into play later: the semantic representation of all documents would be loaded as a huge knowledge base (where one had to cope with inconsistencies) and rules would be used by a theorem prover to test whether the question (or some derived form) can be deduced from the knowledge base. The main reasons to avoid such a system are the huge amount of facts coming from the document collection and the problem of inconsistencies.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Search</head><p>To search for an answer by semantic network matching, the semantic network for the question is split in two parts: the queried network (roughly corresponding to the representation of the phrase headed by the interrogative pronoun or determiner) and the match network (the semantic network without the queried network). The matcher calls a concept ID index server for all concepts in the match network to speed up the search. Efficient matching of the match network is achieved by simplifying networks as described in the next paragraph (for question networks and document networks in the same way) so that a subset test with a large set of query expansions (generated as described in Section 4) becomes feasible. Average answer time is several seconds on a standard PC. A variant of this matching approach has been tried in the monolingual GIRT task (see one of the five runs reported by <ref type="bibr" coords="5,284.59,665.83,124.77,8.64" target="#b10">Leveling and Hartrumpf (2004)</ref>), currently with retrieval results that are not sufficient yet.</p><p>Semantic networks are simplified and normalized to achieve acceptable answer times. The following simplifications are applied: First, inner nodes of a semantic network that correspond to instances (for example c4 and all nodes named cN in Figure <ref type="figure" coords="5,277.38,713.65,4.15,8.64">4</ref>) are combined (collapsed) with their concept nodes (typically connected by a SUB, SUBS, PRED, or PREDS relation) to allow a canonical order of network edges. Sometimes this operation necessitates additional query expansions. (These semantic networks are basically (*in "c1*in" "c1staat.1.1") (aff "c1sterben.1.1" "c1mensch.1.1") (attr "c1staat.1.1" "c1name.1.1") (caus "c1hitzewelle.1.1" "c1sterben.1.1") (loc "c1sterben.1.1" "c1*in") (prop "c1hitzewelle.1.1" "anhaltend.1.1") (temp "c1sterben.1.1" "past.0") (val "c1name.1.1" "indien.0") variations of possible instance node names.) Second, semantic details from some layers in MultiNet are omitted, e.g. the features ETYPE and VARIA of nodes and the knowledge types of edges <ref type="bibr" coords="6,451.13,233.40,57.58,8.64" target="#b5">(Helbig, 2001)</ref>.</p><p>After such simplifications, a lexicographically sorted list of MultiNet edges can be seen as a canonical form, which allows efficient matching. The simplified and normalized semantic network corresponding to the MultiNet in Figure <ref type="figure" coords="6,182.43,269.27,4.98,8.64" target="#fig_0">1</ref> is shown in Figure <ref type="figure" coords="6,266.04,269.27,3.74,8.64" target="#fig_3">6</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Answer Generation</head><p>Generation rules take the (simplified) semantic network of the question (the queried network part), the sentence type of the question, and the matching semantic network from the document as input and generate a German phrase (typically a noun phrase) as a candidate answer. The generation rules are kept simple because the integration of a separately developed generation module is planned so that InSicht's current answer generation is only a temporary solution. Despite the limitations of the current answer generation, it proved advantageous to work with small coverage rules because they filter what a good answer can be. For example, no rule generates a pronoun; so uninformative pronouns cannot occur in the answer. If the expected answer becomes more complex, this filtering advantage will shrink.</p><p>An answer extraction strategy working on surface strings in documents is avoided because in languages showing more inflectional variation than say English, simple extraction from surface strings can lead to an answer that describes the correct entity, but in an incorrect syntactic case. Such an answer should be judged as inexact or even wrong.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Answer Selection</head><p>The preceding steps typically result in many pairs of generated answer string and supporting document ID<ref type="foot" coords="6,508.82,510.62,3.69,6.39" target="#foot_2">3</ref> for a given question. To select the best answer, a preference for longer answers and a preference for more frequent answers are combined. Answer length is measured by the number of characters and words. In case of several supporting documents, the document whose ID comes alphabetically first is picked. This strategy is simple and open to improvements but works surprisingly well so far.</p><p>To automatically detect cases where question processing (or some later stage) made a mistake that led to a very general matching and finally to far too many competing candidate answers, a maximum for different answer strings is defined (depending on question type). If it is exceeded, the system retreats to an empty answer (NIL ) with a reduced confidence score.</p><p>8 Evaluation on the QA@CLEF 2004 Test Set By annotating each question leading to a suboptimal answer<ref type="foot" coords="6,327.77,662.15,3.69,6.39" target="#foot_3">4</ref> with a problem class, the system components which need improvements most urgently can be identified. After fixing a general programming error, InSicht achieved 80 correct answers in an unofficial re-run (official run: 67) and 7 inexact answers for 197<ref type="foot" coords="6,508.82,686.06,3.69,6.39" target="#foot_4">5</ref>  error in connecting question and document q-d.failed generation no answer string can be generated for a found answer 2.0 q-d.matching error match between semantic networks is incorrect 5.9 q-d.missing cotext answer is spread across several sentences 5.9 q-d.missing inferences inferential knowledge is missing 25.4 scored questions, which leaves 110 questions (where the system gave an incorrect empty answer) to be annotated. The hierarchy of problem classes shown in Table <ref type="table" coords="7,336.65,438.74,4.98,8.64" target="#tab_3">3</ref> was defined before annotation started. As this annotation is time-consuming, only a sample of 43 questions has been classified so far. Therefore only the percentages for problem class q.error and its subclasses are exact, the other percentages are estimates from the sample. For a question, a problem subclass (preferably a most specific subclass) for q.error, d.error, and qd.error could be annotated in theory. But the chosen approach is more pragmatic: If a problem is found in an early processing stage, one should stop looking at later stages, no matter whether one could investigate them despite the early problem, one could speculate about them, or just guess.</p><p>Seeing the high numbers for the problem class d.parse error and its subclasses one could suspect that a parse error for the relevant document sentence<ref type="foot" coords="7,272.30,544.41,3.69,6.39" target="#foot_5">6</ref> excludes a correct answer in general. Fortunately this is not the case. For example, question 081 was answered correctly by using the semantic network for sentence SDA.940610.0174.84 although the semantic network contained some errors; but the semantic network part relevant for the answer was correct.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9">Conclusions and Perspectives</head><p>InSicht achieves high precision: non-empty answers (i.e. not NIL answers) are rarely wrong (for the QA@CLEF 2004 questions only one; in the unofficial re-run not a single one). Furthermore, the deep level of representation based on semantic networks opens the way for intelligent processes like paraphrasing on the semantic level and inferences.</p><p>The experience with the current system showed the following five problems; after naming the problem, a solution for future work is suggested:</p><p>1. Missing inferential knowledge: encode and semi-automatically acquire entailments etc.</p><p>2. Limited parser coverage: extend the lexicons and improve the robustness and grammatical knowledge of the parser.</p><p>3. Ignoring partial semantic networks (produced by the parser in chunk mode): devise methods to utilize partial semantic networks for finding answers.</p><p>4. Answers spread across several sentences are not found: apply the text mode of the parser (involving intersentential coreference resolution, see <ref type="bibr" coords="8,282.84,188.05,71.10,8.64" target="#b2">(Hartrumpf, 2001)</ref>).</p><p>5. Long processing for documents: optimize the parser and develop on-demand processing strategies.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,90.00,294.62,423.00,9.03;3,131.92,306.79,381.07,8.82;3,131.92,318.74,317.52,8.82"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Graphical form of the MultiNet generated by the WOCADI parser for (simplified) document sentence SDA.950618.0048.377: In Indien starben [. . . ] 523 Menschen infolge der [. . . ] anhaltenden Hitzewelle. ('523 people died in India due to the continuing heat wave.')</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,90.00,306.58,423.00,9.03;4,131.92,318.74,381.07,8.82;4,131.92,330.70,65.85,8.59"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Graphical form of the MultiNet generated by the WOCADI parser for question 164: Wie vieleMenschen starben während der Hitzewelle in Indien? ('How many people died during the heat wave in India?')</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,142.32,372.84,318.35,9.03"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Example rule (applied in backward chaining during query expansion)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,90.00,179.10,423.00,9.03;6,131.92,191.44,118.14,8.64"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: Simplified and normalized semantic network for the MultiNet of Figure 1. For better readability, features of nodes are omitted.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,95.98,120.32,411.05,117.98"><head>Table 1 :</head><label>1</label><figDesc>Statistics from Document Preprocessing</figDesc><table coords="2,95.98,136.17,411.05,102.13"><row><cell cols="2">subcorpus articles</cell><cell>sentences</cell><cell cols="2">words average sen-</cell><cell>duplicate articles</cell><cell></cell></row><row><cell></cell><cell>without</cell><cell></cell><cell></cell><cell>tence length</cell><cell></cell><cell></cell></row><row><cell></cell><cell>duplicates</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="2">identical bytes identical words</cell></row><row><cell>FR</cell><cell>122541</cell><cell cols="2">2472353 45332424</cell><cell>18.3</cell><cell>22</cell><cell>17152</cell></row><row><cell>SDA</cell><cell>140214</cell><cell cols="2">1930126 35119427</cell><cell>18.2</cell><cell>333</cell><cell>568</cell></row><row><cell>SP</cell><cell>13826</cell><cell>495414</cell><cell>9591113</cell><cell>19.4</cell><cell>0</cell><cell>153</cell></row><row><cell>all</cell><cell>276581</cell><cell cols="2">4897893 90042964</cell><cell>18.4</cell><cell>355</cell><cell>17873</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,147.15,265.66,308.70,77.31"><head>Table 2 :</head><label>2</label><figDesc>Statistics from Document Parsing</figDesc><table coords="2,147.15,281.51,308.70,61.46"><row><cell cols="5">subcorpus parse results full parse (%) chunk parse (%) no parse (%)</cell></row><row><cell>FR</cell><cell>2469689</cell><cell>44.3</cell><cell>21.7</cell><cell>34.0</cell></row><row><cell>SDA</cell><cell>1930111</cell><cell>55.8</cell><cell>19.0</cell><cell>25.2</cell></row><row><cell>SP</cell><cell>485079</cell><cell>42.7</cell><cell>19.3</cell><cell>38.0</cell></row><row><cell>all</cell><cell>4884879</cell><cell>48.7</cell><cell>20.4</cell><cell>30.9</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="7,90.00,120.32,423.00,231.30"><head>Table 3 :</head><label>3</label><figDesc>Hierarchy of problem classes and problem class frequencies (percentages sum to 100.</figDesc><table coords="7,479.52,120.71,33.48,8.64"><row><cell>2 due to</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,104.35,724.24,408.65,6.91;4,90.00,733.70,380.69,6.91"><p>A lemma followed by a numerical homograph identifier and a numerical polyseme identifier forms a so-called concept identifier (or concept ID) in HaGenLex. In this paper, the numerical suffix of concept IDs is often omitted to improve readability.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,104.35,743.51,170.13,6.91"><p>This number does not include any concept variations.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="6,104.35,707.00,408.65,6.91;6,90.00,716.46,179.33,6.91"><p>As each answer is generated from a semantic network corresponding to one document sentence, the system also knows the ID (a byte offset) of the supporting sentence in this document.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="6,104.35,726.27,226.80,6.91"><p>A suboptimal answer is one not marked as correct (R) by the assessors.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="6,104.35,736.08,408.65,6.91;6,90.00,745.54,171.37,6.91"><p>Three questions have been excluded from the evaluation by the co-ordinators of the German QA task after my report of spelling errors; see problem class q.ungrammatical in Table3.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="7,104.35,736.85,358.39,7.25"><p>If several document sentences are relevant, InSicht (as other QA systems) can often profit from this redundancy.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,90.00,263.87,423.00,8.64;8,99.96,275.65,413.03,8.82;8,99.96,287.60,413.04,8.82;8,99.96,299.74,167.97,8.64" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,451.02,263.87,61.98,8.64;8,99.96,275.83,253.01,8.64">Cross-language question answering at the USC Information Sciences Institute</title>
+		<author>
+			<persName coords=""><forename type="first">Abdessamad;</forename><surname>Echihabi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Douglas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Oard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><surname>Marcu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ulf</forename><surname>Hermjakob</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,375.69,275.65,137.30,8.59;8,99.96,287.60,341.69,8.59">Results of the CLEF 2003 Cross-Language System Evaluation Campaign, Working Notes for the CLEF 2003 Workshop</title>
+		<editor>
+			<persName><forename type="first">Carol</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Trondheim, Norway</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="331" to="337" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,319.66,423.00,8.64;8,99.96,331.62,413.04,8.64;8,99.96,343.39,413.04,8.82;8,99.96,355.35,286.99,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,326.65,331.62,186.35,8.64;8,99.96,343.57,139.09,8.64">The role of lexico-semantic feedback in opendomain textual question-answering</title>
+		<author>
+			<persName coords=""><forename type="first">Sanda</forename><forename type="middle">;</forename><surname>Harabagiu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Moldovan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Marius</forename><surname>Pas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rada</forename><surname>Mihalcea</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rȃzvan</forename><surname>Bunescu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Roxana</forename><surname>Gîrju</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename><surname>Vasile Rus</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Morȃrescu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,259.72,343.39,253.28,8.59;8,99.96,355.35,154.27,8.59">Proceedings of the 39th Annual Meeting of the Association for Computational Linguistics (ACL-2001)</title>
+		<meeting>the 39th Annual Meeting of the Association for Computational Linguistics (ACL-2001)<address><addrLine>Toulouse, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="274" to="281" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,375.45,423.00,8.64;8,99.96,387.23,413.03,8.82;8,99.96,399.36,328.50,8.70" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,195.16,375.45,300.72,8.64">Coreference resolution with syntactico-semantic rules and corpus statistics</title>
+		<author>
+			<persName coords=""><forename type="first">Sven</forename><surname>Hartrumpf</surname></persName>
+		</author>
+		<ptr target="http://www.aclweb.org/anthology/W01-0717" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,99.96,387.23,371.42,8.59">Proceedings of the Fifth Computational Natural Language Learning Workshop (CoNLL-2001)</title>
+		<meeting>the Fifth Computational Natural Language Learning Workshop (CoNLL-2001)<address><addrLine>Toulouse, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="137" to="144" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,419.11,423.00,8.82;8,99.96,431.24,77.73,8.64" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="8,195.69,419.11,218.81,8.59">Hybrid Disambiguation in Natural Language Analysis</title>
+		<author>
+			<persName coords=""><forename type="first">Sven</forename><surname>Hartrumpf</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<publisher>Der Andere Verlag</publisher>
+			<pubPlace>Osnabrück, Germany</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,451.17,423.00,8.64;8,99.96,462.94,413.04,8.82;8,99.96,475.08,17.43,8.64" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,348.21,451.17,164.79,8.64;8,99.96,463.12,214.69,8.64">The semantically based computer lexicon HaGenLex -Structure and technological environment</title>
+		<author>
+			<persName coords=""><forename type="first">Sven</forename><forename type="middle">;</forename><surname>Hartrumpf</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hermann</forename><surname>Helbig</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rainer</forename><surname>Osswald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,323.27,462.94,143.51,8.59">Traitement automatique des langues</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="81" to="105" />
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,494.82,423.00,8.82;8,99.96,506.78,86.93,8.82" xml:id="b5">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Hermann</forename><surname>Helbig</surname></persName>
+		</author>
+		<title level="m" coord="8,193.25,494.82,319.75,8.59;8,99.96,506.78,12.25,8.59">Die semantische Struktur natürlicher Sprache: Wissensrepräsentation mit Multi-Net</title>
+		<meeting><address><addrLine>Berlin</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,526.88,423.00,8.64;8,99.96,538.66,413.04,8.82;8,99.96,550.62,403.79,8.82" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,279.08,526.88,233.92,8.64;8,99.96,538.84,158.79,8.64">Multilayered extended semantic networks as a language for meaning representation in NLP systems</title>
+		<author>
+			<persName coords=""><forename type="first">Hermann</forename><surname>Helbig</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Carsten</forename><surname>Gnörlich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,279.20,538.66,233.80,8.59;8,99.96,550.62,63.93,8.59">Computational Linguistics and Intelligent Text Processing (CICLing 2002)</title>
+		<editor>
+			<persName><forename type="first">Alexander</forename><surname>Gelbukh</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="volume">2276</biblScope>
+			<biblScope unit="page" from="69" to="85" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,570.72,423.00,8.64;8,99.96,582.50,413.04,8.59;8,99.96,594.45,107.65,8.82" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,284.07,570.72,210.90,8.64">Word class functions for syntactic-semantic analysis</title>
+		<author>
+			<persName coords=""><forename type="first">Hermann</forename><surname>Helbig</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sven</forename><surname>Hartrumpf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,99.96,582.50,413.04,8.59;8,99.96,594.45,48.05,8.59">Proceedings of the 2nd International Conference on Recent Advances in Natural Language Processing (RANLP&apos;97)</title>
+		<meeting>the 2nd International Conference on Recent Advances in Natural Language Processing (RANLP&apos;97)</meeting>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+			<biblScope unit="page" from="312" to="317" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,210.10,594.63,96.65,8.64" xml:id="b8">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Tzigov</forename><surname>Chark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Bulgaria</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,614.38,423.00,8.82;8,99.96,626.91,154.17,8.30" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="8,362.84,614.38,112.82,8.59">Corpus Encoding Standard</title>
+		<author>
+			<persName coords=""><forename type="first">Nancy</forename><forename type="middle">;</forename><surname>Ide</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Greg</forename><surname>Priest-Dorman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">;</forename></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jean</forename><surname>Véronis</surname></persName>
+		</author>
+		<ptr target="http://www.cs.vassar.edu/CES/" />
+		<imprint>
+			<date type="published" when="1996">1996</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,646.44,423.00,8.64;8,99.96,658.21,413.04,8.82;8,99.96,670.17,389.46,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,287.56,646.44,225.44,8.64;8,99.96,658.39,136.24,8.64">University of Hagen at CLEF 2004: Indexing and translating concepts for the GIRT task</title>
+		<author>
+			<persName coords=""><forename type="first">Johannes</forename><surname>Leveling</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sven</forename><surname>Hartrumpf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,258.46,658.21,254.54,8.59;8,99.96,670.17,225.09,8.59">Results of the CLEF 2004 Cross-Language System Evaluation Campaign, Working Notes for the CLEF 2004 Workshop</title>
+		<editor>
+			<persName><forename type="first">Carol</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Bath, England</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,690.09,423.00,8.82;8,99.96,702.05,297.88,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,259.96,690.27,155.28,8.64">Mining answers in German web pages</title>
+		<author>
+			<persName coords=""><forename type="first">Günter</forename><surname>Neumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Feiyu</forename><surname>Xu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,437.15,690.09,75.86,8.59;8,99.96,702.05,223.86,8.59">Proceedings of the International Conference on Web Intelligence (WI-2003)</title>
+		<meeting>the International Conference on Web Intelligence (WI-2003)<address><addrLine>Halifax, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,90.00,722.15,423.00,8.64;8,99.96,733.93,189.35,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,198.73,722.15,314.27,8.64;8,99.96,734.11,76.94,8.64">Die Verwendung von GermaNet zur Pflege und Erweiterung des Computerlexikons HaGenLex</title>
+		<author>
+			<persName coords=""><forename type="first">Rainer</forename><surname>Osswald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,185.60,733.93,44.71,8.59">LDV Forum</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="43" to="51" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

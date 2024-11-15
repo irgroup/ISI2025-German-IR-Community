@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main"></title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,230.59,182.09,80.89,9.96"><forename type="first">Menno</forename><surname>Van Zaanen</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Macquarie University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,319.71,182.09,52.72,9.96"><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Macquarie University</orgName>
+							</affiliation>
+						</author>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">42C693022A2088175B4AD9DBA556EE4E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>H.3 [Information Storage and Retrieval]: H.3.1 Content Analysis and Indexing</term>
+					<term>H.3.3 Information Search and Retrieval</term>
+					<term>H.3.4 Systems and Software</term>
+					<term>I.2.7 [Natural Language Processing]: Text Analysis Measurement, Performance, Experimentation Question answering, Multi-lingual retrieval</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this article, we describe our experiences with modifying and applying AnswerFinder, a generic question answering system that was originally designed to perform textbased question answering in English only, to multi-lingual question answering. In particular, we participated in the Dutch-English task. To enable handling of Dutch questions, we added a machine translation phase, where we used Systran to provide the Dutch to English translations. The translated questions were passed verbatim to AnswerFinder. Additionally, a simple form of anaphora resolution was implemented and since AnswerFinder did not have a document retrieval phase, this was added as well. The document retrieval system used is based on Xapian and simply searches for relevant documents based on the words in the question. Due to the nature and quality of the translated questions and the lack of tuning, we expected (and received) low quality results. The main purpose of our participation was to investigate the flexibility, portability, and scalability of the generic question answering system.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Within the AnswerFinder project, the main research question is: what shallow semantic representations are best suitable for representing the meaning of questions and sentences in the context of question answering? To experiment with this, over the last several years we have developed the AnswerFinder question answering system.</p><p>The AnswerFinder system participated in TREC competitions during the last several years <ref type="bibr" coords="1,90.00,683.66,10.52,9.96" target="#b2">[3,</ref><ref type="bibr" coords="1,103.78,683.66,7.76,9.96" target="#b4">5,</ref><ref type="bibr" coords="1,114.80,683.66,7.75,9.96" target="#b5">6,</ref><ref type="bibr" coords="1,125.81,683.66,11.62,9.96" target="#b10">11]</ref>. In this context, English has been the language of the questions and documents. The document collection that has been used is the Aquaint corpus, which consists of 1,033,461 news articles.</p><p>When redesigning AnswerFinder in 2005, in addition to performance requirements (speed, memory usage, accuracy of finding answers, etc.), two requirements were recognised that have had a big impact on the design and implementation of the system. These requirements stem from the fact that AnswerFinder is a research and development system.</p><p>Flexibility The system should be flexible in several ways. It should be possible to easily modify AnswerFinder to handle new situations. For example, different input and output formats (of documents, questions, and answers), types of questions and answers, and new algorithms (in all the phases) should be easy to integrate in the system. This allows for easy testing of new ideas in different environments.</p><p>Configurability Having a system with many different algorithms that can be used in the phases, it should be easy to configure the system to run using specific parameters. Parameters in this case mean, not only the actual values needed in the algorithms, but also selecting a particular algorithm in a phase.</p><p>Applying AnswerFinder to a multilingual question answering problem will show in how far we have been successful in reaching the requirements as described above. Our participation in QA@CLEF is a pilot project where we concentrate mainly on the flexibility of the system. We needed to modify the system to work in a multilingual environment and the document collection is larger and contains different kinds of documents. Furthermore, we did not have enough time to fine-tune the system to this particular task.</p><p>In the next sections, we will first discuss the general AnswerFinder system, followed by a description of the original plans and the actual changes we made to the system to allow it to be used in the QA@CLEF competition. Then we discuss the results and briefly say something about the improvements we expect to make.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">AnswerFinder</head><p>The AnswerFinder question answering system is essentially a framework, consisting of several phases that work in a sequential manner. For each of the phases, a specific algorithm has to be selected to create a particular instantiation of the framework. The aim of each of the phases is to reduce the amount of data the system has to handle from then on. This allows later phases to perform computationally more expensive operations on the remaining data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Document Collection</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Question</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Document Selection</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Question Analysis</head><p>Sentence Selection</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Question Type</head><p>Answer Selection Final Answer(s)</p><p>Figure <ref type="figure" coords="2,243.70,645.50,3.87,9.96">1</ref>: AnswerFinder system overview Figure <ref type="figure" coords="2,136.30,679.37,4.98,9.96">1</ref> provides an overview of the AnswerFinder framework. The first phase is a document retrieval phase that selects relevant documents. AnswerFinder was developed to work on large document collections and this phase typically reduces a great amount of text that will be handled in subsequent steps. In the TREC competitions, a list of relevant documents was always provided and AnswerFinder used these documents. We have implemented a new document retrieval phase specifically for QA@CLEF, which is described in more detail in section 3.3.</p><p>Next is the sentence selection phase. It is possible to select a sequence of algorithms that are applied to the set of sentences that remain. Each algorithm selects a subset of sentences returned by the previous algorithm (or taken from the relevant documents selected by the document retrieval phase). During sentence selection, all sentences that are still left (e.g. all sentences in the selected documents in the first step) are scored against the question using a relevance metric. The most relevant sentences according to this metric are kept for further processing.</p><p>After the sentence selection phase, the remaining text is analysed during the answer selection phase. This phase searches for possible answers in the sentences. In the question analysis phase, the question is analysed, which provides information on the kind of answer that is required. This question information is then matched against the list of possible answers and those answers that match the type of answer required by the question are selected and scored.</p><p>Finally, the best answer is returned to the user. The best answer is the answer that has both the highest score and an answer type that matches that of the question, or simply the answer with the highest score if none of the possible answers fits the expected answer type.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Extensions</head><p>The AnswerFinder system so far has been applied in the TREC question answering competitions. With the design requirements in mind, we have looked at alternative situations where the system could be applied. This year, we participated in QA@CLEF to investigate flexibility in languages and scalability (as we will describe later) and QAst to investigate flexibility and robustness of the system.</p><p>Firstly, we will describe the original ideas we had when we decided to work on multilingual question answering. Unfortunately, we did not have time to implement many of the ideas raised during these preliminary discussions. Next, we will describe extensions that were required for the system to work in the CLEF multilingual environment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Original idea</head><p>The idea behind applying AnswerFinder to multilingual question answering arose from discussions with researchers from the University of Groningen in the Netherlands, who are working on the Joost question answering system for Dutch <ref type="bibr" coords="3,280.49,486.94,10.52,9.96" target="#b1">[2,</ref><ref type="bibr" coords="3,294.29,486.94,7.01,9.96" target="#b0">1]</ref>. The underlying ideas of Joost are quite similar to those of AnswerFinder. They have a similar internal representation of the meaning of the questions and the texts. The assumption here is that this internal representation can be used to link parts of the two systems together, which allows the analysis of questions in one language and the analysis of and search in documents in another language.</p><p>In a way, both Joost and AnswerFinder are quite dissimilar, for example, they work on different languages, use different knowledge sources and depend on different tools. However, the most important aspect of the systems is very similar. Both systems use a similar shallow internal meaning representation of the questions and the texts.</p><p>The meaning representation can be used as a pivot between the two systems. If a mapping between the representations is made, it is possible to transfer the internal knowledge of one system to the other and continue from there. Effectively, this means that the analysis of the question into the internal meaning representation can be done using one system. This representation is then mapped to the other's representation (which is relatively straightforward as the representations are quite similar) and the second system can be used to find the answer.</p><p>This idea led to the identification of four distinct phases, each more complex and intertwining both systems more.</p><p>1. The least complicated solution is to translate questions from one language to the other (for example, using the Systran machine translation system) and to feed the translated question in the correct question answering system. This system does not benefit from question analysis of the question in the original language and as such relies entirely on possibly incorrectly translated questions. To benefit from language specific analysis, the result of the question analysis of the question answering system of the source language can be handed to the question answering system in the target language in addition to the translation of the question given by the machine translation system. This approach requires a mapping between the output of the question analysis module of the source language to the required input of other modules of the target language.</p><p>3. The most challenging approach would be one that formalises and implements the mapping between the two internal representations that underlie all modules of both question answering systems. The benefits of this approach are that all analyses of the questions and the texts are done using tools that are developed for that particular language.</p><p>In the end, only the first approach has been implemented here. There is no integration of both systems, the questions are translated using a machine translation system and used in the AnswerFinder system. In addition to this machine translation step, AnswerFinder had to be modified in two aspects.</p><p>Originally, AnswerFinder did not have a document retrieval phase, as in the TREC competitions a list of relevant documents was always provided. During TREC 2006, we briefly experimented with our own document retrieval phase, but this required modifications to allow it to work in this context.</p><p>Additionally, AnswerFinder has a simple anaphora resolution phase. This phase is designed specifically for the TREC competition and had to be rewritten for the QA@CLEF competition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Machine translation</head><p>AnswerFinder expects to find documents and questions in English. Several algorithms that are currently implemented in AnswerFinder require the text to be in English as both sentences and questions are parsed using a dependency parser. In the Dutch-English task, the documents are in English already, but the questions are in Dutch.</p><p>There are several on-line machine translation systems that translate from Dutch to English. We concentrated on Freetranslation<ref type="foot" coords="4,245.51,560.76,3.97,4.84" target="#foot_0">1</ref> , Babelfish<ref type="foot" coords="4,296.13,560.76,3.97,4.84" target="#foot_1">2</ref> , and Systran<ref type="foot" coords="4,359.07,560.76,3.97,4.84" target="#foot_2">3</ref> .</p><p>To decide which of these systems would provide us with the best translation of the questions, we translated QA@CLEF questions of the 2004 and 2006 competitions. For these years, we were able to find aligned Dutch and English questions. This allowed us to evaluate the quality of the questions against a gold standard. The results of the machine translation systems can be found in Table <ref type="table" coords="4,129.33,621.38,3.87,9.96" target="#tab_0">1</ref>. We used the Blue score <ref type="bibr" coords="4,247.89,621.38,10.52,9.96" target="#b7">[8]</ref> to compute these results <ref type="foot" coords="4,368.81,620.54,3.97,4.84" target="#foot_3">4</ref> . The results show that Systran is best, followed closely by Babelfish. Babelfish's underlying machine translation system seems to be a slightly different version of the Systran engine.</p><p>To see whether we could further improve on the translation quality of these three systems, we applied the DEMOCRAT <ref type="bibr" coords="4,205.39,669.20,15.50,9.96" target="#b11">[12]</ref> consensus translation system to the translated questions. DEMO-CRAT, which stands for DEcides between Multiple Outputs CReated by Automatic Translation, is designed specifically for free on-line MT systems. It tries to construct from them a consensus translation which, it is hoped, will take the best elements of the contributing systems and produce an output as good as or better than any of the individual MT systems on their own.</p><p>The main idea behind DEMOCRAT is to combine the output of machine translation systems. This is done by selecting and recombining the "best" sequence of words from each output. The underlying assumption here is that if several machine translation systems use the same word or phrase, it is the correct translation. Single words are selected based on a majority vote of the output of the systems.</p><p>Unfortunately, as can be seen in Table <ref type="table" coords="5,272.34,195.04,3.87,9.96" target="#tab_0">1</ref>, the DEMOCRAT system does not provide any better results. Choosing DEMOCRAT's output is better than selecting one of the machine translation systems at random. However, the results on the old questions show that Systran has consistently generated the best translations. This means that it is better to use Systran to translate the questions, which we have done in these experiments.</p><p>When looking at the translated questions, it turned out that some questions resulted in translations that were completely incomprehensible, for example, "Call some olive oil see.", or nearly incomprehensible, "What was the name of its woman?". Also, we noticed some consistent translation errors. For example, all Dutch questions starting with "Noem. . . " are translated starting with "Call. . . ", whereas the proper translation would be "Name". Also, the translated questions often have a preposition as the first word, for example, "To which countries provide the EU agriculture subsidies?".</p><p>Our question analysis phase (which assigns expected types of answers to a question) is based on matching regular expressions to the question. This is a very simple system that can probably be improved much. In particular it could be adapted to the kinds of mistranslations that occurred in the questions. However, due to time constraints we did not modify it. The translation problems mean that none of these regular expressions match. This, in turn, means that AnswerFinder did not assigned expected answer types to the questions and therefore was unable to filter out any possible answers. Answers can only be selected based on their scores.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Document retrieval</head><p>The AnswerFinder submission for TREC 2006 contained a first attempt at document retrieval. In TREC, a list of relevant documents is provided per topic (where just like in QA@CLEF, a topic contains several questions). We looked at performing document retrieval specific to each each question and only take those documents that can be found in both the list of relevant documents found by our document retrieval system and the list provided by NIST. We used the indexing and retrieval methods of the Xapian<ref type="foot" coords="5,229.02,515.45,3.97,4.84" target="#foot_4">5</ref> toolkit for this.</p><p>The list of relevant documents is found by taking the words in the question as search keywords in the retrieval system. Note that in the current version, we do not remove any stop words, which may lead to query drift.</p><p>Even though the Xapian-based document retrieval system slightly improved results in the TREC competition setting, the system has only been evaluated in combination with the list of relevant documents provided by NIST. Furthermore, the document collection used in that context, Aquaint, is smaller than the collection used in QA@CLEF. The Wikipedia collection is not only much larger, it also contains structure that our document retrieval system could not handle. We decided to convert the Wikipedia format to a format that is quite similar to that of the Aquaint documents. By doing this we may have lost some useful data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Anaphora resolution</head><p>Anaphora resolution is not something we have looking into very much. During our TREC participation we always replaced the anaphora with the name of the topic. (In the TREC question answering track, the topics all have a name attached to it.) In QA@CLEF, several questions in the question collection also contain anaphora. Examples are "they" in the question "In which year were they boasted?", and "he" in the question "Of which political party was he member?". The anaphora often refers to a named entity or an important part of a previous question.</p><p>We decided to use previous answers as replacements for the anaphora, as this was easiest to implement in the current version of AnswerFinder. However, this obviously leads to the following problem: incorrect answers to a question means that the next question (with anaphora) will also be incorrect.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We submitted two runs generated by AnswerFinder. Both runs used questions translated using Systran. Anaphora in the questions were resolved during question answering as described above, all anaphora were replaced by the answer to the previous question. Document retrieval was performed using our Xapian-based document retrieval module. The best 100 documents were retained in each run. After document retrieval, the sentence selection phase was started. In both runs, the best 100 sentences were selected based on word overlap. This metric counts the number of words in the question that can also be found in the sentence under consideration. Words that can be found in a list of stop words are not counted towards this score. The remaining sentences are handed to a named entity recogniser and the found named entities are taken to be possible answers. The possible answer with the highest score is then returned as the exact answer.</p><p>To generate the named entities, we used AFNER <ref type="bibr" coords="6,335.66,345.45,9.96,9.96" target="#b6">[7]</ref>, which is a named entity recogniser that is built within the AnswerFinder project. The idea behind AFNER is that a high recall in named entities is required for question answering. AFNER uses a combination of gazetteers, regular expressions, and general features in a maximum entropy classifier to assign tags to words. These tags indicate whether the word is the beginning of a named entity, inside a named entity or outside any named entities. The general MUC named entity types <ref type="bibr" coords="6,398.76,405.22,10.52,9.96" target="#b8">[9]</ref> are used: organisation, person, location, date, time, money, and percent. These types are used to select answers according to the expected answer type that is found during question analysis. However, as mentioned above, since the question analysis phase did not classify any of the questions, there was no selection on the bases of the expected answer type. All found entities were treated as possible answers.</p><p>The settings of both runs were quite similar with only one difference. The second run performed a graph-based sentence selection phase, which finds additional possible answers. The algorithm that is used in this phase is described in more detail in <ref type="bibr" coords="6,344.65,488.91,9.96,9.96" target="#b3">[4]</ref>. The question and the sentence is parsed using Connexor <ref type="bibr" coords="6,191.99,500.87,14.62,9.96" target="#b9">[10]</ref>. This results in a dependency parse, which is converted into a shallow semantic representation in graph form. The score that is assigned to the sentence (for the question) is related to the size of the overlap of the graphs of the question and sentence.</p><p>The score computed using the graph logical forms is actually not used in this experiment, but the algorithm also has the ability to find exact answers. During a training phase, where we have questions aligned to sentences with the exact answer annotated, the overlap between the question and sentence is computed. Next, a path from the overlap to the answer is found. The overlap including the path is stored as a graph rule. During the actual sentence selection phase, these graph rules are applied to the overlap of the question and sentence. This indicates sub-graphs in the sentence that are considered to be possible answers.</p><p>In general, the score of a possible answer is computed by summing the scores that are found for that answer. If an answer is found using the named entity recogniser, the score is the number of times the answer is found by the named entity recogniser (in all selected sentences). If the graph-logical form algorithm is used, the score computed using the algorithm is used (and this score is added to the scores of the named entities).</p><p>Unfortunately, neither runs of the multilingual version of AnswerFinder generated any correct results. All answers generated were numbers. There may be several reasons for this. Firstly, the named entity recogniser finds numbers using regular expressions. Most of the other named entity types require other features. AFNER has been trained on the BBN corpus <ref type="foot" coords="6,422.06,715.21,3.97,4.84" target="#foot_5">6</ref> which is somewhat different from the document collection used here. Secondly, the question analysis did not return specific question types (as described above). This means that the most often found named entity will be selected, which will often be numbers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Future improvements</head><p>The discussion of the extensions of the AnswerFinder system and the results already indicated several areas that need improvement. We will briefly discuss some of them here.</p><p>The translation of the questions in imperfect. Not only does this impact the question analysis phase (mentioned above), it obviously impacts the whole system. For example, named entities are sometimes translated or partially translated ("General engines" for "General Motors", and some words are translated incorrectly "woman" instead of "wife" for "vrouw", "bluntest" instead of "bumped" for "botste". Some regular words are not translated at all, such as "ongeluk" (accident), or "zat" (sat). Post editing of the questions may solve some of these problems, although other AnswerFinder phases will need to be adapted as well to allow for partially incorrect questions.</p><p>The quality of the document retrieval phase that is used at the moment is unknown. We have not investigated in how far the documents found by this system contain information on the topic of the question. We probably need to do a more in depth analysis of the system. For example, the documents are selected based on the original question before anaphora resolution. This means that important information (referenced to using the anaphora) is missing in the query in the document retrieval phase.</p><p>The question analysis phase is based on a relatively short list of regular expressions. This list has not been tested against the translated questions at all. Many of the translated questions are somewhat different from the questions the system handled during the TREC competitions. Modifying the regular expressions and adding several new ones that handle incorrectly translated questions will probably increase performance of this phase greatly.</p><p>The way anaphora are handled in the current system is very simple and most of the time incorrect. Instead of replacing the anaphora by previously returned (probably incorrect) answers, we need to analyse the previous question or questions in the same topic and based on the type of anaphora we need to select the part of the question that fits those anaphora best.</p><p>Finally, in section 3.1 we already discussed several extensions that we expect will improve the quality of the system. If the question analysis can be done in the source language, we do not have to modify the English question classifier to handle incorrectly translated questions. If it is possible to map the semantic representation of the two systems, we do not even have to use a machine translation system to translate the questions. We will still need to handle ambiguity in translating the concepts from Dutch to English, but the impact of syntactically incorrect questions will be reduced greatly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>Our submissions to the QA@CLEF competition this year, even though the results are particularly bad, shows much about certain aspects of AnswerFinder. We are particularly interested in the flexibility, portability, and scalability of the system. It turns out that AnswerFinder can easily be modified to work on a different domain and with a different language.</p><p>There are a few specific aspects of our participation in this competition that shows that much work is still needed. Firstly, the translation of the questions is clearly imperfect. Unfortunately, many algorithms in the rest of the question answering system require proper English questions. Similarly, our current way of handling anaphora means that many questions are incorrect. This has a major impact on the quality of the answers generated by the system.</p><p>The increase in size of the document collection can be handled by the document selection phase. However, so far we have not done much research into this phase. We applied a very simple word-based document retrieval system and the quality of the returned documents is unknown.</p><p>Overall, we think that our participation in this track has been successful. We have managed to identify several areas that need improvement. All of these improvements can easily be incorporated in the AnswerFinder framework. The framework itself functions effectively, although algorithms in several phases need improvements to generate satisfactory results.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,102.18,110.16,369.60,112.26"><head>Table 1 :</head><label>1</label><figDesc>Blue score results of translation of CLEF questions Dutch to English 2.</figDesc><table coords="4,219.13,110.16,164.72,58.58"><row><cell>System</cell><cell>2004</cell><cell>2006</cell></row><row><cell cols="3">Freetranslation 0.383712 0.369556</cell></row><row><cell>Babelfish</cell><cell cols="2">0.405939 0.389921</cell></row><row><cell>Systran</cell><cell cols="2">0.416436 0.398048</cell></row><row><cell>DEMOCRAT</cell><cell cols="2">0.407023 0.390922</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="4,105.25,712.62,126.84,7.35"><p>http://www.freetranslation.com</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,105.25,722.13,152.21,7.35"><p>http://world.altavista.com/babelfish</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="4,105.25,731.63,143.76,7.35"><p>http://www.systranbox.com/systran/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="4,105.25,740.98,390.59,7.32"><p>We used the evaluation program provided by our colleague Simon Zwarts, to whom we are most grateful.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="5,105.25,737.49,88.79,7.35"><p>http://www.xapian.org</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="6,105.25,735.41,407.70,7.32;6,90.00,744.87,115.73,7.32"><p>Ralph Weischedel and Ada Brunstein, 2005, BBN Pronoun Coreference and Entity Type Corpus Linguistic Data Consortium, Philadelphia</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,110.48,201.98,402.54,9.96;8,110.47,213.94,402.52,9.96;8,110.47,225.90,402.51,9.96;8,110.47,237.85,100.19,9.96" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,170.07,213.94,342.93,9.96;8,110.47,225.90,8.67,9.96">The university of groningen at qa@clef 2006: Using syntactic knowledge for qa</title>
+		<author>
+			<persName coords=""><forename type="first">Gosse</forename><surname>Bouma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ismail</forename><surname>Fahmi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jori</forename><surname>Mur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gertjan</forename><surname>Van Noord</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lonneke</forename><surname>Van Der Plas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jörg</forename><surname>Tiedemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,228.41,225.90,203.77,9.96">Working Notes for the CLEF 2006 Workshop</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Alicante, Spain</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">September 20-22 2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,257.78,402.51,9.96;8,110.47,269.73,402.53,9.96;8,110.47,281.69,312.86,9.96" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,110.47,269.73,243.30,9.96">Question answering for dutch using dependency relations</title>
+		<author>
+			<persName coords=""><forename type="first">Gosse</forename><surname>Bouma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jori</forename><surname>Mur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gertjan</forename><surname>Van Noord</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lonneke</forename><surname>Van Der Plas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jörg</forename><surname>Tiedemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,448.61,269.73,64.39,9.96;8,110.47,281.69,127.71,9.96">Working Notes for the CLEF 2005 Workshop</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Vienna, Austria</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2005">September 21-23 2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,301.61,402.53,9.96;8,110.47,313.57,402.53,9.96;8,110.47,325.52,65.30,9.96" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,169.57,301.61,99.94,9.96">Answerfinder in TREC</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,311.24,301.61,201.76,9.96;8,110.47,313.57,91.72,9.96">Proceedings of the Twelfth Text Retrieval Conference (TREC 2003)</title>
+		<meeting>the Twelfth Text Retrieval Conference (TREC 2003)<address><addrLine>Gaithersburg:MD, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="392" to="398" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,357.41,402.54,9.96;8,110.47,369.36,402.51,9.96;8,110.47,381.31,152.36,9.96" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,168.20,357.41,210.22,9.96">Learning of graph-based question answering rules</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,396.92,357.41,116.09,9.96;8,110.47,369.36,372.44,9.96">Proceedings of TextGraphs: the Second Workshop on Graph Based Methods for Natural Language Processing</title>
+		<meeting>TextGraphs: the Second Workshop on Graph Based Methods for Natural Language Processing<address><addrLine>New York; NY, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="37" to="44" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,401.24,402.52,9.96;8,110.48,413.20,402.52,9.96;8,110.48,425.15,161.69,9.96" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,264.14,401.24,102.72,9.96">Answerfinder at TREC</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mary</forename><surname>Gardiner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,229.32,413.20,283.67,9.96;8,110.48,425.15,22.92,9.96">Proceedings of the Thirteenth Text Retrieval Conference (TREC 2004)</title>
+		<editor>
+			<persName><forename type="first">Ellen</forename><forename type="middle">E</forename><surname>Voorhees</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Lori</forename><forename type="middle">P</forename><surname>Buckland</surname></persName>
+		</editor>
+		<meeting>the Thirteenth Text Retrieval Conference (TREC 2004)<address><addrLine>Gaithersburg:MD, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,445.08,402.51,9.96;8,110.48,457.03,402.52,9.96;8,110.48,468.98,402.51,9.96;8,110.48,480.94,33.23,9.96" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,283.25,445.08,102.91,9.96">Answerfinder at TREC</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Menno</forename><surname>Van Zaanen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,433.44,445.08,79.56,9.96;8,110.48,457.03,226.89,9.96">Proceedings of the Fourteenth Text Retrieval Conference (TREC 2005)</title>
+		<meeting>the Fourteenth Text Retrieval Conference (TREC 2005)<address><addrLine>Gaithersburg:MD, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2005">2005. 2005</date>
+		</imprint>
+		<respStmt>
+			<orgName>NIST Special Publication. Department of Commerce, National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note>cd-rom</note>
+</biblStruct>
+
+<biblStruct coords="8,110.48,500.87,402.52,9.96;8,110.48,512.82,402.52,9.96;8,110.48,524.77,366.05,9.96" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,346.07,500.87,166.93,9.96;8,110.48,512.82,41.16,9.96">Named entity recognition for question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Mollá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Menno</forename><surname>Van Zaanen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,407.22,512.82,105.78,9.96;8,110.48,524.77,193.91,9.96">Proceedings of the 2006 Australasian Language Technology Workshop</title>
+		<editor>
+			<persName><forename type="first">Lawrence</forename><surname>Cavedon</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Ingrid</forename><surname>Zukerman</surname></persName>
+		</editor>
+		<meeting>the 2006 Australasian Language Technology Workshop<address><addrLine>Sydney, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="51" to="58" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,544.70,402.53,9.96;8,110.48,556.66,402.51,9.96;8,110.48,568.61,402.55,9.96;8,110.48,580.56,22.68,9.96" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,316.89,544.70,196.11,9.96;8,110.48,556.66,84.86,9.96">BLEU: A method for automatic evaluation of machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Papineni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Roukos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Ward</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Zhu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,216.80,556.66,296.19,9.96;8,110.48,568.61,14.47,9.96">40th Annual Meeting of the Association for Computational Linguistics</title>
+		<meeting><address><addrLine>Philadelphia:PA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2002-07">July 2002</date>
+			<biblScope unit="page" from="311" to="318" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,600.49,402.51,9.96;8,110.47,612.45,402.54,9.96;8,110.47,624.40,159.75,9.96" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,198.93,600.49,191.77,9.96">Overview of results of the MUC-6 evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">Beth</forename><forename type="middle">M</forename><surname>Sundheim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,410.86,600.49,102.13,9.96;8,110.47,612.45,189.11,9.96">Proceedings of the Sixth Message Understanding Conference MUC-6</title>
+		<meeting>the Sixth Message Understanding Conference MUC-6<address><addrLine>Columbia:MD, USA, San Francisco:CA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Morgan Kaufmann Publishers</publisher>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,644.33,402.52,9.96;8,110.47,656.28,402.52,9.96;8,110.47,668.24,297.32,9.96" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,275.74,644.33,155.44,9.96">A non-projective dependency parser</title>
+		<author>
+			<persName coords=""><forename type="first">Pasi</forename><surname>Tapanainen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Timo</forename><surname>Järvinen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,451.77,644.33,61.23,9.96;8,110.47,656.28,321.12,9.96">Proceedings of the Fifth Conference on Applied Natural Language Processing (ANLP-97)</title>
+		<meeting>the Fifth Conference on Applied Natural Language Processing (ANLP-97)<address><addrLine>Washington:DC, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="1997">1997</date>
+			<biblScope unit="page" from="64" to="71" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,110.48,688.17,402.52,9.96;8,110.47,700.12,402.52,9.96;8,110.47,712.07,402.53,9.96;8,110.47,724.03,121.75,9.96" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,345.77,688.17,102.32,9.96">Answerfinder at TREC</title>
+		<author>
+			<persName coords=""><forename type="first">Diego</forename><surname>Menno Van Zaanen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luiz</forename><surname>Mollá</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Pizzato</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,493.89,688.17,19.11,9.96;8,110.47,700.12,288.32,9.96">Proceedings of the Fifteenth Text Retrieval Conference (TREC 2006)</title>
+		<meeting>the Fifteenth Text Retrieval Conference (TREC 2006)<address><addrLine>Gaithersburg:MD, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006">2006. 2006</date>
+		</imprint>
+		<respStmt>
+			<orgName>NIST Special Publication. Department of Commerce, National Institute of Standards and Technology</orgName>
+		</respStmt>
+	</monogr>
+	<note>accepted</note>
+</biblStruct>
+
+<biblStruct coords="9,110.48,111.36,402.50,9.96;9,110.47,123.31,402.55,9.96;9,110.47,135.26,226.51,9.96" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,292.61,111.36,220.37,9.96;9,110.47,123.31,140.40,9.96">DEMOCRAT: Deciding between multiple outputs created by automatic translation</title>
+		<author>
+			<persName coords=""><forename type="first">Menno</forename><surname>Van Zaanen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Harold</forename><surname>Somers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,270.93,123.31,242.10,9.96;9,110.47,135.26,46.39,9.96">The Tenth Machine Translation Summit, Proceedings of Conference</title>
+		<meeting><address><addrLine>Phuket, Thailand</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="173" to="180" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

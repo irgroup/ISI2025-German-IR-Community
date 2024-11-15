@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,79.86,84.78,450.01,5.54;1,181.96,104.70,245.80,5.54">Burst Detection in Social Media Streams for Tracking Interest Profiles in Real Time</title>
+				<funder ref="#_5averFm">
+					<orgName type="full">National Science Foundation</orgName>
+				</funder>
+				<funder>
+					<orgName type="full">Gordon and Betty Moore Foundation</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,156.00,133.94,71.77,14.80"><forename type="first">Cody</forename><surname>Buntain</surname></persName>
+							<email>cbuntain@cs.umd.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Dept. of Computer Science</orgName>
+								<orgName type="institution">University of Maryland</orgName>
+								<address>
+									<postCode>20742</postCode>
+									<settlement>College Park, Maryland</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,391.02,133.94,53.62,14.80"><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+							<email>jimmylin@uwaterloo.ca</email>
+							<affiliation key="aff1">
+								<orgName type="department">Cheriton School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+								<address>
+									<settlement>Waterloo</settlement>
+									<region>Ontario</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,79.86,84.78,450.01,5.54;1,181.96,104.70,245.80,5.54">Burst Detection in Social Media Streams for Tracking Interest Profiles in Real Time</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">D1777661A9BE5239685AB040684F8021</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:08+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>CCS Concepts</term>
+					<term>Information systems ! Summarization</term>
+					<term>Social tagging systems</term>
+					<term>•Human-centered computing ! Social networking sites</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This work described RTTBurst, an end-to-end system for ingesting a user's interest profiles that describe some topic of interest and identifying new tweets that might be of interest to that user using a simple model for bursts in token usage. We laid out RTTBurst's architecture, our participation in and performance at the TREC 2015 Microblog Track, and a post hoc analysis for increasing RT-TBurst's performance. While not as relatively performant in the Microblog Track's real-time notification task, RTTBurst did perform well (ranking 4th overall and second in the automatic category of Scenario B) in providing daily summaries for various interest profiles. Following the official TREC evaluation period, we were also able to increase RTTBurst's performance but not by enough to significantly increase its overall ranking.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>A significant power of social media is the rapidity with which new information is posted and shared. If a user is interested in a particular item, event, or topic, she can often provide a few relevant keywords to a social network's search function and track new developments by reading recent postings. For instance, one can track tweets mentioning "goal" on Twitter during the 2014 World Cup to follow when goals are scored <ref type="bibr" coords="1,191.17,537.19,9.52,8.59" target="#b5">[5]</ref>. If a user wants to track some interesting event on current social media platforms, however, she must remain at her computer and manually filter through potentially many duplicate posts to track the event. At the 2015 National Institute of Standards and Technology (NIST) Text Retrieval Conference (TREC), several teams came together to address this problem by automating this tracking and summarization of interesting events, or "interest profiles," in TREC's Microblogs Track <ref type="bibr" coords="1,275.73,610.42,13.74,8.59" target="#b13">[13]</ref>.</p><p>This paper describes RTTBurst 1 , one of the systems participating in TREC's 2015 microblog track, and its use of linear regression to detect bursts in Twitter's social media stream in real time.</p><p>At a high level, our approach with RTTBurst is to generate vectors of frequency data from a sliding window over the past few minutes for each token in Twitter's 1% stream filtered according to the user's interest profile, fit this frequency data to an exponential curve, and tag tokens with steep exponential increases as "bursty." We make the assumption that bursts in the Twitter stream surrounding an user's interest profile denotes a significant or noteworthy moment relevant to that profile. We then extract Twitter messages, or tweets, containing the most bursty tokens to summarize this moment surrounding the burst. In this work, we detail RTTBurst's mechanics, how it determines messages relevant to a user's interest profile, and the steps needed to construct a system capable of processing Twitter's 1% stream in real time. We then describe our method for tuning RTTBurst given the data from both scenarios of TREC's 2015 Microblog track and the relative performance between RTTBurst and other systems participating in this track.</p><p>This work makes the following contributions:</p><p>• Presents a real-time streaming algorithm and feature set for the discovery and description of important moments relevant to a user's interests from Twitter's public sample stream, and</p><p>• Details RTTBurst's performance relative to similar systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">RELATED WORK</head><p>Though RTTBurst focuses on the slightly different problem of discovering interesting moments in social media streams, our work shares foundations with classical event detection research. Identifying key events from the ever-growing body of digital media has fascinated researchers for over twenty years, starting from digital newsprint to blogs and now social media <ref type="bibr" coords="1,464.71,551.13,9.52,8.59" target="#b1">[1]</ref>. Early event detection research followed that of <ref type="bibr" coords="1,407.17,561.59,65.37,8.59" target="#b7">Fung et al. in 2005</ref>, who built on the burst detection scheme presented by Kleinberg by identifying bursty keywords from digital newspapers and clustering these keywords into groups to identify bursty events <ref type="bibr" coords="1,438.03,592.97,9.71,8.59" target="#b8">[8,</ref><ref type="bibr" coords="1,451.47,592.97,6.47,8.59" target="#b7">7]</ref>. This work succeeded in identifying trending events and showed such detection tasks are feasible. Recognizing that newsprint differs substantially from social media both in content and velocity, the research community began experimenting with new social media sources like blogs, but real gains came when microblogging platforms began their rise in popularity. These microblogging platforms include Twitter and Sina Weibo and are characterized by constrained post sizes (e.g., Twitter constrains user posts to 140 characters) and broadcasting publicly consumable information. 1 Code for this system is available at https://github.com/cbuntain/ UMD_HCIL_TREC2015</p><p>One of the most well-known works in detecting events from microblog streams is Sakaki, Okazaki, and Matsuo's 2010 paper on detecting earthquakes in Japan using Twitter <ref type="bibr" coords="2,222.73,78.61,13.74,8.59" target="#b18">[18]</ref>. <ref type="bibr" coords="2,246.37,78.61,46.54,8.59">Sakaki et al.</ref> show that not only can one detect earthquakes on Twitter but also that it can be done simply by tracking frequencies of earthquakerelated tokens. Surprisingly, this approach can outperform geological earthquake detection tools since digital data propagates faster than tremor waves in the Earth's crust. Though this research is limited in that it requires pre-specified tokens and is highly domainand location-specific (Japan has a high density of Twitter users, so earthquake detection may perform less well in areas with fewer Twitter users), it demonstrates a significant use case and the potential of such applications.</p><p>Along with Sakaki et al., 2010 saw two other relevant papers: Lin et al.'s construction of a probabilistic popular event tracker <ref type="bibr" coords="2,53.80,214.60,14.94,8.59" target="#b11">[11]</ref> and Petrović, Osborne, and Lavrenko's application of localitysensitive hashing (LSH) for detecting first-story tweets from Twitter streams <ref type="bibr" coords="2,96.71,235.52,13.74,8.59" target="#b15">[15]</ref>. Lin's work demonstrated that the integration of non-textual social and structural features into event detection could produce real performance gains. Like many contemporary systems, however Lin's models require seeding with pre-specified tokens to guide its event detection and concentrates on retrospective per-day topics and events. In contrast, Petrović et al.'s clustering research in Twitter avoids the need for seed keywords and retrospective analysis by instead focusing on the practical considerations of clustering large streams of data quickly. While typical clustering algorithms require distance calculations for all pairwise messages, LSH facilitates rapid clustering at the scale necessary to support event detection in Twitter streams by restricting the number of tweets compared to only those within some threshold of similarity. Once these clusters are generated, Petrović was able to track their growth over time to determine impact for a given event. This research was unique in that it was one of the early methods that did not require seed tokens for detecting events and has been very influential, resulting in a number of additional publications to demonstrate its utility in breaking news and for high-impact crisis events <ref type="bibr" coords="2,264.63,423.82,14.19,8.59" target="#b14">[14,</ref><ref type="bibr" coords="2,281.70,423.82,11.21,8.59" target="#b16">16,</ref><ref type="bibr" coords="2,53.80,434.28,7.10,8.59" target="#b17">17</ref>]. Petrović's work and related semantic clustering approaches rely on textual similarity between tweets, which limits its ability to operate in mixed-language environments and differentiates LABurst and its language agnosticism. Similar to Petrović, Weng and Lee's 2011 paper on EDCoW, short for Event Detection with Clustering of Wavelet-based Signals, is also able to identify events from Twitter without seed keywords <ref type="bibr" coords="2,78.67,507.50,13.74,8.59" target="#b21">[21]</ref>. After stringent filtering (removing stop words, common words, and non-English tokens), EDCoW uses wavelet analysis to isolate and identify bursts in token usage as a sliding window advances along the social media stream. Besides the heavy filtering of the input data, this approach exhibits notable similarities with the language-agnostic method we describe herein with its reliance on bursts to detect event-related tokens. These methods, however, operate retrospectively, focusing on daily news rather than breaking event detection on which our research focuses. Becker, Naaman, and Gravano's 2011 paper on identifying events in Twitter also fall under retrospective analysis, but their findings also demonstrate reasonable performance in identifying events in Twitter by leveraging classification tasks to separate tweets into those on "realworld events" versus non-event messages <ref type="bibr" coords="2,209.13,643.49,9.52,8.59" target="#b2">[2]</ref>. Similarly, Diao et al. also employ a retrospective technique to separate tweets into global, event-related topics and personal topics <ref type="bibr" coords="2,224.52,664.42,9.52,8.59" target="#b6">[6]</ref>.</p><p>Many researchers have explored motivations for using platforms like Twitter and have shown interesting dynamics in our behavior around events with broad impact. For instance, Lehmann et al.'s 2012 work on collective attention on Twitter explores hashtags and the different classes of activity around their use <ref type="bibr" coords="2,513.36,57.69,13.74,8.59" target="#b10">[10]</ref>. Their work includes a class for activity surrounding unexpected, exogenous events, characterized by a peak in hashtag usage with little activity leading up to the event, which lends credence to our use of burst detection for identifying such events. Additionally, this interest in burst detection has led to several domain-specific research efforts that also target sporting events specifically <ref type="bibr" coords="2,493.49,120.46,13.76,8.59" target="#b20">[20,</ref><ref type="bibr" coords="2,509.31,120.46,11.21,8.59" target="#b23">23,</ref><ref type="bibr" coords="2,522.59,120.46,6.47,8.59">9]</ref>. Lanagan and Smeaton's work is of particular interest because it relies almost solely on detecting bursts in Twitter's per-second message volume, which we use as inspiration for one of our baseline methods discussed below. Though naive, this frequency approach is able to detect large bursts on Twitter in high-impact events without complex linguist analysis and performs well in streaming contexts as little information must be kept in memory. Detecting such bursts provide evidence of an event, but it is difficult to gain insight into that event without additional processing. LABurst addresses this need by identifying both the overall burst and keywords related to that burst.</p><p>More recently, Xie et al.'s 2013 paper on TopicSketch seeks to perform real-time event detection from Twitter streams "without pre-defined topical keywords" by maintaining acceleration features across three levels of granularity: individual token, bigram, and total stream <ref type="bibr" coords="2,361.81,287.83,13.74,8.59" target="#b22">[22]</ref>. As with Petrović's use of LSH, Xie et al. leverage "sketches" and dimensionality reduction to facilitate event detection and also relies on language-specific similarities. Furthermore, Xie et al. focus only on tweets from Singapore rather than the worldwide stream. In contrast, our approach is differentiated primarily in its language-agnosticism and its use of the unfiltered stream from Twitter's global network.</p><p>Despite this extensive body of research, it is worth asking how event detection on Twitter streams differs from Twitter's own offerings on "Trending Topics," which they make available to all their users. When a user visit's Twitter's website, she is immediately greeted with her personal feed as well as a listing of trending topics for her city, country, worldwide, or nearly any location she chooses. These topics offer insight into the current popular topics on Twitter, but the main differentiating factor is that these popular topics are not necessarily connected to specific events. Rather, popular memetic content like "#MyLovelifeInMoveTitles" often appear on the list of trending topics. Additionally, Twitter monetizes these trending topics as a form of advertising <ref type="bibr" coords="2,459.04,476.12,13.74,8.59" target="#b19">[19]</ref>. These trending topics also can be more high-level than the interesting moments we seek to identify: for instance, during the World Cup, particular matches or the tournament in general were identified as trending topics by Twitter, but individual events like goals or penalty cards in those matches were not. It should be clear then that Twitter's trending topics serves a different purpose than the streaming event detection described herein.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">METHODS</head><p>This section describes the stages that comprise the RTTBurst pipeline, followed by an overview of the parameter optimization process we used to determine "good" values for RTTBurst's hyper parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">RTTBurst Pipeline</head><p>RTTBurst's high-level pipeline is composed of several stages:</p><p>1. Identify tokens relevant to a user's interests, 2. Filter Twitter's 1% sample stream for relevant tweets, 3. Identify tokens currently experiencing a burst in usage, 4. Summarize the bursty moment, and 5. Return relevant tweets to the user.</p><p>Each stage is described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Parsing Interest Profiles</head><p>TREC 2015's Microblog track was built around a real-time filtering task targeting the Twitter social network platform and its 1% public sample stream (an unfiltered stream containing a random subset of all tweets being posted to Twitter) <ref type="bibr" coords="3,219.41,159.79,13.74,8.59" target="#b13">[13]</ref>. As mentioned in the track's 2015 overview paper by Lin et al, this filtering task's goal is to identify new tweets relevant to a set of given interest profiles, each of which is comprised of a unique identifier, title (a few keywords describing the information need), a brief one-sentence description, and a paragraph-length narrative describing the topic of interest. One can then extract keywords from these interest profiles to discard tweets from Twitter's 1% sample stream that do are not relevant to the interest profiles.</p><p>For our work, we processed each profile's title and disregarded the profile's description and narrative. While one could leverage query expansion with the description and narrative fields, our experience with the sample topics suggested the keywords in the title field had the most signal and were the least ambiguous. For example, interest profile MB227 had the title, "Pradaxa side effects," with the description, "Find information on the negative side effects associated with the blood thinning drug Pradaxa," but keywords like "information" and "associated" are low-signal tokens.</p><p>To extract keywords from an interest profile's title, we leveraged two libraries: Benjamin Piwowarski's datasets <ref type="foot" coords="3,224.53,356.76,2.99,5.73" target="#foot_0">2</ref> package to parse the the TREC topic files, and Python's Natural Language Toolkit (NLTK) <ref type="bibr" coords="3,84.85,379.46,9.52,8.59" target="#b3">[3]</ref>. With the NLTK package, we were able to remove stop words and lemmatize keywords and get a cleaner keyword set for filtering. As an example, RTTBurst would ingest the title, "arson fires in inner cities," and produce the following tokens for filtering: "arson," "fire," "inner," and "city."</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Filtering the Twitter Sample Stream</head><p>After collecting keywords relevant to the given interest profiles, RTTBurst leveraged Apache Spark's<ref type="foot" coords="3,188.53,461.82,2.99,5.73" target="#foot_1">3</ref> built-in Twitter receiver to collect all tweets from the public sample stream. Each tweet was tokenized using CMU's ARK TweetNLP tokenizer <ref type="foot" coords="3,238.87,482.75,2.99,5.73" target="#foot_2">4</ref> . We then applied a series of quality metrics to remove non-English tweets and low-quality tweets with more than three hashtags, more than five web links (URLs), fewer than two tokens, and any tweet containing the string "follow" (motivated by the large amount of "follow-me" spam where Twitter users ask others to follow them).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.3">Identifying Bursty Tokens</head><p>Our first step in identifying bursty tokens was to capture how a token's usage changes over time. The Spark Streaming library provides such a mechanism with its sliding window functionality. We maintained a sliding window over all tweets generated by the Twitter streaming API within the past 2 minutes and incremented the window by 60-second time slices. Therefore, each window had an overlap with the previous 60 seconds to smooth the input.</p><p>For each 2-minute window, we calculated the number of users tweeting with each token and stored this frequency over the previous N windows. We normalize these frequencies by the number of unique tokens in the past N windows and use add-one additive smoothing to correct for tokens with zero occurrences in a single window. Following the features set forth in the paper by <ref type="bibr" coords="3,527.52,68.15,28.40,8.59;3,316.81,78.61,15.20,8.59">Buntain et al</ref>. in 2016, we then used the Apache Commons linear regression library to fit a line to the natural log of this frequency data <ref type="bibr" coords="3,543.22,89.07,9.52,8.59" target="#b4">[4]</ref>. By transforming this frequency data to the logarithmic space, exponential curves will appear linear, simplifying the linear regression step, and the steeper the slope of the best-fit line, the steeper the exponential growth of the token's usage. Based on this fit, we then scored each token by the product of the slope of the best-fit line and its Pearson's R 2 coefficient. Since Pearson's R 2 coefficient is in the range [ 1, +1], this product reduced scores for highly deviant frequency curves. In this manner, tokens experiencing large bursts in usage, which we would expect to exhibit exponential growth, were scored highly. We then discarded all tokens with scores below a burst threshold and any token whose length is less than four characters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.4">Moment Summarization</head><p>Every sixty seconds, RTTBurst identified a new (possibly empty) set of bursty tokens, which correspond to moments of note in the relevant interest profile. For TREC's Microblog track, however, returning these bursty tokens was not adequate for summarizing the moment. Rather, the Microblog track required systems to return tweets to summarize these moments similar to the ReDites system proposed by Osborne and colleagues <ref type="bibr" coords="3,451.03,310.41,13.74,8.59" target="#b14">[14]</ref>.</p><p>To this end, every sixty seconds, RTTBurst parsed all tweets in the previous N windows to create a subset of tweets containing these bursty tokens. We then calculated a Jaccard similarity score for each tweet in this subset by comparing the tweet to tweets returned to the user in previous windows. Any new tweet whose Jaccard similarity was above our threshold Jt = 0.7 was discarded, and the remaining tweets were sorted by their similarity scores in decreasing order. Finally, the top M least similar tweets containing bursty tokens from the past N windows were assigned to the relevant interest profiles and stored.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.5">Relevant Tweet Selection</head><p>RTTBurst's final step before pushing a tweet to a user included one last pass through the tweets to select those that were most relevant to the given interest profile. For each candidate tweet stored up to this point, RTTBurst then selected only those tweets that contained at least X tokens from the relevant interest profile. All other tweets were then discarded.</p><p>In summary, for Scenario A of TREC's Microblog track, the top 10 most dissimilar tweets containing bursty tokens and at least two tokens from the relevant interest profile were returned to the user per day. Scenario B followed the same pipeline with the additional relaxation of returning the top 100 most dissimilar tweets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Parameter Optimization</head><p>In the previous few sections, we described the RTTBurst system and mentioned a set of important parameters that control the system. The most important parameters were the threshold for bursty tokens , the number of windows N over which to track frequency, and the number of tweets M to save per minute. To determine appropriate settings for these main parameters, we ran RTTBurst through a randomized parameter optimization following the official run for the 2015 TREC Microblog tasks.</p><p>We bound the number of windows N 2 <ref type="bibr" coords="3,476.31,669.50,9.72,8.21" target="#b5">[5,</ref><ref type="bibr" coords="3,487.58,669.50,10.51,8.21">45]</ref>, the number of tweets per minute M 2 <ref type="bibr" coords="3,408.85,679.96,14.33,8.21" target="#b10">[10,</ref><ref type="bibr" coords="3,424.72,679.96,10.51,8.21">50]</ref>, and the burst score threshold within the top 10% of the burst scores generated for that setting of N . For the number of tokens X required for relevance selection, we used both X = 1, 2 during the TREC experiment and fixed it at X = 2 for our post hoc analysis. Other parameters like the maximum number of hashtags or the maximum Jaccard similarity were considered fixed.</p><p>Owing to time constraints and the amount of time necessary to run RTTBurst against the full 10-day period covered by TREC's Microblog track, we only ran this parameter optimization with ten random values of N and ten values for M and . For each of these parameter sets, we ran RTTBurst on the entire 10-day time period, against all 51 topics in the TREC evaluation set, and scored each run using the scenario A and scenario B evaluation scripts provided by the TREC organizers. Since these runs were against Twitter's entire 1% sample stream and the TREC organizers could not possibly score each tweet in the stream for relevance to the interest profiles, some tweets returned by RTTBurst do not have associated relevance scores for these tasks, so we omit those tweets and report the number of such tweets in the results section below. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS</head><p>We divide our results into two sets: The first covers official results from the real-time Microblog task as scored by NIST, and the second covers results from our post hoc runs using the relevance and scoring data provided by NIST after the official run.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Official NIST Results</head><p>The version of RTTBurst deployed in July of 2015 was simpler than the version described in the previous section. Primarily, the original RTTBurst implementation did not employ several of the tweet quality metrics (i.e., it did not filter out tweets with many hashtags, many links, or few tokens). The original version did discard non-English tweets and tweets including the string "follow" however. In addition, the first version of RTTBurst did not include mechanisms for preventing duplicate tweet content from being reported to the user. Prior to using these quality metrics, it became clear that a significant amount of spam was being caught by our system. For example, while the original RTTBurst implementation did prevent the same tweet ID from being reported twice, two different tweets with the same content might still be reported, and we saw many Twitter bots spamming the same tweet content with only slight differences (one token at the end of the tweet might differ from one spam tweet to the next).</p><p>For both scenarios in the 2015 Microblog track, RTTBurst used the following parameter settings: = 0.07, N = 30, and M = 10. Furthermore, we submitted two runs for both scenarios: type "a," in which we required each tweet reported to the user to include two tokens from the relevant interest profile, and type "b," where we required only one token to be present in both the tweet and interest profile.</p><p>For the track's mobile notification scenario (Scenario A), our scores after deploying RTTBurst and submitting our results to NIST are shown in Table <ref type="table" coords="4,391.17,99.53,3.36,8.59" target="#tab_0">1</ref>. The scoring metrics used for Scenario A were Expected Latency Gain (ELG) and normalized Cumulative Gain (nCG) (see the Microblog Track overview paper for more details on these metrics <ref type="bibr" coords="4,393.82,130.92,13.44,8.59" target="#b13">[13]</ref>). For the email digest scenario (Scenario B), our scores are shown in Table <ref type="table" coords="4,445.08,141.38,3.36,8.59" target="#tab_1">2</ref>. The only scoring metric in Scenario B was normalized Discounted Cumulative Gain (nDCG) for the first ten <ref type="bibr" coords="4,376.46,162.30,14.94,8.59" target="#b10">(10)</ref> tweets per day (nDCG@10) (again, see the Microblog Track overview paper for more details <ref type="bibr" coords="4,496.03,172.76,13.44,8.59" target="#b13">[13]</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Post Hoc Results</head><p>Following the official run in July and the following TREC conference, we implemented the additional tweet similarity and quality metrics described above. Given the poor performance of the type "b" version (requiring only a single token overlap between returned tweets and interest profiles), our post hoc analysis used only our type "a" version, thereby requiring two tokens in common between reported tweets and interest profiles. Parameter optimization covered , N , M , and two sets of tweet quality metrics. A list of the highest-scoring parameters is shown in Table <ref type="table" coords="4,484.60,288.72,3.36,8.59" target="#tab_2">3</ref>, and score graphs for each parameter are shown in Figure <ref type="figure" coords="4,456.14,299.18,3.36,8.59">1</ref>. From the graphs, it seems the window count parameter N has the strongest positive correlation, and scores with the number of tweets returned per minute M having the least correlation.</p><p>Following these post hoc runs, our highest scores would not significantly increase RTTBurst's rankings in the official results; for Scenario A, RTTBurst would move up two spots, from 14th to 12th, and Scenario B would see no change.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">DISCUSSION</head><p>In reviewing the results above and those from the Microblog overview paper by Lin et al., it appears higher scores are associated with fewer reported tweets. This result is confirmed by the score for a system that returns no tweets at all: an ELG, nCG, and nDCG@10 of 0.2471. Therefore, a system that returns nothing would rank 14th out of 37 in Scenario A and 4th out of 42 for Scenario B. While we were able to increase our performance beyond this silent baseline in our post hoc analysis, an interesting correlation presented itself between the number of tweets returned by RT-TBurst and the scores achieved. As shown in Figure <ref type="figure" coords="4,510.43,505.21,3.36,8.59">2</ref>, a strongly negative, nearly linear correlation (R 2 = 0.8172) exists between the more tweets RTTBurst returns to the user, the lower the score produced by the TREC evaluations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">LIMITATIONS</head><p>A persistent issue with our post hoc analysis is the presence of unevaluated tweets, which makes a true performance comparison between our previous runs and post hoc runs difficult. That is, while the NIST judges provided relevance assessments for approximately 94k tweets, the Twitter sample stream over the TREC evaluation period contains around 40 million tweets, so it is highly likely post hoc runs of RTTBurst may return tweets without relevance assessments. Going forward, we need to explore better methods for scoring these unjudged tweets or comparing judged and unjudged tweets and scores.</p><p>Another limitation present in RTTBurst is the absence of query expansion techniques. RTTBurst was originally designed as an open-domain system without tracking capabilities, and the modifications to the system to capture tweets relevant only to specific in- Finally, RTTBurst's driving principal is that bursts in the usage of specific tokens indicate an interesting event or moment surrounding that token. Examples supporting this assumption include bursts in usage of the token "goal" during the World Cup when a player scores or "kidschoice" during the Kids' Choice Awards. In theory, the moments that see such bursts are the moments about which someone following the event would want to be notified. In an ideal case, this theory might be adequate, but after participating the 2015 TREC Microblog Track, the influence of spam became a major issue that our RTTBurst does not handle. Following interest profiles related to Taylor Swift and Ariana Grande demonstrated that spammers would try to drive visitors to websites by mentioning either or both of these major celebrities, and many Twitter bots would post large volumes of these spam tweets with small minor differences between the messages (presumably to avoid Twitter's own spam filter). We initially did not expect spammers to be able to influence the Twittersphere to such a degree, so future versions of RTTBurst will require additional filtering mechanisms to sanitize this data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">CONCLUSIONS</head><p>This work described RTTBurst, an end-to-end system for ingesting a user's interest profiles that describe some topic of interest and identifying new tweets that might be of interest to that user using a simple model for bursts in token usage. We laid out RTTBurst's architecture, our participation in and performance at the TREC 2015 Microblog Track, and a post hoc analysis for increasing RT-TBurst's performance. While not as relatively performant in the Microblog Track's real-time notification task, RTTBurst did perform well (ranking 4th overall and second in the automatic category of Scenario B) in providing daily summaries for various interest profiles. Following the official TREC evaluation period, we were also able to increase RTTBurst's performance but not by enough to significantly increase its overall ranking. Further steps could be taken, however, to integrate modern information retrieval techniques like query expansion and spam detection to increase RT-TBurst's performance. Given RTTBurst's mathematically simple model and its amenities for processing streams, its approach may be useful in integrating with other systems as well.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,85.89,234.77,174.92,60.59"><head>Table 1 :</head><label>1</label><figDesc>Official TREC 2015 Scores, Scenario A</figDesc><table coords="4,124.72,264.71,97.26,30.66"><row><cell>Run</cell><cell>ELG</cell><cell>nDG</cell></row><row><cell cols="3">Type A 0.2471 0.2471</cell></row><row><cell cols="3">Type B 0.2020 0.2020</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,86.14,328.71,174.42,60.59"><head>Table 2 :</head><label>2</label><figDesc>Official TREC 2015 Scores, Scenario B</figDesc><table coords="4,133.65,358.64,79.40,30.66"><row><cell>Run</cell><cell>nDCG@10</cell></row><row><cell>Type A</cell><cell>0.2471</cell></row><row><cell>Type B</cell><cell>0.2020</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,53.80,55.05,495.18,528.79"><head>Table 3 :</head><label>3</label><figDesc>Best-Scoring Parameters After Optimization</figDesc><table coords="5,53.80,85.14,495.18,498.70"><row><cell cols="3">Window Count N Tweets Per Minute M Threshold</cell><cell>SA Scored/Unscored</cell><cell>ELG</cell><cell>nCG</cell><cell cols="2">SB Scored/Unscored nDCG</cell></row><row><cell>37</cell><cell>13</cell><cell>0.036854</cell><cell>6/8</cell><cell cols="2">0.2549 0.2464</cell><cell>6/19</cell><cell>0.2420</cell></row><row><cell>18</cell><cell>34</cell><cell>0.138824</cell><cell>3/5</cell><cell cols="2">0.2525 0.2494</cell><cell>3/11</cell><cell>0.2479</cell></row><row><cell>37</cell><cell>48</cell><cell>0.067306</cell><cell>4/1</cell><cell cols="2">0.2506 0.2479</cell><cell>4/2</cell><cell>0.2489</cell></row><row><cell cols="2">(a) Scores Over Window Counts</cell><cell cols="2">(b) Scores Over Burst Thresholds</cell><cell></cell><cell cols="3">(c) Scores Over Tweets Per Minute</cell></row><row><cell></cell><cell cols="4">Figure 1: Scores Over Individual Parameters</cell><cell></cell><cell></cell></row><row><cell></cell><cell>Figure 2: Tweets Versus Scores</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">terest profiles was not very nuanced (i.e., discarding tweets that do</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">not contain lemmatized tokens from the interest profile). Modern</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">information retrieval systems employ more principled approaches</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">to expanding queries, and an interest profile is essentially a query.</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">Since RTTBurst does not include this kind of expansion, we are</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="4">potentially discarding many otherwise relevant tweets, something</cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="3">that future versions of this system should address.</cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="3,58.28,690.14,178.91,8.59"><p>Available at https://github.com/bpiwowar/datasets</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="3,58.28,700.69,85.50,8.59"><p>https://spark.apache.org</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="3,58.28,711.24,145.26,8.59"><p>http://www.cs.cmu.edu/~ark/TweetNLP/</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head n="8.">ACKNOWLEDGMENTS</head><p>This work was supported in part by the <rs type="funder">National Science Foundation</rs> under <rs type="grantNumber">CNS-1405688 [12</rs>]. Any opinions, findings, conclusions, or recommendations expressed are those of the authors and do not necessarily reflect the views of the sponsors. This work also made use of the <rs type="institution">Open Science Data Cloud (OSDC)</rs>, which is an <rs type="institution">Open Cloud Consortium (OCC</rs>) -sponsored project. The OSDC is supported in part by grants from <rs type="funder">Gordon and Betty Moore Foundation</rs> and the <rs type="funder">National Science Foundation</rs> and major contributions from OCC members like the <rs type="institution">University of Chicago</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_5averFm">
+					<idno type="grant-number">CNS-1405688 [12</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,58.28,55.46,96.81,12.37" xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><surname>References</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,69.65,198.32,8.59;6,73.22,80.11,205.05,8.59;6,73.22,90.64,195.66,8.42;6,73.22,101.03,207.99,8.59;6,73.22,111.49,20.17,8.59" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,205.89,69.65,65.65,8.59;6,73.22,80.11,78.41,8.59">On-line new event detection and tracking</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Allan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Papka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lavrenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,167.10,80.18,111.17,8.42;6,73.22,90.64,195.66,8.42;6,73.22,101.10,130.62,8.42">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="37" to="45" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,122.95,209.86,8.59;6,73.22,133.41,217.90,8.59;6,73.22,143.87,67.50,8.59" xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Naaman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gravano</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,220.52,122.95,62.56,8.59;6,73.22,133.41,212.79,8.59">Beyond Trending Topics: Real-World Event Identification on Twitter. ICWSM</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="438" to="441" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,155.32,218.71,8.59;6,73.22,165.79,156.50,8.59" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,188.03,155.40,103.89,8.42;6,73.22,165.86,41.38,8.42">Natural language processing with Python</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bird</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Klein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Loper</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<publisher>O&apos;Reilly Media, Inc</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,177.24,186.65,8.59;6,73.22,187.70,175.08,8.59;6,73.22,198.24,218.35,8.42;6,73.22,208.62,103.61,8.59" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,199.49,177.24,60.38,8.59;6,73.22,187.70,122.38,8.59">Discovering Key Moments in Social Media Streams</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Buntain</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Golbeck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,211.44,187.77,36.86,8.42;6,73.22,198.24,218.35,8.42;6,73.22,208.70,63.66,8.42">Consumer Communications and Networking Conference (CCNC), 2016 13th Annual IEEE</title>
+		<imprint>
+			<date type="published" when="2016-01">jan 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,220.08,213.51,8.59;6,73.22,230.54,150.20,8.59" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="6,117.06,220.08,169.67,8.59;6,73.22,230.54,30.73,8.59">Goal! Detecting the most important World Cup moments</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Cipriani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<publisher>Twitter</publisher>
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical report</note>
+</biblStruct>
+
+<biblStruct coords="6,73.22,242.00,198.11,8.59;6,73.22,252.46,211.04,8.59;6,73.22,262.99,209.23,8.42;6,73.22,273.38,199.42,8.59;6,73.22,283.84,120.06,8.59" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,218.95,242.00,52.38,8.59;6,73.22,252.46,82.05,8.59">Finding bursty topics from microblogs</title>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Diao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-P</forename><surname>Lim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,171.10,252.53,113.16,8.42;6,73.22,262.99,209.23,8.42;6,73.22,273.45,45.59,8.42">Proceedings of the 50th Annual Meeting of the Association for Computational Linguistics: Long Papers</title>
+		<meeting>the 50th Annual Meeting of the Association for Computational Linguistics: Long Papers</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="536" to="544" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,295.30,211.55,8.59;6,73.22,305.76,217.58,8.59;6,73.22,316.29,197.98,8.42;6,73.22,326.68,196.02,8.59" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,232.38,295.30,52.39,8.59;6,73.22,305.76,135.09,8.59">Parameter free bursty events detection in text streams</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">P C</forename><surname>Fung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">X</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">S</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Lu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,223.96,305.83,66.83,8.42;6,73.22,316.29,197.98,8.42;6,73.22,326.68,37.29,8.59">Proceedings of the 31st international conference on Very large data bases, VLDB &apos;05</title>
+		<meeting>the 31st international conference on Very large data bases, VLDB &apos;05</meeting>
+		<imprint>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="181" to="192" />
+		</imprint>
+		<respStmt>
+			<orgName>VLDB Endowment</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,338.14,216.23,8.59;6,73.22,348.67,196.58,8.42;6,73.22,359.06,214.15,8.59;6,73.22,369.52,194.76,8.59" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,121.37,338.14,154.67,8.59">Bursty and hierarchical structure in streams</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kleinberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.22,348.67,196.58,8.42;6,73.22,359.06,214.15,8.59;6,73.22,369.52,10.65,8.59">Proceedings of the eighth ACM SIGKDD international conference on Knowledge discovery and data mining, KDD &apos;02</title>
+		<meeting>the eighth ACM SIGKDD international conference on Knowledge discovery and data mining, KDD &apos;02<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2002">2002</date>
+			<biblScope unit="page" from="91" to="101" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,380.98,219.68,8.59;6,73.22,391.44,213.62,8.59;6,73.22,401.90,56.04,8.59" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,184.78,380.98,108.12,8.59;6,73.22,391.44,106.74,8.59">Using twitter to detect and tag important events in live sports</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lanagan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">F</forename><surname>Smeaton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,185.58,391.51,75.19,8.42">Artificial Intelligence</title>
+		<imprint>
+			<biblScope unit="page" from="542" to="545" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,413.36,206.58,8.59;6,73.22,423.82,202.15,8.59;6,73.22,434.35,211.88,8.42;6,73.22,444.74,219.68,8.59;6,73.22,455.20,44.72,8.59" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,73.22,423.82,188.95,8.59">Dynamical Classes of Collective Attention in Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lehmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Gonçalves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">J</forename><surname>Ramasco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Cattuto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.22,434.35,211.88,8.42;6,73.22,444.74,78.05,8.59">Proceedings of the 21st International Conference on World Wide Web, WWW &apos;12</title>
+		<meeting>the 21st International Conference on World Wide Web, WWW &apos;12<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="251" to="260" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,466.66,204.52,8.59;6,73.22,477.12,214.06,8.59;6,73.22,487.65,190.11,8.42;6,73.22,498.04,214.15,8.59;6,73.22,508.50,199.24,8.59" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,217.42,466.66,60.33,8.59;6,73.22,477.12,200.31,8.59">PET: a statistical model for popular events tracking in social communities</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">X</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Mei</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Han</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.22,487.65,190.11,8.42;6,73.22,498.04,214.15,8.59;6,73.22,508.50,10.65,8.59">Proceedings of the 16th ACM SIGKDD international conference on Knowledge discovery and data mining, KDD &apos;10</title>
+		<meeting>the 16th ACM SIGKDD international conference on Knowledge discovery and data mining, KDD &apos;10<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="929" to="938" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,519.96,207.53,8.59;6,73.22,530.42,209.89,8.59;6,73.22,540.88,184.91,8.59" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,98.13,519.96,182.62,8.59;6,73.22,530.42,147.29,8.59">Hadoop NextGen Infrastructure for Heterogeneous Approaches to Data-Intensive Computing</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,227.01,530.42,56.10,8.59;6,73.22,540.88,158.59,8.59">Award Abstract CNS-1405688, National Science Foundation</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,552.34,205.15,8.59;6,73.22,562.80,178.87,8.59;6,73.22,573.33,217.67,8.42;6,73.22,583.72,142.61,8.59" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,73.22,562.80,165.35,8.59">Overview of the TREC-2015 Microblog Track</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Efron</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sherman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Voorhees</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.22,573.33,217.67,8.42;6,73.22,583.79,46.45,8.42">Proceedings of the Twenty-Fourth Text REtrieval Conference (TREC 2015)</title>
+		<meeting>the Twenty-Fourth Text REtrieval Conference (TREC 2015)<address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,595.18,192.59,8.59;6,73.22,605.64,199.89,8.59;6,73.22,616.10,197.42,8.59;6,73.22,626.56,207.30,8.59;6,73.22,637.02,204.25,8.59" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="6,141.53,616.10,129.11,8.59;6,73.22,626.56,207.30,8.59;6,73.22,637.02,20.96,8.59">Real-Time Detection, Tracking, and Monitoring of Automatically Discovered Events in Social Media</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Von Lunen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sykora</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Cano</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ireson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Others</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<publisher>Association for Computational Linguistics</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.22,648.48,210.13,8.59;6,73.22,658.94,197.03,8.59;6,73.22,669.47,217.89,8.42;6,73.22,679.93,168.87,8.42;6,73.22,690.32,191.46,8.59;6,73.22,700.78,218.51,8.59;6,73.22,711.24,42.10,8.59" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="6,227.80,648.48,55.55,8.59;6,73.22,658.94,155.19,8.59">Streaming First Story Detection with Application to Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Petrović</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Lavrenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,243.85,659.01,26.40,8.42;6,73.22,669.47,217.89,8.42;6,73.22,679.93,168.87,8.42;6,73.22,690.32,129.39,8.59">Human Language Technologies: The 2010 Annual Conference of the North American Chapter of the Association for Computational Linguistics, HLT &apos;10</title>
+		<meeting><address><addrLine>Stroudsburg, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="181" to="189" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,57.69,198.85,8.59;6,336.23,68.15,209.73,8.59;6,336.23,78.61,211.08,8.59;6,336.23,89.07,202.78,8.59;6,336.23,99.53,42.59,8.59" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="6,437.11,68.15,108.86,8.59;6,336.23,78.61,68.49,8.59">Can Twitter replace Newswire for breaking news?</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Petrovic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Mccreadie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Shrimpton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,417.22,78.68,130.10,8.42;6,336.23,89.15,169.63,8.42">Proceedings of the 7th International AAAI Conference on Weblogs and Social Media</title>
+		<meeting>the 7th International AAAI Conference on Weblogs and Social Media</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">2011</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,110.99,199.26,8.59;6,336.23,121.45,167.67,8.59;6,336.23,131.91,214.44,8.59;6,336.23,142.37,215.83,8.59;6,336.23,152.83,34.37,8.59" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="6,453.01,121.45,50.89,8.59;6,336.23,131.91,210.55,8.59">CrisisTracker: Crowdsourced social media curation for disaster awareness</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Rogstadius</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Vukovic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">A</forename><surname>Teixeira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Kostakos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Karapanos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">A</forename><surname>Laredo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,336.23,142.45,153.43,8.42">IBM Journal of Research and Development</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page" from="1" to="4" />
+			<date type="published" when="2013-09">sep 2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,164.29,208.17,8.59;6,336.23,174.75,215.36,8.59;6,336.23,185.28,210.38,8.42;6,336.23,195.67,218.02,8.59;6,336.23,206.13,44.72,8.59" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="6,477.61,164.29,66.80,8.59;6,336.23,174.75,202.07,8.59">Earthquake shakes Twitter users: real-time event detection by social sensors</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Sakaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Okazaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Matsuo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,336.23,185.28,210.38,8.42;6,336.23,195.67,76.39,8.59">Proceedings of the 19th international conference on World wide web, WWW &apos;10</title>
+		<meeting>the 19th international conference on World wide web, WWW &apos;10<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="851" to="860" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,217.59,195.75,8.59;6,336.23,228.05,63.03,8.59" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="6,373.60,217.59,158.39,8.59;6,336.23,228.05,22.23,8.59">How Twitter&apos;s Trending Algorithm Picks Its Topics</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Sydell</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011-12">dec 2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,239.51,215.93,8.59;6,336.23,249.97,193.27,8.59;6,336.23,260.50,196.70,8.42;6,336.23,270.96,177.24,8.42;6,336.23,281.35,159.30,8.59" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="6,545.69,239.51,6.47,8.59;6,336.23,249.97,183.56,8.59">Is Twitter a good enough social sensor for sports TV?</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wickramasuriya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,336.23,260.50,196.70,8.42;6,336.23,270.96,81.81,8.42;6,444.48,270.96,68.99,8.42;6,336.23,281.42,50.72,8.42">Pervasive Computing and Communications Workshops (PERCOM Workshops)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2013">2013. 2013</date>
+			<biblScope unit="page" from="181" to="186" />
+		</imprint>
+	</monogr>
+	<note>IEEE International Conference on</note>
+</biblStruct>
+
+<biblStruct coords="6,336.23,292.81,191.67,8.59;6,336.23,303.27,53.04,8.59" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="6,420.93,292.81,93.78,8.59">Event Detection in Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Weng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B.-S</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,336.23,303.34,25.52,8.42">ICWSM</title>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,314.73,176.80,8.59;6,336.23,325.19,190.53,8.59;6,336.23,335.65,179.34,8.59;6,336.23,346.11,208.86,8.59" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="6,336.23,325.19,190.53,8.59;6,336.23,335.65,24.43,8.59">TopicSketch: Real-time Bursty Topic Detection from Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E.-P</forename><surname>Lim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,376.11,335.72,139.46,8.42;6,336.23,346.18,100.28,8.42">Data Mining (ICDM), 2013 IEEE 13th International Conference on</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="page" from="837" to="846" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,336.23,357.57,207.21,8.59;6,336.23,368.03,217.67,8.59;6,336.23,378.49,182.58,8.59;6,336.23,388.95,63.76,8.59" xml:id="b23">
+	<monogr>
+		<title level="m" type="main" coord="6,336.23,368.03,217.67,8.59;6,336.23,378.49,152.15,8.59">Human as Real-Time Sensors of Social and Physical Events: A Case Study of Twitter and Sports Games</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wickramasuriya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<idno>CoRR, abs/1106.4</idno>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

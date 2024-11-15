@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,140.29,115.90,334.79,12.68;1,233.79,133.83,147.77,12.68">An approach to relevant clinical trials retrieving (clinical_trials team)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,272.31,171.50,70.75,8.80"><forename type="first">Mariia</forename><surname>Fedorova</surname></persName>
+							<email>maria.fjodorowa@gmail.com</email>
+						</author>
+						<title level="a" type="main" coord="1,140.29,115.90,334.79,12.68;1,233.79,133.83,147.77,12.68">An approach to relevant clinical trials retrieving (clinical_trials team)</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5E15E0DC58D33B2DF8945E4FD91539F4</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this notebook paper an approach to retrieving relevant clinical trials for patients' unstructured descriptions (electronic health records, EHTs) is described.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In this work, an approach to the TREC Clinical Trials track is presented. The methods used are medical named entities recognition, described in the section 2; a preliminary selection of clinical trials from a database, containing more than 300 000 examples, described in the section 3; three ranking algorithms, described in the section 4 and evaluation results for each run with error analysis in the section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Named entities recognition</head><p>Three classes of named entities were parsed from both topics (patients' descriptions) and clinical trials criteria: Conditions (pathologies, syndromes, symptoms and special non-pathological conditions, e.g. pregnancy), Procedures and Drugs. Two methods for named entities recognition were used: a string matching to the UMLS <ref type="bibr" coords="1,167.47,487.06,10.51,8.80" target="#b0">[1]</ref> concepts, implemented in the QuickUMLS Python library<ref type="foot" coords="1,440.88,485.50,3.97,6.16" target="#foot_0">1</ref> [5] and BioBERT<ref type="foot" coords="1,177.10,497.46,3.97,6.16" target="#foot_1">2</ref>  <ref type="bibr" coords="1,184.88,499.01,9.96,8.80" target="#b2">[3]</ref>, fine-tuned on the CHIA corpus <ref type="bibr" coords="1,340.18,499.01,9.96,8.80" target="#b1">[2]</ref>.</p><p>The following UMLS semantic types were used for different named entities classes:</p><p>-Conditions Both QuickUMLS and BERT were integrated into Spacy<ref type="foot" coords="2,401.91,224.04,3.97,6.16" target="#foot_2">3</ref> pipeline over its preprocessing.</p><p>As a postprocessing, some stopwords that could not contribute to relevant clinical trials retrieving were removed, like, e.g. a single word "disease" marked as a Condition. If any abbreviations were marked as entities, they were replaced with full words using the list collected from Wikipedia<ref type="foot" coords="2,372.37,283.89,3.97,6.16" target="#foot_3">4</ref> .</p><p>Negations (expressions like "no" etc.) were also extracted by BERT and linked to the corresponding entities by word order and dependencies parsing from Spacy<ref type="foot" coords="2,184.04,319.83,3.97,6.16" target="#foot_4">5</ref> .</p><p>As for topics, there were also parsed age (using simple regular expressions) and gender (using patterns written for Spacy's EntityRuler<ref type="foot" coords="2,387.54,343.81,3.97,6.16" target="#foot_5">6</ref> ). There was no need to parse them from clinical trials since these fields were included into the XML schema of the trials suggested for the task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Preliminary selection</head><p>Since running named entities extraction on all clinical trials suggested for the task would be computationally inefficient, a preliminary selection was made. The trials were put into a PostgreSQL database. Named entities recognition was run on the topics.</p><p>It seems that diseases are crucial for judging whether a patient is eligible for some trial. So a decision was made to perform the preliminary selection by conditions. Some patient ETH contain many conditions of different importance. The expressions having endings like "disease", "pathy", "itis" etc. were considered to be diseases (using a simple regular expression). Then they were sorted by their frequencies in Wikipedia<ref type="foot" coords="2,277.44,531.94,3.97,6.16" target="#foot_6">7</ref> . (It seems that keywords for rare diseases and exact diagnoses are more valuable than more common ones).</p><p>The database was queried on age, gender, presence of the condition expression in inclusion criteria and absence in exclusion criteria until the number of trials reached some threshold. If it occurred already with the first query, procedures and drugs were also used to make the selection more strict. If no trials were found by all the conditions ( or there were no conditions in the patient description, i.e. the person was healthy) the search was performed by procedures and drugs.</p><p>Then named entities recognition was run on the trials retrieved. The entities found in inclusion criteria linked to negations were considered to be exclusions (and the same for the opposite). Then the trials were again filtered by the exclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Ranking</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Using word frequencies</head><p>The results were left as they were after sorting by keywords frequencies in Wikipedia, without any further ranking. This approach corresponds to RUN1FREQS in the results submitted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Using Word2Vec embeddings</head><p>BioWordVec <ref type="bibr" coords="3,192.96,310.35,10.51,8.80" target="#b5">[6]</ref> word embeddings model was used to calculate the cosine distance between topic conditions and trial conditions. For entities containing more than one word, embeddings of their words were averaged. Then cosine distances between each pair of query and trial entities were summarized. The trials were ranked according to these sums (the less the sum, the more relevant the trial is). This approach corresponds to RUN0 in the results submitted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Using sentence-transformers embeddings</head><p>"paraphrase-TinyBERT-L6-v2" 8 sentence embeddings model <ref type="bibr" coords="3,399.04,412.83,10.51,8.80" target="#b3">[4]</ref> was used to produce embeddings for all the entities in text without directly averaging or summarizing embeddings for separate words. The entities were joined by commas. The trials extracted by a particular keyword at a preliminary selection step were ranked according to the cosine distances between an embedding of conditions in a query and in a trial. This approach corresponds to RUN3SENTS in the results submitted.  Term frequencies approach (RUN1FREQS) can be considered to be a baseline. Averaged Word2Vec embeddings were found to be ineffective. Ranking by sentence-transformers embeddings showed the best result. Low precision at 10 numbers demonstrate the problem of too many exclusion criteria not taken into account.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Runs</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Error Analysis</head><p>In this section the examples of the trials that got zero relevance will be given. None of our models managed to successfully handle patient 4. There were a lot of conditions mentioned in her description, while the main one was pericardial effusion. Our models suggested trials on diseases that the patient had in the anamnesis but was not suffering from currently e.g. meningitis. It looks like pericardial effusion could not be caught with regular expression responsible for finding diseases that were used already on the preliminary selection step.</p><p>An opposite case was patient 69 who had no severe illnesses. She was suggested trials based on her procedures (e.g. vaccination). It turned out that some trials related to vaccination require pregnant patients, however, our models could not handle the logic that "menopausal" should be considered an exlusion criteria for trials with pregnant patients even if not explicitly mentioned in exclusion criteria.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>Although the approach of selecting and ranking clinical trials based on named entities recognition can produce reasonable results, it has several limitations.</p><p>The main challenges are choosing named entities that characterize the current patient's condition best and handling exclusions not only by exact string matching, but also semantically.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="3,134.77,571.56,343.48,93.35"><head>Table 1 :</head><label>1</label><figDesc>NDCGs over all topics</figDesc><table coords="3,137.51,571.56,340.74,93.35"><row><cell cols="2">RUN1FREQS RUN0 RUN3SENTS</cell></row><row><cell>ndcg_cut_5 0.3395</cell><cell>0.2567 0.3757</cell></row><row><cell>ndcg_cut_10 0.3024</cell><cell>0.2472 0.3335</cell></row><row><cell cols="2">8 https://huggingface.co/sentence-transformers/paraphrase-TinyBERT-L6-v2</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="4,134.77,195.36,343.38,110.81"><head>Table 2 :</head><label>2</label><figDesc>Precision at 10 over all topics -eligible only</figDesc><table coords="4,142.65,252.82,335.50,53.36"><row><cell></cell><cell>Runs</cell></row><row><cell cols="2">RUN1FREQS RUN0 RUN3SENTS</cell></row><row><cell>recip_rank 0.4036</cell><cell>0.3238 0.4649</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="4,134.77,321.08,236.94,8.80"><head>Table 3 :</head><label>3</label><figDesc>Reciprocal Rank over all topics -eligible only</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,144.73,646.48,217.48,7.47"><p>https://github.com/Georgetown-IR-Lab/QuickUMLS</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,144.73,657.44,260.84,7.47"><p>https://huggingface.co/dmis-lab/biobert-base-cased-v1.1</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,144.73,613.61,80.01,7.47"><p>https://spacy.io/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="2,144.73,624.57,291.78,7.47"><p>https://en.wikipedia.org/wiki/List_of_medical_abbreviations:_A</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="2,144.73,635.53,278.66,7.47"><p>https://spacy.io/usage/linguistic-features#dependency-parse</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="2,144.73,646.48,150.60,7.47"><p>https://spacy.io/api/entityruler</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="2,144.73,657.44,259.84,7.47"><p>https://github.com/IlyaSemenov/wikipedia-word-frequency</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,150.26,170.74,330.34,8.80;6,150.26,182.68,330.33,8.81;6,150.26,194.65,27.67,8.80" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,227.96,170.74,252.64,8.80;6,150.26,182.69,101.27,8.80">The unified medical language system (umls): integrating biomedical terminology</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Bodenreider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,261.57,182.69,99.82,8.80">Nucleic acids research</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">suppl_1</biblScope>
+			<biblScope unit="page" from="267" to="D270" />
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,150.26,206.61,330.34,8.80;6,150.26,218.56,330.34,8.80;6,150.26,230.51,140.46,8.81" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,197.06,218.56,279.78,8.80">Chia, a large annotated corpus of clinical trial eligibility criteria</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Kury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">H</forename><surname>Fu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Carini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Weng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,150.26,230.52,61.70,8.80">Scientific data</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="11" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,150.26,242.47,330.33,8.80;6,150.26,254.43,330.33,8.80;6,150.26,266.37,208.66,8.81" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,445.01,242.47,35.58,8.80;6,150.26,254.43,330.33,8.80;6,150.26,266.38,27.98,8.80">Biobert: a pre-trained biomedical language representation model for biomedical text mining</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yoon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">H</forename><surname>So</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,186.22,266.38,63.30,8.80">Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1234" to="1240" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,150.26,278.34,330.33,8.80;6,150.26,290.29,330.33,8.80;6,150.26,302.25,330.33,8.80;6,150.26,314.20,214.36,9.08" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,264.55,278.34,216.04,8.80;6,150.26,290.29,58.16,8.80">Sentence-bert: Sentence embeddings using siamese bert-networks</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/1908.10084" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,230.07,290.29,250.52,8.80;6,150.26,302.25,138.14,8.80">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,150.26,326.16,330.33,8.80;6,150.26,338.11,315.86,8.80" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,275.58,326.16,205.01,8.80;6,150.26,338.11,115.58,8.80">Quickumls: a fast, unsupervised approach for medical concept extraction</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Soldaini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goharian</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,288.62,338.11,105.99,8.80">MedIR workshop, SIGIR</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="1" to="4" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,150.26,350.07,330.34,8.80;6,150.26,362.02,330.33,8.80;6,150.26,373.97,96.48,8.81" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,378.98,350.07,101.62,8.80;6,150.26,362.02,283.15,8.80">Biowordvec, improving biomedical word embeddings with subword information and mesh</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Lu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,441.58,362.02,39.01,8.80;6,150.26,373.98,19.37,8.80">Scientific data</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="1" to="9" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,139.31,115.90,336.73,12.90;1,227.79,133.83,159.79,12.90;1,223.43,153.68,168.50,10.75">Supervised Classification of Twitter Accounts Based on Textual Content of Tweets Notebook for PAN at CLEF 2019</title>
+				<funder ref="#_sB9BFDV">
+					<orgName type="full">Swedish Armed Forces</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,271.29,190.08,72.78,8.64"><forename type="first">Fredrik</forename><surname>Johansson</surname></persName>
+							<email>fredrik.johansson@foi.se</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Swedish Defence Research Agency</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,139.31,115.90,336.73,12.90;1,227.79,133.83,159.79,12.90;1,223.43,153.68,168.50,10.75">Supervised Classification of Twitter Accounts Based on Textual Content of Tweets Notebook for PAN at CLEF 2019</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CE588214380E8B960FC0601915C65CF6</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:59+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In our implemented system submitted to the bots and gender profiling task of PAN 2019, we use a two-step binary classification approach in which we classify accounts as being bot or not based on a combination of term occurrences and aggregated statistics fed to a random forest classifier. Accounts classified as human are further distinguished as male or female through a logistic regression classifier taking data-driven function words as input. We obtain highly competetive bot and gender classification accuracies on English (0.96 and 0.84, resepectively) while performing worse on Spanish (0.88 and 0.73, respectively).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In the modern society a large number of communication and interactions take place on various social media platforms such as Twitter and Facebook. Social media analytics is being used for everything from finding out what people think about a specific brand or product <ref type="bibr" coords="1,167.33,425.22,16.60,8.64" target="#b15">[16]</ref> to estimating citizens' reactions to crisis events <ref type="bibr" coords="1,373.83,425.22,10.58,8.64" target="#b1">[2]</ref>. Profiling of authors (or their corresponding user accounts) is an important part of the analytical process, since the presence of e.g., Twitter bots otherwise can give a skewed view of things like the true public opinion on a product or a political party. Likewise, it can be benificial to be able to estimate whether a social media account is likely to belong to a man or a woman, since gender is often an important variable for product marketers, political campaign staff, or crisis managers to keep track of. In the PAN 2019 bots and gender profiling task <ref type="bibr" coords="1,153.38,508.91,15.27,8.64" target="#b9">[10]</ref>, the challenge is to given a Twitter feed, determine whether its author is a bot or a human, and in case of a human, to identify the gender (male or female) of the author. Since social media is highly multilingual, there is both an English and a Spanish subset of the task. To further increase the complexity of the task, only the textual content of the tweets is available, i.e., no metadata or other social network information are available during neither training nor testing.</p><p>Our implemented solution is intended to be as generic as possible so that it is useful also for other languages than English and Spanish, as well as being useful for other types of Twitter accounts than the specific distribution of accounts present in this challenge. For this reason we have attempted to only include features which are likely to generalize, rather than to only aim for as high predictive performance as possible on the PAN dataset. The rest of this paper is structured as follows. We start by giving a brief overview of related work in Section 2. In Section 3 we present the overall design choices of the implemented solution, such as how we have designed the classification problem to solve. Next, we are in Section 4 presenting the features and classifiers used in our implemented system. The obtained experimental results are described in Section 5 and we present overall conclusions in Section 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Twitter is a social media platform on which bots have been present for a long time. There are several types of bots, ranging from spam bots to bots spreading malware and automated accounts used for various kinds of information operations in political and military conflicts <ref type="bibr" coords="2,205.89,280.28,15.27,8.64" target="#b12">[13]</ref>. An exhaustive overview of previous work on detecting bots on Twitter is outside the scope of this paper, but most of them rely on machine learning classifiers applied to metadata-based features such as account age, the used client, the ratio between followers and friends, the ratio between tweets and retweets, and average number of tweets per hour or day. One early example of such an approach in which the authors classify a Twitter account as being either human, bot, or cyborg is the work by Chu et al. <ref type="bibr" coords="2,175.33,352.01,10.58,8.64" target="#b3">[4]</ref>. In 2015, DARPA conducted a Twitter Bot Detection Challenge, in which participating teams were supposed to develop and test the effectiveness of their bot detection methods <ref type="bibr" coords="2,202.78,375.92,15.27,8.64" target="#b11">[12]</ref>. The participating teams used metadata-based features as those already discussed, but also network-based features such as degree centrality, number of accounts classified as bots in the cluster a user account belongs to, as well as contentbased features <ref type="bibr" coords="2,193.89,411.79,15.27,8.64" target="#b11">[12]</ref>. A last example of previous work on bot classification is <ref type="bibr" coords="2,438.72,411.79,15.27,8.64" target="#b13">[14]</ref>. They use a total of 1150 features, including features related to user metadata, friends, network, and timing. They also make use of content-based features such as frequency of POS tags and features related to sentiment. However, they restrict their work to Englishspeaking Twitter users.</p><p>Some previous work has also been devoted to gender classification of Twitter users. One well-known example is <ref type="bibr" coords="2,249.20,483.52,10.58,8.64" target="#b2">[3]</ref>, in which the authors use the textual content as well as user metadata consisting of full name, user name, and the description from the user profile. The authors make use of word-and character-level n-grams. There have also been previous work on classifying Twitter accounts as male or female on PAN. However, this challenge has involved posted tweets as well as user images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Overall Design Choices</head><p>A first design choice to make is whether to track the classification problem as a multiclass problem with the three possible classes male, female, and bot, or to treat it as a two-stage binary classification problem with classes human, bot and male, female, respectively. We have experimented with both versions, but have in the end decided to model it as a two-stage binary classification problem. The main reason for this is that we in our applied research work have several practical scenarios related to detection of information operations in which we have a need for classifying Twitter accounts as being bot or not, and a few security-related applications in which we need to separate between male and female owners of Twitter accounts. However, we see few real-world examples in which we would like to be able to do both kinds of classification in the same scenario. Moreover, the task has been presented as a two-stage classification problem in the task description at the PAN web page. This being said, it is not obvious that this problem formulation will yield better results than a multi-class definition of the problem would result in.</p><p>In many classification problems the instances are classified independently of each other, but here the individual instances correspond to single tweets while the task is to classify the accounts or authors creating these tweets. Hence, there are two options:</p><p>1. To classify tweet by tweet and to somehow weigh these individual classifications into an aggregate classification of the Twitter account as such (e.g., by using majority voting). 2. To first calculate aggregate statistics from all tweets by a specific account and to use these as features on which classifiers can be applied directly.</p><p>We have in this work used the latter approach as we think there are many signs of Twitter bots which are not shown on the level of individual tweets, but which become more clear on an aggregate level. An example of this is how similar all tweets from a single Twitter account are. If all tweets are highly similar, this may be a good indicator of this account being a bot, but tweet similarity is not an available feature if classifying the tweets independently of each other. The specific features which have been used in our implementation are described more thoroughly in Section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Implemented Features and Classifiers</head><p>Our implemented features and classifiers used for distinguishing between bots and humans are first described in Section 4.1. Next, we describe the features and classifiers used for distinguishing between male and female authors in Section 4.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Bot Classification</head><p>When designing our text-based bot vs. human features, we have thought about which metadata we previously have found useful for classifying Twitter accounts as bot or human in <ref type="bibr" coords="3,175.20,540.70,16.60,8.64" target="#b12">[13]</ref> and reasoned about how such features can be extracted or derived from the textual content alone when no metadata is available. Some of the first identified features on tweet level are tweet length (number of characters) and number of capital letters, as these are thought to be potential indicators for e.g., very basic spam bots. We then calculate aggregate statistics for max, min, avg, and std for an account based on the counts from the tweet level, since the classification is supposed to take place on account level rather than individual tweet level, as discussed previously. In the same manner, we calculate statistics based on serveral other counts:</p><p>-Number of URLs (number of words starting with "http") -Number of mentions (number of words starting with "@")</p><p>-Fraction of retweets (number of tokens starting "RT") -Number of lowercase letters</p><p>For all these features we can treat the tweets from a specific account independently from each other. However, we also think that bot behavior can be captured by measuring the similarity among subsequent tweets. For this reason we use the ordering in which the tweets from the same account appear in the dataset (assuming this corresponds to some time ordering) and calculate the edit distance (or more specifically the Damerau-Levenshtein distance <ref type="bibr" coords="4,275.82,213.05,11.20,8.64" target="#b4">[5]</ref>) between all consecutive tweets. These distanes are then aggregated into max, min, avg, and std features in the same way as the less complex features.</p><p>Finally, an important clue to whether a Twitter account is automated or operated by a human author is the actual wordings of the tweets. For example, tweets containing the word "VIAGRA" or "SALE" are probably more likely to have been created by a spam bot than a human. However, there is a great risk of overfitting to a particular type of dataset (reducing the possibility for real-world usage) unless care is taken to regularize or in other ways constrain the classifier's reliance on specific words. We have chosen to simply concatenate all tweets belonging to the same Twitter account and then apply tf-idf to the most common unigrams and bigrams. We have experimented with various choices of the number of features to extract from the tf-idf, but settled for 800, which is quite restrictive. Moreover, we have found term presence to work at least equally good as term frequencies, which further reduce the complexity of the extracted features. A higher number of extracted features could potentially have given better results on the unseen test set, but we decided to set it low in order to mainly keep words likely to generalize well also to other datasets. More modern natural language processing techniques such as word embeddings <ref type="bibr" coords="4,289.85,416.81,11.62,8.64" target="#b6">[7]</ref> or more sophisticated architectures such as Long Short-Term Memories (LSTMs) <ref type="bibr" coords="4,287.82,428.77,11.62,8.64" target="#b5">[6]</ref> or Transformers <ref type="bibr" coords="4,367.63,428.77,16.60,8.64" target="#b14">[15]</ref> would likely have given better results than a simple tf-idf, however, this have not been experimented with due to the rather long time it takes to run even simple classifiers on the TIRA <ref type="bibr" coords="4,439.65,452.68,11.62,8.64" target="#b8">[9]</ref> virtual matchines (on which the evaluation of the submitted solutions have to take place).</p><p>We have now presented all the used features for bot vs. human classification, but there are also various choices to be made on how to combine the features into actual classifications. One obvious way would be to combine all discussed features into a single feature vector onto which a single classifier is applied. The feature vectors from the tf-idf are, however, quite sparse compared to the aggregated statistical features and we have found that we get better performance if we first train a separate classifier on the tf-idf features only and then add the output from this first classifier as an extra feature to the rest of the statistical features. We have experimented with both the crisp class predictions as well as probability distributions over the different class labels and found that using the probability distributions as an extra feature to work slightly better on our hold-out test data. We have also experimented with various classifiers. In our final implementation of the submitted system we have used a logistic regression classifier (with regularization set to C = 1.0) for the tf-idf features and a random forest classifier (with 500 estimators and a minimum of one sample per leaf) which have been applied to the combination of the class probability output from the logistic regression classifier and the aggregated statistical features.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Gender Classification</head><p>For the Twitter accounts that are classified as human in the first step, we are in the next step applying a gender classifier intended to distinguish between male and f emale authors. For this problem we have experimented with the same features as described above. However, in the end we used only tf-idf, with the 300 most common lowercased word unigrams in the training set, as this performed better than if these features were combined with any of the other features describe above. Upon inspection it can be seen that these unigrams are basically corresponding to (data-driven) function words in the English and Spanish languages, respectively. Function words have previously been found to work well for gender classification, see e.g., <ref type="bibr" coords="5,344.74,234.17,15.27,8.64" target="#b10">[11]</ref>. Other features that have been shown to work well for gender classification of e.g., blogs are part-of-speech (POS) tags <ref type="bibr" coords="5,134.77,258.08,10.58,8.64" target="#b0">[1]</ref>. We have experimented with POS tags obtained using SpaCy<ref type="foot" coords="5,398.18,256.41,3.49,6.05" target="#foot_0">1</ref> , however, the POS tagging takes some extra time and did not seem to provide any extra predictive power, so in the end we only used the tf-idf features described above for the final submission. These features are used as input to a logistic regression classifier (with regularization set to C = 1.0).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Experimental Results</head><p>All the features and classifiers described in the last section have been implemented using scikit-learn <ref type="bibr" coords="5,197.96,372.23,10.58,8.64" target="#b7">[8]</ref>. In order to get an idea of what kind of features and classifiers that work well for the PAN 2019 bots and gender profiling task, we initially set aside a randomly selected subset of 10 percent of the English and Spanish Twitter accounts in the available dataset, respectively. This gave very high initial accuracies and F1-scores also for very basic algorithms. However, when discovering and utilizing the train/dev split recommended by the PAN organizers on their web page, more reasonable results were obtained. The reason for this difference is unknown to the author, but we assume it is a consequence of how the datasets have been collected or constructed. The numbers reported in this section have all been computed on the dev part of the dataset recommended by the PAN organizers, unless it is explicitly mentioned that the numbers have been achieved on the final submission through TIRA <ref type="bibr" coords="5,351.86,491.78,10.58,8.64" target="#b8">[9]</ref>, i.e., pan19-author-profilingtest-dataset1-2019-03-20 (here after referred to as testset1) and pan19-author-profilingtest-dataset2-2019-04-29 (here after referred to as testset2).</p><p>When training the presented system on the train part and evaluating on the dev part of the train/dev dataset obtained as part of the PAN task, the results summarized in Table <ref type="table" coords="5,159.14,551.56,4.98,8.64" target="#tab_0">1</ref> were obtained.</p><p>When submitting the best performing version of the system to TIRA, the accuracies presented in Table <ref type="table" coords="5,210.80,601.94,4.98,8.64" target="#tab_1">2</ref> were obtained for the different languages and the different classification problems. Based on these results we can say that the classification of accounts as being bot or human is, as expected, an easier task than to discriminate between male and female authors. Moreover, it is also shown that the implemented system performs significantly better on English than on Spanish for both the bots and gender prediction tasks, despite that we have not used any resources or features that are specifically designed for English.</p><p>If we compare the obtained accuracies to the other participating teams, it seems like the accuracy of our submitted bot classifier is performing better than all other teams on English, while it is only among the 15 best performing submissions on Spanish. On gender profiling it is among the top-5 submissions on English, while it is only among the 20 best performing submissions on Spanish. This clearly shows that our submitted system works well on English, while it underperforms on Spanish (and have plenty of room for improvement). When the obtained accuracy scores per language are averaged we obtain an average score of 0.852, yielding a final ranking of place 9 out of 55 participating teams.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusions</head><p>Our submission to the PAN 2019 bots and gender profiling task relies on a two-step binary classification in which we first predict whether Twitter accounts are bots or not (i.e., human), and next predict whether the owners of the accounts classified as human are male or female. For both classifications we have made use of standard tf-idf features and mildly regularized logistic regression classifiers, but for the bot or not classification we have combined the output from the logistic regression classifier with many other statistical features derived from the textual content of the tweets, including Damerau-Levenshtein distance-based metrics and the number of retweets. These combined features have been input to a random forest classifier, which produced the best performance in our conducted experiments. In our performed local experiments we obtained accuracies of approximately 0.95 (English) and 0.89 (Spanish) on the bot classification task, and approximately 0.75 (English) and 0.65 (Spanish) on the gender classification task. When submitting the same models to TIRA and evaluating them on previously unseen test data we received results that were inline with these numbers as well.</p><p>Since we have used quite constrained features and have based them on reasoning about what kind of features that are likely to be useful for bot and gender classification, we expect the implemented system to be useful also in real-world settings and not only within the PAN competition. The basic nature of the implemented features and classifiers leave plently of room for improvement by using more state-of-the-art embeddings or deep learning architectures.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,136.16,115.83,335.25,85.48"><head>Table 1 .</head><label>1</label><figDesc>Accuracies obtained on the bots and gender profiling tasks on the local evaluation.</figDesc><table coords="6,136.16,136.80,262.44,64.51"><row><cell>Classification task</cell><cell cols="3">Language Tf-idf features Tf-idf + statistical features</cell></row><row><cell cols="2">Bots profiling en</cell><cell>0.914</cell><cell>0.948</cell></row><row><cell cols="2">Bots profiling es</cell><cell>0.865</cell><cell>0.892</cell></row><row><cell cols="2">Gender profiling en</cell><cell>0.752</cell><cell>0.713</cell></row><row><cell cols="2">Gender profiling es</cell><cell>0.648</cell><cell>0.617</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="6,136.16,214.40,340.08,85.48"><head>Table 2 .</head><label>2</label><figDesc>Accuracies obtained on the bots and gender profiling tasks on the TIRA test datasets.</figDesc><table coords="6,136.16,235.37,162.51,64.51"><row><cell>Classification task</cell><cell cols="2">Language testset1 testset2</cell></row><row><cell cols="2">Bots profiling en</cell><cell>0.958 0.960</cell></row><row><cell cols="2">Bots profiling es</cell><cell>0.806 0.882</cell></row><row><cell cols="2">Gender profiling en</cell><cell>0.792 0.838</cell></row><row><cell cols="2">Gender profiling es</cell><cell>0.606 0.728</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="5,144.73,657.08,127.30,7.77"><p>https://github.com/explosion/spaCy</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>Acknowledgments</head><p>This work was supported by the <rs type="programName">R&amp;D programme</rs> of the <rs type="funder">Swedish Armed Forces</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_sB9BFDV">
+					<orgName type="program" subtype="full">R&amp;D programme</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,142.61,327.68,314.50,7.77;7,150.95,338.64,252.14,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,349.52,327.68,107.59,7.77;7,150.95,338.64,150.00,7.77">Mining the blogosphere: Age, gender and the varieties of self-expression</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">W</forename><surname>Pennebaker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,306.72,338.64,48.57,7.77">First Monday</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,349.67,326.22,7.77;7,150.95,360.63,305.82,7.77;7,150.95,371.59,329.64,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,356.00,349.67,112.82,7.77;7,150.95,360.63,305.82,7.77;7,150.95,371.59,19.42,7.77">Emotion classification of social media posts for estimating people&apos;s reactions to communicated alert messages during crises</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Brynielsson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Johansson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Jonsson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Westling</surname></persName>
+		</author>
+		<idno type="DOI">10.1186/s13388-014-0007-3</idno>
+		<ptr target="https://doi.org/10.1186/s13388-014-0007-3" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,175.76,371.59,73.38,7.77">Security Informatics</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2014-08">Aug 2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,382.62,320.85,7.77;7,150.95,393.57,325.47,7.77;7,150.95,404.53,311.91,7.77;7,150.95,415.49,234.78,7.77" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,332.21,382.62,115.90,7.77">Discriminating gender on twitter</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">D</forename><surname>Burger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Zarrella</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=2145432.2145568" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,150.95,393.57,308.29,7.77;7,195.79,404.53,43.27,7.77">Proceedings of the Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the Conference on Empirical Methods in Natural Language Processing<address><addrLine>Stroudsburg, PA, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="1301" to="1309" />
+		</imprint>
+	</monogr>
+	<note>EMNLP &apos;11</note>
+</biblStruct>
+
+<biblStruct coords="7,142.61,426.52,330.13,7.77;7,150.95,437.48,322.87,7.77;7,150.95,448.44,192.49,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,323.82,426.52,148.92,7.77;7,150.95,437.48,120.72,7.77">Detecting automation of twitter accounts: Are you a human, bot, or cyborg?</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Chu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gianvecchio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Jajodia</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/TDSC.2012.75</idno>
+		<ptr target="http://dx.doi.org/10.1109/TDSC.2012.75" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,273.92,437.48,146.86,7.77">IEEE Trans. Dependable Secur. Comput</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="811" to="824" />
+			<date type="published" when="2012-11">Nov 2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,459.47,309.67,7.77;7,150.95,470.43,313.05,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,205.27,459.47,243.71,7.77">A technique for computer detection and correction of spelling errors</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">J</forename><surname>Damerau</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/363958.363994</idno>
+		<ptr target="http://doi.acm.org/10.1145/363958.363994" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,150.95,470.43,57.93,7.77">Commun. ACM</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="171" to="176" />
+			<date type="published" when="1964-03">Mar 1964</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,481.46,296.67,7.77;7,150.95,492.42,251.51,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,267.53,481.46,87.80,7.77">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.1997.9.8.1735</idno>
+		<ptr target="http://dx.doi.org/10.1162/neco.1997.9.8.1735" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,362.08,481.46,57.78,7.77">Neural Comput</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997-11">Nov 1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,503.45,327.14,7.77;7,150.95,514.41,311.62,7.77;7,150.95,525.36,299.93,7.77;7,150.95,536.32,168.09,7.77;7,150.95,547.28,186.21,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,363.35,503.45,106.40,7.77;7,150.95,514.41,160.55,7.77">Distributed representations of words and phrases and their compositionality</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=2999792.2999959" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,329.59,514.41,132.98,7.77;7,150.95,525.36,202.70,7.77;7,150.95,536.32,29.42,7.77">Proceedings of the 26th International Conference on Neural Information Processing Systems</title>
+		<meeting>the 26th International Conference on Neural Information Processing Systems<address><addrLine>USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Curran Associates Inc</publisher>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="3111" to="3119" />
+		</imprint>
+	</monogr>
+	<note>NIPS&apos;13</note>
+</biblStruct>
+
+<biblStruct coords="7,142.61,558.31,337.98,7.77;7,150.95,569.27,300.54,7.77;7,150.95,580.23,327.53,7.77;7,150.95,591.19,192.98,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,295.94,580.23,149.43,7.77">Scikit-learn: Machine Learning in Python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,452.09,580.23,26.40,7.77;7,150.95,591.19,110.80,7.77">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,602.22,335.03,7.77;7,150.95,613.18,309.15,7.77;7,150.95,624.14,209.02,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,333.86,602.22,140.16,7.77">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,259.53,613.18,200.58,7.77;7,150.95,624.14,144.92,7.77">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,635.17,338.35,7.77;7,150.95,646.13,322.65,7.77;7,150.95,657.08,304.34,7.77" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,228.63,635.17,251.96,7.77;7,150.95,646.13,29.82,7.77">Overview of the 7th author profiling task at pan 2019: Bots and gender profiling</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,396.64,646.13,76.96,7.77;7,150.95,657.08,38.13,7.77">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="7,195.56,657.08,198.98,7.77">Notebook Papers. CEUR Workshop Proceedings. CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,119.96,336.37,7.77;8,150.95,130.92,307.70,7.77;8,150.95,141.88,245.02,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,339.64,119.96,135.18,7.77">Effects of age and gender on blogging</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennebaker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,163.16,130.92,295.50,7.77;8,150.95,141.88,40.58,7.77">Computational Approaches to Analyzing Weblogs -Papers from the AAAI Spring Symposium</title>
+		<imprint>
+			<date type="published" when="2006">8 2006</date>
+			<biblScope unit="volume">06</biblScope>
+			<biblScope unit="page" from="191" to="197" />
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="8,142.24,152.84,325.85,7.77;8,150.95,163.80,318.17,7.77;8,150.95,174.76,202.09,7.77" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,292.82,163.80,110.63,7.77">The darpa twitter bot challenge</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><forename type="middle">S</forename><surname>Subrahmanian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Azaria</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Durst</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Kagan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Galstyan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lerman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/MC.2016.183</idno>
+		<ptr target="https://doi.org/10.1109/MC.2016.183" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,409.36,163.80,35.87,7.77">Computer</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="38" to="46" />
+			<date type="published" when="2016-06">Jun 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,185.71,314.28,7.77;8,150.95,196.67,312.28,7.77;8,150.95,207.63,231.49,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,293.58,185.71,162.94,7.77;8,150.95,196.67,247.53,7.77">A semi-automatic approach for labeling large amounts of automated and non-automated social media user accounts</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Teljstedt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Rosell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Johansson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,436.84,196.67,26.40,7.77;8,150.95,207.63,154.31,7.77">Second European Network Intelligence Conference</title>
+		<imprint>
+			<date type="published" when="2015">2015. 2015</date>
+			<biblScope unit="page" from="155" to="159" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,218.59,299.82,7.77;8,150.95,229.55,313.16,7.77;8,150.95,240.51,293.61,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="8,376.56,218.59,65.50,7.77;8,150.95,229.55,194.72,7.77">Online human-bot interactions:detection, estimation, and characterization</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Varol</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Ferrara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">A</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Menczer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Flammini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,363.62,229.55,100.49,7.77;8,150.95,240.51,267.47,7.77">Proceedings of the Eleventh International AAAI Conference on Web and Social Media (ICWSM 2017)</title>
+		<meeting>the Eleventh International AAAI Conference on Web and Social Media (ICWSM 2017)</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,251.47,321.33,7.77;8,150.95,262.43,303.89,7.77" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Polosukhin</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/pdf/1706.03762.pdf" />
+		<title level="m" coord="8,205.76,262.43,88.17,7.77">Attention is all you need</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,142.24,273.39,333.25,7.77;8,150.95,284.34,70.48,7.77" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="8,220.44,273.39,143.61,7.77">Sentiment Analysis and Opinion Mining</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Liu</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<publisher>Springer US</publisher>
+			<biblScope unit="page" from="1152" to="1161" />
+			<pubPlace>Boston, MA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

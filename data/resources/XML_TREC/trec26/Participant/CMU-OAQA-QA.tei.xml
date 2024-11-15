@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,169.43,111.03,273.14,15.48;1,157.63,130.96,296.74,15.48;1,176.96,150.88,258.08,15.48">CMU OAQA at TREC 2017 LiveQA: A Neural Dual Entailment Approach for Question Paraphrase Identification</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,251.58,211.65,37.27,8.96"><forename type="first">Di</forename><surname>Wang</surname></persName>
+							<email>diwang@cs.cmu.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Language Technologies Institute Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,308.22,211.65,52.19,8.96"><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Language Technologies Institute Carnegie Mellon University Pittsburgh</orgName>
+								<address>
+									<postCode>15213</postCode>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,169.43,111.03,273.14,15.48;1,157.63,130.96,296.74,15.48;1,176.96,150.88,258.08,15.48">CMU OAQA at TREC 2017 LiveQA: A Neural Dual Entailment Approach for Question Paraphrase Identification</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">F42CB8FF62B125CCE234002AAB8B603C</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we present CMU's question answering system that was evaluated in the TREC 2017 LiveQA Challenge. Our overall approach this year is similar to the one used in 2015 and 2016. This system answers real-user submitted questions from Yahoo! Answers website and medical questions, which involves retrieving relevant web pages, extracting answer candidate texts, ranking and selecting final answer text. The main improvement this year is the introduction of our new question paraphrase identification module based on a neural dual entailment model. The model uses bidirectional recurrent neural network to encode the premise question into phrase vectors, and then align corresponding phrase vectors from the candidate question with the attention mechanism. The final similarity score is produced based on aggregated phrase-wise comparisons of both entailment directions. In the TREC 2017 LiveQA evaluations, human assessors gave our system an average score of 1.139 on a three-point scale and the median score was 0.777 for all the systems evaluated. Overall, our approach received the highest average scores among automatic systems in main tasks of 2015, 2016 and 2017, and also the highest average score in the new medical subtask of 2017.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Similar to the LiveQA tracks in 2015 <ref type="bibr" coords="1,258.07,542.06,11.62,8.64" target="#b0">[1]</ref> and 2016 <ref type="bibr" coords="1,311.32,542.06,10.58,8.64" target="#b1">[2]</ref>, the main objective of LiveQA 2017 was still to provide automatic answers to real-user questions in real time. In previous years, the test collection came from a stream of questions that freshly submitted to the Yahoo! Answers website and have not been previously answered by humans. This year, due to technical difficulties, the participant systems were fed with cached questions instead. Participant systems need to return answer texts with no more than 1000 characters in length and within 1 minute. There are no additional restrictions on the resources that can be used, with the exception of the human answers to the same question in Yahoo! Answers. System responses were then judged by TREC assessors on a 4-level Likert scale. CMU's Open Advancement of Question Answering (OAQA) group continued the work from last two years' LiveQA submissions. We improved the real-time web-based Question Answering (QA) system, and submitted one run to 2017 evaluation. Our QA pipeline begins with candidate passages retrieval and extraction, then answer candidate ranking and tiling. In this paper, we focus on discussing our recent development on the question paraphrase identification module. Being considered as one of the key challenges of developing effective QA system, the question paraphrase identification is to verify whether a retrieved candidate question is a paraphrase of input question. Two questions are paraphrases of each other if they can be adequately answered by the exact same answer. During the official run, our QA server received one question per minute for 24 hours and Figure <ref type="figure" coords="2,216.57,187.76,3.88,8.64">1</ref>: Architecture of the CMU-OAQA LiveQA system provided answers within one minute for 98% of the input questions. On a normalized three-point average score metric, CMU-OAQA received a score of 1.139 on the main task, which was significantly higher than the median score of 0.777 from all systems. A new subtask focused specifically on medical questions is also offered this year. Our system answered medical questions the same way as the main task, and also achieved the highest average score of 0.637 comparing to the median score of 0.431. In the rest of this paper, we will briefly sketch the OAQA LiveQA system structure, and then introduce the new question paraphrase identification model in more details.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">System Architecture</head><p>Our overall system architecture remains the same to the one used in 2015 <ref type="bibr" coords="2,409.60,339.16,11.62,8.64" target="#b8">[9]</ref> and 2016 <ref type="bibr" coords="2,464.66,339.16,15.27,8.64" target="#b9">[10]</ref>. The pipeline is briefly described here for completeness, please refer to our reports for the last two years for a complete description. As illustrated in Figure <ref type="figure" coords="2,311.10,361.08,3.74,8.64">1</ref>, the architecture of our system decomposes the solution into three major processing phases:</p><p>1. Clue Retrieval. Given a question title and its full-text description, we formulate search engine queries and issue them to different search engines (Bing Web Search, Yahoo! Answers) in order to retrieve web pages related to the question. 2. Answer Ranking. Answer candidates (title/body/answer tuples that represent either conceptional questions or answer texts) are extracted from web pages, and ranked based on a relevance estimator. The most effective relevance estimator we found was a heuristicallyweighted combination of: a) optimized BM25 similarity scoring over the title and body texts, b) an attentional encoder-decoder recurrent neural networks model <ref type="bibr" coords="2,435.43,474.60,15.77,8.64" target="#b9">[10,</ref><ref type="bibr" coords="2,453.67,474.60,13.28,8.64" target="#b10">11]</ref> that estimates the relevance of a candidate answer text given a question text, and c) a novel neural dual entailment based question paraphrase identification model that predicts the relevance between input question and titles of answer candidates. 3. Answer Passage Tiling. Finally, a simple greedy algorithm is used to select a subset of highest-ranked answer candidates; these are simply concatenated without further processing in order to produce the final answer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Question Paraphrase Identification by Neural Dual Entailment</head><p>Able to determine if two questions have the same meaning semantically can greatly improve the candidate answer ranking performance. However, it is a challenging task even for human experts. Questions from online forums can range from highly technical subjects to ambiguous thoughts. The question texts are also not always grammatically correct and often contain misspelled words.</p><p>In this section, we discuss the problem of question paraphrase identification which predicting a binary label for whether two input questions convey the same meaning. We introduce a new neural dual entailment model for the question paraphrase identification task. This method uses bidirectional recurrent neural networks to encode the premise question into phrase vectors, and then fetch the softly aligned corresponding phrase embedding from the candidate question with the attention mechanism. The final similarity score is produced based on aggregated phrase-wise comparisons of both entailment directions. Our model is fully symmetric and then parameters are shared on both sides. This allows the model parameters can be trained effectively even on the medium sized dataset. We evaluated our model on the Quora Question Pairs dataset. <ref type="foot" coords="3,355.64,457.99,3.49,6.05" target="#foot_0">1</ref> Experimental results show that our model achieves the state-of-the-art performance on this benchmark dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Problem Formulation</head><p>Let w x = (w x 1 , . . . , w x x ) and w y = (w y 1 , . . . , w y y ) be two input questions consisting of x and y words, respectively. Each word in both sentences, w x i or w y j , belongs to the vocabulary V w . The training data is in the form of labeled text pairs</p><formula xml:id="formula_0" coords="3,302.25,539.07,96.56,12.20">{(w x , w y ) (n) , p (n) } N n=1</formula><p>, where p (n) ∈ {0, 1} is a binary label indicating whether w x is a paraphrase of w y . The goal is to predict the correct label p given a previously unseen text pair (w x , w y ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Model Structure</head><p>As outlined in Figure <ref type="figure" coords="3,193.53,608.30,3.74,8.64" target="#fig_0">2</ref>, our model decomposes the paraphrase identification problem into four steps: Encode, Attentional-Align, Matched-Aggregate, and Dual-Predict.</p><p>Encode. The goal of this step is to obtain a dense representation of each word w i in w x and w y that captures word meaning along with contextual information.</p><p>We first individually map each word w i into a d-dimensional vector by a mixed embedding matrix E ∈ R |Vw|×d , where E = E pre +E tune . Here E pre is a word embedding matrix that unsupervisedly pre-trained on a large corpus and will be fixed during the model training. On the other hand, E tune is a trainable embedding matrix that are randomly initialized. This mixture setup aims to fine-tune the pre-trained embeddings to recognize domain specific semantics of word usage, while avoiding deviating from the pre-trained representations too early.</p><p>Then the encoder converts the word embedding sequence into a list of contextual vectors H = {h 1 , h 2 , . . . , h w }, whose size varies with regard to the length of the passage. This context representation is generated using a two-layer stacked bidirectional recurrent neural networks (BRNN), which utilize context of both sides. Specifically, the encoder BRNN processes the data from both directions with two separate hidden sub-layers, where</p><formula xml:id="formula_1" coords="4,253.92,166.71,250.08,38.49">- → h i = - → Ψ - → h i-1 , E [w i ] ← - h i = ← - Ψ ← - h i+1 , E [w i ] .<label>(1)</label></formula><p>Here Ψ is a recurrent activation unit that we employ in the Long Short-Term Memory (LSTM) <ref type="bibr" coords="4,489.89,212.42,10.58,8.64" target="#b4">[5]</ref>.</p><p>The output of current time step is then generated by concatenating both direction's hidden vector -→ h i and ←h i . The stacked upper layer BRNN treats the output from the lower layer h 1 i as the input, and further outputs h<ref type="foot" coords="4,176.95,248.94,3.97,6.12" target="#foot_1">2</ref> i . Finally, the encoded contextual vector is aggregated as the sum of embedding and outputs from both layers:</p><formula xml:id="formula_2" coords="4,257.54,270.36,246.46,12.69">h i = E [w i ] + h 1 i + h 2 i .<label>(2)</label></formula><p>Attentional-Align. Regarding each h i , this step attempts to gather a softly aligned context vector from the other sentence's encoded sequence H. It starts by computing the content-based score of each pair of context vectors as: e i,j = h i hj .</p><p>(3) This score measures similarity between h i and the j-th context vector of H. These relevance scores are further normalized by the softmax function:</p><formula xml:id="formula_3" coords="4,221.76,366.34,282.24,26.64">α i,j = softmax(e i,j ) = exp(e i,j ) k=1 exp(e i,k ) ,<label>(4)</label></formula><p>and we call α i,j the attention weight. The softly aligned phrase vector hi is then the weighted sum of the context vectors with their attention weights from above:</p><formula xml:id="formula_4" coords="4,272.64,429.43,231.36,22.54">hi = j=i α i,j hj .<label>(5)</label></formula><p>Matched-Aggregate. Given the H and its softly aligned H, the problem has been reduced to comparing a sequence of aligned phrase vectors. Each pair of aligned vectors are first merged into a matched vector m i with a Multi-Layer Perceptron M :</p><formula xml:id="formula_5" coords="4,237.38,500.78,262.75,12.28">m i = M h i ; hj ; (h i -hj ) 2 . (<label>6</label></formula><formula xml:id="formula_6" coords="4,500.13,503.73,3.87,8.64">)</formula><p>The list of matched vectors {m 1 , . . . , m } are later scanned by an RNN layer, and its output of the last timestamp is served as the final aggregated vector.</p><p>Dual-Predict. The prediction network consists of a two-layer batch-normalized multi-layer perceptron (MLP), MaxOut neurons <ref type="bibr" coords="4,241.43,565.68,11.62,8.64" target="#b3">[4]</ref> , and a linear layer to produce an entailment score based on the matched aggregate vector above. As yet, the Attentional-Align, Matched-Aggregate, and the prediction network can only to check whether the information of one sentence is phrase-wise covered by another sentence. To identify paraphrase, we use the shared network to calculate entailment scores from both directions of question pairs. Finally, two scores are summed and followed by a logistic layer, to predict the label p.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Experiments</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">Dataset</head><p>We evaluated our models on the Quora question paraphrase dataset which contains over 404,000 question pairs with binary labels. The dataset has approximately 37% positive and 63% negative pairs. We use the same data split and tokenization provided by Wang et al. 2 <ref type="bibr" coords="4,410.16,706.25,15.27,8.64" target="#b11">[12]</ref>. Each of the devel- opment and test datasets has 5,000 positive and 5,000 negative instances. The remaining instances are then used as the training set. We further augment the training set with 20,000 positive pairs with identical question pairs to make sure the model can generalize well on easy situation as well.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">Network Setup and Parameter Optimization</head><p>The embeddings E pre was initialized with the 300-dimensional GloVe <ref type="bibr" coords="5,392.02,333.11,11.62,8.64" target="#b6">[7]</ref> word vectors pre-trained from the 840B Common Crawl corpus. Out-of-vocabulary words were initialized as zeros. Our encoder RNN contains two-layer stacked LSTMs. Each layer of LSTM has a memory size of 300.</p><p>The MLP networks used ReLU as activation functions and dropout rate of 0.2. The network weights are randomly initialized using a uniform distribution (-0.08, 0.08), and are trained with the ADAM optimizer <ref type="bibr" coords="5,148.98,387.90,10.58,8.64" target="#b5">[6]</ref>, with an initial learning rate of 0.002. Gradients were clipped so their norm does not exceed 5. Each mini-batch contains 1000 question pairs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.3">Results</head><p>In this section, we compare the performance of our approach with the baseline models, bilateral multi-perspective matching (BiMPM) <ref type="bibr" coords="5,262.59,452.98,16.60,8.64" target="#b11">[12]</ref> model, and Paralex pre-trained decomposable attention (pt-DECATT) <ref type="bibr" coords="5,165.83,463.94,11.62,8.64" target="#b7">[8]</ref> models, which have benchmarked on this dataset before. The BiMPM model employs both character-level and word-level LSTMs to represent input, four different types of multiperspective matching functions, an bi-LSTM aggregation layer, and a MLP with softmax output for final prediction. The pt-DECATT model uses sums of character n-gram embeddings to represent words, both bi-attention and self-attention to softly align phrase vectors, a MLP followed by sum as aggregation layer, and another MLP with linear output for prediction. pt-DECATT also utilized Paralex <ref type="bibr" coords="5,139.84,529.69,11.62,8.64" target="#b2">[3]</ref> question paraphrase corpus to pre-train both its character n-gram embeddings and rest of the model.</p><p>Table <ref type="table" coords="5,133.51,557.58,4.98,8.64" target="#tab_0">1</ref> shows the accuracy results of baseline models implemented in <ref type="bibr" coords="5,402.34,557.58,15.27,8.64" target="#b11">[12]</ref>, BiMPM model, pt-DECATT model, and our method. From the results, we can see that our model can outperform the previous best performance on the test set. Notes that our model is also simpler since it does not employ character encoding, self-attention, multi-perspective matching, and Paralex pre-training as required in previous methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Official Evaluation Results</head><p>In this year's LiveQA evaluation, there is a total of 1180 questions for the main task and an additional set of 102 medical subtask questions. Our system returned answers for 1162 main task questions and 99 medical subtask questions. Submitted answers were judged and scored by TREC assessors using the same 4-level Likert scale same as last two years:</p><p>• 4: Excellent: "a significant amount of useful information, fully answers the question" • 2: Fair: "marginally useful information" • 1: Bad: "contains no useful information for the question"</p><p>• -2: "the answer is unreadable (only 15 answers from all runs in 2015)"</p><p>The evaluation metrics are defined as follows:</p><p>• avg-score (0-3): "average score over all queries (transferring 1-4 level scores to 0-3, hence comparing 1-level score with no-answer score, also considering -2-level score as 0)" • succ@i+: "number of questions with i+ score (i=1..4) divided by number of all questions" • prec@i+: "number of questions with i+ score (i=2..4) divided by number of answered only questions"</p><p>Table <ref type="table" coords="6,132.96,347.83,4.98,8.64" target="#tab_1">2</ref> summarizes the results of our system run and median scores from all submitted runs. We believe the overall performance of our system to be promising, as it suggests that our system can provide a useful answer (fair, good, or excellent) for more than 56% of the questions. It is also encouraging that our system can generalize to medical domain and receive the highest score without any domain-specific processing or modification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>This paper presented the improved question matching module and evaluation results for our LiveQA 2017 system. We showed that efficient parameter sharing and mixed word embeddings result in state-of-the-art accuracy on question paraphrase identification task even without complex neural architectures, character-level embeddings, or pre-training the full model. The new matching module also shown its robustness when integrated into our LiveQA system, and helped our system achieved highest average score among automatic systems in both main task and medical subtask.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,177.45,426.99,257.10,8.64"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Model Structure of our Neural Dual Entailment Model</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,108.00,86.63,396.00,156.67"><head>Table 1 :</head><label>1</label><figDesc>Evaluation results on the Quora paraphrase identification dataset in terms of accuracy. The first eight rows are taken from<ref type="bibr" coords="5,230.50,234.66,10.79,8.64" target="#b7">[8,</ref><ref type="bibr" coords="5,243.78,234.66,11.83,8.64" target="#b11">12]</ref>.</figDesc><table coords="5,206.18,86.63,199.64,122.27"><row><cell>Method</cell><cell cols="2">Dev Acc. Test Acc.</cell></row><row><cell>Siamese-CNN</cell><cell>-</cell><cell>79.60</cell></row><row><cell>Multi-Perspective CNN</cell><cell>-</cell><cell>81.38</cell></row><row><cell>Siamese-LSTM</cell><cell>-</cell><cell>82.58</cell></row><row><cell>Multi-Perspective-LSTM</cell><cell>-</cell><cell>83.21</cell></row><row><cell>L.D.C</cell><cell>-</cell><cell>85.55</cell></row><row><cell>BIMPM</cell><cell>88.69</cell><cell>88.17</cell></row><row><cell>pt-DECATT word</cell><cell>88.44</cell><cell>87.54</cell></row><row><cell>pt-DECATT char</cell><cell>88.89</cell><cell>88.40</cell></row><row><cell>Ours model</cell><cell>88.61</cell><cell>88.92</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,133.90,722.99,176.35,9.03"><head>Table 2 :</head><label>2</label><figDesc>Official TREC 2017 LiveQA track evaluation results.</figDesc><table coords="6,117.98,86.63,376.04,73.44"><row><cell>Task</cell><cell>System ID</cell><cell>Avg score (0-3)</cell><cell>2+</cell><cell>Success@ 3+</cell><cell>4+</cell><cell>2+</cell><cell>Precision@ 3+</cell><cell>4+</cell></row><row><cell>Medical</cell><cell>Median of all runs CMU-OAQA</cell><cell>0.417 0.637</cell><cell cols="6">0.245 0.142 0.059 0.331 0.178 0.078 0.392 0.265 0.098 0.404 0.273 0.101</cell></row><row><cell>Main</cell><cell>Median of all runs CMU-OAQA</cell><cell>0.777 1.139</cell><cell cols="6">0.421 0.250 0.126 0.482 0.286 0.144 0.567 0.387 0.198 0.577 0.393 0.201</cell></row></table><note coords="5,133.90,722.99,176.35,9.03"><p>• 3: Good: "partially answers the question"</p></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,124.14,724.87,352.18,6.31"><p>https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,124.14,724.02,345.14,7.77"><p>This partition of Quora dataset can be downloaded at https://zhiguowang.github.io.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,129.58,544.39,374.42,8.64;6,129.58,555.17,374.42,8.82;6,129.58,566.13,296.06,8.82" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,454.30,544.39,49.70,8.64;6,129.58,555.35,109.89,8.64">Overview of the TREC 2015 liveqa track</title>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Agichtein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Pelleg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuval</forename><surname>Pinter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,257.38,555.17,242.26,8.59">Proceedings of The Twenty-Fourth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fourth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-11-17">2015. November 17-20, 2015, 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,580.91,374.42,8.64;6,129.58,591.69,374.42,8.82;6,129.58,602.65,296.06,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,454.30,580.91,49.70,8.64;6,129.58,591.87,118.01,8.64">Overview of the TREC 2016 LiveQA track</title>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Agichtein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Pelleg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuval</forename><surname>Pinter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,265.35,591.69,234.29,8.59">Proceedings of The Twenty-Fifth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fifth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-11-15">2016. November 15-18, 2016, 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,617.44,374.42,8.64;6,129.58,628.22,374.42,8.82;6,129.58,639.18,374.42,8.59;6,129.58,650.32,97.40,8.64" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,359.58,617.44,144.43,8.64;6,129.58,628.40,75.87,8.64">Paraphrase-driven learning for open question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Anthony</forename><surname>Fader</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luke</forename><forename type="middle">S</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oren</forename><surname>Etzioni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,226.37,628.22,277.64,8.59;6,129.58,639.18,131.69,8.59">Proceedings of the 51st Annual Meeting of the Association for Computational Linguistics, ACL 2013</title>
+		<meeting>the 51st Annual Meeting of the Association for Computational Linguistics, ACL 2013<address><addrLine>Sofia, Bulgaria</addrLine></address></meeting>
+		<imprint>
+			<publisher>Long Papers</publisher>
+			<date type="published" when="2013-08-09">4-9 August 2013. 2013</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="1608" to="1618" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,664.93,374.42,8.64;6,129.58,675.71,374.42,8.82;6,129.58,686.67,374.42,8.82;6,129.58,697.81,22.42,8.64" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,129.58,675.89,68.08,8.64">Maxout networks</title>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><forename type="middle">J</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Warde-Farley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mehdi</forename><surname>Mirza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aaron</forename><surname>Courville</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoshua</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>III-1319-III-1327. JMLR.org</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,216.40,675.71,287.60,8.59;6,129.58,686.67,120.80,8.59;6,309.91,686.85,34.79,8.64">Proceedings of the 30th International Conference on International Conference on Machine Learning</title>
+		<meeting>the 30th International Conference on International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+			<biblScope unit="volume">28</biblScope>
+		</imprint>
+	</monogr>
+	<note>ICML&apos;13</note>
+</biblStruct>
+
+<biblStruct coords="6,129.58,712.24,374.42,8.82;6,129.58,723.38,72.23,8.64" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,302.43,712.42,103.60,8.64">Long Short-Term Memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,415.30,712.24,62.11,8.59">Neural Comput</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,85.16,374.42,8.82;7,129.58,96.30,70.84,8.64" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="7,280.22,85.34,186.92,8.64">Adam: A Method for Stochastic Optimization</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Diederik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Ba</surname></persName>
+		</author>
+		<idno>CoRR, abs/1412.6</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,111.24,374.42,8.64;7,129.58,122.02,374.42,8.82;7,129.58,132.98,374.42,8.82;7,129.58,144.12,122.60,8.64" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,396.70,111.24,107.31,8.64;7,129.58,122.20,77.73,8.64">Glove: Global vectors for word representation</title>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Richard</forename><surname>Socher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><surname>Manning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,225.22,122.02,278.77,8.59;7,129.58,132.98,126.43,8.59">Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)<address><addrLine>Doha, Qatar</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2014-10">October 2014</date>
+			<biblScope unit="page" from="1532" to="1543" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,159.06,374.42,8.64;7,129.58,169.84,374.42,8.82;7,129.58,180.80,374.42,8.82;7,129.58,191.94,147.51,8.64" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,129.58,170.02,275.33,8.64">Neural paraphrase identification of questions with noisy pretraining</title>
+		<author>
+			<persName coords=""><forename type="first">Gaurav</forename><surname>Singh Tomar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thyago</forename><surname>Duque</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Oscar</forename><surname>Täckström</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dipanjan</forename><surname>Das</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,427.61,169.84,76.39,8.59;7,129.58,180.80,254.90,8.59">Proceedings of the First Workshop on Subword and Character Level Models in NLP</title>
+		<meeting>the First Workshop on Subword and Character Level Models in NLP</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="142" to="147" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,206.88,374.42,8.64;7,129.58,217.66,374.42,8.82;7,129.58,228.62,244.30,8.82" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,241.90,206.88,262.11,8.64;7,129.58,217.84,61.65,8.64">CMU OAQA at TREC 2015 LiveQA: Discovering the Right Answer with Clues</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,208.49,217.66,240.15,8.59">Proceedings of The Twenty-Fourth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fourth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015-11-17">2015. November 17-20, 2015, 2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,243.74,374.42,8.64;7,129.58,254.52,374.42,8.82;7,129.58,265.48,374.42,8.82" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,252.29,243.74,251.71,8.64;7,129.58,254.70,183.82,8.64">CMU OAQA at TREC 2016 LiveQA: An attentional neural encoder-decoder approach for answer ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,334.53,254.52,169.47,8.59;7,129.58,265.48,71.89,8.59">Proceedings of The Twenty-Fifth Text REtrieval Conference</title>
+		<meeting>The Twenty-Fifth Text REtrieval Conference<address><addrLine>Gaithersburg, Maryland, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2016-11-15">2016. November 15-18, 2016, 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,280.61,374.42,8.64;7,129.58,291.39,374.42,8.82;7,129.58,302.35,374.42,8.82;7,129.58,313.48,22.42,8.64" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,369.63,280.61,134.38,8.64;7,129.58,291.57,105.82,8.64">Steering output style and topic in neural response generation</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nebojsa</forename><surname>Jojic</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Brockett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,255.07,291.39,248.93,8.59;7,129.58,302.35,118.32,8.59">Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2017 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="2140" to="2150" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,129.58,328.43,374.42,8.64;7,129.58,339.21,374.42,8.82;7,129.58,350.17,351.27,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,309.72,328.43,194.28,8.64;7,129.58,339.39,76.30,8.64">Bilateral multi-perspective matching for natural language sentences</title>
+		<author>
+			<persName coords=""><forename type="first">Radu</forename><surname>Florian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiguo</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wael</forename><surname>Hamza</surname></persName>
+		</author>
+		<idno type="DOI">10.24963/ijcai.2017/579</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,229.53,339.21,274.47,8.59;7,129.58,350.17,124.90,8.59">Proceedings of the Twenty-Sixth International Joint Conference on Artificial Intelligence, IJCAI-17</title>
+		<meeting>the Twenty-Sixth International Joint Conference on Artificial Intelligence, IJCAI-17</meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="4144" to="4150" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

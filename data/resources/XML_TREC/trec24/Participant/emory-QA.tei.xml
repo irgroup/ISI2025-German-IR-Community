@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,91.97,123.77,427.98,4.34;1,139.00,145.69,333.96,4.34">Ranking Answers and Web Passages for Non-factoid Question Answering: Emory University at TREC LiveQA</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,266.22,174.59,79.53,3.02"><forename type="first">Denis</forename><surname>Savenkov</surname></persName>
+							<email>dsavenk@emory.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Emory University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,91.97,123.77,427.98,4.34;1,139.00,145.69,333.96,4.34">Ranking Answers and Web Passages for Non-factoid Question Answering: Emory University at TREC LiveQA</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">8ECB4C8A522FD5C91E72B298659B2979</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:08+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes a question answering system built by a team from Emory University to participate in TREC LiveQA'15 shared task. The goal of this task was to automatically answer questions posted to Yahoo! Answers community question answering website in real-time. My system combines candidates extracted from answers to similar questions previously posted to Yahoo! Answers and web passages from documents retrieved using web search. The candidates are ranked by a trained linear model and the top candidate is returned as the final answer. The ranking model is trained on question and answer (QnA) pairs from Yahoo! Answers archive using pairwise ranking criterion. Candidates are represented with a set of features, which includes statistics about candidate text, question term matches and retrieval scores, associations between question and candidate text terms and the score returned by a Long Short-Term Memory (LSTM) neural network model. Our system ranked top 5 by answer precision, and took 7th place according to the average answer score. In this paper I will describe our approach in detail, present the results and analysis of the system.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Over the years of question answering research the focus was mainly around factoid questions, which constitute only a small part of user information needs. Factoid questions are usually defined as those that can be answered with a short phrase, e.g. a number or a named entity. Advice, opinion, recommendation, manner, instruction and other similar types of questions are beyond the scope of the factoid question answering systems. One way to solve these questions is to ask other people, and community question answering websites (e.g. Yahoo! Answers 1 , Answer.com, StackExchange.com, etc.) became very popular and currently contain millions of questions and answers from real users. In 2015 TREC started a series of LiveQA evaluation campaigns, that targets automatic answering of questions posted to Yahoo! Answers in real time. The majority of such questions can be classified as non-factoid. Previously, research in non-factoid question answering often focused on re-ranking of answers already present in a CQA archive <ref type="bibr" coords="1,444.14,528.20,9.96,9.52" target="#b0">[1]</ref>. LiveQA opens up new opportunities, as it allows a system to use any existing resources, not just a fixed collection of CQA QnA pairs or documents.</p><p>The system I developed builds on some existing research on question answering and is based on a combination of CQA archive and web search based approaches. There are a lot of di↵erent types of questions that users post to CQA websites and it is probably beneficial to study them separately. However, for simplicity the model I built treats all questions in the same way. My system is based on a single trained model, that ranks a set of extracted answer candidates and returns the top one as the response. Preliminary analysis of questions and potential answer sources gave an insight that the best data source is answers to similar questions in case they exist and we can find them. People often have similar tasks and situations which pose same questions. Therefore, it's frequently the case that a similar question was already asked by someone and potentially even received a good reply and can be reused to answer new questions <ref type="bibr" coords="1,366.64,659.70,9.96,9.52" target="#b1">[2]</ref>. Of course, many questions or their details are unique, which makes it impossible to find a good match from the existing answers. Therefore I also use web search to generate additional answer candidates. For non-factoid questions it's harder to use the redundancy of the information on the web, which is exploited very e↵ectively in factoid QA <ref type="bibr" coords="1,472.36,695.57,9.96,9.52" target="#b2">[3]</ref>. The system For training I used the publicly available collection of QnA pairs from Yahoo! Answers. The assumption made was that for each question the answer selected as the "best answer" on Yahoo! Answers is indeed the best and should be ranked higher than answers to other questions. However, taking all other answers is intractable and probably detrimental as almost all of them would be totally unrelated to the subject of the given question. Therefore, I used search to retrieve a set of similar questions and took their answers as negative examples. The following chapters describe the QA system in more detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>The general architecture of our question answering system is presented on Figure <ref type="figure" coords="2,438.26,405.62,3.87,9.52" target="#fig_0">1</ref>. It uses two primary data sources for generating answer candidates: answers to similar questions from Yahoo! Answers website and documents retrieved using web search. All candidates are mixed together, ranked and the top answer is returned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Candidate generation</head><p>Each question issued to a QA system in TREC LiveQA consists of 3 main parts: title, body and category. For example:</p><p>Question category: Astronomy &amp; Space Question title: Why do people claim the Earth isn't the center of the universe? Question body: Clearly the sun and moon are moving around the Earth otherwise we wouldn't have night and day. When the QA system receives a question it first generates a set of candidate answers from Yahoo! Answers and regular web search. To generate a set of candidates the system produces several search queries and issues them to both resources.</p><p>To find similar questions and extract the corresponding answers from Yahoo! Answers we use the search functionality already available on the website. Some questions are very concise while other provide many useful as well as redundant details. Ideally we want to match as many of them as possible, however, there is a chance that search won't return any results if there are no good matches. Therefore the system generates a set of search queries of di↵erent granularity, issues them all to Yahoo! Answers search and collects top 10 responses from all of them. Here is the list of queries that our system generates:</p><p>• Concatenation of question title and question body (with and without stopwords)</p><p>• Question title only (with and without stopwords)</p><p>• Question title concatenated with question body and question category</p><p>• Question title concatenated with the name of the question category • Top 5 terms from question title scored by tf-idf 2</p><p>• Top 5 terms from question title and body scored by tf-idf For each query and top-10 retrieved questions the system extracts its top answer if provided and puts it into the candidate pool along with some information about the corresponding question and its category.</p><p>To extract candidate passages from relevant web documents previous research in factoid question answering have tried query reformulations <ref type="bibr" coords="3,248.47,176.16,10.51,9.52" target="#b3">[4]</ref> to better match the potential answer text. However recently <ref type="bibr" coords="3,529.49,176.16,10.51,9.52" target="#b4">[5]</ref> demonstrated that such reformulations are no longer necessary as search engines have improved the query processing techniques. Inspired by this observation and considering that retrieving web documents and extracting passages from them is more time consuming, the system issues only 2 web search queries: question title and title concatenated with body. I used Bing Web Search API 3 and the system downloads top-10 retrieved documents, parses HTML code and extracts the main content text <ref type="bibr" coords="3,398.90,235.93,9.96,9.52" target="#b5">[6]</ref>. Document content is further split into sentences <ref type="bibr" coords="3,158.17,247.89,10.51,9.52" target="#b6">[7]</ref> and candidates are built by taking contiguous sequences of sentences no longer than the answer character limit 4 . The model only keeps passages that contain at least one non-stopword from the question. Web search snippets are also included as candidates.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Candidate ranking</head><p>A trained linear logistic regression model is used to rank candidate answers, represented with a set of features:</p><p>• answer text statistics: length in character, tokens and sentences, average number of tokens per sentence.</p><p>• Okapi BM25 scores, which consider question title and concatenation of title and body as queries. Term statistics were computed on Yahoo! Answers WebScope dataset. The score is calculated as follows:</p><formula xml:id="formula_0" coords="3,188.48,381.48,258.74,35.63">score(A, Q) = n X i=1 IDF(q i ) • f (q i , A) • (k 1 + 1) f (q i , A) + k 1 • (1 b + b • |A| avg al )</formula><p>where f (q i , A) is frequency of term q i in the answer text, k 1 = 1.2, B = 0.75 and avg a l = 50 (average answer length).</p><p>• term matches features: lemmas, part of speech tags of matched terms between the question and answer texts, the fraction of unique question terms matched in the answer, length of the maximum span of matched terms in the answer.</p><p>• number of matched terms between the question title, body and the title of the page from which the candidate answer is retrieved. For Yahoo! Answers the text of the retrieved question is used as title.</p><p>• category match feature for Yahoo! Answers candidates.</p><p>• pairs of lemmas from question and answer texts, that are supposed to bridge the lexical gap between question and answer language.</p><p>• average, minimum and maximum normalized pointwise mutual information (NPMI) scores between pairs of terms from the question and answer texts. The scores are estimated from QnA pairs from Yahoo! Answers WebScope dataset using the following formula: npmi(q i ; a j ) = pmi(q i ; a j ) log p(q i , a j ) pmi(q i ; a j ) = log p(q i , a j ) p(q i )p(a j ) = log p(a j |q i ) p(a j )</p><p>• QnA pair score from a Long Short Term Memory (LSTM) neural network model, described in Section 2.3.1.  The candidate with the highest score is returned as the answer to the question. If something goes wrong and no candidates were generated or some problem occurred the system returns "I don't know" as the default answer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Model Training</head><p>There are two trained models used in the system: LSTM recurrent neural network based model, which is used as one of the features for the final logistic regression model that scores all candidates and selects the best one as the answer. I use WebScope Yahoo! Answers dataset<ref type="foot" coords="4,333.69,530.60,3.97,6.39" target="#foot_0">5</ref> (di↵erent splits are used) to generate training data for both LSTM and ranking model, Figure <ref type="figure" coords="4,284.35,543.78,4.98,9.52">2</ref> describes the steps I took to build training datasets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1">LSTM model</head><p>Deep learning models had a huge success in image and speech problems and showed very promising results in natural language processing and question answering, e.g. <ref type="bibr" coords="4,337.74,599.94,10.51,9.52" target="#b7">[8,</ref><ref type="bibr" coords="4,351.80,599.94,7.74,9.52" target="#b8">9]</ref> to name a few. I decided to explore this direction and built a recurrent neural network model to score how well a candidate answers a question. Long Short-Term Memory (LSTM) <ref type="bibr" coords="4,229.65,623.85,15.49,9.52" target="#b9">[10]</ref> is a particular architecture of recurrent neural networks that helps with the exploding and vanishing gradients problems. The model I developed reads question and answer tokens and produces a probability score based on a vector representation of a QnA pair. Figure <ref type="figure" coords="4,489.68,647.76,4.98,9.52">3</ref> shows the structure of the model.</p><p>Question (title with body) and answer texts are tokenized, punctuation characters are removed and for each token lowercase lemma is taken. The sequences are limited to 100 elements and concatenated through a sentinel separator character so the model could learn where the question ends and the answer starts. The hidden state of the model after the whole sequence is processed is used by logistic regression unit to output a probability, that a candidate answers the question well.</p><p>To train the model QnA pairs from Yahoo! Answers WebScope dataset were used (we selected a subset of questions from the categories chosen for TREC LiveQA). Each question and the corresponding best answer was used as a positive training example. Random negative examples would be too unrelated to the current question, therefore I chose to use answers to similar questions only. All QnA pairs were indexed with Lucene<ref type="foot" coords="5,535.53,133.48,3.97,6.39" target="#foot_1">6</ref> and similar questions were retrieved using the built-in BM25 retrieval model. For each question and correct answer pair from the dataset 10 similar questions were retrieved and the corresponding answers were used as negative examples for training <ref type="foot" coords="5,216.07,169.34,3.97,6.39" target="#foot_2">7</ref> .</p><p>The model was implemented using Keras<ref type="foot" coords="5,266.63,181.30,3.97,6.39" target="#foot_3">8</ref> library. I used an embedding and hidden layers of dimension 128 and the vocabulary size of 1M words. The model was trained using Adam optimization technique <ref type="bibr" coords="5,524.50,194.48,15.49,9.52" target="#b10">[11]</ref> with mini batches of 200 instances for 100 epochs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Logistic regression model</head><p>The final model that ranks all answer candidates is a linear L2-regularized logistic regression model. To train the model we used a di↵erent split of QnA pairs from Yahoo! Answers WebScope dataset. For each question the corresponding "best answer" is taken as the correct one. To get a sample of negative examples Lucene index is used again and answers to 10 most similar questions are retrieved. Di↵erent from LSTM model training, here I took a pairwise approach for learning to rank and generated training examples from pairs of di↵erent answers to the same question, where one answer is the correct one. That is, let the current question be Q, its "correct" answer A ⇤ , and retrieved candidates A 1 , ..., A n . Each candidate is represented with a set of features:</p><formula xml:id="formula_1" coords="5,171.37,332.98,144.32,11.70">f (Q, A ⇤ ), f (Q, A 1 ), ..., f (Q, A n ).</formula><p>For each i = 1..n we create two training instances, i.e. class 1: hA ⇤ , A i i and class -1: hA i , A ⇤ i. Each such instance is represented with pairwise di↵erences of features, e.g. hA ⇤ , A i i :</p><formula xml:id="formula_2" coords="5,72.00,356.89,468.00,23.65">f pair (Q, hA ⇤ , A i i) = f (Q, A ⇤ ) f (Q, A i ). The trained model is linear, therefore if w(f (Q, A ⇤ ) f (Q, A i )) &gt; 0 then wf (Q, A ⇤ ) &gt; wf(Q, A i )</formula><p>and we can rank candidates by the score produced by the model, i.e. wf (Q, A i ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation</head><p>From the final run of the system, 1087 questions were judged by the organizers on a scale from 1 to 4: 4: Excellent -a significant amount of useful information, fully answers the question 3: Good -partially answers the question 2: Fair -marginally useful information 1: Bad contains no useful information for the question -2: the answer is unreadable (only 15 answers from all runs were judged as unreadable)</p><p>The following performance metrics were reported:</p><p>• avg-score(0-3): average score over all questions, where scores are translated to 0-3 range. This metric considers "Bad", unreadable answers and unanswered questions as having score 0</p><p>• succ@i+: the fraction of answers with score i or greater (i=1..4)</p><p>• p@i+: the number of questions with score i or greater (i=2..4) divided by the number of answered questions Table <ref type="table" coords="5,100.38,604.37,4.98,9.52">1</ref> provides the results of top 5 teams by average answer score, results for our system and average scores. Please refer to the <ref type="bibr" coords="5,187.79,616.32,15.49,9.52" target="#b11">[12]</ref> for more details and results of all systems. The absolute values of the performance metrics demonstrate a great room for improvement as our system was able to return partial or good answer only in 23% of the cases (prec@3+) when the answer was returned. And for 60% of the questions the answer doesn't contain any useful information.</p><p>Table <ref type="table" coords="6,98.61,73.34,3.87,9.52">1</ref>: Results of the TREC LiveQA evaluation of top 5 systems, Emory University QA system and average results of all systems. " means that results of Emory system in this metric are above average, and # means that results are below average # answers avg score (0-3) succ@2+ succ@3+ succ@4+ p@2+ p@3+ p@4+  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Analysis</head><p>In this section we will answer some of the questions about the performance of di↵erent system components and their relative importance.</p><p>The first question, that we are going to study is the relative e↵ectiveness of web passages and answers to previously posted questions for answering new questions. As Figure <ref type="figure" coords="6,387.38,517.14,4.98,9.52" target="#fig_3">4</ref> shows, almost half of all answers returned by my system were generated from Yahoo! Answers. In ⇠21% of the cases our system didn't return any results 9 , and in the rest ⇠31% of the cases a passage from a web page was returned as the answer. I further looked into the domains of the web pages used to generate the answer and noticed, that many more were extracted from other community question answering websites and forums.</p><p>The quality of answers generated from passages built from web search results are lower on average compared to Yahoo! Answers candidates. Figure <ref type="figure" coords="6,296.72,588.87,4.98,9.52" target="#fig_6">5</ref> shows the distribution of scores for each of our data sources. Some categories were harder than the other <ref type="bibr" coords="6,312.17,600.83,15.49,9.52" target="#b11">[12]</ref> and as we see on Figure <ref type="figure" coords="6,444.39,600.83,10.51,9.52" target="#fig_6">5b</ref> in some cases web passages were actually more e↵ective than answers to previously posted questions.</p><p>The next question, that we analyze is the e↵ectiveness of search query generation strategies. Figure <ref type="figure" coords="6,535.01,624.74,4.98,9.52" target="#fig_7">6</ref> plots average number of candidates and the position of the best candidate retrieved by each of the question generation strategies. The longer the search query the less results it retrieved, which is expected, and the lower the quality of the candidates. As a result, in half of the cases the answer returned by our system was retrieved using just top 5 highest IDF terms as the query 10 . For web search we only used 2 query generation strategies, namely question title and concatenation of title with body. Analogously, concatenation of title 9 This happened mainly due to a couple of technical issues that made our system unresponsive for quite some time    Figure <ref type="figure" coords="7,119.11,428.40,4.98,9.52">7</ref> demonstrates a plot of importances of di↵erent features in our answer ranking linear logistic regression model. The feature with the highest weight is category match, but we should note, that this feature is overfitted to the way we build training set (category of the correct answer always matched the category of the question). The next most useful feature is the cosine similarity between the page title (or question text for Yahoo! Answers) and the current question, followed by BM25 score, number of matched verbs, etc.</p><p>I also looked through a small sample of our answers manually. There are a number of typical problems, and one of them is the lack of good question semantic similarity measure. E.g. the question "Is there a section fro the subject of writing" in the Books &amp; Authors category retrieved a question "I can't write in the To: Cc: Subject: section" from the Yahoo Mail category. Even though the questions have many terms Figure <ref type="figure" coords="7,178.68,702.41,3.87,9.52">7</ref>: Weights of features in answer ranking logistic regression model in common, they are obviously semantically unrelated. Therefore, in future we need to focus more on better question similarity measures.</p><p>Answer doesn't have to have many words in common with the question. On the contrary, the maximum possible term overlap will be if a candidate is just a copy of the answer. This was one of the problems for answers, retrieved from the web search results. The way we used to generate the training data didn't include such "artificial" cases, however, they are pretty common in practice. For example, in a number of cases the answer our system chose came from a forum post and instead of selecting the answer posts, the system ranked the question post higher as it had more term matches. The winning CMU team addressed this issue by considering answer-clue pairs, where the clue is supposed to match the question text and the former answers the question. We plan to explore a similar strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>The pilot year of TREC LiveQA establishes a very good baseline for the future of non-factoid question answering. It confirmed that the task itself is quite challenging as only ⇠35% of the questions returned by the winning system had a score of 3 or higher, and there is still a big gap between in the quality of human and machine answers. It will be exciting to see the next version of the task next year, and how the participants will build on this year approaches.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,183.02,245.65,245.97,9.52;2,72.00,72.00,459.99,162.35"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Architecture of our question answering system</figDesc><graphic coords="2,72.00,72.00,459.99,162.35" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="3,83.09,694.20,3.65,5.48;3,87.24,700.98,347.68,2.01;3,83.09,703.70,3.65,5.48;3,87.24,710.48,201.03,2.01;3,83.09,713.21,3.65,5.48;3,87.24,719.98,167.88,2.01"><head>2</head><label></label><figDesc>Document frequency is computed on WebScope collection of QnA pairs from Yahoo! Answers 3 http://datamarket.azure.com/dataset/bing/searchweb 4 In the final run the limit was 1000 characters</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="4,72.00,227.18,467.99,9.52;4,72.00,239.13,159.92,9.52;4,72.00,72.00,470.00,143.88"><head>Figure 2 :Figure 3 :</head><label>23</label><figDesc>Figure 2: Workflow for generating training datasets for LSTM and answer ranking logistic regression model from the Yahoo! Answers QnA pairs</figDesc><graphic coords="4,72.00,72.00,470.00,143.88" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,156.12,425.98,299.77,9.52;6,189.00,251.33,234.00,163.36"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Distribution of sources for answers returned by our system</figDesc><graphic coords="6,189.00,251.33,234.00,163.36" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="6,79.44,711.83,7.31,5.48;6,87.24,718.61,219.03,2.01"><head>10</head><label></label><figDesc>The same candidate is often also retrieved by other queries</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="7,107.90,202.82,112.08,8.57;7,256.18,191.86,280.80,8.57;7,256.18,202.82,89.97,8.57"><head></head><label></label><figDesc>(a) Histogram of qrel scores (b) Average scores of answers from Yahoo! Answers and web passages for di↵erent categories</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6" coords="7,129.62,223.73,352.76,9.52;7,307.66,246.31,210.59,97.47"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Comparison of web passages and Yahoo! Answers as candidate sources</figDesc><graphic coords="7,307.66,246.31,210.59,97.47" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7" coords="7,74.47,382.97,463.07,9.52;7,93.74,256.54,210.59,98.20"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: Comparison of di↵erent query generation strategies for Yahoo! Answers similar questions search</figDesc><graphic coords="7,93.74,256.54,210.59,98.20" type="bitmap" /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_0" coords="4,87.24,719.98,231.40,2.01"><p>https://webscope.sandbox.yahoo.com/catalog.php?datatype=l</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_1" coords="5,87.24,676.77,98.87,2.01"><p>https://lucene.apache.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_2" coords="5,87.24,686.28,278.28,2.01"><p>It's true, that some of them can indeed be relevant to the original question</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_3" coords="5,87.24,695.78,54.41,2.01"><p>http://keras.io</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,92.48,338.36,447.52,9.52;8,92.48,350.31,134.96,9.52;8,231.86,357.33,117.21,2.51;8,352.40,350.31,89.11,9.52" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,367.06,338.36,172.94,9.52;8,92.48,350.31,130.98,9.52">Learning to rank answers to non-factoid questions from web collections</title>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Massimiliano</forename><surname>Ciaramita</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,231.86,357.33,113.07,2.51">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="351" to="383" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,368.47,447.52,9.52;8,92.48,380.43,398.87,9.52" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="8,366.54,368.47,173.46,9.52;8,92.48,380.43,174.36,9.52">Learning from the past: Answering new questions with past answers. WWW &apos;12</title>
+		<author>
+			<persName coords=""><forename type="first">Anna</forename><surname>Shtok</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gideon</forename><surname>Dror</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoelle</forename><surname>Maarek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Idan</forename><surname>Szpektor</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<publisher>ACM</publisher>
+			<biblScope unit="page" from="759" to="768" />
+			<pubPlace>New York, NY, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,398.59,447.51,9.52;8,92.48,417.56,100.97,2.51;8,196.78,410.54,77.23,9.52" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,147.40,398.59,388.02,9.52">An exploration of the principles underlying redundancy-based factoid question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,92.48,417.56,97.03,2.51">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2007-04">April 2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,428.70,447.51,9.52;8,92.48,440.66,412.90,9.52" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="8,335.89,428.70,204.11,9.52;8,92.48,440.66,188.39,9.52">Learning search engine specific query transformations for question answering. WWW &apos;01</title>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Agichtein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steve</forename><surname>Lawrence</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Luis</forename><surname>Gravano</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<publisher>ACM</publisher>
+			<biblScope unit="page" from="169" to="178" />
+			<pubPlace>New York, NY, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,458.82,447.52,9.52;8,92.48,470.77,246.33,9.52" xml:id="b4">
+	<monogr>
+		<title level="m" type="main" coord="8,356.33,458.82,183.68,9.52;8,92.48,470.77,28.34,9.52">Web-based question answering: Revisiting askmsr</title>
+		<author>
+			<persName coords=""><forename type="first">Chen-Tse</forename><surname>Tsai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wen</forename><surname>Tau Yih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">J C</forename><surname>Burges</surname></persName>
+		</author>
+		<idno>MSR-TR-2015-20</idno>
+		<imprint>
+			<date type="published" when="2015-04">April 2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="8,92.48,488.93,447.51,9.52;8,92.48,500.89,50.39,9.52;8,146.18,507.90,393.82,2.51;8,92.48,512.84,271.97,9.52" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,369.96,488.93,170.03,9.52;8,92.48,500.89,32.78,9.52">Boilerplate detection using shallow text features</title>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Kohlschütter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><surname>Fankhauser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wolfgang</forename><surname>Nejdl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,146.18,507.90,393.82,2.51;8,92.48,512.84,47.45,9.52">Proceedings of the Third ACM International Conference on Web Search and Data Mining, WSDM &apos;10</title>
+		<meeting>the Third ACM International Conference on Web Search and Data Mining, WSDM &apos;10<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="441" to="450" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,531.00,447.51,9.52;8,92.48,542.96,321.04,9.52;8,417.50,549.97,122.50,2.51;8,92.48,561.92,72.70,2.51;8,168.51,554.91,80.86,9.52" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,143.72,542.96,250.38,9.52">The stanford corenlp natural language processing toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">Mihai</forename><surname>Christopher D Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Surdeanu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jenny</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><forename type="middle">J</forename><surname>Finkel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Bethard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Mcclosky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,417.50,549.97,122.50,2.51;8,92.48,561.92,66.88,2.51">Proceedings of 52nd Annual Meeting of ACL</title>
+		<meeting>52nd Annual Meeting of ACL</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="55" to="60" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,573.07,447.52,9.52;8,92.48,585.03,39.90,9.52;8,136.80,592.04,140.03,2.51;8,280.16,585.03,22.68,9.52" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="8,392.17,573.07,147.83,9.52;8,92.48,585.03,35.91,9.52">Deep learning for answer sentence selection</title>
+		<author>
+			<persName coords=""><forename type="first">Lei</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Karl</forename><forename type="middle">Moritz</forename><surname>Hermann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Phil</forename><surname>Blunsom</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Pulman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.1632</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,92.48,603.18,447.52,9.52;8,92.48,615.14,45.74,9.52;8,142.64,622.15,23.29,2.51;8,169.25,615.14,22.68,9.52" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,213.95,603.18,326.05,9.52;8,92.48,615.14,41.16,9.52">A long short-term memory model for answer sentence selection in question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Eric</forename><surname>Nyberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,142.64,622.15,17.47,2.51">ACL</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,633.30,304.32,9.52;8,402.30,640.31,88.53,2.51;8,494.62,633.30,45.39,9.52;8,92.48,645.25,48.69,9.52" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,284.54,633.30,106.95,9.52">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">Sepp</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jürgen</forename><surname>Schmidhuber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,402.30,640.31,83.87,2.51">Neural computation</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,92.48,663.41,373.14,9.52;8,475.72,670.43,64.27,2.51;8,92.48,682.38,73.94,2.51;8,169.75,675.37,22.68,9.52" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Diederik</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<title level="m" coord="8,254.81,663.41,206.38,9.52">Adam: A method for stochastic optimization</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="8,92.48,693.53,447.52,9.52;8,92.48,705.48,90.22,9.52;8,186.03,712.50,180.40,2.51;8,369.76,705.48,22.68,9.52" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,450.17,693.53,89.83,9.52;8,92.48,705.48,72.52,9.52">Overview of the trec 2015 liveqa track</title>
+		<author>
+			<persName coords=""><forename type="first">Eugene</forename><surname>Agichten</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Pelleg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yuval</forename><surname>Pinter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,186.03,712.50,175.79,2.51">Proceedings of Text Retrieval Conference</title>
+		<meeting>Text Retrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

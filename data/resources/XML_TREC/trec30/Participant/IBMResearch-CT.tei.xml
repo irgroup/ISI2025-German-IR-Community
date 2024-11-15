@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,164.74,112.05,282.52,15.12">IBM @ TREC Clinical Trials Track 2021</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,155.80,144.53,69.64,10.48;1,225.44,142.38,2.24,7.97"><forename type="first">Laura</forename><surname>Biester</surname></persName>
+							<email>lbiester@umich.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science &amp; Engineering</orgName>
+								<orgName type="institution">University of Michigan</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,242.05,144.53,86.01,10.48"><forename type="first">Venkata</forename><surname>Joopudi</surname></persName>
+							<email>vnjoopud@us.ibm.com</email>
+							<affiliation key="aff1">
+								<orgName type="institution">IBM Research</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,362.71,144.53,88.77,10.48"><forename type="first">Bharath</forename><surname>Dandala</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">IBM Research</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,164.74,112.05,282.52,15.12">IBM @ TREC Clinical Trials Track 2021</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">E6FA08D7A1053A29A24092476D8E9139</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Although clinical trials are crucial to the advancement of medical science, many clinical trials fail because they do not meet recruitment targets. This problem engenders a need for automated systems that can match patients to ongoing trials. The potential benefits of such systems are twofold: first, they would allow for the systematic study of new treatments through completed clinical trials and second, they could improve or even save the lives of patients for whom existing treatments are ineffective. We participate in the TREC Clinical Trials (CT) Track, for which the aim is to match synthetic 5-10 sentence patient descriptions with clinical trials from ClinicalTrials.gov, a clinical trials repository that includes all clinical trials in the United States. Our system uses BM25 and semantic textual similarity (STS) models to retrieve two thousand candidates from hundreds of thousands of clinical trials. We then proceed to rerank those trials using neural reranking models with BERT-based encoders and novel attention mechanisms. In addition to training our models on an existing related corpus <ref type="bibr" coords="1,420.09,379.38,95.01,7.86;1,96.91,390.33,19.63,7.86" target="#b2">[Koopman and Zuccon, 2016]</ref>, we leverage data from MIMIC-III to generate a larger training corpus. In the end, we found that our BM25-based ranker utilizing a Lucene index outperformed our neural models, likely due to a lack of high-quality training data.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In the TREC 2021 CT-Track, we are tasked with matching free-text patient descriptions consisting of 5-10 sentences with real clinical trials from ClinicalTrials.gov. The problem of clinical trial matching is important because many clinical trials fail when they do not meet their recruitment targets. An automated system that matches patients to appropriate clinical trials would help clinicians and patients alike.</p><p>Several works have approached the task of matching patients to clinical trials, but most differ from the TREC 2021 CT-Track in how the data are formatted. COMPOSE <ref type="bibr" coords="1,362.69,526.11,73.73,8.74" target="#b1">[Gao et al., 2020]</ref> and DeepEnroll <ref type="bibr" coords="1,510.12,526.11,29.88,8.74;1,72.00,538.07,51.41,8.74" target="#b13">[Zhang et al., 2020]</ref> use deep learning methods to match trials with patient records; their data notably differ from ours in that the patients are represented with structured electronic health records (EHRs) as opposed to freetext descriptions. The 2018 n2c2 shared task, "Cohort selection for clinical trials," used clinical narratives for 288 patients, but annotated a set of only 13 specific eligibility criteria <ref type="bibr" coords="1,405.16,573.94,87.85,8.74" target="#b10">[Stubbs et al., 2019]</ref>. <ref type="bibr" coords="1,504.06,573.94,31.40,8.74" target="#b5">In 2017</ref><ref type="bibr" coords="1,72.00,585.89,18.15,8.74" target="#b6">In , 2018</ref>, and 2019, the TREC Precision Medicine (PM) Track involved retrieving relevant clinical trials for a set of patients; however, the topics were limited to cancer patients who were represented with semi-structured data (disease, variant, and demographics) as opposed to unconstrained free-text descriptions <ref type="bibr" coords="1,475.44,609.80,64.56,8.74;1,72.00,621.76,18.15,8.74" target="#b5">[Roberts et al., 2017</ref><ref type="bibr" coords="1,98.01,621.76,18.15,8.74" target="#b6">[Roberts et al., , 2018</ref><ref type="bibr" coords="1,124.03,621.76,21.22,8.74" target="#b7">[Roberts et al., , 2019]]</ref>.</p><p>The setup that is most similar to the TREC 2021 CT-Track comes from <ref type="bibr" coords="1,411.19,633.71,124.78,8.74" target="#b2">Koopman and Zuccon [2016]</ref>; in this setup, free-text patient descriptions are matched with a snapshot of trials from ClinicalTrials.gov. However, in addition to the longer patient descriptions, the authors also obtain ad-hoc queries from medical professionals, which represent search terms that those professionals would use to find appropriate trials for each patient. Using a number of baseline models, the authors find that the results using ad-hoc queries exceed those using longer text descriptions for each model and metric evaluated. The prior work in this field reveals an opportunity to build better models for linking free-text patient descriptions to clinical trials without physician intervention.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Data</head><p>We evaluate our system on the official 2021 TREC CT-Track topics and clinical trials collection; we also utilize two external datasets. Statistics for the datasets are displayed in Table <ref type="table" coords="2,415.63,264.45,3.87,8.74" target="#tab_0">1</ref>.</p><p>TREC The TREC 2021 CT-Track data consists of 75 topics and 375,580 clinical trial XML files from ClinicalTrials.gov. The topics are 5-10 sentence synthetic patient descriptions, developed by individuals with medical training. They are intended to mimic an admission note.</p><p>The trials are XML files corresponding to current and historical clinical trials in the United States and elsewhere. Most notably, the trial XML includes an eligibility criteria field. We parse the criteria to separately extract the inclusion and exclusion criteria, relying on the fact that the criteria typically contains a header such as "Exclusion Criteria:" which delimits the two sections. We also make use of additional information provided in the trial XML files for determining the relevance of each trial to the patients, including the conditions, interventions, MeSH terms, and keywords.</p><p>In the evaluation phase, each evaluated topic-trial pair is given one of three labels by experts: "eligible" (meets all inclusion criteria and doesn't meet any exclusion criteria), "excludes" (meets all inclusion criteria but also meets some exclusion criteria), and "not relevant." Because the TREC collection did not include any labeled data prior to submission, we rely on two external datasets for training our neural rerankers.</p><p>SIGIR The first external dataset we utilize is the SIGIR data collection from <ref type="bibr" coords="2,440.91,459.70,99.09,8.74;2,72.00,471.66,24.20,8.74" target="#b2">Koopman and Zuccon [2016]</ref>. The dataset includes 60 topics in three different formats: ad-hoc queries (short queries generated by medical assessors), summaries (average of 22 words), and descriptions (average of 78 words). We use the descriptions in our work as they most closely mimic the TREC topics. The topics were drawn from the 2014 TREC Clinical Decision Support Track <ref type="bibr" coords="2,286.42,507.53,91.87,8.74" target="#b9">[Simpson et al., 2014]</ref>. The trials are again extracted from ClinicalTrials.gov, but as they were collected on December 16, 2015, there are fewer trials included than there are in the TREC collection from April 27, 2021.</p><p>We note that the labeling scheme differs from that of the TREC CT-Track. In both cases, there are some trials labeled as not relevant and some labeled as fully relevant, e.g. "Highly likely to refer this patient for this clinical trial" or "eligible." However, <ref type="bibr" coords="2,276.26,567.30,126.92,8.74" target="#b2">Koopman and Zuccon [2016]</ref> includes an intermediate label indicating "Would consider referring this patient to this clinical trial upon further investigation," while TREC's intermediate label indicates that a patient is excluded, as they meet the inclusion criteria but also some exclusion criteria. In practice, the dataset is so small<ref type="foot" coords="2,330.57,601.59,3.97,6.12" target="#foot_0">1</ref> that we combine the eligible and intermediate labels to create a single positive label.</p><p>AutoGT To supplement the small training set, we also create an auto-generated dataset. This dataset is designed by matching the primary diagnosis of MIMIC-III records (notes) with condition MeSH terms in the TREC 2021 clinical trial corpus. Specifically, the diagnosis codes in the structured data and priority codes associated with those diagnosis codes are used to determine the primary diagnosis. To replicate the format of TREC data, we randomly used the history of present illness (HPI) section for some records and a combination of the HPI and past medical history (PMH) sections for others. Using this strategy, we form over 700,000 patient description -clinical trial pairs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Query Generation</head><p>Our query generation module relies on the IBM Watson Annotator for Clinical Data (ACD) service, a medical domain NLP service featuring a variety of annotation tools that detect, normalize, and code medical and social findings from unstructured clinical data. Based on the observations we made through experimentation on SIGIR-2016 corpus, we developed several heuristics to assign weights to the extracted metadata; these weights along with the text spans serve as weighted ad-hoc queries. Specifically, we used the potential diagnosis, diagnosis, patient reported conditions, and therapeutic procedures from ACD annotations of patient descriptions as candidate concepts.</p><p>Next, we derived several features specific to each of these concepts such as entity type, inverse document frequency measured using MIMIC and PubMed, a rare disease boolean derived using a resource from Orphadata, and the section in which the concept is mentioned in the description (e.g., PMH, HPI, symptom probability). As a final step, we normalized and standardized these features and used the sum of the resulting feature values to determine the importance weight of each candidate concept present in the description.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Retrieval Modules</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">Lucene</head><p>The first model that we use is based on retrieval from a Lucene index using BM25 <ref type="bibr" coords="3,435.37,358.44,100.39,8.74" target="#b8">[Robertson et al., 1995]</ref>. We index the trials using the condition and intervention fields from the clinical trial XML files. Then, we retrieve the top n trials for each topic, matching the queries we generated for each topic with the trials in the index. We use query level boosting to boost terms according to the weights extracted from our query generation module.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">STS Ranker</head><p>Employing the queries and weights from our query generation module, we use a transformer-based semantic textual similarity (STS) model to retrieve trials. First, low-dimensional representations are obtained for all the conditions and interventions present in the trials and the extracted metadata of each topic. Then, we measure weight normalized pairwise cosine similarity between a topic and the low-dimensional representations of all trails to rank them.</p><p>Specifically, we compute two versions of the STS score, ST S1 and ST S2. For each patient description, we use the set P of representations of query terms extracted by our query generation module, and corresponding weights W P . Similarly, for each trial, we extract a set T of representations of interventions and conditions and corresponding weights W T . Then, we use the following two equations to compute the STS scores:</p><formula xml:id="formula_0" coords="3,210.02,567.40,186.71,71.44">ST S1 = |P | i=1 W P i • |T | max j=1 cosine(P i , T j ) ST S2 = 1 |T | • |T | i=1 W T i • |P | max j=1 cosine(T i , P j )</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3">Combined Candidates</head><p>In order to combine candidates from the Lucene and STS modules, we compute the average rank for each topic-trial pair using the individual ranks R Lucene , R ST S1 and R ST S2 as follows:</p><formula xml:id="formula_1" coords="3,133.99,705.80,344.03,9.65">R combo = 0.5 * min(R Lucene , n) + 0.25 * min(R ST S1 , n) + 0.25 * min(R ST S2 , n)</formula><p>where n is the number of total reranked trials we want as output. We return the top n trials according to the R combo score. To rerank results from our retrieval modules, we introduce a novel neural reranker. First, we extract entities from the text of the topic as well as the trial using a system trained on the CHIA dataset, a large annotated corpus of clinical trial eligibility criteria for concept and relation extraction <ref type="bibr" coords="4,456.34,281.57,79.42,8.74" target="#b3">[Kury et al., 2020]</ref>. To extract the entities, we used a joint entity and relation extraction model from <ref type="bibr" coords="4,431.28,293.53,87.31,8.74" target="#b11">Wang and Lu [2020]</ref>; the system is trained on trial inclusion and exclusion criteria. An example of this extraction is shown in Figure <ref type="figure" coords="4,532.25,305.48,3.87,8.74" target="#fig_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Neural Rerankers</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Temporal</head><p>We encode the text using a BERT-based model; the text includes the entities extracted by CHIA from the topic, inclusion criteria, and exclusion criteria. Additionally, we encode keywords from the trial's interventions, MeSH terms, keywords, and conditions fields. 2 For our SIGIR model, we encode using ClinicalBERT <ref type="bibr" coords="4,72.00,353.30,97.29,8.74" target="#b0">[Alsentzer et al., 2019]</ref> and for our AutoGT model we encode using BlueBERT with PubMed abstracts and MIMIC-III <ref type="bibr" coords="4,122.63,365.26,76.97,8.74" target="#b4">[Peng et al., 2019]</ref>. We then extract the embeddings for each span, using a convolutional neural network with kernel sizes of 1, 2, 3, and 4 to combine representations for spans with multiple tokens.</p><p>Next, inspired by <ref type="bibr" coords="4,164.81,389.17,79.23,8.74" target="#b13">Zhang et al. [2020]</ref>, we use attention mechanisms to compute alignment between spans in the topics and the criteria, interventions, MeSH terms, keywords, and conditions. These alignments are computed separately; in a final layer, we combine agreement scores across the various parts of the trial. A diagram of our reranking module is provided in Figure <ref type="figure" coords="4,313.67,425.03,3.87,8.74" target="#fig_1">2</ref>.</p><p>As our loss function, we use WARP loss <ref type="bibr" coords="4,266.57,436.99,88.27,8.74" target="#b12">[Weston et al., 2011]</ref>, which was designed for learning to rank. We input one positive example and three negative examples to the warp loss function.   <ref type="table" coords="5,100.40,267.50,3.87,8.74">3</ref>: The results of our runs (NDCG@10, PREC@10, Reciporical Rank) across all topics. The best performance across all metrics is from the IBMLucene system.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Results</head><p>We submitted five runs for evaluation (see a summary in Table <ref type="table" coords="5,343.09,331.21,3.87,8.74" target="#tab_1">2</ref>). IBMLucene and IBMSTS use the retrieval methods described in Section 3.2.1 and Section 3.2.2 respectively. We retrieve the top 1000 results per topic using each method. In IBMSIGIR, we train the neural reranker described in Section 3.3 with the SIGIR data for training. We choose the best checkpoint based on evaluation on a subset of held out SIGIR data, then rerank the top 2000 results per topic after combining the Lucene and STS results with the method described in Section 3.2.3. In IBMAUTOGT, we use the auto-generated data as training data for the reranking system, then rank the same 2000 trials for each topic. IBMSIGIRACT uses the same model as IBMAUTOGT, but only includes currently active trials, to mimic a real-world scenario. Somewhat surprisingly, we found that our simplest system (querying the Lucene index) yielded the best results across three metrics (NDCG@10, PREC@10, Reciprocal Rank). The full results for these three metrics are listed in Table <ref type="table" coords="5,190.67,450.76,3.87,8.74">3</ref>. The results are consistent across these metrics, with IBMLucene &gt; IBMSTS &gt; IBMSIGIR &gt; IBMAUTOGT &gt; ABMSIGIRACT. Given the limited labeled training data, our results showed that we were unable to leverage deep learning systems for this task.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,72.00,221.80,467.99,8.74;4,72.00,233.75,24.99,8.74"><head>History of neurologic disorders including dementia orFigure 1 :</head><label>1</label><figDesc>Figure 1: An example of the entities and relations extracted by our CHIA model on criteria from clinical trials.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,72.00,600.20,468.00,8.74;4,72.00,612.15,468.00,8.74;4,72.00,624.11,468.00,8.74;4,72.00,636.06,420.87,8.74"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Our reranking architecture. First, patient descriptions and clinical trial descriptions are fed into our CT-BERT module, which extracts relevant entities using our CHIA relation extraction module and encodes them using a BERT-based encoder. The resulting representations are fed into the alignment module, which computes attention scores between the criteria and clinical factors from the patient descriptions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,72.00,77.15,468.00,85.54"><head>Table 1 :</head><label>1</label><figDesc>Statistics of three datasets used by our system; the TREC dataset was used for our submitted results and final evaluation, while the SIGIR and AutoGT datasets were used for training our neural rerankers.</figDesc><table coords="2,164.87,77.15,282.26,49.60"><row><cell>Dataset</cell><cell cols="3">Patient Descriptions Clinical Trials Labeled Pairs</cell></row><row><cell>TREC</cell><cell>75</cell><cell>375K</cell><cell>0</cell></row><row><cell>SIGIR</cell><cell>60</cell><cell>204K</cell><cell>3870</cell></row><row><cell cols="2">AutoGT 18K</cell><cell>375K</cell><cell>700K</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,72.00,75.52,459.38,200.72"><head>Table 2 :</head><label>2</label><figDesc>Summary of the components that make up our five submitted runs.</figDesc><table coords="5,381.67,75.52,84.86,5.97"><row><cell>Included in Neural Reranker</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,87.24,708.32,244.99,6.99"><p>4000 judged documents, most of which are judged to be irrelevant</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="5,87.24,705.09,452.76,6.99;5,72.00,714.56,69.54,6.99"><p>Exclusion criteria and conditions are not used with the AutoGT model based on results from initial experiments on a set of the SIGIR data.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,72.00,529.04,468.00,8.74;5,81.96,540.99,458.04,8.74;5,81.96,552.95,458.03,8.74;5,81.96,564.90,452.23,9.02" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,142.56,540.99,197.44,8.74">Publicly available clinical BERT embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">Emily</forename><surname>Alsentzer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Murphy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><surname>Boag</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei-Hung</forename><surname>Weng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Di</forename><surname>Jindi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tristan</forename><surname>Naumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matthew</forename><surname>Mcdermott</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W19-1909</idno>
+		<ptr target="https://aclanthology.org/W19-1909" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,365.59,540.99,174.41,8.74;5,81.96,552.95,134.61,8.74">Proceedings of the 2nd Clinical Natural Language Processing Workshop</title>
+		<meeting>the 2nd Clinical Natural Language Processing Workshop<address><addrLine>Minneapolis, Minnesota, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019-06">June 2019</date>
+			<biblScope unit="page" from="72" to="78" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,583.88,468.00,8.74;5,81.96,595.84,458.03,8.74;5,81.96,607.79,458.03,8.74;5,81.96,619.75,458.04,9.02;5,81.96,632.42,81.22,8.30" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,317.61,583.88,222.39,8.74;5,81.96,595.84,93.18,8.74">Compose: Cross-modal pseudo-siamese network for patient trial matching</title>
+		<author>
+			<persName coords=""><forename type="first">Junyi</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cao</forename><surname>Xiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lucas</forename><forename type="middle">M</forename><surname>Glass</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimeng</forename><surname>Sun</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3394486.3403123</idno>
+		<ptr target="https://doi.org/10.1145/3394486.3403123" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,195.99,595.84,344.00,8.74;5,81.96,607.79,153.05,8.74">Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining, KDD &apos;20</title>
+		<meeting>the 26th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data Mining, KDD &apos;20<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="803" to="812" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,72.00,650.69,468.00,8.74;5,81.96,662.64,458.04,8.74;5,81.96,674.60,458.03,8.74;5,81.96,686.55,440.85,9.02" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,230.11,650.69,231.29,8.74">A test collection for matching patients to clinical trials</title>
+		<author>
+			<persName coords=""><forename type="first">Bevan</forename><surname>Koopman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Guido</forename><surname>Zuccon</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2911451.2914672</idno>
+		<ptr target="https://doi.org/10.1145/2911451.2914672" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,479.46,650.69,60.54,8.74;5,81.96,662.64,458.04,8.74;5,81.96,674.60,44.40,8.74">Proceedings of the 39th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;16</title>
+		<meeting>the 39th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;16<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="669" to="672" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,75.16,468.00,8.74;6,81.96,87.11,458.03,8.74;6,81.96,99.07,458.04,9.02;6,81.96,111.74,98.41,8.30" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,157.45,87.11,281.54,8.74">Chia, a large annotated corpus of clinical trial eligibility criteria</title>
+		<author>
+			<persName coords=""><forename type="first">Fabrício</forename><surname>Kury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alex</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chi</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li-Heng</forename><surname>Fu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yingcheng</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ida</forename><surname>Sim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Simona</forename><surname>Carini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chunhua</forename><surname>Weng</surname></persName>
+		</author>
+		<idno type="DOI">10.1038/s41597-020-00620-0</idno>
+		<idno>41597-020-00620-0</idno>
+		<ptr target="https://doi.org/10.1038/s" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,448.15,87.11,62.87,8.74">Scientific Data</title>
+		<idno type="ISSN">2052-4463</idno>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">281</biblScope>
+			<date type="published" when="2020-08">Aug 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,130.95,468.00,8.74;6,81.96,142.90,458.03,8.74;6,81.96,154.86,458.03,8.74;6,81.96,166.81,383.59,9.02" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,271.92,130.95,268.08,8.74;6,81.96,142.90,292.22,8.74">Transfer learning in biomedical natural language processing: An evaluation of BERT and ELMo on ten benchmarking datasets</title>
+		<author>
+			<persName coords=""><forename type="first">Yifan</forename><surname>Peng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shankai</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyong</forename><surname>Lu</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/W19-5006</idno>
+		<ptr target="https://aclanthology.org/W19-5006" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,398.16,142.90,141.84,8.74;6,81.96,154.86,119.22,8.74">Proceedings of the 18th BioNLP Workshop and Shared Task</title>
+		<meeting>the 18th BioNLP Workshop and Shared Task<address><addrLine>Florence, Italy</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019-08">August 2019</date>
+			<biblScope unit="page" from="58" to="65" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,186.74,468.00,8.74;6,81.96,198.69,458.04,8.74;6,81.96,211.37,296.16,8.30" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,204.11,198.69,231.89,8.74">Overview of the TREC 2017 precision medicine track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><forename type="middle">R</forename><surname>Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Lazar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Pant</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec26/papers/Overview-PM.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,457.26,198.69,24.84,8.74">TREC</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,230.58,468.00,8.74;6,81.96,242.53,458.04,9.02;6,81.96,255.20,202.02,8.30" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,113.00,242.53,228.59,8.74">Overview of the TREC 2018 precision medicine track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>William R Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Lazar</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec27/papers/Overview-PM.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,361.52,242.53,24.84,8.74">TREC</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,274.41,467.99,8.74;6,81.96,286.37,458.04,8.74;6,81.96,299.04,295.67,8.30" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,204.11,286.37,231.89,8.74">Overview of the TREC 2019 precision medicine track</title>
+		<author>
+			<persName coords=""><forename type="first">Kirk</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dina</forename><surname>Demner-Fushman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steven</forename><surname>William R Hersh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alexander</forename><forename type="middle">J</forename><surname>Bedrick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shubham</forename><surname>Lazar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Pant</surname></persName>
+		</author>
+		<ptr target="https://trec.nist.gov/pubs/trec28/papers/OVERVIEW.PM.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,457.26,286.37,24.84,8.74">TREC</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,318.25,468.00,8.74;6,81.96,330.20,229.10,8.74" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,514.26,318.25,25.74,8.74;6,81.96,330.20,35.92,8.74">Okapi at trec-3</title>
+		<author>
+			<persName coords=""><forename type="first">Steve</forename><surname>Stephen E Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Susan</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Micheline</forename><forename type="middle">M</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mike</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Gatford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,126.26,330.20,115.56,8.74">Nist Special Publication Sp</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,350.13,468.00,8.74;6,81.96,362.08,135.75,8.74" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,350.20,350.13,189.80,8.74;6,81.96,362.08,57.67,8.74">Overview of the trec 2014 clinical decision support track</title>
+		<author>
+			<persName coords=""><forename type="first">Ellen</forename><forename type="middle">M</forename><surname>Matthew S Simpson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">William</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Hersh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,160.66,362.08,24.84,8.74">TREC</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,379.49,468.00,11.26;6,81.96,393.96,458.04,8.74;6,81.96,405.92,458.04,9.02;6,81.96,418.59,91.68,8.30" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,452.20,382.01,87.79,8.74;6,81.96,393.96,194.25,8.74">Cohort selection for clinical trials: n2c2 2018 shared task track 1</title>
+		<author>
+			<persName coords=""><forename type="first">Amber</forename><surname>Stubbs</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michele</forename><surname>Filannino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ergin</forename><surname>Soysal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Samuel</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Özlem</forename><surname>Uzuner</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/jamia/ocz163</idno>
+		<ptr target="https://doi.org/10.1093/jamia/ocz163" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,285.33,393.96,250.28,8.74">Journal of the American Medical Informatics Association</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1163" to="1171" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,437.80,468.00,8.74;6,81.96,449.75,458.04,8.74;6,81.96,461.71,458.03,8.74;6,81.96,473.66,415.15,9.02" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,179.22,437.80,360.78,8.74;6,81.96,449.75,35.74,8.74">Two are better than one: Joint entity and relation extraction with table-sequence encoders</title>
+		<author>
+			<persName coords=""><forename type="first">Jue</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Lu</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.emnlp-main.133</idno>
+		<ptr target="https://aclanthology.org/2020.emnlp-main.133" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,141.13,449.75,398.87,8.74;6,81.96,461.71,41.14,8.74">Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</title>
+		<meeting>the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020-11">November 2020</date>
+			<biblScope unit="page" from="1706" to="1721" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,493.59,468.00,8.74;6,81.96,505.54,353.70,8.74" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,290.72,493.59,244.75,8.74">Wsabie: Scaling up to large vocabulary image annotation</title>
+		<author>
+			<persName coords=""><forename type="first">Jason</forename><surname>Weston</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Samy</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicolas</forename><surname>Usunier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,94.42,505.54,311.22,8.74">Twenty-Second International Joint Conference on Artificial Intelligence</title>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,72.00,525.47,468.00,8.74;6,81.96,537.42,458.04,8.74;6,81.96,549.38,458.04,8.74;6,81.96,561.34,348.43,9.02" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,342.98,525.47,197.02,8.74;6,81.96,537.42,164.64,8.74">Deepenroll: Patient-trial matching with deep embedding and entailment prediction</title>
+		<author>
+			<persName coords=""><forename type="first">Xingyao</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cao</forename><surname>Xiao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Lucas</forename><forename type="middle">M</forename><surname>Glass</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimeng</forename><surname>Sun</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3366423.3380181</idno>
+		<ptr target="https://doi.org/10.1145/3366423.3380181" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,272.16,537.42,239.32,8.74">Proceedings of The Web Conference 2020, WWW &apos;20</title>
+		<meeting>The Web Conference 2020, WWW &apos;20<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1029" to="1037" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

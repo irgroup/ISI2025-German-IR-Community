@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,417.16,15.42;1,89.29,106.66,375.23,15.42;1,89.29,128.58,70.65,15.43;1,89.29,150.91,212.38,11.96">BioASQ 11B: Integrating Domain Specific Vocabulary to BERT-based Model for Biomedical Document Ranking. Notebook for the BioASQ Lab at CLEF 2023</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,176.82,82.75,11.96"><forename type="first">Maël</forename><surname>Lesavourey</surname></persName>
+							<email>mael.lesavourey@irit.fr</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">IRIT lab</orgName>
+								<address>
+									<addrLine>118 Route de Narbonne</addrLine>
+									<postCode>F-31062</postCode>
+									<settlement>TOULOUSE CEDEX 9</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,184.69,176.82,65.40,11.96"><forename type="first">Gilles</forename><surname>Hubert</surname></persName>
+							<email>gilles.hubert@irit.fr</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">IRIT lab</orgName>
+								<address>
+									<addrLine>118 Route de Narbonne</addrLine>
+									<postCode>F-31062</postCode>
+									<settlement>TOULOUSE CEDEX 9</settlement>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,417.16,15.42;1,89.29,106.66,375.23,15.42;1,89.29,128.58,70.65,15.43;1,89.29,150.91,212.38,11.96">BioASQ 11B: Integrating Domain Specific Vocabulary to BERT-based Model for Biomedical Document Ranking. Notebook for the BioASQ Lab at CLEF 2023</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">890BA8303DDB73C6C7A76A6D177778D2</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:35+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>biomedical document ranking</term>
+					<term>information retrieval</term>
+					<term>thesaurus-based knowledge</term>
+					<term>BERT cross-encoder</term>
+					<term>multi-stage retrieval</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper we present the results obtained during BioASQ Task 11B Phase A on document ranking. We proposed a two-stage retrieval approach composed of a retriever and a reranker. The former is based on BM25 and developed with Pyserini. The latter is an implementation of a BERT cross-encoder named CEDR. It tackles the issue of input length limitation and takes advantage of the word embeddings in output of the model to compute a relevance score. We investigate a strategy to integrate biomedical thesaurus (MeSH) knowledge into this model.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The number of biomedical publications keeps growing year after year. This allows researchers to have access to a vast amount of knowledge but a drawback is that it becomes more and more difficult to get a precise result when querying information sources. The Covid-19 pandemic reminded us that it is necessary to facilitate the navigation of researchers through publication databases in order to help their bibliographic work so they can easily assimilate information.</p><p>The BioASQ<ref type="foot" coords="1,153.96,476.46,3.71,7.97" target="#foot_0">1</ref> initiative <ref type="bibr" coords="1,202.37,478.21,12.68,10.91" target="#b0">[1]</ref> aims to push forward biomedical information retrieval by running an annual evaluation campaign to solve several tasks. Task B of the challenge <ref type="bibr" coords="1,445.71,491.76,12.99,10.91" target="#b1">[2]</ref> especially focuses on question answering (QA) through two phases. Phase A tackles the issue of document retrieval and text snippets extraction while Phase B relates to answer generation and summarization.</p><p>TaskB-PhaseA is particularly interesting for us because it provides an evaluation framework on a similar problem we would like to address in the context of the FORUM portal <ref type="foot" coords="1,451.10,557.75,3.71,7.97" target="#foot_1">2</ref> . FORUM is a Semantic Web framework based on a knowledge graph that "provides links between chemical compounds and biomedical concepts supported by literature" <ref type="bibr" coords="2,373.44,86.97,11.58,10.91" target="#b2">[3]</ref>. The links are built using articles metadata and combining a thesaurus and different ontologies of the biomedical domain. In addition, it is possible to retrieve the list of articles that support each link.</p><p>We intend to extend FORUM by taking advantage of the textual content of the articles and provide suggestion on prior articles for each pair chemical compound -biomedical concept. The whole system will be a multi-stage retrieval approach where the knowledge graph plays the role of a first-stage retriever. The main difference with BioASQ TaskB is that the first-stage retrieval is already completed and the articles to prioritize are necessarily within the retrieved list. Despite this detail, we can still benefit from BioASQ benchmarks to evaluate document ranking approaches.</p><p>In this paper we present the system used for Task 11B Phase A on document ranking based on a retrieve and rerank strategy. We applied a first stage retrieval based on BM25 <ref type="bibr" coords="2,462.39,236.01,12.95,10.91" target="#b3">[4]</ref> which is a straightforward yet effective approach. In order to rerank the documents we used CEDR-KNRM <ref type="bibr" coords="2,123.70,263.11,11.58,10.91" target="#b4">[5]</ref>, a BERT-based model for full-length documents that combines the [CLS] token representation and the contextual embeddings of the query and document terms. We propose to integrate thesaurus knowledge to this model via a marking strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Materials and Method</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">System description</head><p>Our method to address this task is composed of two main modules: a retriever and a reranker. This is a common approach that consists in decomposing document ranking into several parts <ref type="bibr" coords="2,115.92,396.90,11.58,10.91" target="#b5">[6]</ref>. The retriever aims at creating a smaller candidate list (hundreds of documents) from the whole corpus (generally more than ten million). It is usually based on bag of words (BoW) representations <ref type="bibr" coords="2,194.27,423.99,12.99,10.91" target="#b6">[7]</ref> which are less efficient than deep contextualized representations but drastically reduce computational cost. The candidate list is then reranked using a highperformance model. State-of-the-art models to achieve this task are transformer-based methods like BERT <ref type="bibr" coords="2,134.29,464.64,11.28,10.91" target="#b7">[8]</ref>, especially when using a cross-encoder architecture where the query and candidate document are passed together as input. Computing a relevance score is usually done by adding a single linear layer on top of the model output.</p><p>As mentioned in the introduction our goal is to develop a robust and effective reranker. For our retriever, we decided to take advantage of a well-known system rather than proposing a new approach. We used Pyserini <ref type="bibr" coords="2,240.87,532.39,11.59,10.91" target="#b8">[9]</ref>, a Python library for reproducing information retrieval research. We created our own indices with PubMed articles and used BM25 implementation to retrieve the top 500 articles most likely to respond to the query.</p><p>Classical BERT approaches for text ranking take query and candidate document as input with the following sequence: [CLS] query [SEP] document [SEP]. The system is trained to predict if a document is relevant or not by using the [CLS] token embedding. Documents are ranked using their probability of being relevant to a certain query. We identify several challenges of common approaches regarding Task 11B Phase A. BERT produces contextual embeddings for each word given in input along with the [CLS] token representation. Taking advantage of these embeddings to compute the probability of a document being pertinent could extend the classical approach. Another limitation is the maximum number of tokens that BERT can handle at once, i.e., 512. This limit is easily exceeded with scientific publications even if we consider only their title and abstract. Finally, we would like to investigate if the BERT-based model can benefit from the knowledge of biomedical structured vocabularies. We illustrate the pipeline used for our method in Figure <ref type="figure" coords="3,186.67,127.61,3.74,10.91" target="#fig_0">1</ref>. We decided to base our method on the Contextualized Embeddings for Document Ranking (CEDR) model as it addresses two challenges: input length limitation and the use of term embeddings. <ref type="bibr" coords="3,149.45,377.70,12.98,10.91" target="#b4">[5]</ref> proposed to keep the query as a whole and to divide too long documents in chunks of the same length, then apply a cross-encoder on each query-chunk pairs. The final [CLS] representation is obtained by computing an average pooling on the [CLS] vector of each of these pairs. Moreover, they created a similarity matrix between the query and document by concatenating the outputs of the cross-encoders. They passed the similarity matrix along with the classification token as input of 3 neural ranking models. Best performance were obtained with K-NRM <ref type="bibr" coords="3,147.55,458.99,16.14,10.91" target="#b9">[10]</ref>, a kernel-based ranking model that takes advantage of word embeddings and soft match features to produce a ranking score.</p><p>We implemented a version of the CEDR model using K-NRM algorithm to create a baseline to evaluate our work. We propose to extend this method by taking advantage of the Medical Subject Headings<ref type="foot" coords="3,164.85,511.43,3.71,7.97" target="#foot_2">3</ref> (MeSH) thesaurus, a controlled vocabulary produced by the National Library of Medicine<ref type="foot" coords="3,141.46,524.98,3.71,7.97" target="#foot_3">4</ref> (NLM) to index every citation appearing in MEDLINE/PubMed. Some works <ref type="bibr" coords="3,488.14,526.74,17.85,10.91" target="#b10">[11]</ref> highlighted the significant effect of input sequence organisation in the performance of BERTbased systems. <ref type="bibr" coords="3,155.65,553.84,17.76,10.91" target="#b11">[12]</ref> proposed to exploit exact term-matches between the query and the document by marking the input of a BERT cross-encoder. We propose to integrate MeSH thesaurus knowledge the same way. Given a query and a document we implemented a marking strategy of biomedical terms assuming that if a word is referenced in the MeSH thesaurus it will carry a more important information. Differing from <ref type="bibr" coords="3,285.40,608.03,16.12,10.91" target="#b11">[12]</ref>, we limited the marking to the main headings and entry terms referenced in MeSH. We used the same tag for a main heading and its entry terms in order to highlight not only the exact matches but also synonyms. An example of the marking strategy is given in Figure <ref type="figure" coords="4,248.32,86.97,3.74,10.91" target="#fig_1">2</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Data</head><p>We worked with the PubMed Annual Baseline <ref type="foot" coords="4,300.14,321.78,3.71,7.97" target="#foot_4">5</ref> for 2023 for which we removed all citations that do not contain an abstract. We also worked with the dataset provided by BioASQ <ref type="foot" coords="4,471.48,335.33,3.71,7.97" target="#foot_5">6</ref> which contains all the questions of the previous editions along with their gold standards (relevant articles).</p><p>We built a training set composed of relevant and irrelevant articles for each query. The relevant articles are the ones given by BioASQ. Irrelevant articles were chosen in the top 100 articles retrieved by BM25 for each query. We selected two times more irrelevant articles than relevant ones. Indeed <ref type="bibr" coords="4,186.70,418.38,17.87,10.91" target="#b12">[13]</ref> has shown that randomly choosing negative samples leads to worst results than selecting hard negative ones. So we selected negative samples close to the positive ones in terms of BoW representations.</p><p>In order to mark the queries and candidate documents we downloaded the latest release of MeSH thesaurus and we kept their main headings and entry terms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Results</head><p>Task 11B Phase A was organized on 4 different batches. Each participating system had to return a ranked list of at most 10 relevant articles and/or text snippets. The evaluation metric used for the official scores is the Mean Average Precision (MAP) due to its capability to take into account the order of the submitted items.</p><p>In Table <ref type="table" coords="4,138.89,585.40,5.07,10.91" target="#tab_0">1</ref> we present the results of our runs for batches 2, 3, and 4 of the Task 11B Phase A on document ranking. We submitted predictions with two systems: CEDR and Mark-CEDR. The first is an implementation of the CEDR-KNRM model proposed by <ref type="bibr" coords="4,414.39,612.50,11.58,10.91" target="#b4">[5]</ref>. The latter is the same model trained with marked queries and documents as described in section 2.1. The best result for our proposed method was obtained during batch 2 of the challenge where we achieved a 0.2405 MAP score. During batch 3 and batch 4 Mark-CEDR performed the same way while the base model (CEDR) gained more than 0.05 points.</p><p>In order to understand these results we led further investigations regarding question type (Table <ref type="table" coords="5,119.29,277.13,4.20,10.91" target="#tab_1">2</ref>) and query length (Table <ref type="table" coords="5,240.38,277.13,3.61,10.91" target="#tab_2">3</ref>). From Table <ref type="table" coords="5,307.73,277.13,5.12,10.91" target="#tab_1">2</ref> we learn that both models always perform better when treating yes/no questions. There is a huge drop (-0.092) between batch 3 and 4 for list questions treated by Mark-CEDR while the base model maintains its performance. That partially explains why CEDR performed better during the last batch. Table <ref type="table" coords="5,126.51,458.10,4.97,10.91" target="#tab_2">3</ref> indicates that, from batch 2 to batch 4, the mean number of MeSH terms detected per query is decreasing along with the mean number of tokens in each question. When question length grows we detect more MeSH and it seems that Mark-CEDR achieves better results in that case. On the contrary best score for CEDR was obtained with smaller queries. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusion/Discussion</head><p>The first version of our approach that consists in integrating external structured knowledge provides average performance results on all batches and, unfortunately, inconsistent ones. The scores obtained in batch 3 were promising because the mark version was performing better by 0.03 points. However it was quite the opposite during the last batch which reveals that the performance of this first implementation is unstable. This observation is in line with the questioning of <ref type="bibr" coords="6,156.17,179.03,17.91,10.91" target="#b10">[11]</ref> about the effectiveness of exact matching against strong baselines. However we identified several points that can be addressed to improve our model. The first one would be to use a stronger retriever. We observed that for many questions some of the expected articles were not in the top 500 retrieved. In that cases the reranker cannot perform properly. In order to improve the reranker we could explore new types of marking strategies to investigate the instability issue. Moreover we could take MeSH structure into account. Indeed we only used MeSH as a controlled vocabulary but we did not take advantage of its hierarchical tree structure. Finally, it would be wise to exploit a BERT model pre-trained on a biomedical corpus like BioLinkBERT <ref type="bibr" coords="6,203.44,287.42,17.86,10.91" target="#b13">[14]</ref> or PubMedBERT <ref type="bibr" coords="6,300.62,287.42,17.86,10.91" target="#b14">[15]</ref> which achieved state-of-the-art results on the BLURB benchmark<ref type="foot" coords="6,191.20,299.21,3.71,7.97" target="#foot_6">7</ref>  <ref type="bibr" coords="6,198.14,300.97,16.25,10.91" target="#b15">[16]</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,320.95,279.77,8.93;3,89.29,150.32,416.71,158.06"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Overview of our proposed two-stage retrieval architecture</figDesc><graphic coords="3,89.29,150.32,416.71,158.06" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,89.29,257.71,399.17,8.93;4,89.29,109.68,416.70,135.47"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Example of the marking strategy using a query and the title of its most relevant article.</figDesc><graphic coords="4,89.29,109.68,416.70,135.47" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="5,88.99,90.49,332.26,105.74"><head>Table 1</head><label>1</label><figDesc>Results of our systems in Task 11B Phase A for document ranking</figDesc><table coords="5,174.03,122.10,247.22,74.12"><row><cell>Batch</cell><cell>Model</cell><cell cols="3">MAP System Rank Team Rank</cell></row><row><cell>2</cell><cell cols="2">Mark-CEDR 0.2405</cell><cell>19/33</cell><cell>5</cell></row><row><cell>3</cell><cell cols="2">Mark-CEDR 0.1332</cell><cell>25/35</cell><cell>6</cell></row><row><cell>3</cell><cell>CEDR</cell><cell>0.1020</cell><cell>26/35</cell><cell>6</cell></row><row><cell>4</cell><cell cols="2">Mark-CEDR 0.1339</cell><cell>17/27</cell><cell>4</cell></row><row><cell>4</cell><cell>CEDR</cell><cell>0.1564</cell><cell>16/27</cell><cell>4</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,88.99,346.78,431.23,92.56"><head>Table 2</head><label>2</label><figDesc>MAP scores per question type</figDesc><table coords="5,95.27,378.35,424.95,61.00"><row><cell></cell><cell>Yes/No</cell><cell></cell><cell>List</cell><cell></cell><cell cols="2">Summary</cell><cell>Factoid</cell><cell></cell></row><row><cell cols="9">Batch Mark-CEDR CEDR Mark-CEDR CEDR Mark-CEDR CEDR Mark-CEDR CEDR</cell></row><row><cell>3</cell><cell>0.163</cell><cell>0.167</cell><cell>0.139</cell><cell>0.074</cell><cell>0.139</cell><cell>0.092</cell><cell>0.097</cell><cell>0.07</cell></row><row><cell>4</cell><cell>0.214</cell><cell>0.23</cell><cell>0.047</cell><cell>0.09</cell><cell>0.11</cell><cell>0.108</cell><cell>0.181</cell><cell>0.208</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,88.99,527.76,343.01,81.83"><head>Table 3</head><label>3</label><figDesc>Queries lengths and MeSH terms detected per query</figDesc><table coords="5,163.27,559.37,268.73,50.21"><row><cell cols="3">Batch Mean number of tokens Mean number of MeSH terms</cell></row><row><cell>2</cell><cell>10.72</cell><cell>1.52</cell></row><row><cell>3</cell><cell>10.4</cell><cell>1.3</cell></row><row><cell>4</cell><cell>9.1</cell><cell>1.08</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,92.57,660.06,85.54,8.97"><p>http://www.bioasq.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,92.57,671.02,177.95,8.97"><p>https://forum-webapp.semantic-metabolomics.fr</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,92.57,660.07,176.16,8.97"><p>https://www.nlm.nih.gov/mesh/meshhome.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,92.57,671.03,95.02,8.97"><p>https://www.nlm.nih.gov/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="4,92.57,660.05,167.89,8.97"><p>https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="4,92.57,671.01,160.56,8.97"><p>http://participants-area.bioasq.org/datasets/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="6,92.57,671.03,128.04,8.97"><p>https://microsoft.github.io/BLURB/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,112.66,359.59,394.53,10.91;6,112.66,373.14,395.17,10.91;6,112.66,386.69,393.33,10.91;6,112.66,400.24,394.53,10.91;6,112.66,413.79,394.62,10.91;6,112.66,427.34,393.94,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,373.14,395.17,10.91;6,112.66,386.69,174.59,10.91">The eleventh edition of the large-scale biomedical semantic indexing and question answering challenge</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nentidis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krithara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Paliouras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Farre-Maduell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Lima-Lopez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Krallinger</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-031-28241-6_66</idno>
+		<ptr target="https://doi.org/10.1007/978-3-031-28241-6_66.doi:10.1007/978-3-031-28241-6_66" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,317.81,386.69,188.17,10.91;6,112.66,400.24,266.13,10.91">Advances in Information Retrieval: 45th European Conference on Information Retrieval, ECIR 2023</title>
+		<meeting><address><addrLine>Dublin, Ireland; Berlin, Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer-Verlag</publisher>
+			<date type="published" when="2023-04-02">2023. April 2-6, 2023. 2023</date>
+			<biblScope unit="page" from="577" to="584" />
+		</imprint>
+	</monogr>
+	<note>Bioasq at clef. Part III</note>
+</biblStruct>
+
+<biblStruct coords="6,112.66,440.89,393.32,10.91;6,112.66,454.44,326.44,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,357.16,440.89,148.82,10.91;6,112.66,454.44,189.95,10.91">BioASQ-QA: A manually curated corpus for Biomedical Question Answering</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Krithara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nentidis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Bougiatiotis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Paliouras</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,311.68,454.44,64.68,10.91">Scientific Data</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">170</biblScope>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,467.99,394.53,10.91;6,112.66,481.54,393.33,10.91;6,112.66,495.09,394.53,10.91;6,112.66,508.64,395.00,10.91;6,112.66,522.18,196.99,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,280.27,481.54,225.72,10.91;6,112.66,495.09,390.29,10.91">FORUM: building a Knowledge Graph from public databases and scientific literature to extract associations between chemicals and diseases</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Delmas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Filangi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Paulhe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Vinson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Duperier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Garrier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P.-E</forename><surname>Saunier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Pitarch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Jourdan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Giacomoni</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Frainay</surname></persName>
+		</author>
+		<idno type="DOI">10.1093/bioinformatics/btab627</idno>
+		<ptr target="https://doi.org/10.1093/bioinformatics/btab627.doi:10.1093/bioinformatics/btab627" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,112.66,508.64,65.54,10.91">Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="3896" to="3904" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,535.73,394.53,10.91;6,112.66,549.28,304.60,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,254.97,535.73,247.30,10.91">The probabilistic relevance framework: Bm25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,112.66,549.28,225.74,10.91">Foundations and Trends® in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,562.83,393.53,10.91;6,112.66,576.38,393.33,10.91;6,112.66,589.93,393.33,10.91;6,112.66,603.48,395.01,10.91;6,112.66,617.03,196.08,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,335.61,562.83,170.58,10.91;6,112.66,576.38,79.80,10.91">Cedr: Contextualized embeddings for document ranking</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Cohan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goharian</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331317</idno>
+		<ptr target="https://doi.org/10.1145/3331184.3331317.doi:10.1145/3331184.3331317" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,215.66,576.38,290.33,10.91;6,112.66,589.93,267.87,10.91">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR&apos;19</title>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR&apos;19<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="1101" to="1104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,630.58,393.33,10.91;6,112.66,644.13,365.41,10.91" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="6,287.40,630.58,183.75,10.91">Multi-stage document ranking with BERT</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">F</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1910.14424" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,86.97,393.33,10.91;7,112.66,100.52,394.04,10.91;7,112.41,114.06,184.96,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,345.95,86.97,160.03,10.91;7,112.66,100.52,150.83,10.91">Semantic models for the first-stage retrieval: A comprehensive review</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Cheng</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3486250</idno>
+		<ptr target="https://doi.org/10.1145/3486250.doi:10.1145/3486250" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,271.94,100.52,95.40,10.91">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,127.61,393.33,10.91;7,112.66,141.16,363.59,10.91" xml:id="b7">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bert</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<title level="m" coord="7,353.43,127.61,152.55,10.91;7,112.66,141.16,181.08,10.91">Pre-training of deep bidirectional transformers for language understanding</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,112.66,154.71,393.33,10.91;7,112.66,168.26,394.53,10.91;7,112.66,181.81,395.17,10.91;7,112.39,195.36,394.80,10.91;7,112.66,208.91,395.01,10.91;7,112.66,222.46,155.44,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,386.15,154.71,119.84,10.91;7,112.66,168.26,389.98,10.91">Pyserini: A python toolkit for reproducible information retrieval research with sparse and dense representations</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S.-C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3404835.3463238</idno>
+		<ptr target="https://doi.org/10.1145/3404835.3463238.doi:10.1145/3404835.3463238" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,128.24,181.81,379.60,10.91;7,112.39,195.36,209.11,10.91">Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21</title>
+		<meeting>the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;21<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2356" to="2362" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,236.01,393.33,10.91;7,112.66,249.56,393.33,10.91;7,112.66,263.11,394.52,10.91;7,112.66,276.66,397.48,10.91;7,112.36,292.65,121.09,7.90" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,304.32,236.01,201.67,10.91;7,112.66,249.56,31.23,10.91">End-to-end neural ad-hoc ranking with kernel pooling</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Power</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3077136.3080809</idno>
+		<ptr target="https://doi.org/10.1145/3077136.3080809.doi:10.1145/3077136.3080809" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,165.95,249.56,340.03,10.91;7,112.66,263.11,214.72,10.91">Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;17</title>
+		<meeting>the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;17<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="55" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,303.75,394.53,10.91;7,112.66,317.30,395.01,10.91" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="7,246.47,303.75,255.80,10.91">Pretrained transformers for text ranking: BERT and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">F</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Yates</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2010.06467" />
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,330.85,393.33,10.91;7,112.66,344.40,393.33,10.91;7,112.28,357.95,393.71,10.91;7,111.79,371.50,395.49,10.91;7,112.66,385.05,337.56,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,301.58,330.85,204.41,10.91;7,112.66,344.40,211.93,10.91">Markedbert: Integrating traditional ir cues in pre-trained language models for passage retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Boualili</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">G</forename><surname>Moreno</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Boughanem</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3397271.3401194</idno>
+		<ptr target="https://doi.org/10.1145/3397271.3401194.doi:10.1145/3397271.3401194" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,345.56,344.40,160.43,10.91;7,112.28,357.95,393.71,10.91;7,111.79,371.50,11.54,10.91">Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;20</title>
+		<meeting>the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;20<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1977" to="1980" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,398.60,393.33,10.91;7,112.26,412.15,393.72,10.91;7,112.66,425.70,327.57,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,322.00,398.60,183.99,10.91;7,112.26,412.15,85.46,10.91">Optimizing dense retrieval model training with hard negatives</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,220.57,412.15,285.41,10.91;7,112.66,425.70,229.90,10.91">Proceedings of the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<meeting>the 44th International ACM SIGIR Conference on Research and Development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="1503" to="1512" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,439.25,393.32,10.91;7,112.66,452.79,149.49,10.91" xml:id="b13">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Yasunaga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Leskovec</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Liang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2203.15827</idno>
+		<title level="m" coord="7,267.46,439.25,238.52,10.91;7,112.66,452.79,19.99,10.91">Linkbert: Pretraining language models with document links</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,466.34,395.17,10.91;7,112.66,479.89,393.33,10.91;7,112.66,493.44,369.67,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="7,484.66,466.34,23.18,10.91;7,112.66,479.89,359.23,10.91">Finetuning large neural language models for biomedical natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Tinn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Usuyama</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Naumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Poon</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2112.07869" />
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,506.99,394.53,10.91;7,112.66,520.54,394.53,10.91;7,112.66,534.09,395.01,10.91" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="7,112.66,520.54,390.01,10.91">Domain-specific language model pretraining for biomedical natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Tinn</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Cheng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lucas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Usuyama</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Naumann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Poon</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2007.15779" />
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

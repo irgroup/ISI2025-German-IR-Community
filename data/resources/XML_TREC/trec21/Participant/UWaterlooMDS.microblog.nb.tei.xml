@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,80.32,100.30,449.63,15.12;1,200.39,122.21,209.48,15.12">University of Waterloo: Logistic Regression and Reciprocal Rank Fusion at the Microblog Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,200.76,159.68,78.26,10.48"><forename type="first">Adam</forename><surname>Roegiest</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Cheriton School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,305.68,159.68,103.80,10.48"><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Cheriton School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,80.32,100.30,449.63,15.12;1,200.39,122.21,209.48,15.12">University of Waterloo: Logistic Regression and Reciprocal Rank Fusion at the Microblog Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">BC48DEBE90D4C57AE60809CBF2886CD6</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:07+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>For the second iteration of the Microblog Track, two tasks were given to participants to complete. The first was to perform the same ad hoc search task as the 2011 iteration. The goal of the task was to expand on last year's methods with 60 new topics and to explore different measures of evaluation. The second task was to filter the corpus with respect to the 2011 topics in an attempt to simulate a streaming environment and how simulating user feedback can effect retrieval results.</p><p>For the ad hoc search task, we decided to expand on last year's approach by continuing to use the Wumpus Search Engine<ref type="foot" coords="1,125.54,391.05,3.97,6.12" target="#foot_0">1</ref> and adding in a logistic regression classifier (denoted GCLR in this article), first used in the TREC 2007 Spam Track <ref type="bibr" coords="1,187.26,416.54,9.96,8.74" target="#b4">[5]</ref>. In addition, pseudorelevance feedback was conducted this year by taking a swapdocs approach <ref type="bibr" coords="1,147.85,440.45,13.22,8.74" target="#b2">[3]</ref>, which will be expanded upon later. As well, a semi-automatic logistic regression run was conducted using seed documents provided by a user.</p><p>For the filtering task, only different methods of training GCLR were examined. No manual feedback was conducted for the filtering task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Experimental Setup 2.1 Corpus</head><p>From May 27th to June 3rd, the provided HTML crawler <ref type="foot" coords="1,93.36,598.23,3.97,6.12" target="#foot_1">2</ref> was run after which the tweets were repaired using the provided repair code. Once it was determined that the HTML crawler returned tweets with null text bodies, the supplied repair code was modified to re-fetch tweets with null bodies. The modified repair script was run six times until it was no longer feasible to continue trying to repair tweets.   shows the distribution of tweets in our copy of the corpus. We note that status code 200 denotes manually posted tweets, 302 denotes Twitter supported retweets, 403 denotes tweets the posting user has protected, and 404 denotes deleted tweets. We note that any tweet marked as 403 or 404 has no associated information as it is no longer available for public use.</p><p>No further attempt was made to retrieve the remaining 25,585 tweets as we were unsure as to whether or not the tweets were still available, e.g. not protected or deleted. In addition, we desired to begin working with the corpus and did not believe the missing tweets would significantly affect our results. However, only those tweets which had a 200, 301, or 302 status code had the potential to be returned in any of the runs described in this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Ad Hoc Task Methodology</head><p>The basic idea for our methodology in the ad hoc task was to extend our approach from last year by using a swapdocs approach to pseudo-relevance feedback. The swapdocs approach to pseudo-relevance feedback is to have different systems (in our case, ranking methods on different features and logistic regression) score documents with respect to a topic and then exchange each of the top k (k=20 in our case) results from the different systems as the basis for pseudo-relevance feedback instead of relying on some other form of document selection. Thus, the swapdocs approach can be seen as having two phases; the initial seed document retrieval phase and a pseudorelevance feedback phase. This results in the creation of N 2 results (where N is the number of systems) and as with last year these results were combined using reciprocal-rank fusion (RRF) <ref type="bibr" coords="2,194.11,113.02,9.96,8.74" target="#b5">[6]</ref>. The formula used was as follows:</p><formula xml:id="formula_0" coords="2,114.27,150.56,123.93,23.23">RRF score(t) = Σ i 1 60 + r i (t)</formula><p>where r i (t) is the rank of the tweet t in result set i.</p><p>For the first phase, GCLR 3 was trained on a 5:1 bias 4 of the topic statement to random tweets (selected from before the query time), such that there were 100 copies of the topic statement and 20 random tweets. For the second phase, GCLR was trained on the top 20 tweets from a system and 20 random tweets for each topic. In both phases, GCLR would classify all documents up to the query time.</p><p>Our approach to Wumpus was much the same as it was last year. Feature engineering was performed for each query by creating six different indexes for Wumpus, where the index stores each tweet's features. Table <ref type="table" coords="2,119.31,351.41,4.98,8.74" target="#tab_3">2</ref> briefly describes the features used for each index. Tweets were ranked using five different methods, which are outlined in Table <ref type="table" coords="2,231.04,375.33,3.87,8.74">3</ref>, on each index. In the initial phase, each ranking method for each index was provided just the topic statement. In the second phase, Okapi-style pseudo-relevance feedback <ref type="bibr" coords="2,85.91,423.15,10.52,8.74" target="#b1">[2]</ref> was conducted using the top 20 documents from each of the systems in the initial phase. However, due to Wumpus limitations CDR could not be used in the second phase. Due to poor performance on the 2011 topics, PC was not used in the second phase. In addition, pseudo-relevance feedback was performed using a language model of all tweets before the earliest query time in the 2012 topics.</p><p>We note that the actual queries issued to Wumpus were not just the provided topic but each whitespace delimited word was treated as its own search term. If this was not done then Wumpus would attempt to look for tweets containing exactly the topic phrase and this is not generally a desirable behaviour for a search engine.</p><p>Finally, for each set of results the only the the highest scoring 1000 tweets were used by RRF to combine results and only the top 1000 results from each run were submitted to NIST for evaluation.</p><p>3 GCLR uses byte 4-grams as features 4 The logistic regression classifier was trained on repeated examples of relevant documents so that the desired ratio of relevant to non-relevant was achieved. We call this ratio "bias." Identical to Index 5 but uses character 4-grams.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Ad Hoc Runs</head><p>In this section, the runs submitted to TREC for the ad hoc task are discussed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uwatrrflm -Baseline (RRF-2LM)</head><p>This run was our baseline and did not use the swapdocs approach. It is a repeat of our best performing run in the 2011 Microblog Track, except that only Okapi-style feedback was used to select candidate documents (as opposed to the swapdocs approach) and two tweet based language models were used (one based on the 2011 topics and one based on the 2012 topics).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uwatrrfall -Swapdocs Approach (RRF-Swapdocs)</head><p>This run was conducted exactly as outlined above.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uwatgclrbase -GCLR Initial Phase (GCLR-Initial)</head><p>This run only contains the highest scoring 1000 tweets from GCLR in the first phase, e.g. trained on the 5:1 bias of topic statement. The purpose of this run was to determine a GCLR baseline from which we could judge improvements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uwatgclr -GCLR Manual Feedback (GCLR-Manual)</head><p>Table <ref type="table" coords="3,262.66,72.11,3.87,8.74">3</ref>: Ranking Methods used Method Description Okapi BM25 <ref type="bibr" coords="3,143.65,96.17,15.71,8.74" target="#b6">[7]</ref> BM25 is a bag-of-words retrieval method that ranks documents based upon how often query terms appear in the document and does not take into account any relationships between query terms in the document (e.g. proximity). From the 2011 topics we found that (b,k1)=(0.25, 0.4) Ponte-Croft Language Modelling <ref type="bibr" coords="3,233.56,156.34,13.42,8.74" target="#b7">[8]</ref> This method infers a nonparametric language model for each document and then ranks each document based on the query. That is, a document is ranked for a query using the product of the probability of producing query terms in the document and the probability of not producing other terms. Language Modelling with Dirichlet Priors <ref type="bibr" coords="3,118.16,240.43,12.26,8.74" target="#b8">[9]</ref> A language model, in this method, is treated as a multinomial distribution and the Dirichlet distribution is used to smooth the probability of word occurrence. Cover-Density Ranking <ref type="bibr" coords="3,191.45,264.74,14.07,8.74" target="#b3">[4]</ref> Given a set of query terms Q1, ..., Qn, this method builds a boolean AND for all subsets (e.g. Q1^Q2^Q9^Qn) and ranks these subsets by the sum of their terms' Inverse Document Frequency values. Then all documents are ranked based upon the largest subset they contain. Divergence from Randomness <ref type="bibr" coords="3,218.00,324.91,15.00,8.74" target="#b0">[1]</ref> This method uses inverse term frequency, the ratio of two Bernoulli processes, and the hypothesis that the term frequency density is inversely related to the length to create a ranking formula for documents.</p><p>This run uses manual feedback with GCLR. The seed documents for GCLR relevance training came from a manual assessor who issued queries to Wumpus and selected relevant tweets from the retrieved results (all results were from before the query time). These were then trained in 1:1 fashion with randomly selected tweets (which were deemed not relevant). For topics with less than 20 tweets, the deficit was made up by including 5 copies of the topic statement for each tweet less. However, there was no maximum cut off for tweets selected. We note that the assessor was instructed to avoid selecting tweets with duplicate content to those previously selected.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Filtering Task Methodology</head><p>For the Filtering task, we used only GCLR (with byte 4-grams as features) as our means of filtering. For the filtering task, we submitted two runs for official evaluation and they are outlined below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uwn -GCLR baseline</head><p>This run was trained again in a 5:1 bias as was done in ad hoc, such that there were 1000 copies of the given relevant document, 1000 copies of the query, and 400 random tweets (trained as not relevant). After the training phase, GCLR classified all documents and no further training was performed during classification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>uw -GCLR Feedback</head><p>This run was trained again in a 5:1 bias as was done in ad hoc, such that there were 1000 copies of the given relevant document, 1000 copies of the query, and 400 random tweets (trained as not relevant). After the training phase, GCLR classified all documents. Any time a document was deemed to be relevant then GCLR was trained based upon it's actual relevance score in the 2011 qrels. If the document was deemed relevant in the qrels it was trained as relevant; if the document was deemed relevant in the qrels it was trained as non-relevant; if the document was absent from the qrels, no training was performed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Evaluation</head><p>Tweets for the ad hoc task were judged to be relevant by NIST assessors after the results from all participating teams were pooled. Assessors were asked to judge tweets as relevant, highly relevant, or not relevant with respect to the topic. In addition, only tweets that primarily contained the English language were allowed to be judged relevant. The primary measure for the track this year was the ROC (receiver operating characteristic) curve, however, Ian Soboroff (a track coordinator) could not determine a means of unifying the ROC curves from different topics. Accordingly, we choose to look at Precision@30 which would allow us to compare our results with our runs from last year. However, as only summary information was given for highly relevant tweets this year, we only present the percentage of topics at and above the median for them. The average relevant returned at 30 for all relevant tweets was calculated using the highest scoring 30 tweets for each topic as we used last year.</p><p>Tweets for the filtering task used the same judgements as those from last year as the filtering task was based upon the 2011 topic set. The filtering task had four measures set precision, set recall, F (with beta = 0.5), and linear utility. We present the number of topics for which our runs were at or above the median score for F, precision, and recall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results and Discussion</head><p>Tables <ref type="table" coords="4,94.18,363.09,4.98,8.74">4</ref> and<ref type="table" coords="4,123.47,363.09,4.98,8.74">5</ref> provide ad hoc summary results for topics with highly relevant tweets only and topics with relevant tweets and present the results from the highest scoring run we performed last year. From these summary results, our baseline run (RRF-2LM) appears to have performed most of the time at or above median, which may indicate that it is a good baseline. This is also true when it's performance is at least as good as our best run from last year when you factor in that only 33 topics had highly relevant tweets last year (and only 49 with relevant tweets). The swapdocs run does appear to improve upon our baseline but not by a lot.</p><p>To further examine our baseline run (RRF-2LM), we looked at the performance of the run by removing a language model and regardless of which language model was removed there appeared to be little change in our P@30 results. Although, the language model based upon this year's topics did have a better performance than our 2011 language model. This is not all that surprisingly because the language model for the 2012 topics was larger and thus more likely to be an accurate representation of the language used on Twitter during the collection period. It is worth noting that removing Ponte-Croft ranking from RRF-2LM did improve performance but not by a large enough margin that we thought it worth reporting in this paper.</p><p>From these results, we can see something that is potentially interesting. It appears that for all the extra effort required of the swapdocs approach that there is not a huge increase in performance and it is possible that just adding GCLR trained on results from interim results may boost the performance of RRF-2LM enough that there is not enough benefit in using the swapdocs approach. In addition, anecdotal evidence would suggest that RRF-2LM is also a much more time efficient algorithm than RRF-Swapdocs (as it does not have to compute N 2 combinations). Accordingly, the gains made by using the swapdocs approach may be ruled out due to real world performance concerns.</p><p>The ad hoc performance of GCLR with manually selected training documents was a nice a result and we would like to further explore how this approach can be modified to increase performance. As well, we would like to see if the results are boosted when the assessor is given a larger deadline for finding seed documents as the assessor used had a very small window for this run.</p><p>Finally, the performance of initial swapdocs phase GCLR is unsurprising given that the training bias was quickly determined using 2011 topics and was not vigorously tested. Further, it appears that this approach is limited by the language used in topic statement as it appears from the results that the performance of GCLR-Initial was only as high as it was due to its performance on a few topics. Although, this would require manual verification by comparing individual topic performance to the topic statement to see if there is some correlation.</p><p>The results for the filtering track were not particularly good, as we expected based on previous TREC Filtering Track experiments. We are at a loss to explain why the "best" scores for recall, precision, and F1 are so high.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Future Work</head><p>Given the performance of GCLR with manually selected training documents, we are likely to continue exploring how performance can be increased further. As well, it would be nice to determine a means of incorporating manual intervention in the Filtering Task, perhaps by attempting to find "relevant" documents in the tweets that occur before the oldest tweet time condition in the filtering task. It may be beneficial to examine the role of different features in improving tweet classification using GCLR and perhaps determine if there is an ideal bias when training classification/filtering methods for tweets.</p><p>In addition, it would likely boost performance to have a pre-screening stage of filtering where all non-English tweets are filtered out so that there is less potential of returning non-English tweets. We had desired to do this last year but felt that it may be a waste of time to attempt to do so this year given various time constraints.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusions</head><p>This year at the Microblog Track, we saw that performance of all systems for the ad hoc task seemed to be much improved from the 2011 iteration. In particular, that manually seeding logistic regression achieved good results and that applying swapdocs to the task may not be as beneficial as one might hope.</p><p>The filtering task was largely underwhelming and we did not achieve very good results and are unsure of how the "best" scores were achieved.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,258.75,671.54,24.08,8.74"><head>Table</head><label></label><figDesc></figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="1,324.62,234.11,217.60,79.81"><head>Table 1 :</head><label>1</label><figDesc>Corpus distribution</figDesc><table coords="1,324.62,255.78,217.60,58.15"><row><cell cols="3">HTTP Status Num. of Tweets Num. null text</cell></row><row><cell>200</cell><cell>14,313,888</cell><cell>14</cell></row><row><cell>302</cell><cell>1,137,183</cell><cell>25,571</cell></row><row><cell>403</cell><cell>138,560</cell><cell>138,560</cell></row><row><cell>404</cell><cell>552,181</cell><cell>552,181</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="2,339.72,72.11,187.40,259.94"><head>Table 2 :</head><label>2</label><figDesc>Description of engineered features</figDesc><table coords="2,344.40,93.78,178.04,238.28"><row><cell cols="2">Index Description</cell></row><row><cell>1</cell><cell>This index includes stemmed and</cell></row><row><cell></cell><cell>unstemmed versions of words</cell></row><row><cell></cell><cell>present in the tweet. The stem-</cell></row><row><cell></cell><cell>ming is accomplished using a</cell></row><row><cell></cell><cell>Porter stemmer. In addition,</cell></row><row><cell></cell><cell>word bigrams are included in the</cell></row><row><cell></cell><cell>index.</cell></row><row><cell>2</cell><cell>Identical to Index 1 but with no</cell></row><row><cell></cell><cell>word bigrams present.</cell></row><row><cell>3</cell><cell>This index contains only un-</cell></row><row><cell></cell><cell>stemmed versions of words and</cell></row><row><cell></cell><cell>word bigrams.</cell></row><row><cell>4</cell><cell>Identical to Index 3 but contains</cell></row><row><cell></cell><cell>no word bigrams.</cell></row><row><cell>5</cell><cell>Instead of words as before, char-</cell></row><row><cell></cell><cell>acter 3-grams are used in the in-</cell></row><row><cell></cell><cell>dex. Subsequently, stemming is</cell></row><row><cell></cell><cell>not used as it has no benefit.</cell></row><row><cell>6</cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,77.28,690.68,166.56,7.21"><p>Available at http://www.wumpus-search.org</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="1,77.28,700.18,212.64,7.21"><p>Available at github.com/lintool/twitter-corpus-tools</p></note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0" />			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,77.53,332.66,214.09,8.74;5,77.54,344.62,214.09,8.74;5,77.54,356.58,214.09,8.74;5,77.54,368.53,214.09,8.74;5,77.54,380.49,22.69,8.74" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,99.37,344.62,192.25,8.74;5,77.54,356.58,214.09,8.74;5,77.54,368.53,16.47,8.74">Probabilistic models of information retrieval based on measuring the divergence from randomness</title>
+		<author>
+			<persName coords=""><forename type="first">Gianni</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cornelis Joost</forename><surname>Van Rijsbergen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,101.43,368.53,95.16,8.74">ACM Trans. Inf. Syst</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="357" to="389" />
+			<date type="published" when="2002-10">October 2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,77.53,401.11,214.09,8.74;5,77.54,413.07,214.09,8.74;5,77.54,425.02,214.09,8.74;5,77.54,436.98,214.09,8.74;5,77.54,448.93,99.68,8.74" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,239.55,401.11,52.08,8.74;5,77.54,413.07,214.09,8.74;5,77.54,425.02,66.12,8.74">Questioning query expansion: an examination of behaviour and parameters</title>
+		<author>
+			<persName coords=""><forename type="first">Bodo</forename><surname>Billerbeck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Justin</forename><surname>Zobel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,166.56,425.02,125.06,8.74;5,77.54,436.98,126.94,8.74;5,269.35,436.98,22.28,8.74;5,77.54,448.93,11.62,8.74">Proceedings of the 15th Australasian database conference</title>
+		<meeting>the 15th Australasian database conference</meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="69" to="76" />
+		</imprint>
+	</monogr>
+	<note>ADC &apos;04</note>
+</biblStruct>
+
+<biblStruct coords="5,77.53,469.56,214.09,8.74;5,77.54,481.52,214.09,8.74;5,77.54,493.47,214.09,8.74;5,77.54,505.43,136.89,8.74" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,123.29,493.47,140.44,8.74">Swapping documents and terms</title>
+		<author>
+			<persName coords=""><forename type="first">Charles</forename><forename type="middle">L</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><forename type="middle">R</forename><surname>Lynam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chris</forename><surname>Buckley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,276.07,493.47,15.55,8.74;5,77.54,505.43,20.56,8.74">Inf. Retr</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="680" to="694" />
+			<date type="published" when="2009-12">Dec 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,77.53,526.06,214.09,8.74;5,77.54,538.01,214.09,8.74;5,77.54,549.97,120.52,8.74" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="5,179.87,538.01,111.76,8.74;5,77.54,549.97,90.38,8.74">Relevance ranking for one to three term queries</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Elizabeth</forename><forename type="middle">A</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Tudhope</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,77.53,570.59,214.09,8.74;5,77.54,582.55,214.09,8.74;5,77.54,594.51,214.09,8.74;5,77.54,606.46,138.69,8.74" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,173.76,570.59,117.86,8.74;5,77.54,582.55,171.21,8.74">University of waterloo participation in the trec 2007 spam track</title>
+		<author>
+			<persName coords=""><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,274.78,582.55,16.84,8.74;5,77.54,594.51,208.83,8.74">Sixteenth Text REtrieval Conference (TREC-2007)</title>
+		<meeting><address><addrLine>Gaithersburg, MD</addrLine></address></meeting>
+		<imprint>
+			<publisher>NIST</publisher>
+			<date type="published" when="2007">2007</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,77.53,627.09,214.09,8.74;5,77.54,639.04,214.09,8.74;5,77.54,651.00,214.09,8.74;5,77.54,662.95,214.09,8.74;5,77.54,674.91,214.09,8.74;5,77.54,686.86,214.09,8.74;5,77.54,698.82,63.65,8.74" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,166.45,639.04,125.17,8.74;5,77.54,651.00,214.09,8.74;5,77.54,662.95,34.68,8.74">Reciprocal rank fusion outperforms condorcet and individual rank learning methods</title>
+		<author>
+			<persName coords=""><forename type="first">Gordon</forename><forename type="middle">V</forename><surname>Cormack</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L A</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Buettcher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,132.17,662.95,159.46,8.74;5,77.54,674.91,214.09,8.74;5,77.54,686.86,181.80,8.74">Proceedings of the 32nd international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;09</title>
+		<meeting>the 32nd international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;09</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="758" to="759" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.12,65.20,214.09,8.74;5,334.12,77.15,214.09,8.74;5,334.12,89.11,214.09,8.74;5,334.12,101.06,214.09,8.74;5,334.12,113.02,63.65,8.74" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,334.12,77.15,214.09,8.74;5,334.12,89.11,190.12,8.74">A probabilistic model of information retrieval: development and comparative experiments</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">Sparck</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,334.12,101.06,180.06,8.74">Information Processing and Management</title>
+		<imprint>
+			<date type="published" when="2000">2000</date>
+			<biblScope unit="page" from="779" to="840" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.12,132.94,214.09,8.74;5,334.12,144.90,214.09,8.74;5,334.12,156.85,214.09,8.74;5,334.12,168.81,214.09,8.74;5,334.12,180.76,214.09,8.74;5,334.12,192.72,43.72,8.74" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="5,498.38,132.94,49.84,8.74;5,334.12,144.90,192.41,8.74">A language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Jay</forename><forename type="middle">M</forename><surname>Ponte</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">Bruce</forename><surname>Croft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,334.12,156.85,214.09,8.74;5,334.12,168.81,214.09,8.74;5,334.12,180.76,156.90,8.74">Proceedings of the 21st annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;98</title>
+		<meeting>the 21st annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;98</meeting>
+		<imprint>
+			<date type="published" when="1998">1998</date>
+			<biblScope unit="page" from="275" to="281" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,334.12,212.64,214.09,8.74;5,334.12,224.60,214.09,8.74;5,334.12,236.55,214.09,8.74;5,334.12,248.51,214.09,8.74;5,334.12,260.46,214.09,8.74;5,334.12,272.42,182.58,8.74" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="5,500.57,212.64,47.65,8.74;5,334.12,224.60,214.09,8.74;5,334.12,236.55,132.58,8.74">A study of smoothing methods for language models applied to ad hoc information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">John</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,486.99,236.55,61.22,8.74;5,334.12,248.51,214.09,8.74;5,334.12,260.46,214.09,8.74;5,334.12,272.42,84.56,8.74">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;01</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval, SIGIR &apos;01</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="334" to="342" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,142.42,84.23,327.16,15.44;1,186.53,104.15,238.93,15.44">University of Glasgow Terrier Team at the TREC 2022 Fair Ranking Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,103.13,131.56,78.08,10.59"><forename type="first">Thomas</forename><surname>Jaenich</surname></persName>
+							<email>t.jaenich.1@research.gla.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,259.93,131.56,93.13,10.59"><forename type="first">Graham</forename><surname>Mcdonald</surname></persName>
+							<email>graham.mcdonald@glasgow.ac.uk</email>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,443.84,131.56,53.61,10.59"><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+							<email>iadh.ounis@glasgow.ac.uk</email>
+							<affiliation key="aff2">
+								<orgName type="institution">University of Glasgow</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,142.42,84.23,327.16,15.44;1,186.53,104.15,238.93,15.44">University of Glasgow Terrier Team at the TREC 2022 Fair Ranking Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">26E5B77FFAE4DCE5E79907FA64785A63</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In our participation in the TREC 2022 Fair Ranking Track, we investigated several methods for ensuring a fair distribution of exposure over groups. For Task 1 (single ranking) we investigated search results diversification as well as query expansion techniques for generating fair rankings. For Task 2 (multiple rankings) we model the problem as a Multi Armed Bandit task and investigate different exploration strategies as well as different trade-offs in the relationship between fairness and relevance. Our results show that our submitted runs are competitive. For Task 1, our runs achieve the highest NDCG*AWRF scores out of all the submitted systems for almost half of the queries. For Task 2, our best performing Multi-Armed Bandit approach performs better than the TREC-median for 44 out of the 47 evaluation queries. From our submitted runs, our top-3 best performing systems are above the TREC-median for at least 91% of the evaluation queries.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>In our participation in the TREC 2022 Fair Ranking Track, the University of Glasgow Terrier Team aimed to build on their Terrier.org Information Retrieval platform <ref type="bibr" coords="1,170.24,400.77,9.40,7.94" target="#b3">[4,</ref><ref type="bibr" coords="1,181.88,400.77,7.40,7.94" target="#b5">6]</ref> and their 2021 Fair Ranking Track <ref type="bibr" coords="1,75.95,411.73,10.42,7.94" target="#b0">[1]</ref> participation, to further investigate fair ranking strategies. For Task 1 (single ranking) we investigate search result diversification and query expansion strategies to enhance the fair distribution of exposure among groups. For Task 2 (multiple rankings) we considered the creation of a sequence of rankings as a Multi Armed Bandit problem. We investigate whether an agent that is presented with a pool of candidate rankings at each iteration can find a useful strategy to add one of those rankings to the sequence, to ensure a fair distribution of exposure.</p><p>The remainder of this paper is structured as follows: In Section 2, we briefly describe our indexing and the relevance components used by our fairness approaches in the submitted runs. We then present our proposed fairness components in Section 3, before presenting our runs and results in Section 4. We present concluding remarks in Section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">INDEXING &amp; RETRIEVAL</head><p>This section describes the indexing and retrieval of the provided data. The TREC 2022 Fair Ranking Track provided the participants with a corpus of Wikipedia documents, training topics, and metadata corresponding to the documents. We first parsed the document collection to remove the Wiki-Markup. To ensure efficient parsing, we used PyAutoCorpus. 1 PyAutoCorpus results in roughly 40x speed-up compared to other existing Wiki-Parsers <ref type="bibr" coords="1,244.91,665.58,9.52,7.94" target="#b0">[1]</ref>. The 2022 Fair Ranking Track test collection with removed Wiki-Markup was also integrated into the well known ir_datasets package <ref type="bibr" coords="1,282.73,687.49,9.52,7.94" target="#b2">[3]</ref>. 1 https://github.com/seanmacavaney/pyautocorpus Using ir_datasets allows to conveniently conduct our experiments within PyTerrier <ref type="bibr" coords="1,383.64,188.37,9.52,7.94" target="#b4">[5]</ref>. For our experiments, we built a ColBERT index for our submissions that use ColBERT <ref type="bibr" coords="1,477.65,199.33,10.43,7.94" target="#b1">[2]</ref> as their underlying retrieval model. We also created a traditional inverted index with porter stemming and removed stopwords for a run using BM25 <ref type="bibr" coords="1,547.75,221.24,10.45,7.94" target="#b6">[7]</ref> retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">FAIRNESS COMPONENTS</head><p>We investigated the suitability of three different techniques for fair ranking that we discuss in this section. Search results diversification: To develop a fairness component for Task 1, we leverage a well known search results diversification approach that is based on proportional representation, i.e., a percentage of the available positions in a ranking are allocated to particular query aspects based on the distribution of a background population. To leverage this approach for generating fair rankings, we allocate positions in the ranking to different fairness attributes according to their exposure targets by considering the attention an item gets at an allocated position. Our exposure targets were calculated using the page-alignments from the publicly available metric<ref type="foot" coords="1,341.46,400.24,3.38,6.44" target="#foot_0">2</ref> as well as the predicted relevance from an initial retrieval. Query Expanison: To investigate whether query expansion can be used to enhance the fair distribution of exposure, we applied two query expansion strategies that have been shown to be successful in improving the relevance of a search result set. We explore the potential of a traditional sparse query expansion technique as well as dense retrieval query expansion. Multi Armed Bandit: For the second task we modelled the creation of the sequence of rankings as a multi-armed bandit problem. We present an agent with the task of filling the sequence with rankings in an iterative fashion so that the exposure is fairly distributed over all fairness characteristics. The agent can select from a pool of rankings with different distributions of exposure and fairness-relevance relationships. We reward our agent if the overall distribution of exposure gets fairer and penalise it if it adds a ranking that decreases fairness. Specifically, a single ranking in the pool is optimised for a fair distribution of exposure relating to only one fairness characteristic. For each fairness characteristic, there is at least one ranking present in the pool. All of the rankings are considered potential candidates to be added to the sequence by the agent. The number of rankings in the pool as well as the fairness-relevance relationship in the single rankings are defined by different weighting parameters. Moreover, the selection strategy of the rankings differs in the submitted runs. For the reward function, we used information from the publicly available metric. for every submitted run in Task 1. We report the NDCG, the AWRF and the combined metric score. For every metric, the ideal value is 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Runs</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">SUBMITTED RUNS AND RESULTS</head><p>In this section, we present our submitted runs for Task 1 in Section 4.1 and Task 2 in Section 4.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Task 1: Single Ranking</head><p>We submitted five runs for Task 1. Of our five runs, two investigate our diversification approach and two investigate query expansion.</p><p>As a baseline, we also submitted a relevance only approach that contains no explicit fairness component.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.1">Submitted runs.</head><p>• UoGRelvOnlyT1: A relevance only baseline with no fairness intervention for Task 1. The retrieval was done with ColBERT-PRF. (Note that this run was meant to be Colbert-E2E retrieval but we discovered after submission that a duplicate version of UoGTrT1ColPRF was submitted.) • UoGTrExpE1 uses a heuristic approach to rerank an initial retrieval set using our expected exposure targets that are computed from the page alignments and our predicted relevance scores. The initial retrieval was done using ColBERT-E2E <ref type="bibr" coords="2,94.26,465.31,9.27,7.94" target="#b1">[2]</ref>. The expected exposure targets evenly distribute the available exposure between fairness attributes. We deploy a diversification strategy to rerank the documents with respect to our exposure targets. • UoGTrExpE2: Similar to UoGTrExpE1 this run uses a heuristic approach to rerank an initial retrieval set using our expected exposure targets and deploy diversification to rerank the documents. This run also uses ColBERT-E2E for the relevance component. • UoGTrT1ColPRF: This run uses Colbert-PRF <ref type="bibr" coords="2,239.68,563.94,10.43,7.94" target="#b8">[9]</ref> to expand a user's query to enhance the performance on relevance. • UoGTrQE: A traditional query expansion method to expand a query with the goal to improve the distribution of documents in a fair manner.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.2">Results</head><p>. Table <ref type="table" coords="2,132.61,624.78,4.25,7.94" target="#tab_0">1</ref> shows our results for Task 1. The table reports the average NCDG score as well as the average attentionweighted ranked fairness <ref type="bibr" coords="2,144.33,646.70,10.42,7.94" target="#b7">[8]</ref> (AWRF) and the product of both, which is the official metric provided by the organizers. The averages are calculated over the 47 evaluation queries per submitted run.</p><p>From runs that are based on search results diversification we note that our run with specific exposure targets (UoGTrExpE2) achieves scores only marginally different to our best-performing relevance only approach. For UoGTrExpE1 we notice a drop-off in AWRF which could be expected since it optimises for equal exposure distribution and not specific targets. Investigating the Query Expansion run UoGTrQE we also note a decrease in the AWRF metric as well as on nDCG compared to the best performing systems UoGTrT1ColPRF and UoGRelvOnlyT1.</p><p>To gain further insights into the performance of our approaches, Table <ref type="table" coords="2,340.10,469.13,4.24,7.94" target="#tab_1">2</ref> reports a per-query analysis of the number of queries for which our runs perform better than the TREC-Minimum or TREC-Median, or are equal to the TREC-Maximum performance. We can see from Table <ref type="table" coords="2,377.02,502.01,4.25,7.94" target="#tab_1">2</ref> that all of our runs are better than the TREC-Minimum on the majority of the queries. Following the trend from Table <ref type="table" coords="2,339.93,523.93,4.21,7.94" target="#tab_0">1</ref> UoGTrExpE1 has the lowest scores on nine of the queries while also achieving the highest score on two of the queries. Our relevance only baseline has the lowest score on one query but achieves the maximum score on ten queries. Considering the TREC-Median UoGRelvOnlyT1 &amp; UoGTrExpE2 perform better than the median system on more than 50% of the queries. UoGTrExpE1 &amp; UoGTrQE are better than the TREC-median on just under half of the queries (48%&amp;47%). Next we analyse the results of our Multi-Armed Bandit approach for Task 2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Task 2: Multiple Rankings</head><p>We submitted five runs for Task 2. Four of our runs use a Multi-Armed Bandit strategy with different parameters and strategies, while the fifth run is a relevance only baseline. For all runs, an agent tries to find the optimal strategy when adding rankings to the sequence. The rankings are selected from a pool of rankings. For every protected attribute, there are multiple different rankings Table <ref type="table" coords="3,77.26,162.52,3.38,7.70">4</ref>: The number of queries a run achieves the minimum, ≤ the median or the maximum EE-L score. Lower values of EE-L are better, i.e., minimum is the best performing system.</p><p>with different fairness-relevance relationships. The initial retrieval before the creation of the pools was done with Colbert-E2E.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">Submitted runs.</head><p>• UoGTrMabWeSA: An approach that uses an epsilon-greedy strategy and fairness weights in the creation of a single ranking.</p><p>• UoGTrMabSAED: This approach uses a variation of an epsilondecay strategy. No weights are used in the creation of the pool of the rankings. • UoGTrMabSaNR: This approach does not use any randomisation or weighting in the creation of the rankings. • UoGTrMabSaWR: This run does not use weighting in the creation of the rankings. However, it does use randomisation in the MAB component. • UogTRelvOnlyT2: A run designed to be used as a baseline with no explicit fairness component. Every position in the sequence is filled with the same ranking retrieved through our ColBERT-E2E Ranker based only on relevance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.2">Results</head><p>. Table <ref type="table" coords="3,130.95,430.82,4.14,7.94" target="#tab_2">3</ref> shows our results for Task 2. We report the expected exposure loss (EE-L), the Expected Exposure Disparity (EE-D) and the Expected Exposure Relevance (EE-R) averaged over all 47 evaluation queries. Lower values are better for EE-L and EE-D. Higher values are better for EE-R. It is notable that all of our approaches outperform the relevance only baseline for EE-L. As expected the relevance only baseline achieves the highest scores on EE-R. UoGTrMabWeSA achieves the best scores on EE-L as well as on EE-D. Our approach UoGTrMabSANr that does not use randomisation in the exploring phase and no weights in the creation of the rankings, achieves the highest EE-L and EE-D scores. Notably there is only an 8% difference in EE-L scores between our best performing MAB approaches (UoGTrMabWeSA, UoGTrMabSaWR and UoGTrMabSaWR). For each of our submitted runs improvements in fairness results in some decrease in relevance. To further analyse the performance of our approaches we investigate the per-query performance. Table <ref type="table" coords="3,85.69,617.12,4.14,7.94">4</ref> reports the per-query analysis of the number of queries for which our runs achieve the TREC-Minium EE-L, are ≤ the TREC-Median, or are equal to the TREC-Maximum for Task 2. From Table <ref type="table" coords="3,338.74,87.79,3.01,7.94">4</ref>, we can see that three of our runs that include a fairness component, i.e., UoGTrMabSAED, UoGTrMabSaWR, UoGTrMabWeSA achieve scores lower than the TREC-Median on a majority of the queries (lower is better), with UoGTrMabSaWR achieving a better performance than the median on all of the queries. UoGTrMabSANr performs better than the TREC-Median on 18 out of 47 approaches. Each of our submitted approaches, including the relevance baseline, achieves the overall best score (minimum) for some of the queries. Our best performing approach in terms of EE-L, i.e. UoGTrMab-WeSA scores lower than the median on 44 out of the 47 queries and achieves the minimum EE-L score for six queries. This is the highest number of maximum scores for a run. UoGTrMabSAED as well as UoGTrMabSaWR have no queries on which they achieve the maximum scores, while UoGTrMabSANr and the relevance only baseline score highest and therefore worst on 4 and 5 queries.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSIONS</head><p>In this year's TREC participation we explored the potential of Search Results diversification and Query Expansion for distributing exposure fairly over a single ranking in Task 1. For Task 2 we introduced an optimisation strategy for selecting a ranking from a pool of possible candidate rankings to add to the sequence. In Task 1 we found that our relevance only baseline performed the best. This provides us with an interesting starting point for further research. Specifically, we plan to further investigate how to optimise our fairness components so they do not decrease the relevance of rankings while ensuring the fairness of exposure. Our results for Task 2 show that our optimisation strategy can be effective in ensuring fairness in a sequence of rankings. We tested different exploration strategies and weighting parameters and found valuable insights about how to optimise for a target exposure.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,53.50,89.13,240.55,86.82"><head>Table 1 :</head><label>1</label><figDesc>The table shows the average results over all 47 queries</figDesc><table coords="2,65.16,89.13,217.72,72.34"><row><cell></cell><cell cols="3">NDCG↑ AWRF↑ NDCG*AWRF↑</cell></row><row><cell cols="2">UoGTrT1ColPRF 0.6044</cell><cell>0.5245</cell><cell>0.3253</cell></row><row><cell>UoGTrQE</cell><cell>0.5367</cell><cell>0.4983</cell><cell>0.2734</cell></row><row><cell>UoGTrExpE2</cell><cell>0.5977</cell><cell>0.5243</cell><cell>0.3229</cell></row><row><cell>UoGTrExpE1</cell><cell>0.5176</cell><cell>0.5121</cell><cell>0.2716</cell></row><row><cell>UoGRelvOnlyT1</cell><cell>0.6044</cell><cell>0.5245</cell><cell>0.3253</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,53.80,88.75,506.01,620.69"><head>Table 2 :</head><label>2</label><figDesc>Table 1  we can see that UoGTrT1ColPRF and UoGRelvOn-lyT1 perform the best out of all systems. They have the highest scores on nDCG as well on the fairness metric AWRF. Analysing our The number of queries for which a run is the minimum, ≥ to the median, or equal to the maximum. Maximum represents the best performing submitted system.</figDesc><table coords="2,328.43,88.75,214.32,201.52"><row><cell>Runs</cell><cell cols="4">&gt;Minimum &gt;=Median = Maximum</cell></row><row><cell>UoGTrT1ColPRF</cell><cell>46</cell><cell></cell><cell>28</cell><cell>10</cell></row><row><cell>UoGTrQE</cell><cell>40</cell><cell></cell><cell>23</cell><cell>2</cell></row><row><cell>UoGTrExpE2</cell><cell>45</cell><cell></cell><cell>29</cell><cell>8</cell></row><row><cell>UoGTrExpE1</cell><cell>38</cell><cell></cell><cell>22</cell><cell>2</cell></row><row><cell>UoGRelvOnlyT1</cell><cell>46</cell><cell></cell><cell>28</cell><cell>10</cell></row><row><cell></cell><cell></cell><cell>EE-L</cell><cell>EE-D</cell><cell>EE-R</cell></row><row><cell cols="2">Relevance Only</cell><cell cols="3">2.2230 2.2397 0.0788</cell></row><row><cell cols="5">UoGTrMabWeSA 1.1230 1.0790 0.0484</cell></row><row><cell cols="5">UoGTrMabSAED 1.2227 1.1934 0.0558</cell></row><row><cell cols="5">UoGTrMabSaWR 1.1847 1.1461 0.0511</cell></row><row><cell cols="5">UoGTrMabSANr 2.1397 2.0486 0.0249</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="2,317.66,296.79,240.73,29.62"><head>Table 3 :</head><label>3</label><figDesc>The table shows the results for Task 2 averaged over 47 queries. Lower values are better for EE-L &amp; EE-D, higher values are better for EE-R.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="1,324.49,702.79,136.00,6.18"><p>https://github.com/fair-trec/trec2022-fair-public</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="3,330.15,449.62,228.31,6.18;3,329.94,457.59,145.93,6.18" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="3,496.24,449.62,62.22,6.18;3,329.94,457.59,142.95,6.18">University of Glasgow Terrier Team at the TREC 2021 Fair Ranking Track</title>
+		<author>
+			<persName coords=""><forename type="first">Thomas</forename><surname>Jaenich</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Graham</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,465.56,228.05,6.18;3,330.15,472.85,228.06,6.97;3,330.15,480.82,228.05,6.97;3,330.15,488.79,46.11,6.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="3,446.46,465.56,111.74,6.18;3,330.15,473.53,148.90,6.18">Colbert: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,492.17,472.85,66.04,6.97;3,330.15,480.82,228.05,6.97;3,330.15,488.79,23.44,6.97">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,497.44,228.82,6.18;3,330.15,504.73,226.22,6.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,517.10,497.44,41.86,6.18;3,330.15,505.41,197.19,6.18">Arman Cohan, and Nazli Goharian. 2021. Simplified Data Wrangling with ir_datasets</title>
+		<author>
+			<persName coords=""><forename type="first">Sean</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andrew</forename><surname>Yates</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sergey</forename><surname>Feldman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Doug</forename><surname>Downey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,539.33,504.73,14.20,6.97">SIGIR</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,513.38,228.05,6.18;3,330.15,520.67,153.99,6.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,467.36,513.38,90.84,6.18;3,330.15,521.35,102.50,6.18">Declarative experimentation in information retrieval using pyterrier</title>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,444.62,520.67,36.61,6.97">Proc. of ICTIR</title>
+		<meeting>of ICTIR</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,529.32,228.05,6.18;3,330.15,536.61,228.06,6.97;3,330.15,544.58,193.98,6.97" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,467.36,529.32,90.84,6.18;3,330.15,537.29,105.54,6.18">Declarative experimentation in information retrieval using pyterrier</title>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicola</forename><surname>Tonellotto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,448.57,536.61,109.64,6.97;3,330.15,544.58,164.82,6.97">Proceedings of the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval</title>
+		<meeting>the 2020 ACM SIGIR on International Conference on Theory of Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="161" to="168" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,553.23,228.05,6.18;3,330.15,561.20,228.05,6.18;3,330.15,568.49,117.78,6.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,399.05,561.20,159.15,6.18;3,330.15,569.17,50.67,6.18">Terrier: A High Performance and Scalable Information Retrieval Platform</title>
+		<author>
+			<persName coords=""><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gianni</forename><surname>Amati</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Vassilis</forename><surname>Plachouras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christina</forename><surname>Lioma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,393.09,568.49,51.98,6.97">Proc. OSIR at SIGIR</title>
+		<meeting>OSIR at SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,577.14,229.23,6.18;3,329.89,584.43,228.47,6.97;3,329.94,593.08,45.22,6.18" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="3,463.92,577.14,95.46,6.18;3,329.89,585.11,69.24,6.18">The probabilistic relevance framework: BM25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,405.02,584.43,141.31,6.97">Foundations and Trends® in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009. 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,601.05,228.05,6.18;3,329.81,609.02,229.57,6.18;3,330.15,616.31,228.05,6.97;3,330.15,624.28,58.45,6.97" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="3,370.59,609.02,188.80,6.18;3,330.15,616.99,63.30,6.18">Quantifying the Impact of User Attentionon Fair Group Representation in Ranked Lists</title>
+		<author>
+			<persName coords=""><forename type="first">Piotr</forename><surname>Sapiezynski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wesley</forename><surname>Zeng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ronald</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Alan</forename><surname>Mislove</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christo</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,405.99,616.31,152.21,6.97;3,330.15,624.28,29.00,6.97">Companion Proceedings of The 2019 World Wide Web Conference</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="553" to="562" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,330.15,632.93,229.23,6.18;3,330.15,640.23,226.22,6.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="3,418.37,632.93,141.01,6.18;3,330.15,640.90,174.92,6.18">Nicola Tonellotto, and Iadh Ounis. 2021. Pseudorelevance feedback for multiple representation dense retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Xiao</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Craig</forename><surname>Macdonald</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,516.93,640.23,36.55,6.97">Proc. of ICTIR</title>
+		<meeting>of ICTIR</meeting>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

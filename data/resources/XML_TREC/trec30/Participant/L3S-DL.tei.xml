@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,149.42,115.96,316.52,12.62">L3S at the TREC 2021 Deep Learning Track</title>
+				<funder ref="#_V7RWUZg">
+					<orgName type="full">EU Horizon 2020</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,179.80,153.90,72.56,8.74"><forename type="first">Jurek</forename><surname>Leonhardt</surname></persName>
+							<email>leonhardt@l3s.de</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">L3S Research Center</orgName>
+								<address>
+									<settlement>Hannover</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,262.91,153.90,66.64,8.74"><forename type="first">Rudra</forename><surname>Koustav</surname></persName>
+							<email>koustav@iitism.ac.in</email>
+						</author>
+						<author>
+							<persName coords="1,329.55,152.33,8.55,6.12;1,364.07,153.90,34.65,8.74"><forename type="first">Avishek</forename><surname>2⋆</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Indian Institute of Technology (ISM) Dhanbad</orgName>
+								<address>
+									<country key="IN">India</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,402.03,153.90,29.06,8.74"><surname>Anand</surname></persName>
+							<email>anand@l3s.de</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">L3S Research Center</orgName>
+								<address>
+									<settlement>Hannover</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,149.42,115.96,316.52,12.62">L3S at the TREC 2021 Deep Learning Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5D9364812BEFFA4BF885D4DC68B5FE34</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>retrieval</term>
+					<term>dense</term>
+					<term>sparse</term>
+					<term>hybrid</term>
+					<term>ranking</term>
+					<term>interpolation</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper we describe the approach we used for the passage and document ranking task in the TREC 2021 deep learning track. Our approach aims for efficient retrieval and re-ranking by making use of fast look-up-based forward indexes for dense dual-encoder models. The score of a query-document pair is computed as a linear interpolation of the corresponding lexical (BM25) and semantic (re-ranking) scores. This is akin to performing the re-ranking step "implicitly" together with the retrieval step. We improve efficiency by avoiding forward passes of expensive re-ranking models without compromising performance.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The previous TREC deep learning tracks have been dominated by transformerbased models <ref type="bibr" coords="1,200.21,432.67,10.52,8.74" target="#b1">[2,</ref><ref type="bibr" coords="1,212.38,432.67,7.01,8.74" target="#b2">3]</ref>. Specifically, contextual cross-attention models based on BERT <ref type="bibr" coords="1,165.11,444.62,10.52,8.74" target="#b4">[5]</ref> are popular choices for re-ranking in both the passage-and documentlevel tasks.</p><p>Recently, contextual models have also been applied in the retrieval step <ref type="bibr" coords="1,470.08,468.80,10.52,8.74" target="#b7">[8,</ref><ref type="bibr" coords="1,134.76,480.76,12.73,8.74" target="#b12">13,</ref><ref type="bibr" coords="1,149.16,480.76,11.62,8.74" target="#b10">11]</ref>. These dense retrievers compute independent, low-dimensional query and document representation vectors and rank documents by computing the similarity of their representations to the query. Because of the independent query and document encoders, these approaches are also referred to as two-tower or dualencoder models. Dense retrieval is typically performed using (approximated) nearest neighbor search <ref type="bibr" coords="1,239.21,540.54,10.52,8.74" target="#b6">[7]</ref> or maximum inner product search (MIPS). However, this is more resource intensive (requiring GPU acceleration) and generally slower than sparse retrieval.</p><p>Dense retrievers are somewhat complementary to sparse models (such as BM25); due to their pre-training, the learnt representations allow for semantic matching, which often helps capturing related documents otherwise missed. However, as they do not perform any direct term matching, the recall tends to suffer <ref type="bibr" coords="1,162.84,624.50,9.96,8.74" target="#b8">[9]</ref>. For that reason, hybrid retrieval approaches have been studied <ref type="bibr" coords="1,467.31,624.50,9.96,8.74" target="#b5">[6]</ref>, where documents retrieved by a sparse and dense retriever, respectively, are combined. This takes advantage of both sparse and dense retrieval, but is still bottle-necked by the dense retrieval step.</p><p>Our approach goes one step further and obviates the dense retrieval step altogether. Instead, we perform sparse retrieval and simply compute the corresponding dense score for each retrieved document. The two scores are then interpolated linearly to obtain the final document score. We refer to this process as score completion. As we use dual-encoder models, all document representations can be pre-computed and stored in an efficient hash map. Consequently, our approach consists of an inexpensive sparse retrieval step and a series of look-ups and only requires a single forward pass to encode the query.</p><p>Our experiments show that interpolation of sparse and dense scores improves retrieval performance. Further, using our look-up technique, we are able gain speed improvements compared to MIPS-based retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Approach</head><p>In this section we briefly introduce our look-up-based hybrid retrieval approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Interpolation-based Re-ranking</head><p>The retrieval pipeline for a query q consists of two stages. In the first stage, a set of documents, K q S , is retrieved using a (typically sparse, term-based) retrieval model. Afterwards, for each document d ∈ K q S , another (typically dense or semantic) model is employed to compute a corresponding re-ranking score w.r.t. q. Let the sparse and dense scores be denoted by ϕ S (q, d) and ϕ D (q, d), respectively. Linear interpolation of both scores to obtain the final ranking has been shown to improve overall performance <ref type="bibr" coords="2,327.55,447.63,9.96,8.74" target="#b0">[1]</ref>:</p><formula xml:id="formula_0" coords="2,220.24,470.26,260.35,9.65">ϕ(q, d) = α • ϕ S (q, d) + (1 -α) • ϕ D (q, d)<label>(1)</label></formula><p>We denote the number of documents retrieved from the sparse index as k S = |K q S |. Note that dual-encoder-based dense models, such as ANCE <ref type="bibr" coords="2,424.44,504.85,15.49,8.74" target="#b12">[13]</ref> or TCT-ColBERT <ref type="bibr" coords="2,181.05,516.80,14.61,8.74" target="#b10">[11]</ref>, often split documents into passages (maxP <ref type="bibr" coords="2,396.36,516.80,10.30,8.74" target="#b3">[4]</ref>). The score of a document is then computed as follows:</p><formula xml:id="formula_1" coords="2,254.03,551.39,226.56,14.66">ϕ D (q, d) = max pi∈d ϕ D (q, p i ) (2)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Forward Indexes</head><p>The computation of the (dense) re-ranking scores is usually very computationally expensive. In this work, we focus on dual-encoders or two-tower models. These models compute the relevance score for a query-document pair as</p><formula xml:id="formula_2" coords="2,260.45,656.12,220.14,9.65">ϕ D (q, d) = ζ(q) • η(d),<label>(3)</label></formula><p>where ζ and η are the query and document encoders, each outputting a representation vector. As the two encoders are independent, the document representations η(d) can be pre-computed in advance for each document d in the corpus. This allows for storing the document representations in look-up based hash map, which can be accessed in constant time. After the index is created, the score of a query-document pair can be computed as</p><formula xml:id="formula_3" coords="3,257.47,214.53,223.13,12.69">ϕ L D (q, d) = ζ(q) • η L (d),<label>(4)</label></formula><p>where the superscript L indicates a pre-computed document representation that is looked up. For maxP indexes the score is computed as follows:</p><formula xml:id="formula_4" coords="3,242.61,275.60,237.98,16.73">ϕ L D (q, d) = max pi∈d ζ(q) • η L (p i )<label>(5)</label></formula><p>Thus, for each query q, only a single forward pass of the encoder model, ζ(q), is required. This is in contrast to traditional (interpolation-based) re-ranking, e.g. using a BERT model <ref type="bibr" coords="3,229.47,331.51,14.61,8.74" target="#b11">[12]</ref>, which requires k expensive forward passes to re-rank the top-k retrieved documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiments</head><p>In this section we present our results on the passage and document ranking tasks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Setup</head><p>We use the Pyserini <ref type="bibr" coords="3,224.75,475.47,15.50,8.74" target="#b9">[10]</ref> for our retrieval experiments. The per-query latency is measured as the sum of scoring, interpolation and sorting cost (pre-processing and tokenization is ignored) using an Intel Xeon Silver 4210 CPU with 40 cores and 256GB of RAM. The dense model (TCT-ColBERT) uses a batch size of 256 and outputs 768-dimensional representations. We use BM25 as the sparse retriever for all experiments.</p><p>We have three runs each for the passage and document ranking task, varying the interpolation parameter α (cf. Eq. ( <ref type="formula" coords="3,308.37,560.48,3.87,8.74" target="#formula_0">1</ref>)). The dense models we use are available on the HuggingFace Hub. We use castorini/tct colbert-msmarco for the 2019 test set and castorini/tct colbert-v2-msmarco for the 2021 test set. 3  For the TCT-ColBERT baseline, we use dense indexes provided by Pyserini as msmarco-doc-tct colbert-bf and msmarco-passage-tct colbert-bf. As the deep learning 2021 track uses the MS MARCO v2 corpus, we exploit the new passage-document mapping to use the passage corpus for both the passage and document ranking task, i.e. the document scores are computed using the maxP approach (cf. Eq. ( <ref type="formula" coords="3,217.12,656.12,3.87,8.74">2</ref>)). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Results</head><p>We illustrate our results on the passage and document retrieval task for the 2019 and 2021 tracks in Tables <ref type="table" coords="4,249.65,486.85,4.98,8.74" target="#tab_0">1</ref> and<ref type="table" coords="4,277.28,486.85,3.87,8.74" target="#tab_1">2</ref>, respectively. We further compare the results to a sparse (BM25) and dense (TCT-ColBERT) retrieval baseline. In most cases, the dense retriever performs better than the sparse retriever, however, the lack of term matching shows in the MAP score for document retrieval. Further, the per-query latency is much higher due to the nearest-neighbor search that is required.</p><p>On the other hand, interpolation-based retrieval beats both sparse and dense retrievers consistently, considerably boosting the performance in all cases. Due to the look-up technique, the latency is also much lower than for dense retrieval.</p><p>In general, it is important to note that the dense retriever (TCT-ColBERT) is a zero-shot model, as it was trained on an old version of the corpus. Thus, we expect that the performance is degraded to some extent because of this.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>We have shown that the interpolation of lexical (sparse) and semantic (dense) scores boosts ranking performance. Further, complementing the scores of a sparse retriever using a dense dual-encoder model allows for fast and efficient "implicit" re-ranking during the retrieval stage and does not require GPU acceleration.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,134.77,115.91,345.83,133.58"><head>Table 1 .</head><label>1</label><figDesc>Passage retrieval performance. Latency is reported per query on the 2019 test set. For the interpolation-based retrievers, we set the sparse retrieval depth to kS = 5000.</figDesc><table coords="4,137.64,161.07,337.01,88.42"><row><cell></cell><cell></cell><cell></cell><cell>2019</cell><cell></cell><cell>2021</cell><cell></cell></row><row><cell></cell><cell cols="6">time [ms] α MAP@100 MRR@100 MAP@100 MRR@100</cell></row><row><cell>BM25</cell><cell>-</cell><cell>-</cell><cell>0.248</cell><cell>0.704</cell><cell>0.136</cell><cell>0.506</cell></row><row><cell>TCT-ColBERT</cell><cell>307</cell><cell>-</cell><cell>0.348</cell><cell>0.823</cell><cell>-</cell><cell>-</cell></row><row><cell></cell><cell></cell><cell>0.2</cell><cell>0.400</cell><cell>0.902</cell><cell>0.200</cell><cell>0.649</cell></row><row><cell>BM25 + TCT-ColBERT</cell><cell>114</cell><cell>0.3</cell><cell>0.389</cell><cell>0.886</cell><cell>0.193</cell><cell>0.640</cell></row><row><cell></cell><cell></cell><cell>0.5</cell><cell>0.338</cell><cell>0.813</cell><cell>0.173</cell><cell>0.603</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,134.77,271.56,345.83,134.33"><head>Table 2 .</head><label>2</label><figDesc>Document retrieval performance (maxP). Latency is reported per query on the 2019 test set. For the interpolation-based retrievers, we set the sparse retrieval depth to kS = 5000.</figDesc><table coords="4,138.21,317.47,335.86,88.42"><row><cell></cell><cell></cell><cell></cell><cell>2019</cell><cell></cell><cell>2021</cell><cell></cell></row><row><cell></cell><cell cols="6">time [ms] α MAP@100 nDCG@20 MAP@100 nDCG@20</cell></row><row><cell>BM25</cell><cell>-</cell><cell>-</cell><cell>0.244</cell><cell>0.483</cell><cell>0.214</cell><cell>0.498</cell></row><row><cell>TCT-ColBERT</cell><cell>582</cell><cell>-</cell><cell>0.225</cell><cell>0.570</cell><cell>-</cell><cell>-</cell></row><row><cell></cell><cell></cell><cell>0.2</cell><cell>0.311</cell><cell>0.653</cell><cell>0.277</cell><cell>0.608</cell></row><row><cell>BM25 + TCT-ColBERT</cell><cell>253</cell><cell>0.5</cell><cell>0.301</cell><cell>0.609</cell><cell>0.273</cell><cell>0.603</cell></row><row><cell></cell><cell></cell><cell>0.7</cell><cell>0.281</cell><cell>0.572</cell><cell>0.253</cell><cell>0.571</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_0" coords="4,144.73,656.80,256.29,8.12"><p>Note that these models are trained on the MS MARCO v1 corpus.</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><p>Acknowledgements Funding for this work was in part provided by <rs type="funder">EU Horizon 2020</rs> grant no. <rs type="grantNumber">871042</rs> (SoBigData++) and 832921 (MIRROR).</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_V7RWUZg">
+					<idno type="grant-number">871042</idno>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,142.96,281.49,337.64,7.86;5,151.52,292.45,329.07,7.86;5,151.52,303.41,329.07,7.86;5,151.52,314.37,329.07,7.86;5,151.52,325.33,89.33,7.86" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,374.67,281.49,105.92,7.86;5,151.52,292.45,181.82,7.86">Cross-domain modeling of sentence-level evidence for document retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Akkalyoncu Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,353.23,292.45,127.36,7.86;5,151.52,303.41,329.07,7.86;5,151.52,314.37,229.48,7.86">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2019-11">Nov 2019</date>
+			<biblScope unit="page" from="3481" to="3487" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,336.56,337.64,7.86;5,151.52,347.52,84.52,7.86" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="5,353.70,336.56,126.89,7.86;5,151.52,347.52,55.85,7.86">Overview of the trec 2020 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,358.75,337.64,7.86;5,151.52,369.70,145.99,7.86" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="5,416.93,358.75,63.66,7.86;5,151.52,369.70,117.31,7.86">Overview of the trec 2019 deep learning track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yilmaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><forename type="middle">M</forename><surname>Voorhees</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,380.93,337.63,7.86;5,151.52,391.89,227.24,7.86" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="5,232.09,380.93,248.49,7.86;5,151.52,391.89,60.93,7.86">Deeper text understanding for ir with contextual neural language modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,233.95,391.89,60.49,7.86">ACM SIGIR&apos;19</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="985" to="988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,403.12,337.63,7.86;5,151.52,414.08,329.07,7.86;5,151.52,425.04,329.07,7.86;5,151.52,436.00,329.07,7.86;5,151.52,446.96,329.07,7.86;5,151.52,457.92,329.07,7.86;5,151.52,468.88,140.09,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="5,383.13,403.12,97.46,7.86;5,151.52,414.08,244.41,7.86">BERT: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/N19-1423</idno>
+		<ptr target="https://aclanthology.org/N19-1423" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,420.47,414.08,60.12,7.86;5,151.52,425.04,329.07,7.86;5,151.52,436.00,248.00,7.86">Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<title level="s" coord="5,461.65,436.00,18.94,7.86;5,151.52,446.96,74.95,7.86">Long and Short Papers</title>
+		<meeting>the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies<address><addrLine>Minneapolis, Minnesota</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019-06">Jun 2019</date>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="4171" to="4186" />
+		</imprint>
+	</monogr>
+	<note>Association for Computational Linguistics</note>
+</biblStruct>
+
+<biblStruct coords="5,142.96,480.10,337.63,7.86;5,151.52,491.06,329.07,7.86;5,151.52,502.02,329.07,7.86;5,151.52,512.98,288.90,7.86" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="5,401.75,480.10,78.84,7.86;5,151.52,491.06,199.11,7.86">Complement lexical retrieval model with semantic residual embeddings</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Van Durme</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,381.80,502.02,98.79,7.86;5,151.52,512.98,34.93,7.86">Advances in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><forename type="middle">F</forename><surname>Moens</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Mothe</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Perego</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="146" to="160" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,524.21,337.64,7.86;5,151.52,535.17,132.21,7.86" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="5,293.37,524.21,157.94,7.86">Billion-scale similarity search with gpus</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Douze</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jégou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,458.46,524.21,22.14,7.86;5,151.52,535.17,103.54,7.86">IEEE Transactions on Big Data</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,546.40,337.64,7.86;5,151.52,557.36,308.69,7.86" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="5,189.40,557.36,242.14,7.86">Dense passage retrieval for open-domain question answering</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Karpukhin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Oguz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Min</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Edunov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Tau Yih</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.96,568.59,337.64,7.86;5,151.52,579.55,149.80,7.86" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Leonhardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Rudra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Khosla</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Anand</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Anand</surname></persName>
+		</author>
+		<title level="m" coord="5,398.12,568.59,82.48,7.86;5,151.52,579.55,121.13,7.86">Fast forward indexes for efficient document ranking</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,590.77,337.98,7.86;5,151.52,601.73,329.07,7.86;5,151.52,612.69,329.07,7.86;5,151.52,623.65,264.26,7.86" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3404835.3463238</idno>
+		<ptr target="https://doi.org/10.1145/3404835.3463238" />
+		<title level="m" coord="5,433.97,590.77,46.62,7.86;5,151.52,601.73,329.07,7.86;5,151.52,612.69,89.25,7.86">Pyserini: A Python Toolkit for Reproducible Information Retrieval Research with Sparse and Dense Representations</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="2356" to="2362" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,142.62,634.88,337.98,7.86;5,151.52,645.84,329.07,7.86;5,151.52,656.80,329.07,7.86;6,151.52,119.67,329.07,7.86;6,151.52,130.63,329.07,7.86;6,151.52,141.59,175.70,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="5,307.87,634.88,172.72,7.86;5,151.52,645.84,274.67,7.86">In-batch negatives for knowledge distillation with tightly-coupled teachers for dense retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2021.repl4nlp-1.17</idno>
+		<ptr target="https://aclanthology.org/2021.repl4nlp-1.17" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,463.04,645.84,17.56,7.86;5,151.52,656.80,329.07,7.86">Proceedings of the 6th Workshop on Representation Learning for NLP</title>
+		<meeting>the 6th Workshop on Representation Learning for NLP</meeting>
+		<imprint>
+			<date type="published" when="2021-08">Aug 2021</date>
+			<biblScope unit="page" from="163" to="173" />
+		</imprint>
+	</monogr>
+	<note>Online</note>
+</biblStruct>
+
+<biblStruct coords="6,142.62,152.52,337.98,7.89;6,151.52,163.51,162.64,7.86" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="6,247.90,152.55,123.74,7.86">Passage re-ranking with BERT</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<idno>CoRR abs/1901.04085</idno>
+		<ptr target="http://arxiv.org/abs/1901.04085" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,142.62,174.47,337.97,7.86;6,151.52,185.43,329.07,7.86;6,151.52,196.39,329.07,7.86;6,151.52,207.35,183.29,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,191.67,185.43,288.92,7.86;6,151.52,196.39,52.24,7.86">Approximate nearest neighbor negative contrastive learning for dense text retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">F</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">N</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ahmed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Overwijk</surname></persName>
+		</author>
+		<ptr target="https://openreview.net/forum?id=zeFrfgyZln" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,226.43,196.39,221.96,7.86">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

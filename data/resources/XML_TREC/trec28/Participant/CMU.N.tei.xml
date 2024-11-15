@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,179.60,84.23,252.79,15.44">Proximity-Based Entity Ranking</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,175.51,125.62,93.58,10.59;1,269.10,122.96,2.19,7.50"><forename type="first">Gustavo</forename><surname>Gonçalves</surname></persName>
+							<email>ggoncalves@cmu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution" key="instit1">Language and Technology Institute</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<address>
+									<settlement>Pittsburgh</settlement>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,283.98,125.62,76.35,10.59;1,360.33,122.96,2.19,7.50"><forename type="first">João</forename><surname>Magalhães</surname></persName>
+							<email>jm.magalhaes@fct.unl.pt</email>
+						</author>
+						<author>
+							<persName coords="1,370.83,125.62,61.77,10.59;1,432.60,122.96,2.19,7.50"><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+							<email>callan@cmu.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution" key="instit1">Language and Technology Institute</orgName>
+								<orgName type="institution" key="instit2">Carnegie Mellon University</orgName>
+								<address>
+									<settlement>Pittsburgh</settlement>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">NOVA LINCS</orgName>
+								<orgName type="institution" key="instit2">Universidade NOVA de Lisboa</orgName>
+								<address>
+									<settlement>Caparica</settlement>
+									<country key="PT">Portugal</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,179.60,84.23,252.79,15.44">Proximity-Based Entity Ranking</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">3B66584313EE70171F3D09E47FE11CFF</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This work explores the value of a combination of features, including entity proximity, for improving a learning-to-rank entity ranking system.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Entities are informative units of text that represent real world objects, or concepts <ref type="bibr" coords="1,122.48,280.17,9.52,7.94" target="#b0">[1]</ref>. They can provide a shallow, yet more informative textual representation by aggregating multiple words, and different word representations in a single concept. E.g. President Trump, Donald Trump, and Trump. Entities can be linked to knowledge bases such as Wikipedia <ref type="bibr" coords="1,187.24,324.01,9.42,7.94" target="#b4">[5]</ref>, DBPedia <ref type="bibr" coords="1,235.89,324.01,9.41,7.94" target="#b7">[8]</ref>, Freebase <ref type="bibr" coords="1,280.24,324.01,11.09,7.94" target="#b1">[2]</ref>, and YAGO <ref type="bibr" coords="1,94.46,334.97,13.30,7.94" target="#b10">[11]</ref>. With entity links, information systems are able to relate entities and expand the vocabulary related to a given entity. Moreover, these links can also be used to point users to relevant sources of related information. The latter scenario is the main scope of the TREC News, Entity Ranking task. The task is defined as the re-ranking of a given set of entities in a news article. The entity ranking should be ordered by decreasing order of utility, for the news article reader to better comprehend the article. With our participation in the 2019 edition of the TREC News track, we explored one main hypothesis. The inverted pyramid writing scheme <ref type="bibr" coords="1,275.31,433.60,10.57,7.94" target="#b5">[6]</ref> is commonly used in journalism, where the most important content of the news article is concentrated at the beginning of the document. We would like to verify if the entities that are mentioned earlier in the document, are central and thus should be ranked higher in the scope of the entity ranking task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">RELATED WORK</head><p>Entities have been established as useful units of information that can be used in information retrieval tasks. Recently, an increased interest has been given to identifying the salience and centrality <ref type="bibr" coords="1,53.80,558.05,10.49,7.94" target="#b3">[4]</ref> of entities in both queries and documents. We define centrality as the entity attribute that explicitly, or implicitly, defines the main topic of a document, or query. Salience refers to the importance of a query that might be related to the central entity, but not directly the main topic of the document or query.</p><p>Recently, various state-of-the-art methods <ref type="bibr" coords="1,215.49,612.84,13.40,7.94" target="#b9">[10,</ref><ref type="bibr" coords="1,230.72,612.84,10.27,7.94" target="#b11">12,</ref><ref type="bibr" coords="1,242.82,612.84,11.47,7.94" target="#b12">13]</ref> have leveraged on entity salience estimation to determine the importance of entities and decide on how to incorporate them in re-raking pipelines.</p><p>Machine learning approaches can be used to re-rank document ranking. These Learning To Rank (LTR) <ref type="bibr" coords="1,203.65,667.64,10.67,7.94" target="#b8">[9]</ref> systems, feed signals such as, term frequency, inverse document frequency and various rankings to learn to combine features and use them to learn a better ranking that optimizes a certain metric. Since LTR can combine </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">PROPOSED APPROACH</head><p>We have indexed the Washington Post dataset using separate, nonoverlapping fields for the Title, First 5 Paragraphs, and Body fields.</p><p>We employed an LTR architecture using various combinations of the features in Table <ref type="table" coords="1,395.04,533.22,3.08,7.94" target="#tab_0">1</ref>, with a Coordinate Ascent <ref type="bibr" coords="1,499.51,533.22,10.57,7.94" target="#b2">[3]</ref> algorithm as optimization method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Feature Selection and Re-ranking</head><p>We have submitted 3 runs for evaluation. The evaluated runs consisted of LTR models trained on the 2018 queries of the Washington Post News Track <ref type="bibr" coords="1,381.05,602.21,9.30,7.94" target="#b6">[7]</ref>, entity ranking task. For training, we split the data in subsets of 40 queries for training and validation. Training models were generated by rotating these splits across the data, so that every query was used for training at least once. Each training roun was done with a 10-fold cross validation to reduce data bias and overfitting. Finally, the results obtained from each trained model were averaged to be comparable with the 2018 results. With our runs, we wanted to evaluate the retrieval impact of utilizing different document representations, such as the title, first 5 paragraphs, and body, under the hypothesis that central entities would 1. CMU_NS-1-tpb: This run uses all features presented in Table <ref type="table" coords="2,289.25,336.92,3.09,7.94" target="#tab_0">1</ref>.</p><p>With this run we aimed to set an upper bound by combining all features across all considered fields, where tpb stands for title, paragraph, and body, respectively; 2. CMU_NS-2-tp: This run focus on using only the features that focus on the title and paragraph fields. The objective of this run was to examine the performance of adding the first 5 paragraphs of the document, to observe if the entities contained in this portion of text were central, and thus should be ranked higher; 3. CMU_NS-3-t: Finally, run 3 focus only on features based on the title field. With this run we aimed to set a lower bound of the retrieval performance that could be achieved with the chosen entities, and the smallest document field that is also expected to contain the most important entities to a news article.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">EXPERIMENTAL RESULTS</head><p>Our systems' performance can be observed in Table <ref type="table" coords="2,252.86,514.86,3.13,7.94" target="#tab_1">2</ref>. The first line of the table corresponds to the TREC Median result in terms of NDCG@5. Each following line of the table corresponds to one of our runs. The results are presented in terms of MAP, nDCG@5 which is the main metric of the task, and P@5. A percentual comparison is provided in terms of the nDCG@5 metric. Unfortunately, our runs were not successful in ranking the entities for each document, displaying significant losses when compare with the TREC median. This indicates that our set o features was not able to distinguish between central and important entities. However, we were able to verify with our runs that the inclusion of paragraph based features actually contributed to harming the results, thus not confirming the entity importance based on the inverted pyramid hypothesis.</p><p>The other two runs based on all features, or just features based on the title field displayed an expected relative performance variation, where features combinations based on fields with less text tend to under-perform when compared to features that include more of the document's text.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSION</head><p>Through our participation we were able to test one research hypothesis. We actually verified that our assumption that entities that occur in an earlier position of the document did not improve our model's performance. However, further research is necessary to determine in fact the effect of the entities position in the document providing a signal for relevance. Careful tuning of the proximity word windows in required to further assess the obtained results.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,317.73,189.90,240.47,282.28"><head>Table 1 :</head><label>1</label><figDesc>Features used for LTR re-ranking.</figDesc><table coords="1,341.82,215.78,190.28,177.14"><row><cell cols="2">Feature ID Retrieval Model</cell><cell>Field</cell></row><row><cell>1</cell><cell>TF</cell><cell>Title</cell></row><row><cell>2</cell><cell>TF</cell><cell>First 5 Paragraphs</cell></row><row><cell>3</cell><cell>TF</cell><cell>Body</cell></row><row><cell>4</cell><cell>TF-IDF</cell><cell>Title</cell></row><row><cell>5</cell><cell>TF-IDF</cell><cell>First 5 Paragraphs</cell></row><row><cell>6</cell><cell>TF-IDF</cell><cell>Body</cell></row><row><cell>7</cell><cell>BM25</cell><cell>Title</cell></row><row><cell>8</cell><cell>BM25</cell><cell>First 5 Paragraphs</cell></row><row><cell>9</cell><cell>BM25</cell><cell>Body</cell></row><row><cell>10</cell><cell>PMI Window/20</cell><cell>Title</cell></row><row><cell>11</cell><cell>PMI Window/20</cell><cell>First 5 Paragraphs</cell></row><row><cell>12</cell><cell>PMI Window/20</cell><cell>Body</cell></row><row><cell>13</cell><cell cols="2">Nr. Surface Forms Title</cell></row><row><cell>14</cell><cell cols="2">Nr. Surface Forms First 5 Paragraphs</cell></row><row><cell>15</cell><cell cols="2">Nr. Surface Forms Body</cell></row></table><note coords="1,317.73,420.40,240.47,7.94;1,317.96,431.36,240.25,7.94;1,317.96,442.32,240.24,7.94;1,317.96,453.27,240.25,7.94;1,317.96,464.23,79.22,7.94"><p>various retrival models in one single ranking, they are considered a strong baseline for a search engine. In this work we adapt an LTR pipeline to consider features of entities contained in a given document, thus re-ranking entities and not documents, as in a tradition LTR system.</p></note></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="2,53.37,85.73,242.28,245.67"><head>Table 2 :</head><label>2</label><figDesc>Results obtained while training on 2018 and reranking on 2019 data the total document span. We used a maximum of 15 features to train our models. Table1presents the utilized features, where each feature is a either a retrieval model, such as TF-IDF and BM25, or a count, as is the case for TF, PMI Window/20, and Nr. of Surface Forms. TF-IDF and BM25, use corpus statistics of the Washington Post corpus to calculate the entities IDF. PMI Window/20 stands for the count of each entity pair in the document, within an unordered window of 20 words. Whereas the Nr. of Surface Forms corresponds to the number of unique surface forms that each entity displays in the document.We chose the following combinations of the features in Table1as our submitted runs:</figDesc><table coords="2,53.80,122.57,232.81,88.28"><row><cell>Run</cell><cell>MAP</cell><cell>nDCG@5</cell><cell></cell><cell>P@5</cell></row><row><cell>TREC-Median</cell><cell cols="2">--0.5727</cell><cell>-</cell><cell>--</cell></row><row><cell>CMU_NS-1-tpb</cell><cell cols="4">0.5736 -0.5051 -11.1% 0.4000 -</cell></row><row><cell>CMU_NS-2-tp</cell><cell cols="4">0.5451 -0.4567 -20.3% 0.3846 -</cell></row><row><cell>CMU_NS-3-t</cell><cell cols="4">0.5778 -0.4782 -16.5% 0.3692 -</cell></row><row><cell>appear earlier in</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="2,333.39,200.38,225.58,6.23;2,333.16,208.38,172.43,6.18" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="2,397.55,200.38,62.09,6.23">Entity-Oriented Search</title>
+		<author>
+			<persName coords=""><forename type="first">Krisztian</forename><surname>Balog</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-319-93935-3</idno>
+		<ptr target="https://doi.org/10.1007/978-3-319-93935-3" />
+	</analytic>
+	<monogr>
+		<title level="s" coord="2,464.22,200.41,92.11,6.18">The Information Retrieval Series</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<date type="published" when="2018">2018</date>
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,216.35,225.89,6.18;2,333.39,224.32,224.81,6.18;2,333.39,232.26,224.81,6.23;2,333.39,240.23,225.58,6.23;2,333.28,248.23,226.00,6.18;2,333.23,256.20,22.70,6.18" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="2,349.21,224.32,208.99,6.18;2,333.39,232.29,30.75,6.18">Freebase: A Collaboratively Created Graph Database for Structuring Human Knowledge</title>
+		<author>
+			<persName coords=""><forename type="first">Kurt</forename><forename type="middle">D</forename><surname>Bollacker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Colin</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Praveen</forename><surname>Paritosh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tim</forename><surname>Sturge</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Taylor</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1376616.1376746</idno>
+		<ptr target="https://doi.org/10.1145/1376616.1376746" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,378.71,232.26,179.49,6.23;2,333.39,240.23,58.66,6.23">Proceedings of the ACM SIGMOD International Conference on Management of Data</title>
+		<editor>
+			<persName><forename type="first">Tsong-Li</forename><surname>Wang</surname></persName>
+		</editor>
+		<meeting>the ACM SIGMOD International Conference on Management of Data<address><addrLine>Vancouver, BC, Canada</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2008-06-10">2008. 2008. June 10-12, 2008</date>
+			<biblScope unit="page" from="1247" to="1250" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,264.17,224.81,6.18;2,333.39,272.14,224.81,6.18;2,333.39,280.08,224.81,6.23;2,333.39,288.05,224.81,6.23;2,333.39,296.02,225.89,6.23;2,333.15,304.02,153.20,6.18" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="2,461.50,272.14,96.70,6.18;2,333.39,280.11,21.73,6.18">Learning to Rank Using Gradient Descent</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">C</forename><surname>Christopher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tal</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Erin</forename><surname>Shaked</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ari</forename><surname>Renshaw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matt</forename><surname>Lazier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nicole</forename><surname>Deeds</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gregory</forename><forename type="middle">N</forename><surname>Hamilton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Hullender</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1102351.1102363</idno>
+		<ptr target="https://doi.org/10.1145/1102351.1102363" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,368.45,280.08,189.75,6.23;2,333.39,288.05,66.13,6.23">Machine Learning, Proceedings of the Twenty-Second International Conference (ICML 2005)</title>
+		<title level="s" coord="2,507.10,288.05,51.10,6.23;2,333.39,296.02,79.60,6.23">ACM International Conference Proceeding Series</title>
+		<editor>
+			<persName><forename type="first">Luc</forename><surname>De</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Raedt</forename></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Stefan</forename><surname>Wrobel</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Bonn, Germany</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2005-08-07">2005. August 7-11, 2005</date>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page" from="89" to="96" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,311.99,224.81,6.18;2,333.39,319.93,224.81,6.23;2,333.39,327.90,225.57,6.23;2,333.39,335.87,224.81,6.23;2,333.15,343.87,134.52,6.18" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="2,442.19,311.99,116.01,6.18;2,333.39,319.96,62.07,6.18">A New Entity Salience Task with Millions of Training Examples</title>
+		<author>
+			<persName coords=""><forename type="first">Jesse</forename><surname>Dunietz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Daniel</forename><surname>Gillick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,409.71,319.93,148.49,6.23;2,333.39,327.90,22.14,6.23;2,546.95,335.90,11.25,6.18;2,333.15,343.87,105.26,6.18">Proceedings of the 14th Conference of the European Chapter</title>
+		<editor>
+			<persName><forename type="first">Gosse</forename><surname>Bouma</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Yannick</forename><surname>Parmentier</surname></persName>
+		</editor>
+		<meeting>the 14th Conference of the European Chapter<address><addrLine>Gothenburg, Sweden</addrLine></address></meeting>
+		<imprint>
+			<publisher>the Association for Computational Linguistics</publisher>
+			<date type="published" when="2014-04-26">2014. 2014. April 26-30, 2014</date>
+			<biblScope unit="page" from="205" to="209" />
+		</imprint>
+	</monogr>
+	<note>The Association for Computer Linguistics</note>
+</biblStruct>
+
+<biblStruct coords="2,333.39,351.84,224.81,6.18;2,333.18,359.78,226.09,6.23;2,333.23,367.78,50.23,6.18" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="2,447.70,351.84,110.50,6.18;2,333.18,359.81,76.11,6.18">Fast and Accurate Annotation of Short Texts with Wikipedia Pages</title>
+		<author>
+			<persName coords=""><forename type="first">Paolo</forename><surname>Ferragina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ugo</forename><surname>Scaiella</surname></persName>
+		</author>
+		<idno type="DOI">10.1109/MS.2011.122</idno>
+		<ptr target="https://doi.org/10.1109/MS.2011.122" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="2,414.65,359.78,37.95,6.23">IEEE Software</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="70" to="75" />
+			<date type="published" when="2012">2012. 2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,375.75,225.99,6.18;2,333.39,383.69,225.58,6.23;2,333.39,391.69,155.14,6.18" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="2,393.24,375.75,166.14,6.18;2,333.39,383.72,105.69,6.18">News and Its Communicative Quality: The Inverted Pyramid-When and Why Did It Appear?</title>
+		<author>
+			<persName coords=""><forename type="first">Pottker</forename><surname>Horst</surname></persName>
+		</author>
+		<idno type="DOI">10.1080/1461670032000136596</idno>
+		<ptr target="https://doi.org/10.1080/1461670032000136596" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,451.96,383.69,52.09,6.23">Journalism Studies</title>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="501" to="511" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,399.66,225.88,6.18;2,333.39,407.60,224.81,6.23;2,333.39,415.57,224.81,6.23;2,333.39,423.54,225.51,6.23;2,333.39,431.51,225.58,6.23;2,333.39,439.51,222.88,6.18" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="2,492.63,399.66,63.72,6.18">TREC 2018 News Track</title>
+		<author>
+			<persName coords=""><forename type="first">Shudong</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ian</forename><surname>Soboroff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Donna</forename><surname>Harman</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,341.48,407.60,216.73,6.23;2,333.39,415.57,224.81,6.23;2,333.39,423.54,57.04,6.23">Proceedings of the Second International Workshop on Recent Trends in News Information Retrieval Co-Located with 40th European Conference on Information Retrieval (ECIR 2018)</title>
+		<editor>
+			<persName><forename type="first">Dyaa</forename><surname>Albakour</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">David</forename><surname>Corney</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Julio</forename><surname>Gonzalo</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Miguel</forename><surname>Martinez-Alvarez</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Barbara</forename><surname>Poblete</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Andreas</forename><surname>Valochas</surname></persName>
+		</editor>
+		<meeting>the Second International Workshop on Recent Trends in News Information Retrieval Co-Located with 40th European Conference on Information Retrieval (ECIR 2018)<address><addrLine>Grenoble, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2018-03-26">2018. March 26. 2018</date>
+			<biblScope unit="volume">2079</biblScope>
+			<biblScope unit="page" from="57" to="59" />
+		</imprint>
+	</monogr>
+	<note type="report_type">CEUR Workshop Proceedings</note>
+</biblStruct>
+
+<biblStruct coords="2,333.39,447.48,225.58,6.18;2,333.39,455.45,225.58,6.18;2,333.39,463.42,224.81,6.18;2,333.39,471.36,225.89,6.23;2,333.39,479.36,98.19,6.18" xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Jens</forename><surname>Lehmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Robert</forename><surname>Isele</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Max</forename><surname>Jakob</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Anja</forename><surname>Jentzsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dimitris</forename><surname>Kontokostas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pablo</forename><forename type="middle">N</forename><surname>Mendes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sebastian</forename><surname>Hellmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mohamed</forename><surname>Morsey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrick</forename><surname>Van Kleef</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sören</forename><surname>Auer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christian</forename><surname>Bizer</surname></persName>
+		</author>
+		<idno type="DOI">10.3233/SW-140134</idno>
+		<ptr target="https://doi.org/10.3233/SW-140134" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="2,522.28,463.42,35.92,6.18;2,333.39,471.36,166.85,6.23">Multilingual Knowledge Base Extracted from Wikipedia. Semantic Web</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="167" to="195" />
+			<date type="published" when="2015">2015. 2015</date>
+			<pubPlace>DBpedia -A Large-Scale</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,487.30,224.81,6.23;2,333.39,495.27,225.26,6.23;2,333.23,503.27,32.43,6.18" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="2,390.43,487.33,126.29,6.18">Learning to Rank for Information Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Tie-Yan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="DOI">10.1561/1500000016</idno>
+		<ptr target="https://doi.org/10.1561/1500000016" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="2,523.92,487.30,34.28,6.23;2,333.39,495.27,98.35,6.23">Foundations and Trends in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="225" to="331" />
+			<date type="published" when="2009">2009. 2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,511.24,224.81,6.18;2,333.39,519.18,224.81,6.23;2,333.39,527.15,104.53,6.23" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="2,514.03,511.24,44.17,6.18;2,333.39,519.21,172.36,6.18">Finding Salient Context Based on Semantic Matching for Relevance Ranking</title>
+		<author>
+			<persName coords=""><forename type="first">Yuanyuan</forename><surname>Qi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiayue</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Weiran</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jun</forename><surname>Guo</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1909.01165</idno>
+		<idno>arXiv:cs/1909.01165</idno>
+		<imprint>
+			<date type="published" when="2019-09">2019. Sept. 2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,535.15,224.81,6.18;2,333.39,543.09,224.81,6.23;2,333.39,551.06,225.89,6.23;2,333.06,559.06,225.33,6.18;2,333.18,567.03,178.79,6.18" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="2,521.02,535.15,37.19,6.18;2,333.39,543.12,66.83,6.18">Yago: A Core of Semantic Knowledge</title>
+		<author>
+			<persName coords=""><forename type="first">Fabian</forename><forename type="middle">M</forename><surname>Suchanek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gjergji</forename><surname>Kasneci</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Gerhard</forename><surname>Weikum</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1242572.1242667</idno>
+		<ptr target="https://doi.org/10.1145/1242572.1242667" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,413.31,543.09,144.90,6.23;2,333.39,551.06,83.54,6.23">Proceedings of the 16th International Conference on World Wide Web, WWW 2007</title>
+		<editor>
+			<persName><forename type="first">Carey</forename><forename type="middle">L</forename><surname>Williamson</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Mary</forename><forename type="middle">Ellen</forename><surname>Zurko</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Peter</forename><forename type="middle">F</forename><surname>Patel-Schneider</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Prashant</forename><forename type="middle">J</forename><surname>Shenoy</surname></persName>
+		</editor>
+		<meeting>the 16th International Conference on World Wide Web, WWW 2007<address><addrLine>Banff, Alberta, Canada</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2007-05-08">2007. May 8-12, 2007</date>
+			<biblScope unit="page" from="697" to="706" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,575.00,225.88,6.18;2,333.39,582.94,224.81,6.23;2,333.39,590.91,224.81,6.23;2,333.39,598.88,225.58,6.23;2,333.18,606.88,226.10,6.18;2,333.15,614.85,153.20,6.18" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="2,350.56,582.97,162.69,6.18">End-to-End Neural Ad-Hoc Ranking with Kernel Pooling</title>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhuyun</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Russell</forename><surname>Power</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3077136.3080809</idno>
+		<ptr target="https://doi.org/10.1145/3077136.3080809" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,525.60,582.94,32.61,6.23;2,333.39,590.91,224.81,6.23;2,333.39,598.88,58.70,6.23">Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">Tetsuya</forename><surname>Kando</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Hideo</forename><surname>Sakai</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Hang</forename><surname>Joho</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Arjen</forename><forename type="middle">P</forename><surname>Li</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Ryen</forename><forename type="middle">W</forename><surname>De Vries</surname></persName>
+		</editor>
+		<editor>
+			<persName><surname>White</surname></persName>
+		</editor>
+		<meeting>the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval<address><addrLine>Shinjuku, Tokyo, Japan</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2017-08-07">2017. August 7-11, 2017</date>
+			<biblScope unit="page" from="55" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="2,333.39,622.82,224.81,6.18;2,333.39,630.79,225.88,6.18;2,333.39,638.73,224.81,6.23;2,333.39,646.71,224.81,6.23;2,333.39,654.70,224.81,6.18;2,333.18,662.67,177.81,6.18" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="2,534.10,622.82,24.10,6.18;2,333.39,630.79,222.77,6.18">Towards Better Text Understanding and Retrieval through Kernel Entity Salience Modeling</title>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhengzhong</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tie-Yan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3209978.3209982</idno>
+		<ptr target="https://doi.org/10.1145/3209978.3209982" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="2,341.23,638.73,216.97,6.23;2,333.39,646.71,92.96,6.23">The 41st International ACM SIGIR Conference on Research &amp; Development in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">Kevyn</forename><surname>Collins-Thompson</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Qiaozhu</forename><surname>Mei</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Brian</forename><forename type="middle">D</forename><surname>Davison</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Yiqun</forename><surname>Liu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Emine</forename><surname>Yilmaz</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Ann Arbor, MI, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2018-07-08">2018. July 08-12, 2018</date>
+			<biblScope unit="page" from="575" to="584" />
+		</imprint>
+	</monogr>
+	<note>SIGIR 2018</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

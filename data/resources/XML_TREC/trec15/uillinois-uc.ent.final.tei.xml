@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,183.84,107.08,227.23,12.91;1,142.56,125.08,309.88,12.91">Language Models for Expert Finding -UIUC TREC 2006 Enterprise Track Experiments</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,199.56,159.55,42.24,16.49"><forename type="first">Hui</forename><surname>Fang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Illinois at Urbana</orgName>
+								<address>
+									<settlement>Champaign</settlement>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,250.14,159.55,51.51,16.49"><forename type="first">Lixin</forename><surname>Zhou</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Illinois at Urbana</orgName>
+								<address>
+									<settlement>Champaign</settlement>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,310.19,159.55,85.21,16.49"><forename type="first">Chengxiang</forename><surname>Zhai</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science</orgName>
+								<orgName type="institution">University of Illinois at Urbana</orgName>
+								<address>
+									<settlement>Champaign</settlement>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,183.84,107.08,227.23,12.91;1,142.56,125.08,309.88,12.91">Language Models for Expert Finding -UIUC TREC 2006 Enterprise Track Experiments</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">015B2AA12DC22B1C63AC74149BDBE750</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:03+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this paper, we report our experiments in the TREC 2006 Enterprise Track. Our focus is to study a language model for expert finding. We extend an existing language model for expert retrieval in three aspects. First, we model the document-expert association using a mixure model instead of name matching heuristics as in the existing work; such a mixture model allows us to put different weights on email matching and name matching. Second, we propose to model the prior of an expert based on the counts of email matches in the supporting documents instead of using uniform prior as in the previous work. Finally, we perform topic expansion and generalize the model from computing the likelihood to computing the cross entropy. Our experiments show that the first two extensions are more effective than the third extension, though when optimized, they all seem to be effective.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The problem of expert finding is concerned with finding experts on a specified topic. The enterprise track <ref type="bibr" coords="1,76.14,589.94,12.69,15.04" target="#b3">[4]</ref> of TREC <ref type="bibr" coords="1,138.45,589.94,12.69,15.04" target="#b8">[9]</ref> provides a common platform for expert finding, which includes the following three components: (1) a supporting document collection; (2) a list of expert candidates, each of whom is described with name and email; (3) a set of topics (i.e., descriptions of expertise). The task is to rank the candidate experts for a given topic based on the information from a data collection.</p><p>Based on such a problem setting, many participants tried various methods. For example, Fu et. al. <ref type="bibr" coords="1,529.25,248.06,11.58,15.04" target="#b4">[5]</ref>, Azzopardi et. al. <ref type="bibr" coords="1,389.47,261.62,12.57,15.04" target="#b0">[1]</ref> and Macdonald et. al. <ref type="bibr" coords="1,508.76,261.62,12.69,15.04" target="#b5">[6]</ref> built an expertise profile for each candidate, and rank the candidate experts based on the relevance score of their profiles to the given topic. Some heuristics have been used to identify mentions of candidate experts, and create expertise profiles. Cao et. al. <ref type="bibr" coords="1,482.17,329.42,12.57,15.04" target="#b2">[3]</ref> and Balog et. al. <ref type="bibr" coords="1,338.57,342.98,12.69,15.04" target="#b1">[2]</ref> proposed some probabilistic models for expert finding, but their approaches require some heuristics to improve the performance, such as specific name matching techniques.</p><p>We develop a new language model for expert finding by extending the model 2 proposed in <ref type="bibr" coords="1,495.60,446.42,12.57,15.04" target="#b1">[2]</ref> in three aspects. First, we propose a better way to model the document-expert association. Instead of using name matching heuristics <ref type="bibr" coords="1,396.16,487.10,11.49,15.04" target="#b1">[2]</ref>, we use a mixture model to put different weights on name matching and email matching. Intuitively email matching should be weighted more than name matching. Second, we estimate the prior probability that a candidate is an expert based on the counts of email matches in the colletion. Finally, we perform topic expansion and generatlize the language model from computing the likelihood to computing the cross entropy.</p><p>Experiment results show that When optimized, these expansions seem to be all effective, but the email count-based prior and the weighting of email matching and name matching seem to be more effective than topic expansion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Language Models for Expert Finding</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Basic setup</head><p>The problem of expert finding is similar to the traditional ad hoc retrieval problem in the sense that both attempt to find "relevant" information items for a given query. The main difference is that the "information items" are persons in the case of expert finding, rather than documents as in traditional retrieval. A person is relevant to a topic query if and only if the person has the expertise on the topic specified in the query.</p><p>Following the probabilistic ranking principle <ref type="bibr" coords="2,270.51,234.74,11.49,15.04" target="#b7">[8]</ref>, we can rank persons according to the probability that the person is relevant to the query. Thus, the key challenge is how to compute the probability that an expert is "relevant" to a topic (i.e., the expertise specified in the query).</p><p>Formally, suppose S = {d 1 , ..., d |S| } is a collection of supporting documents. Let t = t 1 t 2 ...t m be the description of a topic, where t i is a term in the description. Let c be an expert candidate whose email and name are denoted as e(c), n(c), respectively. Given a query t and an expert candidate c, we are interested in estimating the conditional probability p(c|t), i.e., the probability that candidate c is an expert given the topic t. After applying Bayes' Theorem, we have p(c|t) = p(t|c) × p(c) p(t) .</p><p>Since p(t) is the same for all the experts, it can be ignored for the purpose of ranking experts. Thus, we have</p><formula xml:id="formula_0" coords="2,107.76,538.34,178.20,15.04">p(c|t) ∝ p(t|c) × p(c),<label>(1)</label></formula><p>where p(t|c) is the probability that the topic t reflects the expertise of candidate c, and p(c) is the prior probability that the candidate expert c is an expert. Now the remaining questions are how to estimate p(t|c) and how to estimate p(c).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Setting the candidate prior p(c)</head><p>We first consider how to estimate p(c), which is the prior probability of a candidate being an expert. In most existing work <ref type="bibr" coords="2,137.59,699.02,11.85,15.04" target="#b2">[3,</ref><ref type="bibr" coords="2,152.67,699.02,7.82,15.04" target="#b1">2]</ref>, this probability is assumed to be uniform. However, as shown in Section 3, reasonable prior can help improve the retrieval accuracy. In this paper, we assume such a prior probability is related to the occurrences of the person's email, and model the email frequency in the same way as the term frequency in Okapi <ref type="bibr" coords="2,396.55,138.74,11.58,15.04" target="#b6">[7]</ref>. Specifically, this prior probability is assumed to be given by</p><formula xml:id="formula_1" coords="2,365.88,177.35,179.12,25.30">p(c) ∝ c(e(c), S) c(e(c), S) + β ,<label>(2)</label></formula><p>where c(e(c), S) is the count of mentions of the email of candidate c in the collection S, and β is a parameter to control the skewness of the prior. A larger β would reduce the skewness of the prior (i.e., leading to a weaker prior), thus it can be interpreted as being inversely proportional to our confidence in this prior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Modeling candidate-topic relationship p(t|c)</head><p>Second, we discuss how to estimate p(t|c), the probability that t describes the expertise of candidate c. Similar to what other participants have been doing, we also exploit the co-occurrences of the topic terms and candidate mentions in the supporting documents and estimate p(t|c) based on the supporting documents. Specifically, we use supporting documents as a "bridge" to connect t and c in the following way:</p><formula xml:id="formula_2" coords="2,357.60,463.78,138.46,20.71">p(t|c) = d∈S p(t|d) × p(d|c)</formula><p>That is, we assume that a topic t can be "generated" from a candidate c by first "generating" a supporting document d from c, and then "generating" t from the document d. Intuitively, this formula is quite reasonable: p(d|c) allows us to model the probability that a supporting document d mentions candidate c, while p(t|d) allows us to model the probability that d matches t. A document d with high values for both p(d|c) and p(t|d) would contribute the most to our estimate of p(t|c) which intuitively makes sense. p(t|d) can be computed efficiently by treating t as a query and using the standard query likelihood retrieval method. In order to compute p(d|c), we may further rewrite the equation above as follows:</p><formula xml:id="formula_3" coords="2,328.20,694.42,138.58,20.71">p(t|c) = d∈S p(t|d) × p(d|c) = d∈S p(t|d) × p(c|d)p(d) p(c) = d∈S p(t|d) × p(c|d)p(d) d ∈S p(c|d )p(d )</formula><p>The rewriting of p(d|c) in terms of p(c|d) allows us to treat the name and email of c as a query and use the standard query likelihood retrieval method to compute p(c|d) efficiently.</p><p>If we have some prior knowledge about the supporting documents in S, we can exploit p(d) to favor a certain type of documents in S (e.g., email messages).</p><p>Here we simply assume that p(d) is uniform, which leads to</p><formula xml:id="formula_4" coords="3,80.64,270.35,205.53,27.66">p(t|c) ≈ d∈S p(t|d) × p(c|d) d ∈S p(c|d )<label>(3)</label></formula><p>Equation 3 is our basic expert retrieval formula. It has two componentsp(c|d) and p(d|t), which we now describe how to compute.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Modeling candidate mentions p(c|d)</head><p>In general, p(c|d) can be computed by treating the description of the candidate c (e.g., name and/or email) as a query and using a standard query likelihood retrieval method to score the document d.</p><p>The simplest method would be to concatenate the email e(c) and the name n(c) to form a query to represent candidate c, and p(c|d) would thus be computed as</p><formula xml:id="formula_5" coords="3,99.24,498.62,186.89,15.04">p(c|d) = p("e(c), n(c) |d)<label>(4)</label></formula><p>However, intuitively, a name and an email have different characteristics. For example, using email alone to identify an expert could generate high-precision results, but using name alone to identify an expert could cause high-recall results. Thus, to capture this intuition, we propose to model p(c|d) using a mixture model involving both p(e(c)|d) and p(n(c)|d). That is, p(c|d) can be computed as</p><formula xml:id="formula_6" coords="3,56.64,636.74,229.41,15.04">p(c|d) = λ e • p(e(c)|d) + (1 -λ e ) • p(n(c)|d) (5)</formula><p>where λ e is the weight of the email model. Since e(c) and n(c) are both text, they can be computed using the query likelihood retrieval model with Dirichlet prior smoothing as described in <ref type="bibr" coords="3,166.20,699.02,16.66,15.04" target="#b10">[11]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Incorporating topic expansion</head><p>Since t is a piece of text, p(t|d) can be computed using the query likelihood retrieval method with Dirichlet prior smoothing <ref type="bibr" coords="3,427.67,125.42,16.66,15.04" target="#b10">[11]</ref>. However, the original topic description t tends to be quite short, so it may not be informative. We thus propose to use some pseudo feedback method (e.g., the model-based feedback method proposed in <ref type="bibr" coords="3,420.38,179.66,17.33,15.04" target="#b9">[10]</ref>) to estimate an enriched query model θ t , and incorporate this query model into our expert finding model through generalizing the topic likelihood p(t|d) as the cross entropy of the query model θ t and the document model θ d estimated based on d using Dirichlet prior smoothing.</p><p>That is, p(t|d) ∝ exp( w p(w|θ t ) log p(w|θ d )). Clearly, if we set θ t to the empirical word distribution in t, this would be equivalent to the original topic likelihood.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Parameters</head><p>There are five parameters in the proposed model: µ t , µ e , µ n , λ e , and β. µ t , µ e , and µ n are the Dirichlet prior smoothing parameter involved in computing p(t|d), p(e(c)|d), and p(n(c)|d), respectively. λ e controls the relative weight on email matching as compared with name matching. β is a prior confidence parameter defined earlier in this section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiments</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Official runs</head><p>We submitted four runs on expert finding -UIUCe1, UIUCe2, UIUCeFB1, and UIUCeFB2. These runs differ in that in UIUCe1 and UIUCe2, we used the original topic description while in UIUCeFB1 and UIUCeFB2, we expanded the original topic description by using the model-based feedback approach <ref type="bibr" coords="3,308.88,603.86,18.08,15.04" target="#b9">[10]</ref> to add 50 terms extracted from the top 10 documents. In UIUCe1 and UIUCeFB1, β = 2 whereas in UIUCe2 and UIUCeFB2, β = 5. In all these experiments, we set µ t = µ e = µ n = 100 and λ e = 0.9.</p><p>We use the entire corpus, and only the titles of the topic description. We have done minimal preprocessing, where we apply stemming with a Porter stemmer and no stop word is removed. In Table <ref type="table" coords="4,100.60,194.90,4.07,15.04" target="#tab_0">1</ref>, we compare these four official runs. We see that the results seem to be mixed. For unexpanded runs, a larger β value is clearly helpful, but for expanded runs, a smaller β is more beneficial. Overall, the unexpanded run with β = 5 performs the best.</p><p>We now report some performance from our preliminary and diagnostic runs. The collection used in Enterprise track of 2005 will be labeled as "Ent05", while the collection used in Enterprise track of 2006 will be labeled as "Ent06". We evaluate the methods with mean average precision (MAP). In our preliminary experiments, we evaluated the proposed models, and compared them with the baseline models over Enterprise 2005 collection. The optimal performance is shown in Table <ref type="table" coords="4,223.59,536.42,4.07,15.04" target="#tab_1">2</ref>. "Mixture" means that we estimate p(c|d) as a mixture model as in Equation <ref type="formula" coords="4,106.45,563.54,5.39,15.04">5</ref>while "BL" means that p(c|d) is estimated as p("e(c), n(c) |d). "prior" means that p(c) is estimated using Equation <ref type="formula" coords="4,178.06,590.66,4.07,15.04" target="#formula_1">2</ref>, and "priorBL" means that p(c) is same for all the experts. "query" means that p(t|d) is computed with query generation model described in <ref type="bibr" coords="4,108.48,631.22,16.66,15.04" target="#b10">[11]</ref>, and "expanded query" means that p(t|d) is computed with expanded query model using the model-based feedback method described in <ref type="bibr" coords="4,257.46,658.34,16.76,15.04" target="#b9">[10]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Preliminary Experiments on Enterprise 2005</head><p>From Table <ref type="table" coords="4,118.10,671.90,4.07,15.04" target="#tab_1">2</ref>, we can make the following observations. First, the mixture model in Equation 5 is a better model for p(c|d). Second, the proposed es-timate of prior in Equation 2 is better than the uniform prior. Third, the performance is always improved when p(t|d) is estimated using expanded topic instead of query likelihood. Finally, the proposed model outperforms the model 2 proposed in <ref type="bibr" coords="4,464.71,249.14,12.69,15.04" target="#b1">[2]</ref> where optimal MAP is 0.1880.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Parameter sensitivity</head><p>We examined the parameter sensitivity for the three Dirichlet prior smoothing parameters (i.e., µ t , µ e , µ n ) in Figure <ref type="bibr" coords="4,353.19,339.14,11.49,15.04" target="#b0">(1)</ref>. In every case, we change the value of one parameter while fixing the values of the other parameters. The figures show that the performance is relatively more stable w.r.t. the change of µ e compared with the change of µ t and µ n . In addition, the optimal values of µs is around 500, which is much smaller than 2000, the recommended value in traditional ad hoc IR <ref type="bibr" coords="4,308.88,434.06,16.66,15.04" target="#b10">[11]</ref>. Another paramter in topic generation model is λ e introduced in Equation <ref type="formula" coords="4,411.50,658.34,4.07,15.04">5</ref>. Figure <ref type="figure" coords="4,454.25,658.34,5.39,15.04" target="#fig_2">2</ref> shows that the performance is relatively stable when λ &lt; 0.9.</p><p>Finally, there is one more paramter β to examine. The parameter sensitivity curve is shown in Figure <ref type="figure" coords="4,536.41,699.02,4.07,15.04" target="#fig_3">3</ref>.  This figure shows that the performance is sensitive to the value of the paramter β. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>MAP beta</head><p>Parameter sensitivity for beta in Ent05 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Experiments on Enterprise 2006</head><p>Table <ref type="table" coords="5,89.83,563.30,5.39,15.04" target="#tab_1">2</ref> has demonstrated that the effectiveness of our estimation for expert prior probability (i.e., p(c)) and probability that an expert is relevant to a document (i.e., p(c|d)). In fact, we can also make similar observations from the results over Ent06.</p><p>In Table <ref type="table" coords="5,101.44,631.22,4.07,15.04" target="#tab_4">4</ref>. "Ent05-Param" corresponds to the performance of using the parameter values trained over Enterprise 2005 collection. "Ent06-Param" corresponds to the optimal performance over Enterprise 2006 collection. The optimal parameter values trained over two collections are shown in Table <ref type="table" coords="5,225.36,699.02,4.07,15.04" target="#tab_3">3</ref>.  <ref type="table" coords="5,348.31,323.66,5.39,15.04" target="#tab_3">3</ref> and 4 show that the optimal paramter values are similar for both collections. And Table <ref type="table" coords="5,518.44,337.22,5.39,15.04" target="#tab_4">4</ref> also demonstrates that when optimized, the proposed three extensions, i.e., estimation of document-expert association, prior of an expert and topic expansion, seem to be all effective.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Summary</head><p>In our experiments with the TREC 06 Enterprise Track expert finding task, we evaluated some ideas of extending an existing language model, including assigning different weights to email matching and name matching, defining an email count-based prior, and incorporating topic expansion. When optimized, these expansions seem to be all effective, but the email count-based prior and the weighting of email matching and name matching seem to be more effective than topic expansion.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="4,327.60,625.49,198.76,9.22"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Performance Sensitivity in Ent05</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="5,79.44,239.81,177.60,9.22"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Performance Sensitivity (λ e )</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="5,62.04,477.95,212.32,10.05;5,62.04,492.05,27.11,9.22"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Performance Sensitivity of β in Ent05</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,124.56,82.13,342.68,92.42"><head>Table 1 . Comparison of four official runs</head><label>1</label><figDesc></figDesc><table coords="4,124.56,90.26,342.68,84.28"><row><cell>Regular Expert Ranking MAP BPref Prec@5doc MAP Supported Expert Ranking BPref Prec@5doc 0.3043 0.3110 0.4512 0.1489 0.2420 0.2531 0.3364 0.3388 0.5388 0.1650 0.2582 0.3143 UIUCeFB1 0.3185 0.3364 Run UIUCe1 UIUCe2 0.5143 0.1521 0.2518 0.3061 UIUCeFB2 0.3114 0.3450 0.5020 0.1382 0.2467 0.2898</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,65.64,405.29,205.12,78.14"><head>Table 2 . Performance Comparison on Ent05</head><label>2</label><figDesc></figDesc><table coords="4,66.72,413.30,199.84,70.12"><row><cell>query expanded query priorBL 0.151 0.166 prior 0.155 0.170 Mixture priorBL 0.172 BL 0.172 prior 0.196 0.204</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,346.20,81.89,161.46,92.90"><head>Table 3 . Optimal Parameter Values</head><label>3</label><figDesc></figDesc><table coords="5,363.48,90.02,123.98,84.76"><row><cell>Parameters Ent05 Ent06 µ t 100 100 µ n 100 100 µ e 100 100 λ e 0.6 0.9 β 2.5 5</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="5,320.76,202.37,212.32,136.34"><head>Table 4 . Performance Comparison of Topic Generation Models on Ent06</head><label>4</label><figDesc></figDesc><table coords="5,320.76,234.02,203.68,104.68"><row><cell>query expanded query Ent05-priorBL 0. 204 0.227 Param. prior 0.318 0.336 Ent06-priorBL 0.205 0.234 Param. prior 0.334 0.359</cell></row><row><cell>Table</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,332.49,622.70,212.12,15.04;5,332.52,636.26,211.94,15.04;5,332.52,649.82,8.98,15.04;5,344.26,654.35,111.85,9.82;5,458.75,649.82,24.31,15.04" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,524.13,622.70,20.48,15.04;5,332.52,636.26,207.89,15.04">Language modeling approaches for enterprise tasks</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Balog</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,344.26,654.35,106.36,9.82">Proceedings of TREC-05</title>
+		<meeting>TREC-05</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,332.49,671.90,212.09,15.04;5,332.52,685.46,211.83,15.04;5,332.52,699.02,8.98,15.04;5,344.26,703.55,112.20,9.82;5,459.34,699.02,24.31,15.04" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,513.33,671.90,31.25,15.04;5,332.52,685.46,207.37,15.04">Formal models for expert finding in enterprise corpora</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Balog</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,344.26,703.55,107.28,9.82">Proceedings of SIGIR-06</title>
+		<meeting>SIGIR-06</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,70.94,212.01,15.04;6,73.80,84.50,212.06,15.04;6,73.80,102.59,111.73,9.82;6,188.17,98.06,24.31,15.04" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,231.52,70.94,54.25,15.04;6,73.80,84.50,192.35,15.04">Research on expert search at enterprise track of trec2005</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.80,102.59,106.24,9.82">Proceedings of TREC-05</title>
+		<meeting>TREC-05</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,120.62,212.00,15.04;6,73.80,134.18,212.08,15.04;6,73.80,152.27,111.73,9.82;6,188.17,147.74,24.31,15.04" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,73.80,134.18,190.42,15.04">Overview of the trec-2005 enterprise track</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">P</forename><surname>De Vries</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Soboroff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,73.80,152.27,106.24,9.82">Proceedings of TREC-05</title>
+		<meeting>TREC-05</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,170.18,212.12,15.04;6,73.80,183.74,169.79,15.04;6,246.47,188.27,39.15,9.82;6,73.80,201.83,75.93,9.82;6,152.37,197.30,24.31,15.04" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,73.80,183.74,152.56,15.04">Thuir at trec 2005: Enterprise track</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Fu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,246.47,188.27,39.15,9.82;6,73.80,201.83,70.43,9.82">Proceedings of TREC-05</title>
+		<meeting>TREC-05</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,219.86,212.11,15.04;6,73.80,233.42,211.96,15.04;6,73.80,246.86,211.93,15.04;6,73.80,260.42,30.04,15.04;6,106.73,264.95,111.73,9.82;6,221.10,260.42,24.31,15.04" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,95.24,233.42,190.53,15.04;6,73.80,246.86,211.93,15.04;6,73.80,260.42,13.68,15.04">University of glasgow at trec 2005: Experiments in terabyte and enterprise tracks with terrier</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Plachouras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,106.73,264.95,106.24,9.82">Proceedings of TREC-05</title>
+		<meeting>TREC-05</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,282.98,211.97,15.04;6,73.80,296.54,211.96,15.04;6,73.80,310.10,154.68,15.04;6,231.96,314.63,53.52,9.82;6,73.80,328.19,55.44,9.82;6,132.12,323.66,24.31,15.04" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,201.08,282.98,84.67,15.04;6,73.80,296.54,211.96,15.04;6,73.80,310.10,135.40,15.04">Some simple effective approximations to the 2-poisson model for probabilistic weighted retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,231.96,314.63,53.52,9.82;6,73.80,328.19,50.52,9.82">Proceedings of SIGIR&apos;94</title>
+		<meeting>SIGIR&apos;94</meeting>
+		<imprint>
+			<date type="published" when="1994">1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,346.10,211.82,15.04;6,73.80,359.66,36.75,15.04;6,115.96,364.19,117.95,9.82;6,237.51,359.66,47.89,15.04;6,73.80,373.22,68.98,15.04" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,149.94,346.10,135.65,15.04;6,73.80,359.66,33.84,15.04">The probability ranking principle in ir</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">E</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,115.96,364.19,112.99,9.82">Journal of Documentation</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="294" to="304" />
+			<date type="published" when="1977-12">Dec. 1977</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.77,395.78,177.51,15.04;6,266.52,400.31,19.40,9.82;6,73.80,413.87,211.92,9.82;6,73.80,427.43,51.13,9.82;6,152.77,422.90,132.82,15.04;6,73.80,436.46,156.33,15.04" xml:id="b8">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Voorhees</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Harman</surname></persName>
+		</author>
+		<ptr target="http://trec.nist.gov/pubs.html" />
+		<title level="m" coord="6,266.52,400.31,19.40,9.82;6,73.80,413.87,211.92,9.82;6,73.80,427.43,46.02,9.82">Proceedings of Text REtrieval Conference (TREC1-9)</title>
+		<meeting>Text REtrieval Conference (TREC1-9)</meeting>
+		<imprint>
+			<publisher>NIST Special Publications</publisher>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.76,458.90,212.07,15.04;6,73.80,472.46,211.72,15.04;6,73.80,486.02,51.23,15.04;6,127.91,490.55,112.21,9.82;6,242.88,486.02,24.31,15.04" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,176.50,458.90,109.33,15.04;6,73.80,472.46,211.72,15.04;6,73.80,486.02,34.35,15.04">Model-based feedback in the language modeling approach to information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,127.91,490.55,106.66,9.82">Proceedings of CIKM-01</title>
+		<meeting>CIKM-01</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,73.76,508.58,211.76,15.04;6,73.80,522.14,211.98,15.04;6,73.80,535.58,108.47,15.04;6,185.75,540.11,100.11,9.82;6,73.80,553.67,13.53,9.82;6,90.09,549.14,24.31,15.04" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,187.54,508.58,97.97,15.04;6,73.80,522.14,211.98,15.04;6,73.80,535.58,89.19,15.04">A study of smoothing methods for language models applied to ad hoc information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,185.75,540.11,100.11,9.82;6,73.80,553.67,9.02,9.82">Proceedings of SIGIR-01</title>
+		<meeting>SIGIR-01</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

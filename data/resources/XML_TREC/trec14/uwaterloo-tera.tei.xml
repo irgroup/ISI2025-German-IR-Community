@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,204.36,101.55,209.03,15.86;1,144.72,123.39,309.31,15.86">Efficiency vs. Effectiveness in Terabyte-Scale Information Retrieval</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,205.68,164.61,77.55,10.99"><forename type="first">Stefan</forename><surname>Büttcher</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+								<address>
+									<settlement>Waterloo</settlement>
+									<region>Ontario</region>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName coords="1,308.64,164.61,97.21,10.99"><forename type="first">Charles</forename><forename type="middle">L A</forename><surname>Clarke</surname></persName>
+							<email>claclark@plg.uwaterloo.ca</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+								<address>
+									<settlement>Waterloo</settlement>
+									<region>Ontario</region>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,204.36,101.55,209.03,15.86;1,144.72,123.39,309.31,15.86">Efficiency vs. Effectiveness in Terabyte-Scale Information Retrieval</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">1FBF4C232AF09D76334A730E52FACBD3</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:02+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>We describe indexing and retrieval techniques that are suited to perform terabyte-scale information retrieval tasks on a standard desktop PC. Starting from an Okapi-BM25-based default baseline retrieval function, we explore both sides of the effectiveness spectrum. On one side, we show how term proximity can be integrated into the scoring function in order to improve the search results. On the other side, we show how index pruning can be employed to increase retrieval efficiency -at the cost of reduced retrieval effectiveness.</p><p>We show that, although index pruning can harm the quality of the search results considerably, according to standard evaluation measures, the actual loss of precision, according to other measures that are more realistic for the given task, is rather small and is in most cases outweighed by the immense efficiency gains that come along with it.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>This paper describes experiments conducted for this year's TREC Terabyte track by members of the information retrieval group at the University of Waterloo. This year, the Terabyte track had 3 different subtasks: ad-hoc retrieval, efficiency, and namedpage finding. We participated in all 3 tasks. In this paper, however, we focus exclusively on ad-hoc retrieval and efficiency, as we did not develop any special techniques for named-page finding, but only took our existing ad-hoc retrieval methods and applied them to the named-page finding task.</p><p>The ad-hoc and efficiency tasks of the Terabyte track were not really independent tasks, but rather two different aspects of the same ad-hoc retrieval task, measuring both efficiency and effectiveness of the participating search engines. Our goal for this task was to adjust our existing search system so that it was able to</p><p>• index half a terabyte of text in less than 10 hours and</p><p>• use the resulting index to search the collection with sub-second response times on a standard desktop PC. We were able to meet both goals.</p><p>This paper describes the techniques we employed to achieve these goals. All experiments presented here were conducted using the Wumpus<ref type="foot" coords="1,494.16,473.93,3.95,6.97" target="#foot_0">1</ref> information retrieval system developed at the University of Waterloo. Except where stated otherwise, the system was run on a single PC based on an AMD Athlon64 3500+ processor (2.2 GHz) with 2 GB of RAM and 7,200-rpm SATA harddrives. All efficiency figures are given with respect to the 50 topics from the ad-hoc retrieval task, not the 50,000 topics used in the efficiency task. For all experiments, we used stemmed title-only queries with an average length of 2.9 terms (after stopword removal).</p><p>Since the experiments we describe in this paper were conducted after the official runs had been submitted, and our retrieval system experienced major changes after the submission, the experimental results reported here only partially correspond to the official runs. For the exact performance and precision of our official runs, see section 7.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">The Indexing Subsystem</head><p>For all experiments, the index was constructed using a single-pass procedure with dynamic corpus partitioning. The general strategy is to accumulate postings in an in-memory index until the available main memory is exhausted. At that point, an on-disk index is created from the data in memory, a fresh inmemory index is created, and the system continues to index the text collection. This process is repeated until the whole collection has been indexed. Eventually, all on-disk sub-indices that have been created during this process, are brought together through a multiway merge process, resulting in the final index. The sub-indices are then deleted.</p><p>The inversion strategy we employed for creating the individual sub-indices can be described as hash-based in-memory inversion: For every input token (&lt;term, position&gt; pair) that is read from the text collection, the corresponding term descriptor is looked up in a hash table (inserted if it is not present yet), and the position is added to the term's list of postings. Term descriptors inside the hash table are organized in linked lists, using a move-to-front heuristic <ref type="bibr" coords="2,112.41,362.49,36.82,9.96" target="#b10">[ZHW01]</ref>.</p><p>Because the total number of occurrences of a term within the text corpus is not known beforehand, an efficient, dynamic data structure is needed to maintain the postings for a term. Usually, linked lists are used for this purpose. The disadvantage of linked lists is that a large amount of space is wasted by pointers in the list. Another approach is to use relocatable bit vectors. This avoids the space overhead introduced by the next pointers in the linked lists, but necessitates frequent reallocations, which can become a performance problem.</p><p>Our approach is to use linked lists, but to link groups of postings instead of individual postings. This strategy does not only improve memory efficiency by reducing the relative number of pointers needed, but it also increases locality by keeping postings for the same term together. This drastically decreases the number of CPU cache misses. In addition, all postings are stored in compressed form in the in-memory index, allowing for even better memory efficiency and thus for a smaller number of subindices that have to be combined in the final merge process.</p><p>A detailed description of our indexing strategy is given by Büttcher and Clarke <ref type="bibr" coords="2,211.07,664.65,27.85,9.96" target="#b0">[BC05]</ref>. Compared to the relocatable-bitvector approach, indexing can be performed about 10% faster, since no relocations are necessary. Using this method, our system is able to create an index of the 426-GB GOV2 collection, P@10 P@20 MAP bpref MRR 0.6100 0.5460 0.3227 0.3390 0.7764 Table <ref type="table" coords="2,340.79,107.52,3.54,8.97">1</ref>: Effectiveness of the baseline retrieval method, Okapi BM25 (k1 = 1.2, b = 0.5).</p><p>containing full positional information for all index terms, in 356 minutes on a standard desktop PC. This represents an indexing throughput of 72 GB per hour. At this speed, transferring data from/to hard disk is becoming a major bottleneck.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Baseline Retrieval Method</head><p>The baseline retrieval method for all our experiments is the Okapi BM25 formula [RWJ + 94] <ref type="bibr" coords="2,498.22,275.61,36.50,9.96" target="#b6">[RWB98]</ref>. Given a query Q = {T 1 , . . . , T n }, BM25 assigns to a document D the relevance score</p><formula xml:id="formula_0" coords="2,318.36,319.64,221.62,42.01">S (D) BM25 = n i=1 w Ti • (k 1 + 1) • f D,Ti f D,Ti + k 1 • ((1 -b) + b • |D| avgdl ) ,<label>(1)</label></formula><p>where f D,Ti is the number of occurrences of T i within D, |D| is the length of the document D (number of tokens), and avgdl is the average document length in the text collection. w Ti is T i 's inverse document frequency:</p><formula xml:id="formula_1" coords="2,330.84,434.49,209.14,23.89">w Ti = log #documents #documents containing T i .<label>(2)</label></formula><p>k 1 and b are free parameters and were chosen to be k 1 = 1.2 and b = 0.5. These values are the results of preliminary experiments using the 50 ad-hoc topics from the 2004 TREC Terabyte track. They are in line with results reported by Plachouras et al. <ref type="bibr" coords="2,315.00,530.73,37.40,9.96" target="#b4">[PHO04]</ref> for the same collection.</p><p>Even though all of our runs differ from this version of the BM25 formula, the differences are not material, and the retrieval methods used in our experiments can be thought of as minor modifications to the original BM25 algorithm.</p><p>Query processing is performed following a document-at-a time approach that arranges the posting lists for all terms in a priority queue and traverses the merged list of postings in ascending order, computing document scores on-the-fly. A pruning strategy similar to Turtle and Flood's MaxScore optimization <ref type="bibr" coords="2,372.79,676.65,29.25,9.96" target="#b9">[TF95]</ref> is employed to reduce the computational cost by allowing partial document score evaluations when searching for the top-k documents to be returned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>HTML Field(s)</head><p>Boosting factor &lt;title&gt; 6 &lt;h1&gt; 4 &lt;h2&gt;, &lt;b&gt;, &lt;strong&gt;, and &lt;u&gt; 3 &lt;i&gt; and &lt;em&gt; 2</p><p>Table <ref type="table" coords="3,97.55,147.00,3.54,8.97">2</ref>: Exploiting document structure -boosting factors for terms appearing in certain HTML fields.</p><p>Run description P@10 P@20 MAP Pure BM25 0.6100 0.5460 0.3227 BM25+doc.structure 0.5880 0.5480 0.3117 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Exploiting the Structure of Documents</head><p>Many documents, such as HTML documents, provide a rich structure that can be exploited in order to obtain better search results. Cutler et al. <ref type="bibr" coords="3,259.52,347.13,37.29,9.96" target="#b3">[CSM97]</ref> showed that using the document structure in order to assign higher weights to terms that appear in the document title, for example, increases the effectiveness of the search system. We followed their approach and boosted all terms that appeared within certain fields by pretending there were n occurrences instead of the one that actually was there. This is essentially BM25 extension proposed by Robertson et al. <ref type="bibr" coords="3,86.87,454.77,36.08,9.96" target="#b8">[RZT04]</ref> (without their adjustment of the k 1 parameter). The exact values of n, for different HTML fields, are shown in Table <ref type="table" coords="3,186.04,478.65,3.90,9.96">2</ref>. The evaluation, in terms of P@10, P@20, and MAP, shows that in our experiments the use of document structure did not improve the search results at all (cf. Table <ref type="table" coords="3,149.94,527.13,3.88,9.96" target="#tab_0">3</ref>). This is somewhat surprising, since the boosting values were determined through a training process using the 50 ad-hoc topics from the 2004 Terabyte track and produced a 5-10% improvement on the 2004 data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Document Retrieval Using Term Proximity</head><p>Rasolofo and Savoy <ref type="bibr" coords="3,161.06,652.17,28.29,9.96" target="#b5">[RS03]</ref> showed that integrating term proximity into the BM25 scoring function can improve overall retrieval effectiveness of the search system. Our implementation of term proximity scoring is similar to that proposed in their paper. Suppose a user submits a query Q = {T 1 , .  to the search engine. Then our implementation of BM25 fetches the posting lists for all query terms from the index and arranges them in a priority queue. It then starts consuming postings from all posting lists, one posting at a time, in ascending order, to find matching documents and simultaneously compute the relevance scores of all matching documents found.</p><p>If the underlying index contains full positional information, term proximity can be integrated into this process without much effort. With every query term, we associate an accumulator that contains that term's proximity score within the current document. Whenever the search system encounters a posting that belongs to the query term T j , it looks at the previous posting, belonging to the query term T k , and determines the distance (number of postings) between the current posting and the previous one. If T j = T k , then both terms' accumulators are incremented:</p><formula xml:id="formula_2" coords="3,324.00,415.65,205.44,50.77">acc(T j ) := acc(T j ) + w T k • 1 (dist(T j + T k )) 2 , acc(T k ) := acc(T k ) + w Tj • 1 (dist(T j + T k )) 2 ,</formula><p>where w Ti is T i 's IDF weight (cf. equation 1). For T j = T k , the accumulator contents remain unchanged. When the end of the current document is reached, the document's score is computed, and all proximity accumulators are reset to zero. The score of a document D is:</p><formula xml:id="formula_3" coords="3,318.72,551.69,217.56,45.13">S (D) BM25TP = S (D) BM25 + T ∈Q min{1, w T } • acc(T ) • (k 1 + 1) acc(T ) + K ,</formula><p>where k 1 and K are the usual BM25 parameters.</p><p>The main difference to the strategy followed by Rasolofo and Savoy is that in our approach only neighboring query terms can affect each other's accumulator, which allows for slightly faster query processing. Query processing performance and average precision for both BM25 and BM25TP are given by Table 4. Since, during query processing, most time is spent examining documents that contain only a single query term, the slowdown caused by taking term  proximity into account is negligible. On the other hand, by integrating term proximity, both P@20 and MAP can be increased by about 5% over an already very high baseline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Document-Level Indexing &amp; Static Index Pruning</head><p>In its standard configuration, the Wumpus search engine creates an index containing full positional information. This is necessary to support certain query types, such as phrase queries or the proximitybased retrieval method described in the previous section. For document retrieval tasks like the ad-hoc retrieval task of this year's Terabyte TREC, however, positional information is not absolutely necessary.</p><p>In fact, the BM25 retrieval function in its pure form does not even make use of positional information. All the information needed to rank documents according to their BM25 score is the number of times each query term appears in each document. By restricting the index so that it only contains this information, a great improvement in terms of both space and time complexity can be achieved. Since our whole retrieval system is built around term positions, and documents are represented by their start and end position in the text collection, changing the system towards a document-based retrieval paradigm would have been too much work and would have been difficult to integrate into the existing framework. Instead, we chose to encode the number of times a term appears in a document in its position within that document. The withindocument term frequency of a term is encoded in the 6 least significant bits of each posting. This caused some problems for documents shorter than 64 tokens. However, these documents tended to be framesets or redirections, and there were only 6,055 such documents in the collection anyway.</p><p>Whenever a term appeared less than 32 times in a document, the exact number of occurrences was encoded in that term's posting for the document in question. When it had more than 32 occurrences, the within-document frequency of the term was encoded approximately using a logarithmic encoding scheme (with base 1.1). Thus, the maximal TF value encodable by our system was 32 • 1.1 31 = 614, which was sufficient for most documents.</p><p>The effects of document-level indexing on indexing performance, index size, and query processing performance are shown in Table <ref type="table" coords="4,462.84,201.21,3.90,9.96" target="#tab_4">5</ref>. The total size of the on-disk data structures drops by 68%, the time needed to build the index decreases by 33%, and the average time per query is reduced by 85%. The gains achieved by omitting positional information come along with a small loss of precision, caused by the slight inaccuracies introduced by our term frequency encoding method and the inability to index certain short documents.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Index Pruning</head><p>In addition to using a document-level index instead of full positional information, we modified the final merge process that brings together all sub-indices created during index construction and joins them into one big index. Instead of creating one single index, two indices were created -a small one, holding postings for the most frequent terms in the collection, and a bigger one, containing the postings for all other terms. Furthermore, the small index, containing the n most frequent terms, was pruned in such a way that, for every term T , the index only contained postings for the k documents in which T 's impact on the BM25 score of that document was greatest.</p><p>In other words, for each term T among the n most frequent terms in the collection and each document D it appeared in, D's score for the query Q = {T } was computed:</p><formula xml:id="formula_4" coords="4,323.52,541.53,216.46,27.97">S (D) BM25 = w T • (k 1 + 1) • f D,T f D,T + k 1 • ((1 -b) + b • |D| avgdl )<label>(3)</label></formula><p>(cf. equation 1). For each term T , only the k documents with highest score S D were kept in the index. The values of n and k were chosen in such a way that the size of the pruned index was about 1.2 GB (n • k ≈ 5 • 10 8 ). This way, it was possible to keep the small index in memory and to use both the in-memory index and the bigger on-disk index in parallel during query processing. This procedure is similar to the static index pruning method described by Carmel et al. [CCF + 01] [CAH + 01], but in contrast to their approach, it creates a pruned index that is much smaller than the Figure <ref type="figure" coords="5,101.50,215.76,3.54,8.97">1</ref>: Impact of static index pruning on retrieval efficiency and effectiveness. The figures represent pruned inmemory indices containing 500,000,000 postings (roughly 1.2 GB). The number of distinct terms in the in-memory index is varied between 0 and 20,000. The performance gains that can be achieved are likely to outweigh the loss of precision they entail.</p><p>original index (≈ 6%) and uses both indices in parallel when processing a search query.</p><p>Figure <ref type="figure" coords="5,113.25,304.41,5.03,9.96">1</ref> presents the impact that different values for n and k have on query processing performance and retrieval effectiveness. It shows that tremendous performance gains can be achieved by pruning the index in the way described above. On the other hand, retrieval effectiveness drops as the number of terms n in the pruned in-memory index is increased. However, for early precision measures, such as P@10, the effect is not as strong as for other measures (e.g., MAP). For instance, using a pruned inmemory index with 2,000 terms, containing the top 250,000 documents for each term, decreases MAP by 8.6% (from 0.3213 to 0.2937), but P@10 only by 4.3% (from 0.6040 to 0.5780). At the same time, the average search time per query drops by 67.5%from 326 ms down to 106 ms. This suggests the use of different retrieval methods, depending on whether the user only requested the top 10 or 20 documents or a deeper result set. For example, a pruned index could be used to produce the first page of search results, while the full index is used to generate all subsequent result pages.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Official Runs</head><p>We submitted 4 runs for the ad-hoc retrieval task of the Terabyte track and 4 runs for the efficiency task. In contrast to the experiments described in the previous sections, which were conducted on a single PC, all our official runs were performed on two PCs with AMD Athlon64 3500+ processors (2.2 GHz) running in parallel, with each machine having an index covering 50% of the whole collection. The subcollections were big enough to make term weight propagation between the two indices unnecessary.</p><p>For the ad-hoc retrieval tasks, we submitted:</p><p>uwmtEwtaPt Title-only run using a full positional index and term proximity scoring.</p><p>uwmtEwtaPtdn Title+description+narrative run using a full positional index and term proximity scoring. Relative term weights were 0.7 (title), 0.2 (description), and 0.1 (narrative).</p><p>uwmtEwtaD00t Title-only run using a documentlevel index without index pruning.</p><p>uwmtEwtaD02t Title-only run using a documentlevel index with index pruning. The pruned in-memory index contained the 2,000 most frequent terms (n = 2000, k = 250000).</p><p>For the efficiency task, we submitted:</p><p>uwmtEwtePTP Title-only run using a full positional index and term proximity scoring.</p><p>uwmtEwteD00 Title-only run using a documentlevel index without index pruning.</p><p>uwmtEwteD02 Title-only run using a documentlevel index with index pruning. The pruned in-memory index contained the 2,000 most frequent terms (n = 2000, k = 250000).</p><p>uwmtEwteD10 Title-only run using a documentlevel index with index pruning. The pruned inmemory index contained the 10,000 most frequent terms (n = 10000, k = 50000).</p><p>All 8 runs submitted are summarized in tables 6 and 7. The precision differences between the runs shown in the tables and the experiments described in the previous sections of this paper are due to changes made to our search engine: • We changed the document tokenizer. Apart from a few exceptions (e.g., &lt;meta&gt; tags), our new tokenizer ignores all attribute values inside HTML tags. While this improves indexing performance, it decreases retrieval effectiveness. We did not perform any additional experiments in order to find out the exact reason for this behavior, but we surmise that omitting alt attributes of &lt;img&gt; is not a good idea.</p><p>• Following the TREC tradition, we found a bug in our index pruning implementation the day after we had submitted the official runs. Fixing this bug increased the precision numbers for our pruned runs substantially and significantly.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,93.86,173.58,8.75,6.46;5,93.86,160.49,8.75,6.46;5,93.86,147.35,8.75,6.46;5,93.86,134.26,8.75,6.46;5,93.86,121.17,8.75,6.46;5,93.86,108.04,8.75,6.46;5,93.86,94.95,8.75,6.46;5,105.52,186.44,3.50,6.46;5,146.24,186.44,14.01,6.46;5,190.46,186.44,17.51,6.46;5,236.43,186.44,17.51,6.46;5,282.40,186.44,17.51,6.46;5,78.01,143.66,6.46,24.84;5,78.01,105.16,6.46,36.75;5,151.27,195.89,94.13,6.46;5,116.96,78.94,162.75,6.46;5,149.28,101.47,107.80,6.46;5,149.28,107.77,107.80,6.46;5,155.59,114.07,101.49,6.46;5,335.88,180.14,3.50,6.46;5,332.37,167.05,7.00,6.46;5,328.87,153.92,10.50,6.46;5,328.87,140.83,10.50,6.46;5,328.87,127.70,10.50,6.46;5,328.87,114.61,10.50,6.46;5,328.87,101.47,10.50,6.46;5,328.87,88.38,10.50,6.46;5,342.28,186.44,3.50,6.46;5,383.00,186.44,14.01,6.46;5,427.22,186.44,17.51,6.46;5,473.19,186.44,17.51,6.46;5,519.16,186.44,17.51,6.46;5,314.77,153.27,6.46,23.45;5,314.77,139.62,6.46,11.90;5,314.77,128.77,6.46,9.10;5,314.77,111.27,6.46,15.75;5,314.77,96.94,6.46,12.59;5,388.03,195.89,94.13,6.46;5,358.97,78.94,152.24,6.46;5,387.79,101.47,106.05,6.46"><head></head><label></label><figDesc>in-memory index (a) Impact of static index pruning on retrieval effectiveness Precision after 10 documents retrieved Precision after 20 documents retrieved MAP (for 1000 documents retrieved) query (ms) Terms in pruned in-memory index (b) Impact of static index pruning on retrieval efficiency Time to retrieve the top 20 documents</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,72.00,229.92,224.84,30.93"><head>Table 3 :</head><label>3</label><figDesc>Impact of using document structure on search precision. No improvements are achieved by giving special treatment to certain HTML fields.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="3,315.00,122.28,224.86,30.93"><head>Table 4 :</head><label>4</label><figDesc>Search performance and retrieval effectiveness for pure BM25 and the proximity-enhanced BM25TP algorithm.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="4,135.60,122.28,336.35,8.97"><head>Table 5 :</head><label>5</label><figDesc>Performance comparison: Positional indexing vs. document-level indexing.</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" coords="6,72.00,73.29,467.65,168.12"><head>Table 6 :</head><label>6</label><figDesc>Runs submitted for the TREC Terabyte ad-hoc retrieval task. For all runs shown in this table, both indexing and query processing was performed on two PCs running in parallel.</figDesc><table coords="6,103.56,73.29,404.82,168.12"><row><cell>Name</cell><cell cols="2">Total indexing time Average time per query</cell><cell>P@10</cell><cell>P@20</cell><cell>MAP</cell></row><row><cell>uwmtEwtaPt</cell><cell>208 minutes</cell><cell cols="4">1.264 seconds 0.6320 0.5760 0.3451</cell></row><row><cell>uwmtEwtaPtdn</cell><cell>208 minutes</cell><cell cols="4">29.464 seconds 0.6900 0.6160 0.3480</cell></row><row><cell>uwmtEwtaD00t</cell><cell>132 minutes</cell><cell cols="4">0.194 seconds 0.6040 0.5650 0.3173</cell></row><row><cell>uwmtEwtaD02t</cell><cell>147 minutes</cell><cell cols="4">0.059 seconds 0.5060 0.4490 0.2173</cell></row><row><cell>Name</cell><cell cols="2">Total indexing time Average time per query</cell><cell>P@5</cell><cell>P@10</cell><cell>P@20</cell></row><row><cell>uwmtEwtePTP</cell><cell>208 minutes</cell><cell cols="4">1.094 seconds 0.6760 0.6380 0.5780</cell></row><row><cell>uwmtEwteD00</cell><cell>132 minutes</cell><cell cols="4">0.137 seconds 0.6000 0.6040 0.5570</cell></row><row><cell>uwmtEwteD02</cell><cell>144 minutes</cell><cell cols="4">0.049 seconds 0.4960 0.4980 0.4450</cell></row><row><cell>uwmtEwteD10</cell><cell>147 minutes</cell><cell cols="4">0.027 seconds 0.4920 0.4380 0.3900</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" coords="6,72.00,253.44,467.68,19.89"><head>Table 7 :</head><label>7</label><figDesc>Runs submitted for the TREC Terabyte efficiency task. For all runs shown in this table, both indexing and query processing was performed on two PCs running in parallel.</figDesc><table /></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,330.24,714.02,121.67,7.97"><p>http://www.wumpus-search.org/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,117.34,508.56,179.40,8.97;6,117.36,519.60,179.50,8.97;6,117.36,530.52,179.51,8.97;6,117.36,541.44,179.40,8.97;6,117.36,552.48,138.59,8.97" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,117.36,519.60,179.50,8.97;6,117.36,530.52,179.51,8.97;6,117.36,541.44,30.74,8.97">Memory Management Strategies for Single-Pass Index Construction in Text Retrieval Systems</title>
+		<author>
+			<persName coords=""><forename type="first">Stefan</forename><surname>Büttcher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Charles</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Clarke</surname></persName>
+		</author>
+		<idno>CS-2005-32</idno>
+		<imprint>
+			<date type="published" when="2005-10">October 2005</date>
+		</imprint>
+		<respStmt>
+			<orgName>University of Waterloo</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="6,77.76,565.92,17.28,8.97;6,95.04,564.82,5.64,4.81;6,101.16,565.92,195.83,8.97;6,117.36,576.84,179.53,8.97;6,117.36,587.76,179.49,8.97;6,117.36,598.68,179.48,8.97;6,117.36,609.72,179.47,8.96;6,117.36,620.64,92.43,8.97" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,185.12,587.76,111.74,8.97;6,117.36,598.68,103.44,8.97">Juru at TREC 10 -Experiments with Index Pruning</title>
+		<author>
+			<persName coords=""><forename type="first">David</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Einat</forename><surname>Amitay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Herscovici</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yoelle</forename><forename type="middle">S</forename><surname>Maarek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yael</forename><surname>Petruschka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aya</forename><surname>Soffer</surname></persName>
+		</author>
+		<idno>CAH + 01</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,240.39,598.68,56.45,8.96;6,117.36,609.72,145.30,8.96">Proceedings of the 10th Text REtrieval Conference</title>
+		<meeting>the 10th Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2001-11">2001. November 2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,77.43,634.08,16.29,8.97;6,93.72,632.98,5.64,4.81;6,99.96,634.08,196.94,8.97;6,117.36,645.00,179.53,8.97;6,117.36,656.04,179.37,8.97;6,117.36,666.96,179.37,8.97;6,117.36,677.88,179.22,8.96;6,117.36,688.92,74.45,8.97" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,140.03,656.04,156.70,8.97;6,117.36,666.96,72.59,8.97">Static Index Pruning for Information Retrieval Systems</title>
+		<author>
+			<persName coords=""><forename type="first">]</forename><forename type="middle">D</forename><surname>Ccf + 01</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Carmel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Cohen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fagin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Farchi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Herscovici</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Maarek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Soffer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,220.25,666.96,76.48,8.96;6,117.36,677.88,175.07,8.96">Proceedings of the 24th ACM SIGIR Conference (SIGIR 2001)</title>
+		<meeting>the 24th ACM SIGIR Conference (SIGIR 2001)</meeting>
+		<imprint>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="43" to="50" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,117.34,702.36,179.54,8.97;6,117.36,713.28,179.52,8.97;6,360.36,296.04,179.49,8.97;6,360.36,306.96,179.35,8.96;6,360.36,317.88,58.39,8.97" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,149.02,713.28,147.86,8.97;6,360.36,296.04,118.55,8.97">Using the Structure of HTML Doc-uments to Improve Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Cutler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yungming</forename><surname>Shih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Weiyi</forename><surname>Meng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,504.37,296.04,35.48,8.96;6,360.36,306.96,179.35,8.96;6,360.36,317.88,30.00,8.96">USENIX Symposium on Internet Technologies and Systems</title>
+		<imprint>
+			<date type="published" when="1997">1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.33,331.32,179.51,8.97;6,360.36,342.24,179.60,8.97;6,360.36,353.28,179.51,8.97;6,360.36,364.20,179.35,8.97;6,360.36,375.12,179.59,8.97;6,360.36,386.04,36.93,8.97" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,360.36,342.24,179.60,8.97;6,360.36,353.28,179.51,8.97;6,360.36,364.20,47.12,8.97">University of Glasgow at TREC 2004: Experiments in Web, Robust and Terabyte tracks with Terrier</title>
+		<author>
+			<persName coords=""><forename type="first">Vassilis</forename><surname>Plachouras</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ben</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iadh</forename><surname>Ounis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,426.92,364.20,112.79,8.96;6,360.36,375.12,85.24,8.96">Proceedings of the 13th Text REtrieval Conference</title>
+		<meeting>the 13th Text REtrieval Conference</meeting>
+		<imprint>
+			<date type="published" when="2004">2004. 2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.34,399.48,179.39,8.97;6,360.36,410.40,179.60,8.97;6,360.36,421.44,179.34,8.97;6,360.36,432.36,179.35,8.96;6,360.36,443.28,165.80,8.97" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,517.77,399.48,21.95,8.97;6,360.36,410.40,179.60,8.97;6,360.36,421.44,60.24,8.97">Term Proximity Scoring for Keyword-Based Retrieval Systems</title>
+		<author>
+			<persName coords=""><forename type="first">Yves</forename><surname>Rasolofo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jacques</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,444.66,421.44,95.04,8.96;6,360.36,432.36,179.35,8.96;6,360.36,443.28,50.86,8.96">Proceedings of the 25th European Conf. on Information Retrieval (ECIR 2003)</title>
+		<meeting>the 25th European Conf. on Information Retrieval (ECIR 2003)</meeting>
+		<imprint>
+			<date type="published" when="2003-04">April 2003</date>
+			<biblScope unit="page" from="207" to="218" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.33,456.72,179.41,8.97;6,360.36,467.64,179.36,8.97;6,360.36,478.56,179.49,8.96;6,360.36,489.60,92.43,8.97" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,360.36,467.64,73.81,8.97">Okapi at TREC-7</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beaulieu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,463.84,467.64,75.88,8.96;6,360.36,478.56,179.49,8.96;6,360.36,489.60,20.76,8.96">Proceedings of the Seventh Text REtrieval Conference (TREC 1998)</title>
+		<meeting>the Seventh Text REtrieval Conference (TREC 1998)</meeting>
+		<imprint>
+			<date type="published" when="1998-11">November 1998</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,320.60,502.92,16.82,8.97;6,337.44,501.82,5.64,4.81;6,343.56,502.92,196.21,8.97;6,360.36,513.84,179.40,8.97;6,360.36,524.88,179.36,8.97;6,360.36,535.80,179.50,8.96;6,360.36,546.72,92.43,8.97" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,360.36,524.88,73.81,8.97">Okapi at TREC-3</title>
+		<author>
+			<persName coords=""><forename type="first">]</forename><forename type="middle">S</forename><surname>Rwj + 94</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hancock-Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Gatford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,463.84,524.88,75.88,8.96;6,360.36,535.80,179.50,8.96;6,360.36,546.72,20.76,8.96">Proceedings of the Third Text REtrieval Conference (TREC 1994)</title>
+		<meeting>the Third Text REtrieval Conference (TREC 1994)</meeting>
+		<imprint>
+			<date type="published" when="1994-11">November 1994</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.34,560.16,179.52,8.97;6,360.36,571.08,179.51,8.97;6,360.36,582.00,179.28,8.97;6,360.36,593.04,179.47,8.96;6,360.36,603.96,179.22,8.96;6,360.36,614.88,144.62,8.97" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,429.56,571.08,110.31,8.97;6,360.36,582.00,105.49,8.97">Simple BM25 Extension to Multiple Weighted Fields</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,494.09,582.00,45.54,8.96;6,360.36,593.04,179.47,8.96;6,360.36,603.96,175.06,8.96">Proceedings of the 13th ACM Conference on Information and Knowledge Management (CIKM 2004)</title>
+		<meeting>the 13th ACM Conference on Information and Knowledge Management (CIKM 2004)<address><addrLine>New York, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="42" to="49" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.34,628.32,179.64,8.97;6,360.36,639.24,179.38,8.97;6,360.36,650.16,179.24,8.96;6,360.36,661.20,125.65,8.97" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,515.05,628.32,24.94,8.97;6,360.36,639.24,175.10,8.97">Query Evaluation: Strategies and Optimization</title>
+		<author>
+			<persName coords=""><forename type="first">Howard</forename><surname>Turtle</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">James</forename><surname>Flood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,360.36,650.16,174.37,8.96">Information Processing &amp; Management</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="831" to="850" />
+			<date type="published" when="1995-11">November 1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,360.34,674.52,179.42,8.97;6,360.36,685.56,179.63,8.97;6,360.36,696.48,179.51,8.97;6,360.36,707.40,125.39,8.97" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,406.42,685.56,133.57,8.97;6,360.36,696.48,120.85,8.97">In-Memory Hash Tables for Accumulating Text Vocabularies</title>
+		<author>
+			<persName coords=""><forename type="first">Justin</forename><surname>Zobel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Steffen</forename><surname>Heinz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugh</forename><forename type="middle">E</forename><surname>Williams</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,491.80,696.48,48.07,8.96;6,360.36,707.40,70.96,8.96">Information Processing Letters</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2001">2001</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

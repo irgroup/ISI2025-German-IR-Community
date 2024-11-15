@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,208.38,152.87,178.42,12.58;1,203.10,170.88,188.98,12.58">A Multiple-stage Approach to Re-ranking Clinical Documents</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,230.16,208.15,64.66,11.09"><forename type="first">Heung-Seon</forename><surname>Oh</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Information Service Center Korea Institute of Science and Technology Information</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,314.32,208.15,50.84,11.09"><forename type="first">Yuchul</forename><surname>Jung</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Information Service Center Korea Institute of Science and Technology Information</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,208.38,152.87,178.42,12.58;1,203.10,170.88,188.98,12.58">A Multiple-stage Approach to Re-ranking Clinical Documents</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CBA4408FDD35015956D67ED01D1D58CF</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:37+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>medical information retrieval</term>
+					<term>language models</term>
+					<term>abbreviations</term>
+					<term>query expansion</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper presents our approach to medical information retrieval and experimental results of participating in eHealth Task 3-A of CLEF 2014. The task is to retrieve relevant documents from a medical collection given a query generated from a discharge summary. The key idea of our method is to compute accurate similarity scores via multiple stages of re-ranking documents from initial documents retrieved by a search engine.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.22" lry="842.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Health-related content is one of the most searched-for topics on the internet. This became an important domain for research in information retrieval (IR). Recently, medical IR is actively researched to tackle diverse medical information sources including the general web, journal articles, social media, and hospital records. However, medical IR is still challenging because it should consider various information needs from a wide range of users including patients and their care givers, researchers, clinicians, practitioners, etc. Moreover, it is highly co-related with those users' background medical knowledge and language skills. eHealth Task 3-A of Conference and Labs of the Evaluation Forum (CLEF) 2014 <ref type="bibr" coords="1,124.68,556.25,10.84,11.09" target="#b0">[1,</ref><ref type="bibr" coords="1,138.25,556.25,8.37,11.09" target="#b1">2]</ref> aims at improving the effectiveness of medical IR systems to support laypeople (e.g., patients and their relatives) who have different information needs. Most of previous researches focus on utilizing external medical resources such as MetaMap <ref type="bibr" coords="1,456.44,580.26,10.64,11.09" target="#b2">[3]</ref>, NegEx <ref type="bibr" coords="1,155.93,592.26,10.61,11.09" target="#b3">[4]</ref>, and international classification of diseases(ICD)-9 and natural language processing (NLP) <ref type="bibr" coords="1,198.07,604.26,11.68,11.09" target="#b4">[5]</ref> to understand the meanings of medical words at semantic level.</p><p>This paper presents a multiple-stage re-ranking method which focuses on utilizing various retrieval techniques rather than exploiting utilizing external resources and NLP techniques.</p><p>In particular, our proposed method passes through multiple re-ranking stages to elevate the ranked position of most relevant documents. Basically, we first perform query expansion with abbreviations, and pseudo relevance model in the end. In the middle of the re-ranking, query expansion with discharge summary, clustering-based document scoring, and centrality-based document scoring can be combined selectively or sequentially.</p><p>The rest of this paper is organized as follows. Section 2 delivers related researches of medical information retrieval. Section 3 presents our re-ranking method in detail. The experimental results are described in Section 4. Section 5 concludes with short summary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Related Work</head><p>Recently, many IR researches have been performed with different types of medical collections. TREC held medical track in 2011 and 2012. A research <ref type="bibr" coords="2,402.16,289.22,11.68,11.09" target="#b5">[6]</ref> presents twostages method. They extract useful attributes such as age and gender from a collection by NLP techniques and hand-crated regular expressions. In search time, a query is expanded using unified medical language system (UMLS). In <ref type="bibr" coords="2,388.83,325.23,10.60,11.09" target="#b3">[4]</ref>, several ranking functions are proposed to combine several evidence of different levels including various external medical resources. The results show that the proposed methods achieved the best performance. A research <ref type="bibr" coords="2,265.64,361.24,11.68,11.09" target="#b4">[5]</ref> presents a negotiation detection method using syntactic information and shows the effective way of handling negations.</p><p>CLEF held eHealth Lab in 2013. A research <ref type="bibr" coords="2,315.87,385.25,11.74,11.09" target="#b6">[7]</ref> presents a two-step ranking system utilizing three different external resources: external medical collections, medical concept mapper, and discharge summaries. It first retrieves documents in text-space and re-rank them in concept-space.</p><p>MedSearch system <ref type="bibr" coords="2,214.32,433.26,11.68,11.09" target="#b7">[8]</ref> addresses three distinctions compared to traditional systems. First, it provides query reformulation which makes a long descriptive query to a moderate-length query. Second, it supports the diversification of web search results. Third, it provides medical phrases semantically related to a query from Medical Subject Headings (MeSH) ontology.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods</head><p>The key idea of our method is to re-rank top-k documents via multiple stages for computing more accurate similarity scores with respect to a query.</p><p>Figure <ref type="figure" coords="2,164.76,562.22,5.01,11.09" target="#fig_0">1</ref> shows the overview of our multiple stages re-ranking method. For a given query Q, a set of documents, , , … , , are retrieved from a collection C using a search engine. In our implementation, initial documents are retrieved by Lucene<ref type="foot" coords="2,143.22,596.87,3.24,7.17" target="#foot_0">1</ref> using a query-likelihood method with Dirichlet smoothing <ref type="bibr" coords="2,397.10,598.21,10.63,11.09" target="#b8">[9]</ref>. Based on the initial documents, re-ranking is performed via multiple stages. The rest of this paper explains the details of the re-ranking method. </p><formula xml:id="formula_0" coords="3,425.94,600.25,45.04,62.15">2 f words in nt model is | , ⋅ | ∑ , 3</formula><p>where , is a count of a word w in a document D, | is a probability of a word w in a collection C, and is the Dirichlet prior parameter.</p><p>The first stage aims at expanding a query with abbreviations. In numerous numbers of medical documents, abbreviations are widely used to represent important meanings. Unfortunately, the clear interpretation of abbreviations is quite difficult due to the existences of several different meanings for a same abbreviated expression. Similarly, medical queries generated by users may also contain abbreviations. If we submit a query including abbreviations, it may not match relevant documents due to term mismatch problem or may match documents with abbreviations implying different meanings. To deal with this problem, query expansion considering abbreviations is considered. To do that, we extract pairs of abbreviation and corresponding full representation with an occurrence count using simple rule-based extraction method <ref type="bibr" coords="4,453.89,333.54,16.72,11.09" target="#b11">[12]</ref> from the entire collection. Then, a query model is estimated by incorporating words from the full representations of an associated abbreviation:</p><formula xml:id="formula_1" coords="4,204.54,388.88,257.96,23.86">1 ⋅ ⋅ | ∈ 4</formula><p>where is MLE, is a control parameter, is a set of words consisting of a full representation for an abbreviation w, and</p><formula xml:id="formula_2" coords="4,124.67,446.24,345.84,31.30">| is estimated by , .</formula><p>The second stage is to reflect information from a discharge summary. A query used in CLEF eHealth Task-3 is generated by a human expert after reading a discharge summary corresponds to the query. Therefore, it has hidden but useful information not captured by a query. The use of a discharge summary can improve retrieval performance by utilizing such hidden information. To do that, a query model is expanded by combining a random-walk based discharge summary model. First, we should compute word-to-word transition matrix to measure the associations among words in a discharge summary. A simple solution is to use a co-occurrence count between two words among all sentences <ref type="bibr" coords="4,238.59,574.13,15.31,11.09" target="#b12">[13]</ref>. However, words are strongly associated when they appear closely in a sentence. In addition, associations between topical words are important than those between common words. To resolve this situation, we utilize hyperspace analogue to language (HAL) <ref type="bibr" coords="4,280.65,610.14,16.70,11.09" target="#b13">[14]</ref> function with inverse document frequency (IDF):</p><formula xml:id="formula_3" coords="4,196.85,652.34,265.67,11.92">, ⋅ , , ⋅ ⋅ 5</formula><p>where is a distance between words w and u, N is a window size, wt n 1, , , is a co-occurrence count of w and u within k-distance, and log | | _ Then, a transition probability is computed:</p><formula xml:id="formula_4" coords="5,249.53,221.79,212.97,27.39">| , ∑ , ∈<label>6</label></formula><p>where is a discharge summary document Based on the translation matrix | , word centralities are computed using random-walk:</p><formula xml:id="formula_5" coords="5,233.04,323.24,229.46,24.46">| | 1 ⋅ | ∈ 7</formula><p>where | | is the number of unique words in a discharge summary DS and is a damping factor . We approximate the resulting as a discharge summary model | and update the query model with it:</p><formula xml:id="formula_6" coords="5,232.02,422.60,230.48,12.53">1 ⋅ ⋅ | 8</formula><p>where is a control parameter and | is a discharge summary model. The third stage is to incorporate cluster information of documents. Namely, a score for a document is computed by incorporating the membership of the document to a cluster we constructed. Bottom-up hierarchical agglomerative clustering <ref type="bibr" coords="5,426.54,480.86,16.68,11.09" target="#b14">[15]</ref> is applied to partition the top-k documents, , into a set of disjoint clusters. At first, kclusters for every document in are constructed. Then, two clusters which have the highest similarity are selected and merged to a single cluster if the similarity is above a threshold. This procedure stops when there are no clusters with the threshold above. Similarity scores are computed using KL divergence method between a query model and Dirichlet-smoothed cluster model.</p><p>A new score is computed by combining the initial search score and the cluster score:</p><formula xml:id="formula_7" coords="5,205.50,596.30,257.01,11.74">, , ⋅ , 9</formula><p>where is a cluster of a document D. , is used after normalization over all document scores.</p><p>The fourth stage is to utilize the associations among documents by generating implicit links <ref type="bibr" coords="5,171.83,652.82,15.30,11.09" target="#b9">[10]</ref>. This stage consists of two steps: similarity matrix construction and random-walk. For each document ∈ , α documents in are selected according to high generation probabilities:</p><formula xml:id="formula_8" coords="6,239.70,178.40,225.57,11.98">, D exp ||<label>10</label></formula><p>Based on those results, a similarity matrix with the initial documents and corresponding α documents is constructed. Then, random-walk is executed on this matrix to produces centrality scores for the initial documents. This score is multiplied with the previous score:</p><formula xml:id="formula_9" coords="6,214.62,257.30,250.65,12.53">, , ⋅ ,<label>11</label></formula><p>The fifth stage is pseudo relevance feedback. A popular way of query expansion is to update a query based on pseudo-relevance feedback (PRF). Updating a query with PRF assumes that top-ranked documents , , … , | | in an initial search results relevant to a given query and terms in F are useful to modify a query for a better representation. Relevance model (RM) is to estimate a multinomial distribution | that is the likelihood of a term w given a query q. The first version of relevance model (RM1) is defined as follows:</p><formula xml:id="formula_10" coords="6,227.34,374.06,237.93,80.20">| | | ∈ | | ∈ ∝ | | ∈ 12</formula><p>RM1 is composed with three components: document prior , document weight | , and term weight in a document | . In general, is assumed to be a uniform distribution without the knowledge of a document D.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>| ∏ | , ∈</head><p>indicates the query-likelihood score.</p><p>| can be estimated using various smoothing methods such as Dirichlet-smoothing. Various strategies are applicable to estimate these components.</p><p>To improve the retrieval performance, a new query model can be estimate by combing a relevance model and an original query model. RM3 [16] is a variant of a relevance model to estimate a new query models with RM1:</p><formula xml:id="formula_11" coords="6,237.54,605.12,227.73,12.53">1 ⋅ ⋅ | 13</formula><p>where is a control parameter between the original query model and the feedback model.</p><p>Based on this query model, final scores for documents are computed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Experiments</head><p>As mentioned, initial documents are retrieved by Lucene using a query-likelihood method with Dirichlet smoothing. We limited the size of the initial documents to 100. Based on the initial documents, we submitted 7 runs by differentiating the components of our re-ranking method.</p><p>Table <ref type="table" coords="7,161.95,223.23,5.01,11.09" target="#tab_0">1</ref> shows the parameter and corresponding values for each component in the experiments. Table <ref type="table" coords="7,205.53,235.23,5.01,11.09" target="#tab_1">2</ref> describes involving components at each run and evaluation results from corresponding runs. Basically, component 5 which indicate the use of PRF is applied to all runs thus regarded as baseline of our experiments. Except Run01, all runs utilize component 1. The distinction between Run02-04 and Run05-07 is that the former uses discharge summary while the latter doesn't. Precision and normalized discounted cumulative gain (NDCG) are used to measure the performance of top-10 ranked documents from 100 initial documents. They are denoted as P@10 and NDCG@10, respectively.</p><p>Our baseline achieved 0.7300 and 0.7235 in P@10 and NDCG@10, respectively. It shows that PRF is an effective solution to find correct medical documents. For precision, the best performance, 0.7400 is obtained from Run02 which utilizes abbreviations and discharge summary. For NDCG, the best performance, 0.7333, is obtained from Run04 which uses all components in the re-ranking method. This shows that sequentially combining the proposed components is contributed to achieve the best performance in NDCG measure. However, clustering and centrality-based document scoring were not effective in enhancing precision measure. Due to quite high baseline (i.e., Run01) obtained by PRF with relevance model and lack of in-depth study on the provided healthcare dataset, our experiments fail in showing drastic improvements in evaluation measures. Meanwhile, the moderate performances observed in our multi-stage approach to re-ranking documents (i.e., Run04) may arise from synergistic effects between involved components. The detailed analysis on the involved components in terms of causal and sequential effects is remained as our future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>This paper shows a multiple stage approach to re-ranking medical documents. Our method focuses on utilizing various retrieval techniques rather than utilizing medical dependent external resources and natural language processing to understand medical meanings. We found that using abbreviations and discharge summary play an important role to find correct medical documents. Our future works include further development of two components and in-depth error analysis based on standard assessment dataset.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,131.94,443.54,32.54,9.97"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1. O</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="7,120.30,439.22,345.39,166.12"><head>Table 1 .</head><label>1</label><figDesc>Parameters setup used in re-ranking method</figDesc><table coords="7,120.30,459.42,345.39,145.93"><row><cell>Component</cell><cell>Description</cell><cell>Parameters</cell></row><row><cell>1</cell><cell>Query expansion with abbreviations</cell><cell>abbreviation_mixture =0.15</cell></row><row><cell>2</cell><cell>Query expansion with discharge summary</cell><cell>hal_window_size=3 random_walk_damping_factor =0.85</cell></row><row><cell>3</cell><cell>Clustering -based document scoring</cell><cell>clustering_similarity threshold = 0.9</cell></row><row><cell>4</cell><cell>Centrality-based document scoring</cell><cell>random_walk_damping_factor =0.85 alpha_doc_size=10</cell></row><row><cell></cell><cell></cell><cell>feedback_doc_size = 10</cell></row><row><cell>5</cell><cell>Pseudo relevance feedback with rele-vance model</cell><cell>feedback_word_size=100 feedback_mixture=0.1</cell></row><row><cell></cell><cell></cell><cell>dirichlet_mixture = 1500</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="7,118.92,619.46,357.50,66.23"><head>Table 2 .</head><label>2</label><figDesc>Evaluation results</figDesc><table coords="7,118.92,639.17,357.50,46.52"><row><cell>Run Id</cell><cell>1</cell><cell>2</cell><cell>Components 3</cell><cell>4</cell><cell>5</cell><cell cols="2">Evaluation Measures P@10 NDCG@10</cell></row><row><cell>KISTI_EN_RUN01</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>O</cell><cell>0.7300</cell><cell>0.7235</cell></row><row><cell>KISTI_EN_RUN02</cell><cell>O</cell><cell>O</cell><cell></cell><cell></cell><cell>O</cell><cell>0.7400</cell><cell>0.7301</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,129.96,684.32,88.98,9.96"><p>http://lucene.apache.org/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,128.44,482.65,315.61,11.09;8,138.90,494.17,328.77,11.09;8,138.90,505.64,307.55,11.09;8,138.90,517.16,66.09,11.09" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,417.42,494.17,50.25,11.09;8,138.90,505.64,168.36,11.09">Overview of the ShARe/CLEF eHealth Evaluation Lab</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Suominen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Schrek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Leroy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">L</forename><surname>Mowery</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Velupillai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">W</forename><surname>Chapman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Martinez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Zuccon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Palotti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,334.81,505.64,107.13,11.09">Proceedings of CLEF 2014</title>
+		<meeting>CLEF 2014</meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014">2014. 2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,128.45,542.66,325.41,11.09;8,138.90,554.18,329.12,11.09;8,138.90,565.65,287.70,11.09" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,232.57,554.18,235.45,11.09;8,138.90,565.65,140.78,11.09">ShARe/CLEF eHealth Evaluation Lab 2014, Task 3: Usercentred health information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Palotti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Pecina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Zuccon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Hanbury</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Mueller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,285.78,565.65,109.10,11.09">Proceedings of CLEF 2014</title>
+		<meeting>CLEF 2014</meeting>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,128.45,591.15,339.09,11.09;8,138.90,602.67,303.94,11.09;8,138.91,615.09,112.22,11.09" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,255.86,591.15,211.67,11.09;8,138.90,602.67,61.74,11.09">An overview of MetaMap: historical perspective and recent advances</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">R</forename><surname>Aronson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F.-M</forename><surname>Lang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,207.51,602.67,235.33,11.09;8,138.91,615.09,27.58,11.09">Journal of the American Medical Informatics Association : JAMIA</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="229" to="236" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,128.46,641.19,320.77,11.09;8,138.91,652.65,303.82,11.09;8,138.91,664.17,132.45,11.09" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,233.39,641.19,215.85,11.09;8,138.91,652.65,176.00,11.09">Exploring evidence aggregation methods and external expansion sources for medical record search</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Carterette</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,321.37,652.65,121.35,11.09;8,138.91,664.17,78.30,11.09">Proceedings of Text REtrieval Conference (TREC)</title>
+		<meeting>Text REtrieval Conference (TREC)</meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="1" to="9" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,128.45,147.67,342.24,11.09;9,138.90,159.13,310.35,11.09;9,138.90,170.66,153.35,11.09" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="9,383.65,147.67,87.04,11.09;9,138.90,159.13,223.32,11.09">UCM at TREC-2012: Does negation influence the retrieval of medical reports</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Dıaz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ballesteros</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Carrillo-De-Albornoz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Plaza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,368.81,159.13,80.44,11.09;9,138.90,170.66,121.64,11.09">Proceedings of Text REtrieval Conference (TREC)</title>
+		<meeting>Text REtrieval Conference (TREC)</meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,128.44,196.16,320.40,11.09;9,138.90,207.68,318.88,11.09;9,138.90,219.14,29.19,11.09" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="9,365.55,196.16,83.29,11.09;9,138.90,207.68,107.45,11.09">Cengage Learning at TREC 2011 Medical Track</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>King</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Provalov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Learning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Zhou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,253.13,207.68,204.65,11.09">Proceedings of Text REtrieval Conference (TREC)</title>
+		<meeting>Text REtrieval Conference (TREC)</meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,128.44,244.65,305.68,11.09;9,138.90,256.17,321.39,11.09;9,138.90,267.69,108.65,11.09" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="9,367.10,244.65,67.02,11.09;9,138.90,256.17,257.90,11.09">Using Discharge Summaries to Improve Information Retrieval in Clinical Domain</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Stephen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Carterette</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,404.26,256.17,56.03,11.09;9,138.90,267.69,76.98,11.09">ShARe/CLEF eHealth Evaluation</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,128.44,293.19,330.71,11.09;9,138.90,304.66,308.89,11.09;9,138.90,316.18,171.62,11.09" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="9,292.57,293.19,43.19,11.09">MedSearch</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Luo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,343.07,293.19,116.09,11.09;9,138.90,304.66,249.70,11.09">Proceeding of the 17th ACM conference on Information and knowledge mining -CIKM &apos;08</title>
+		<meeting>eeding of the 17th ACM conference on Information and knowledge mining -CIKM &apos;08<address><addrLine>New York, New York, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="page">143</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,128.45,341.68,336.81,11.09;9,138.90,353.14,309.17,11.09;9,138.90,364.67,322.19,11.09;9,138.90,376.19,298.81,11.09" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="9,225.90,341.68,239.35,11.09;9,138.90,353.14,126.05,11.09">A study of smoothing methods for language models applied to Ad Hoc information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,271.02,353.14,177.05,11.09;9,138.90,364.67,322.19,11.09;9,138.90,376.19,40.49,11.09">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;01</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;01<address><addrLine>New York, New York, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="334" to="342" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.93,401.69,317.35,11.09;9,138.90,413.15,312.95,11.09;9,138.90,424.67,311.11,11.09;9,138.90,436.20,51.68,11.09" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="9,225.34,401.69,116.72,11.09">PageRank without hyperlinks</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Kurland</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,348.66,401.69,94.63,11.09;9,138.90,413.15,312.95,11.09;9,138.90,424.67,131.87,11.09">Proceedings of the 28th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;05</title>
+		<meeting>the 28th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;05<address><addrLine>New York, New York, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page">306</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.95,461.70,328.83,11.09;9,138.90,473.16,323.85,11.09;9,138.90,484.68,66.68,11.09" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="9,246.42,461.70,208.36,11.09;9,138.90,473.16,176.04,11.09">Utilizing global and path information with language modelling for hierarchical text classification</title>
+		<author>
+			<persName coords=""><forename type="first">H.-S</forename><surname>Oh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S.-H</forename><surname>Myaeng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,321.16,473.16,122.38,11.09">Journal of Information Science</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="page" from="127" to="145" />
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.94,510.19,337.05,11.09;9,138.89,521.71,274.66,11.09;9,138.89,533.17,143.94,11.09" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="9,240.83,510.19,222.16,11.09;9,138.89,521.71,116.36,11.09">Hearst: A simple algorithm for identifying abbreviation definitions in biomedical text</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">S</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Marti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,261.28,521.71,152.27,11.09;9,138.89,533.17,55.17,11.09">Proceedings of Pacific Symposium on Biocomputing</title>
+		<meeting>Pacific Symposium on Biocomputing</meeting>
+		<imprint>
+			<date type="published" when="2003">2003</date>
+			<biblScope unit="page" from="451" to="462" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.92,558.67,337.70,11.09;9,138.89,570.20,296.12,11.09" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="9,222.58,558.67,241.04,11.09;9,138.89,570.20,96.65,11.09">Co-occurrence Retrieval: A Flexible Framework for Lexical Distributional Similarity</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Weeds</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Weir</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,241.94,570.20,105.05,11.09">Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="439" to="475" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.93,595.70,310.73,11.09;9,138.89,607.22,303.89,11.09;9,138.89,618.68,330.09,11.09;9,138.89,630.21,236.79,11.09" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,221.43,595.70,215.23,11.09;9,138.89,607.22,66.40,11.09">Discovering information flow suing high dimensional conceptual space</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bruza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,211.93,607.22,230.85,11.09;9,138.89,618.68,311.12,11.09">Proceedings of the 24th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;01</title>
+		<meeting>the 24th annual international ACM SIGIR conference on Research and development in information retrieval -SIGIR &apos;01<address><addrLine>New York, New York, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="327" to="333" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,125.93,655.71,339.35,11.09;10,124.68,147.67,324.07,11.09;10,145.98,159.13,139.58,11.09" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="9,313.67,655.71,147.68,11.09">Introduction to Information Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Raghavan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schütze</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,382.53,147.67,66.21,11.09;10,145.98,159.13,18.28,11.09">UMass at TREC 2004</title>
+		<meeting><address><addrLine>Larkey, L.</addrLine></address></meeting>
+		<imprint>
+			<publisher>Novelty and HARD</publisher>
+			<date type="published" when="2004">2004</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

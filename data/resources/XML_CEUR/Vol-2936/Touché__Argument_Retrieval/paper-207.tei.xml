@@ -1,0 +1,1147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,407.28,15.42;1,89.29,107.08,324.97,11.96">Learning to Rank Arguments with Feature Selection Notebook for the Touché Lab on Argument Retrieval at CLEF 2021</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,89.29,132.98,88.75,11.96"><forename type="first">Christopher</forename><surname>Akiki</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Leipzig University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,190.69,132.98,55.47,11.96"><forename type="first">Maik</forename><surname>Fröbe</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Martin-Luther-University Halle-Wittenberg</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,258.81,132.98,77.83,11.96"><forename type="first">Matthias</forename><surname>Hagen</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Martin-Luther-University Halle-Wittenberg</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,367.63,132.98,76.81,11.96"><forename type="first">Martin</forename><surname>Potthast</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Leipzig University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,407.28,15.42;1,89.29,107.08,324.97,11.96">Learning to Rank Arguments with Feature Selection Notebook for the Touché Lab on Argument Retrieval at CLEF 2021</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">5A2C60877A57AFF7684500A1C3DFDCAF</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:16+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>argument retrieval</term>
+					<term>learning to rank</term>
+					<term>query expansion</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This notebook documents our participation in the Argument Retrieval for Controversial Questions subtask of Touché 2021. We submit five runs tackling argument retrieval with four different methodological paradigms: (1) a Dirichlet-smoothed language-model with filtering of low-quality arguments, (2) two learning to rank approaches using argumentative features, (3) a reranking approach that casts argumentretrieval as a question-answering (QA) task, and (4) a transformer-based query expansion method that enriches the query with topically relevant keywords.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The web has evolved into a participatory resource, where sharing one's opinion is as easy as the click of a button <ref type="bibr" coords="1,182.51,382.17,11.56,10.91" target="#b0">[1]</ref>. Retrieval systems, traditionally optimized for ad hoc retrieval, must increasingly deal with very subjective and nuanced user-generated content while providing users with deliberative information needs with the best arguments supporting or refuting their controversial questions. The args.me dataset <ref type="bibr" coords="1,284.85,422.82,12.68,10.91" target="#b1">[2]</ref> forms the testbed of the first Touché subtask on argument retrieval <ref type="bibr" coords="1,173.58,436.37,12.68,10.91" target="#b2">[3]</ref> helping researchers explore retrieval systems for controversial questions. The args.me corpus consists of more than 300,000 arguments mined from online debate portals, and ours is the task of retrieving the best-both in relevance and in quality-arguments pertinent to a given controversial question.</p><p>The current search landscape is not especially attuned to nuances such as those afforded by argument retrieval, usually preferring to let "the stakeholders compete for what opinion ranks higher" <ref type="bibr" coords="1,123.87,517.66,11.28,10.91" target="#b3">[4]</ref>. In this argumentative setting, a single document can no longer satisfy one query, just as surely as debates typically cannot be reduced to one morsel of text <ref type="bibr" coords="1,394.76,531.21,11.27,10.91" target="#b4">[5]</ref>, but typically oscillate in a dialectical back-and-forth across orthogonal dimensions of quality: logical, rhetorical, and dialectical <ref type="bibr" coords="1,135.74,558.31,11.28,10.91" target="#b5">[6]</ref>. A deliberative information need can therefore only be satisfied by a diverse set of documents. The ability to specifically handle the arguments embedded within those documents is an attempt to address that problem using computational argumentation analysis <ref type="bibr" coords="1,459.36,585.41,11.36,10.91" target="#b3">[4,</ref><ref type="bibr" coords="1,473.44,585.41,7.47,10.91" target="#b6">7,</ref><ref type="bibr" coords="1,483.64,585.41,7.57,10.91" target="#b7">8]</ref>.</p><p>Having recognized the non-trivial nature of the task and being allowed a maximum of five runs to be submitted for human judgment, we deemed it prudent to diversify our solutions. In so doing, we can judge and compare the merits of each method and better understand where future efforts ought to be invested.</p><p>The first run we submit uses Elasticsearch's LM Dirichlet<ref type="foot" coords="2,360.51,112.31,3.71,7.97" target="#foot_0">1</ref> similarity module with default parameter values, that is a language model with Dirichlet smoothing <ref type="bibr" coords="2,406.44,127.61,13.00,10.91" target="#b8">[9]</ref> with an additional filtering step that removes low-quality documents from the set of results. Our second and third runs rerank the top-100 results of Elasticsearch's LM Dirichlet similarity with LambdaMART [10] using 4 respectively 9 features. The fourth run we submit relies on the hypothesis that the tasks of question answering and argument retrieval are close enough for a solution of the latter to be based on methods developed for the former. To that end, we rerank the documents retrieved by the first run using the question-answering variant of Google's Universal Sentence Encoder <ref type="bibr" coords="2,127.29,222.46,16.30,10.91" target="#b10">[11,</ref><ref type="bibr" coords="2,145.63,222.46,12.23,10.91" target="#b11">12]</ref>. As fifth and final run, we submit a template-based-in Schick and Schütze's <ref type="bibr" coords="2,488.23,222.46,17.75,10.91" target="#b12">[13]</ref> usage-query expansion method that enriches the original topic with a list of thematically related keywords.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Learning-based Reranking of Arguments</head><p>The five approaches to argument retrieval we study start from first principles. We develop an approach close the baseline DirchletLM model, but filtering low-quality arguments first, employ the well-known learning to rank approach LambdaMART with and without feature selection, and attempt to improve upon our previous approach based on neural query expansion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Baseline: Multi-field Dirichlet-LM with Quality Filter</head><p>The surprising competitiveness of the baseline argument retrieval system <ref type="bibr" coords="2,430.72,398.56,13.00,10.91" target="#b3">[4]</ref> of last year's workshop <ref type="bibr" coords="2,135.48,412.11,17.80,10.91" target="#b13">[14]</ref> makes this approach a natural choice for our most basic run. We index both the text field as well as the conclusion field of the args.me corpus using Elasticsearch's probabilistic DirichletLM similarity module <ref type="bibr" coords="2,239.22,439.20,11.48,10.91" target="#b8">[9]</ref>. At retrieval time, we rely on the default behavior of the multi_match query<ref type="foot" coords="2,183.30,451.00,3.71,7.97" target="#foot_1">2</ref> to retrieve the top-1000 most relevant documents to every topic query.</p><p>However, from our last year's experience, we recall that the args.me dataset it comparably noisy. To filter out noise from the retrieved documents, we begin by embedding the corpus using the transformer-encoder-based<ref type="foot" coords="2,258.63,491.65,3.71,7.97" target="#foot_2">3</ref> variant Google's Universal Sentence Encoder <ref type="bibr" coords="2,475.55,493.40,18.06,10.91" target="#b10">[11]</ref> to embed each of the 387,740 arguments into a 512-dimensional space. Sharing only architectural similarities with BERT <ref type="bibr" coords="2,190.35,520.50,16.09,10.91" target="#b14">[15]</ref>, the Universal Sentence Encoder uses the rule-based Penn Treebank Tokenizer as well as more explicitly semantically-aware pretraining tasks: <ref type="foot" coords="2,418.39,532.29,3.71,7.97" target="#foot_3">4</ref>• Skip-thought is a self-supervised pretraining task, originally devised to use LSTMs to provide high-quality sentence vectors by training on a large amount of contiguous text <ref type="bibr" coords="2,487.47,573.10,16.16,10.91" target="#b15">[16]</ref>. • Natural language response suggestion imparts conversational awareness to the sentence encoder, which fits quite well to the task at hand. The goal of this supervised task is to predict the best short reply among millions of options in response to an email <ref type="bibr" coords="2,465.26,615.11,16.25,10.91" target="#b16">[17]</ref>. • Stanford natural language inference is a labeled dataset <ref type="bibr" coords="3,369.63,248.46,18.07,10.91" target="#b17">[18]</ref> of 570,000 sentence pairs. This can be seen as a supervised variant of BERT's next sentence prediction pre-training task. In this instance however, entailment, contradiction, and irrelevance are explicitly labeled in the data itself, rather than implied by the relative position of two sentences in an unlabeled corpus of contiguous text.</p><p>We then cluster these 387,740 dense vectors using the scikit-learn <ref type="bibr" coords="3,414.93,328.17,17.89,10.91" target="#b18">[19]</ref> implementation of k-means with default arguments and number of clusters set to a heuristically chosen value of 100. Proceeding to manually labeling each of the clusters, we observe they carry both syntactic as well as semantic coherence. For this approach, we are interested in those clusters that correspond to noise. They tend to exhibit syntactic coherence, like, for instance, a cluster that consists of YouTube links, or another that consists solely of repeated short idiosyncratic phrases one tends to find on online debate websites (e.g., "I agree. "). Any argument belonging to a cluster that was identified as noise is filtered out of this and subsequent runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Learning to Rank: LambdaMART</head><p>We submit two learning to rank runs with LambdaMART <ref type="bibr" coords="3,343.64,472.74,17.79,10.91" target="#b9">[10]</ref> trained on subsets of 31 features belonging to 5 different feature classes. Table <ref type="table" coords="3,288.49,486.29,4.97,10.91" target="#tab_0">1</ref> provides an overview of the 31 features grouped by the 5 feature classes. Overall, we implement 21 features that calculate the similarity between (parts of) an argument and the query (labeled as argument text features in Table <ref type="table" coords="3,463.33,513.38,3.65,10.91" target="#tab_0">1</ref>). These 21 argument text features consist of 6 retrieval models implemented in Elasticsearch, for which we produce 3 seperate features per text field available in the args.me corpus (the premise, the conclusion, and the argument's topic), plus the retrieval scores of our 3 remaining runs (our DirichletLM baseline, USE_QA_T_C, and USE_QA_T_T). Additionally, we have 3 discussion features: (1) the length of a discussion, (2) the number of premises in a discussion, and (3) the mean length of premises of the discussion. While these discussion features are independent of the query, they can help build different rankers for different kinds of queries <ref type="bibr" coords="3,421.56,608.23,17.75,10.91" target="#b20">[21]</ref> (as determined by our query features) by dedicating different subtrees to different queries or discussions. Similarly, we have 3 query independent argument features: (1) the length of the premise, and (2) two features that specify the absolute, respectively the relative position of the argument in the discussion. Both discussion and argument features become only useful through our three query features: (1) the number of words in a query, (2) the number of concepts, and (3) the number of entities (concepts and entities as determined with babelfy <ref type="bibr" coords="4,396.22,100.52,15.68,10.91" target="#b21">[22]</ref>). LambdaMART can dedicate different subtrees to different kinds of queries using the query features, e.g., for highly ambiguous queries (e.g., many entities), LambdaMART could learn that arguments from long discussions (many arguments) may be better suited than short discussions. As the last and lonely feature in our other category, we have the Boolean feature of whether an argument is in the garbage cluster as determined by our argument clustering or not.</p><p>We use the 31 features in a traditional learning-to-rank pipeline, reranking the top-100 results of our Multi-field Dirichlet-LM with LambdaMART. We train our model on the Task 1 relevance labels from Touché 2020 <ref type="bibr" coords="4,196.38,208.91,16.09,10.91" target="#b13">[14]</ref>, discarding relevance labels that are not retrieved by our first-stage retrieval. The removal of relevance labels not occurring in our first-stage retrieval reduces the available training data from 2,298 labels to only 996 labels, but is necessary since we otherwise risk to introduce the selection bias found in the classical LETOR dataset <ref type="bibr" coords="4,407.95,249.56,17.82,10.91" target="#b22">[23]</ref> to our models (by showing the model many documents outside of the first-stage retrieval that it would never see during testing). We train all our LambdaMART models with RankLib <ref type="bibr" coords="4,392.50,276.66,17.76,10.91" target="#b23">[24]</ref> leaving all settings to their defaults.</p><p>Since we only have 996 labels to train and validate our model, we run a greedy feature selection algorithm on our 31 features to reduce the risk that our trained LambdaMART models overfit. In a 5 fold cross-validation setup (using the topics 1-10, 11-20, 21-30, 31-40, and 41-50 as folds), we start by selecting the feature with the highest nDCG@5 on our 996 labels. Afterwards, we select the next features by comparing the validation score of a Lamb-daMART model trained on the already selected feature(s) with remaining feature candidates, choosing always the feature with the highest mean nDCG@5 overall validation partitions of our 996 labels. During the execution of this greedy feature selection, we find that a set of 4 features (premise.dirichlet, is_garbage, conclusion.dfi, baseline) and a set of 9 features (the aforementioned 4 plus conclusion.bm25, premise.bm25, discussion_length, topic_string.dfi, num_premises) obtain the best validation scores in our experiments. For these two feature sets, we train two LambdaMART models without cross-validation using the first 40 topics for training and the remaining 10 topics for validation, yielding to our two LambdaMART runs:</p><p>(1) lambdamart_small and (2) lambdamart_medium.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Reranking: Universal Sentence Encoder for Question-Answer Retrieval</head><p>This approach assumes argument retrieval to be sufficiently similar to question-answering (QA) to warrant the instrumentalization of off-the-shelf QA technology to retrieve arguments. We specifically use a retrieval question-answering variant of the Universal Sentence Encoder <ref type="bibr" coords="4,488.08,556.02,17.91,10.91" target="#b11">[12]</ref> used in Section 2.1. That model<ref type="foot" coords="4,234.79,567.81,3.71,7.97" target="#foot_4">5</ref> consists of two separate encoders, one meant to encode a question and the other meant to encode a candidate response. Both question and candidate response are then projected into a 512-dimensional space where Euclidean distance is inversely proportional to how well the candidate response answers the question. We use the result set from Section 2.1 to embed every retrieved document using the response embedder. We then encode every topic query with the question embedder and compute the dot product of every document with every topic that retrieved it, then re-rank the arguments using this score.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Query Expansion: Pattern-based RoBERTa Keyword-Generation</head><p>This approach is a refined version of the method we employed in the previous iteration of the workshop, as described in Section 3.2 in <ref type="bibr" coords="5,271.29,121.08,16.34,10.91" target="#b24">[25]</ref>. This approach employs a pattern (in that sense introduced by Schick and Schütze <ref type="bibr" coords="5,240.19,134.63,16.89,10.91" target="#b12">[13]</ref>) that embeds the topic into an argumentative dialectical context. We employ the list of patterns listed in Table <ref type="table" coords="5,341.71,148.18,3.81,10.91">2</ref>. For every masked token of every template, we retrieve the top-20 most likely tokens returned by the masked-language-model head of RoBERTa <ref type="bibr" coords="5,168.47,175.28,16.15,10.91" target="#b25">[26]</ref>. This leaves us with 26 such top-20 lists of keywords which we combine into a single count dictionary indexed by keyword. We then concatenate all keywords into a single string, boosting 6 each one by its count from the dictionary, concatenate that result with the original topic query to form a new query which is then submitted to the retrieval system from Section 2.1. Consider the example topic "Should professors get tenure?" and a truncated list of the keyword dictionary this method generates: education: 7, tenure: 7, accountability: 4, students: 4, teaching: 4, discipline: 4, children: 4, safety: 3, time: 3, security: 3, parents: 3, teachers: 3, benefits: 2, diversity: 2, retention: 2, experience: 2, compensation: 2, research: 2, term: 2, duration: 2, stigma: 2, retirement: 2, teacher: 2, math: 2, longevity: 1, flexibility: 1</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 2</head><p>Masked language model templates for query expansion. The masks (&lt;mask&gt;) indicate where the language model is tasked with guessing the most likely word out of its vocabulary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Stance Template</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Positive</head><p>-&lt;query&gt; -Yes, because of &lt;mask&gt; and the benefits of &lt;mask&gt; &lt;mask&gt; -&lt;query&gt; -Absolutely, I think &lt;mask&gt; &lt;mask&gt; is &lt;mask&gt; -&lt;query&gt; -Yes, &lt;mask&gt; is associated with &lt;mask&gt; during &lt;mask&gt;.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Negative</head><p>-&lt;query&gt; -No, because of &lt;mask&gt; and the risk of &lt;mask&gt; &lt;mask&gt;.</p><p>-&lt;query&gt; -Absolutely not, I think &lt;mask&gt; is &lt;mask&gt; &lt;mask&gt; -&lt;query&gt; -No, &lt;mask&gt; is associated with &lt;mask&gt; during &lt;mask&gt;.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Neutral</head><p>-&lt;query&gt; -What about &lt;mask&gt; or &lt;mask&gt; &lt;mask&gt; -&lt;query&gt; -Don't forget about &lt;mask&gt; and &lt;mask&gt; &lt;mask&gt; -&lt;query&gt; -This brings &lt;mask&gt; and &lt;mask&gt; to mind ¸6https://www.elastic.co/guide/en/elasticsearch/reference/7.4/query-dsl-query-string-query.html#_boosting</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 3</head><p>Overview of the retrieval effectiveness in terms of relevance measured with nDCG@5. On the left, we report the mean nDCG@5 and confidence intervals of our 5 runs and two baselines and the winning run. On the right, we show violin plots for our 5 submitted runs with the median nDCG@5 highlighted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run nDCG@5 CI95%</head><p>Best team (Elrond) 0.720 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Evaluation</head><p>We evaluate our five submitted runs and two official baselines using the official human judgments provided by the Touché organizers <ref type="bibr" coords="6,249.27,296.96,11.56,10.91" target="#b2">[3]</ref>. The official judgments provide quality and relevance labels for arguments using a top-5 pooling strategy. Hence, we follow the official evaluation and report the normalized discounted cumulative gain at a depth of 5 (nDCG@5) for the quality and relevance dimension. We include the two official baselines (one using a Dirichlet-based probabilistic similarity and the other using the args.me search engine API) 7 into our evaluations. Table <ref type="table" coords="6,126.96,364.70,5.06,10.91">3</ref> provides an overview of how well each of our runs performed in terms of relevance measured at nDCG@5. Both LambdaMART runs improve upon the baseline DirichletLM which re-ranks the top-100 results. We observe that the LambdaMART (small) model with only 4 features is our best run in terms of relevance, obtaining substantially better nDCG@5 scores than baseline DirichletLM, and the LambdaMART (medium) model with 9 features. The substantial improvement in nDCG@5 (0.031 in the mean and 0.029 in the median) of the LambdaMART (small) model over the LambdaMART (medium) model indicates that 9 features already yield some overfitting in our cross-validation setup (which is plausible given only a few relevance labels were available). Still, we find that the DirichletLM implementation of the best team (obtaining an nDCG@5 of 0.720) substantially outperforms our LambdaMART models, indicating that improving the LambdaMART models using better features and more training data (which become available next year) is still possible. On the other side of the spectrum are template-based query expansion and re-ranking based on question answering, both of which exhibit worse effectiveness-respectively 0.577 and 0.557-in relation to the baseline which they both rely on. A satisfactory explanation lies in the unsupervised nature of both approaches and the absence of any fine-tuning on the argumentation domain. We expect both these approaches to improve by using human relevance judgments as a training signal.</p><p>Table <ref type="table" coords="6,127.74,595.04,5.17,10.91">4</ref> provides an overview of how well each of our runs performed in terms of quality measured at nDCG@5. We observe a correlation between quality and relevance: the ranking of our solutions along either dimension only differs in that the LambdaMART models exchange places. The LambdaMART (medium) model retrieves higher-quality arguments than its counterpart with 4 features-respectively 0.810 and 0.804 (mean nDCG@5). This correlation seems to imply a relation between the quality of an argument and its relevance to a particular topic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Table 4</head><p>Overview of the retrieval effectiveness in terms of quality measured with nDCG@5. On the left, we report the mean nDCG@5 and confidence intervals of our 5 runs and two baselines and the winning run. On the right, we show violin plots for our 5 submitted runs with the median nDCG@5 highlighted. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Summary</head><p>Our participation in the first subtask of Touché 2021 consisted of five runs spanning four categories. First, we rely on the robustness of a multi-field retrieval DirichletLM index to return arguments from the args.me corpus, which we additionally sanitize using embeddings from Google's Universal Sentence Encoder, clustered using k-means. Second, we submit two runs generated with the feature-based learning to rank model LambdaMART, leveraging 4 respectively 9 features trained on Touché Topics 1 through 50 published in 2020. Third, we re-rank the results of the first method, using a score returned by a question-answering expert model, with the assumption that argument retrieval is close enough to the modality of that model to warrant such a use. Fourth, we leverage RoBERTa's masked language modeling ability to generate a weighted list of topical keywords that can be used to augment the original query. Altogether, the LambaMART models outperform the baseline, yet there is still room for improvement compared to the effectiveness of the respective best-performing approaches submitted.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,88.99,90.49,413.67,135.45"><head>Table 1</head><label>1</label><figDesc>Overview of the 31 learning to rank features used in our feature selection.</figDesc><table coords="3,92.61,120.34,410.05,105.59"><row><cell cols="2">Argument Text</cell><cell>Discussion</cell><cell></cell><cell>Argument</cell><cell></cell><cell>Query</cell><cell></cell><cell>Other</cell><cell></cell></row><row><cell cols="3">Description Count Description</cell><cell cols="2">Count Description</cell><cell cols="5">Count Description Count Description Count</cell></row><row><cell>BM25</cell><cell>3</cell><cell>Discussion length</cell><cell>1</cell><cell>Premise length</cell><cell>1</cell><cell>Word count</cell><cell>1</cell><cell>Garbage</cell><cell>1</cell></row><row><cell>DirichletLM</cell><cell>3</cell><cell>Number of premises</cell><cell>1</cell><cell cols="2">Argument position (abs.) 1</cell><cell cols="2">Concept count 1</cell><cell></cell><cell></cell></row><row><cell cols="2">JelinekMercer 3</cell><cell cols="2">Premise length (mean) 1</cell><cell cols="2">Argument position (rel.) 1</cell><cell>Entity count</cell><cell>1</cell><cell></cell><cell></cell></row><row><cell>IB</cell><cell>3</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>DFI</cell><cell>3</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>DFR</cell><cell>3</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>Baseline</cell><cell>1</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">USE_QA_T_C 1</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell cols="2">USE_QA_T_T 1</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,108.93,638.16,396.06,8.97"><p>https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-similarity.html#lm_dirichlet</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,108.93,649.12,363.70,8.97"><p>https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,108.93,660.08,221.38,8.97"><p>https://tfhub.dev/google/universal-sentence-encoder-large/5</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="2,108.93,671.04,361.86,8.97"><p>Both in contrast to BERT's learned subword tokenizer and solely self-supervised pretraining signal</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="4,108.93,671.04,211.70,8.97"><p>https://tfhub.dev/google/universal-sentence-encoder-qa/3</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,112.66,491.08,394.53,10.91;7,112.66,504.63,201.43,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,217.84,491.08,228.00,10.91">The participatory web: A user perspective on web 2.0</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Blank</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">C</forename><surname>Reisdorf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,452.40,491.08,54.79,10.91;7,112.66,504.63,117.49,10.91">Information, Communication &amp; Society</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="537" to="554" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,518.17,393.53,10.91;7,112.28,531.72,393.71,10.91;7,112.66,545.27,393.73,10.91;7,112.34,558.82,286.03,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,415.08,518.17,91.11,10.91;7,112.28,531.72,167.13,10.91">Data Acquisition for Argument Search: The args.me corpus</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-30179-8_4</idno>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,112.66,545.27,241.68,10.91">German Conference on Artificial Intelligence (KI 2019)</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Benzmüller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Stuckenschmidt</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="48" to="59" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,572.37,394.52,10.91;7,112.66,585.92,393.33,10.91;7,112.66,599.47,394.53,10.91;7,112.28,613.02,394.91,10.91;7,112.39,626.57,394.80,10.91;7,112.66,640.12,395.00,10.91;7,112.66,653.67,193.04,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,336.55,585.92,169.43,10.91;7,112.66,599.47,37.25,10.91">Overview of Touché 2021: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/978-3-030-72240-1_67</idno>
+		<ptr target="https://link.springer.com/chapter/10.1007/978-3-030-72240-1_67.doi:10.1007/978-3-030-72240-1\_67" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,112.28,613.02,390.67,10.91">Advances in Information Retrieval. 43rd European Conference on IR Research (ECIR 2021)</title>
+		<title level="s" coord="7,186.92,627.58,144.95,9.72">Lecture Notes in Computer Science</title>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M.-F</forename><surname>Moens</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Mothe</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Perego</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Sebastiani</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="volume">12036</biblScope>
+			<biblScope unit="page" from="574" to="582" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,667.22,394.53,10.91;8,112.66,86.97,394.53,10.91;8,112.66,100.52,393.33,10.91;8,112.66,114.06,395.17,10.91;8,112.66,127.61,394.62,10.91;8,112.66,141.16,337.56,10.91" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,201.79,86.97,215.90,10.91">Argument search: Assessing argument relevance</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Euchner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Heilenkötter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Weidmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3331184.3331327</idno>
+		<ptr target="https://doi.org/10.1145/3331184.3331327.doi:10.1145/3331184.3331327" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,395.30,100.52,110.68,10.91;8,112.66,114.06,395.17,10.91;8,112.66,127.61,84.86,10.91">Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 2019</title>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Piwowarski</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Chevalier</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">É</forename><surname>Gaussier</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Y</forename><surname>Maarek</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Scholer</surname></persName>
+		</editor>
+		<meeting>the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 2019<address><addrLine>Paris, France</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2019">July 21-25, 2019. 2019</date>
+			<biblScope unit="page" from="1117" to="1120" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,154.71,393.57,10.91;8,112.33,168.26,235.35,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,264.05,154.71,158.77,10.91">The Dilemma of the Direct Answer</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="http://sigir.org/forum/issues/june-2020/" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,433.66,154.71,59.12,10.91">SIGIR Forum</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,181.81,394.53,10.91;8,112.66,195.36,394.53,10.91;8,112.28,208.91,393.70,10.91;8,112.66,222.46,394.04,10.91;8,112.66,236.01,91.79,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,112.66,195.36,318.75,10.91">Computational Argumentation Quality Assessment in Natural Language</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Naderi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bilu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Prabhakaran</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">A</forename><surname>Thijm</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hirst</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="http://aclweb.org/anthology/E17-1017" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,234.24,208.91,271.74,10.91;8,112.66,222.46,194.48,10.91">15th Conference of the European Chapter of the Association for Computational Linguistics (EACL 2017)</title>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Blunsom</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Koller</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lapata</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="176" to="187" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,249.56,394.53,10.91;8,112.30,263.11,394.98,10.91;8,112.66,276.66,394.53,10.91;8,112.66,290.20,393.33,10.91;8,112.66,303.75,395.01,10.91;8,112.66,317.30,147.65,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,264.52,263.11,221.57,10.91">Building an Argument Search Engine for the Web</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Al-Khatib</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Puschmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Qu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dorsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Morari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Bevendorff</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/W17-5106" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,243.48,290.20,262.50,10.91;8,112.66,303.75,229.05,10.91">4th Workshop on Argument Mining (ArgMining 2017) at EMNLP, Association for Computational Linguistics</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Ashley</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Cardie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Green</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">I</forename><surname>Habernal</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Litman</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Petasis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Reed</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Slonim</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">V</forename><surname>Walker</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="49" to="59" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,330.85,394.53,10.91;8,112.66,344.40,393.71,10.91;8,112.26,357.95,393.72,10.91;8,112.66,371.50,394.53,10.91;8,112.66,385.05,394.53,10.91;8,112.66,398.60,395.01,10.91;8,112.66,412.15,268.17,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,350.92,344.40,155.45,10.91;8,112.26,357.95,72.86,10.91">Corpus wide argument mining -A working solution</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Ein-Dor</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Shnarch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Dankin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Halfon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Sznajder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Alzate</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gleize</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Choshen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bilu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Aharonov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Slonim</surname></persName>
+		</author>
+		<ptr target="https://aaai.org/ojs/index.php/AAAI/article/view/6270" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,207.01,357.95,298.97,10.91;8,112.66,371.50,394.53,10.91;8,112.66,385.05,394.53,10.91;8,112.66,398.60,46.36,10.91">The Thirty-Fourth AAAI Conference on Artificial Intelligence, AAAI 2020, The Thirty-Second Innovative Applications of Artificial Intelligence Conference, IAAI 2020, The Tenth AAAI Symposium on Educational Advances in Artificial Intelligence, EAAI 2020</title>
+		<meeting><address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>AAAI Press</publisher>
+			<date type="published" when="2020">February 7-12, 2020. 2020</date>
+			<biblScope unit="page" from="7683" to="7691" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,425.70,393.33,10.91;8,112.66,439.25,393.33,10.91;8,112.66,452.79,394.53,10.91;8,112.28,466.34,395.00,10.91;8,112.66,479.89,315.54,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,210.88,425.70,295.11,10.91;8,112.66,439.25,128.68,10.91">A study of smoothing methods for language models applied to ad hoc information retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Zhai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lafferty</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/383952.384019</idno>
+		<ptr target="https://doi.org/10.1145/383952.384019.doi:10.1145/383952.384019" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,269.12,439.25,236.87,10.91;8,112.66,452.79,390.58,10.91">Proceedings of the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;01</title>
+		<meeting>the 24th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR &apos;01<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2001">2001</date>
+			<biblScope unit="page" from="334" to="342" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,493.44,395.17,10.91;8,112.66,506.99,394.03,10.91;8,112.66,520.54,241.07,10.91" xml:id="b9">
+	<monogr>
+		<title level="m" type="main" coord="8,296.50,493.44,179.72,10.91">Ranking, Boosting, and Model Adaptation</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">J C</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><forename type="middle">M</forename><surname>Svore</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<idno>MSR-TR-2008-109</idno>
+		<ptr target="https://www.microsoft.com/en-us/research/publication/ranking-boosting-and-model-adaptation/" />
+		<imprint>
+			<date type="published" when="2008">2008</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct coords="8,112.66,534.09,395.17,10.91;8,112.66,547.64,394.53,10.91;8,112.66,561.19,390.17,10.91" xml:id="b10">
+	<monogr>
+		<title level="m" type="main" coord="8,380.20,547.64,122.23,10.91">Universal sentence encoder</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Hua</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Limtiaco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">S</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Constant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Guajardo-Cespedes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Tar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Sung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Strope</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kurzweil</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1803.11175" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,574.74,394.53,10.91;8,112.66,588.29,393.53,10.91;8,112.66,601.84,395.17,10.91;8,112.66,615.39,395.17,10.91;8,112.66,628.93,395.00,10.91;8,112.66,642.48,191.55,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,306.51,588.29,199.68,10.91;8,112.66,601.84,76.39,10.91">Multilingual universal sentence encoder for semantic retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ahmad</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Constant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hernandez Abrego</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Yuan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Tar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y.-H</forename><surname>Sung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Strope</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kurzweil</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.acl-demos.12</idno>
+		<ptr target="https://www.aclweb.org/anthology/2020.acl-demos.12.doi:10.18653/v1/2020.acl-demos.12" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,210.49,601.84,297.34,10.91;8,112.66,615.39,395.17,10.91;8,112.66,628.93,14.15,10.91">Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations, Association for Computational Linguistics</title>
+		<meeting>the 58th Annual Meeting of the Association for Computational Linguistics: System Demonstrations, Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="87" to="94" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,112.66,656.03,393.33,10.91;8,112.66,669.58,393.33,10.91;9,112.66,86.97,393.33,10.91;9,112.66,100.52,394.03,10.91;9,112.66,114.06,130.40,10.91" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,220.52,656.03,285.47,10.91;8,112.66,669.58,121.29,10.91">Exploiting cloze-questions for few-shot text classification and natural language inference</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Schick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schütze</surname></persName>
+		</author>
+		<ptr target="https://www.aclweb.org/anthology/2021.eacl-main.20" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,262.60,669.58,243.39,10.91;9,112.66,86.97,393.33,10.91;9,112.66,100.52,132.32,10.91">Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume, Association for Computational Linguistics</title>
+		<meeting>the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume, Association for Computational Linguistics<address><addrLine>Online</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="255" to="269" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,127.61,394.52,10.91;9,112.66,141.16,393.33,10.91;9,112.66,154.71,340.78,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="9,336.55,141.16,169.43,10.91;9,112.66,154.71,38.01,10.91">Overview of Touché 2020: Argument Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bondarenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fröbe</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Beloucif</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Gienapp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Ajjour</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Panchenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Biemann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Wachsmuth</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,173.44,154.71,250.02,10.91">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,168.26,393.33,10.91;9,112.66,181.81,395.01,10.91;9,112.66,195.36,183.89,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="9,319.43,168.26,186.56,10.91;9,112.66,181.81,180.57,10.91">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,208.91,395.17,10.91;9,112.66,222.46,394.53,10.91;9,112.28,236.01,393.70,10.91;9,112.66,249.56,394.52,10.91;9,112.66,263.11,362.33,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="9,484.19,208.91,23.65,10.91;9,112.66,222.46,68.20,10.91">Skipthought vectors</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kiros</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">S</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Urtasun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Torralba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Fidler</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/5950-skip-thought-vectors" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,112.28,236.01,393.70,10.91;9,112.66,249.56,166.41,10.91">Advances in Neural Information Processing Systems 28: Annual Conference on Neural Information Processing Systems 2015</title>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Cortes</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><forename type="middle">D</forename><surname>Lawrence</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><forename type="middle">D</forename><surname>Lee</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sugiyama</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">R</forename><surname>Garnett</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Montreal, Quebec, Canada</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">December 7-12, 2015. 2015</date>
+			<biblScope unit="page" from="3294" to="3302" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,276.66,394.53,10.91;9,112.66,290.20,393.33,10.91;9,112.66,303.75,362.09,10.91" xml:id="b16">
+	<monogr>
+		<title level="m" type="main" coord="9,178.08,290.20,288.88,10.91">Efficient natural language response suggestion for smart reply</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">L</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Al-Rfou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Strope</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Sung</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Lukács</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Kumar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Miklos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kurzweil</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1705.00652" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,317.30,393.33,10.91;9,112.66,330.85,393.33,10.91;9,112.33,344.40,393.65,10.91;9,112.66,357.95,393.53,10.91;9,112.66,371.50,395.01,10.91;9,112.66,385.05,138.14,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="9,337.83,317.30,168.16,10.91;9,112.66,330.85,116.77,10.91">A large annotated corpus for learning natural language inference</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">R</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Angeli</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Potts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/d15-1075</idno>
+		<ptr target="https://doi.org/10.18653/v1/d15-1075.doi:10.18653/v1/d15-1075" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,142.99,344.40,362.99,10.91;9,112.66,357.95,110.52,10.91">Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing, EMNLP 2015</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Màrquez</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Callison-Burch</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Su</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Pighin</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">Y</forename><surname>Marton</surname></persName>
+		</editor>
+		<meeting>the 2015 Conference on Empirical Methods in Natural Language Processing, EMNLP 2015<address><addrLine>Lisbon, Portugal</addrLine></address></meeting>
+		<imprint>
+			<publisher>The Association for Computational Linguistics</publisher>
+			<date type="published" when="2015">September 17-21, 2015. 2015</date>
+			<biblScope unit="page" from="632" to="642" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,398.60,394.53,10.91;9,112.66,412.15,394.53,10.91;9,112.66,425.70,393.32,10.91;9,112.66,439.25,176.63,10.91" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="9,228.10,425.70,182.14,10.91">Scikit-learn: Machine learning in Python</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,419.22,425.70,86.76,10.91;9,112.66,439.25,82.55,10.91">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,452.79,394.53,10.91;9,112.66,466.34,393.33,10.91;9,112.66,479.89,395.17,10.91;9,112.66,493.44,394.61,10.91;9,112.66,506.99,337.56,10.91" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="9,239.14,452.79,185.22,10.91">Information-based models for ad hoc IR</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Clinchant</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">É</forename><surname>Gaussier</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/1835449.1835490</idno>
+		<ptr target="https://doi.org/10.1145/1835449.1835490.doi:10.1145/1835449.1835490" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,403.35,466.34,102.64,10.91;9,112.66,479.89,395.17,10.91;9,112.66,493.44,80.59,10.91">Proceeding of the 33rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 2010</title>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Marchand-Maillet</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Chen</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><forename type="middle">N</forename><surname>Efthimiadis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</editor>
+		<meeting>eeding of the 33rd International ACM SIGIR Conference on Research and Development in Information Retrieval, SIGIR 2010<address><addrLine>Geneva, Switzerland</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2010">July 19-23, 2010. 2010</date>
+			<biblScope unit="page" from="234" to="241" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,520.54,393.32,10.91;9,112.66,534.09,393.33,10.91;9,112.66,547.64,393.53,10.91;9,112.66,561.19,395.00,10.91;9,112.66,574.74,196.08,10.91" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="9,290.08,520.54,215.90,10.91;9,112.66,534.09,31.15,10.91">On the usefulness of query features for learning to rank</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">L T</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Ounis</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/2396761.2398691</idno>
+		<ptr target="https://doi.org/10.1145/2396761.2398691.doi:10.1145/2396761.2398691" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,419.52,534.09,86.47,10.91;9,112.66,547.64,285.47,10.91">ACM International Conference on Information and Knowledge Management, CIKM&apos;12</title>
+		<editor>
+			<persName><forename type="first">X</forename><surname>Chen</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Lebanon</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Wang</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><forename type="middle">J</forename><surname>Zaki</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Maui, HI, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2012-11-02">October 29 -November 02, 2012. 2012</date>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="2559" to="2562" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,588.29,394.62,10.91;9,112.66,601.84,394.62,10.91;9,112.31,615.39,277.28,10.91" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="9,279.16,588.29,228.12,10.91;9,112.66,601.84,84.24,10.91">Entity linking meets word sense disambiguation: a unified approach</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Moro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Raganato</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Navigli</surname></persName>
+		</author>
+		<ptr target="https://tacl2013.cs.columbia.edu/ojs/index.php/tacl/article/view/291" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,210.09,601.84,157.77,10.91">Trans. Assoc. Comput. Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="231" to="244" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,628.93,393.33,10.91;9,112.66,642.48,345.46,10.91" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="9,228.26,628.93,156.94,10.91">Selection bias in the letor datasets</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Minka</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Robertson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,413.95,628.93,92.03,10.91;9,112.66,642.48,189.84,10.91">SIGIR Workshop on Learning to Rank for Information Retrieval</title>
+		<meeting><address><addrLine>Singapore</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2008">2008</date>
+			<biblScope unit="page" from="48" to="51" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,112.66,656.03,394.62,10.91;9,112.31,669.58,180.92,10.91" xml:id="b23">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Dang</surname></persName>
+		</author>
+		<ptr target="https://sourceforge.net/p/lemur/wiki/RankLib" />
+		<title level="m" coord="9,164.67,656.03,143.27,10.91">The lemur project-wiki-ranklib</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Lemur Project</note>
+</biblStruct>
+
+<biblStruct coords="10,112.66,86.97,394.53,10.91;10,112.66,100.52,393.33,10.91;10,112.66,114.06,266.73,10.91" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="10,210.10,86.97,214.20,10.91">Exploring Argument Retrieval with Transformers</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Akiki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="10,281.51,100.52,224.48,10.91;10,112.66,114.06,18.22,10.91">Working Notes Papers of the CLEF 2020 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2696. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="10,112.66,127.61,395.17,10.91;10,112.66,141.16,393.32,10.91;10,112.33,154.71,293.17,10.91" xml:id="b25">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1907.11692" />
+		<title level="m" coord="10,140.43,141.16,261.00,10.91">Roberta: A robustly optimized BERT pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

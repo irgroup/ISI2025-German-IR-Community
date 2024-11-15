@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,416.70,15.42;1,89.29,106.66,73.65,15.43;1,89.29,129.00,157.29,11.96">Profiling Spreaders of Hate Speech with N-grams and RoBERTa Notebook for PAN at CLEF 2021</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,154.90,98.75,11.96"><forename type="first">Christopher</forename><surname>Bagdon</surname></persName>
+							<email>christopher.bagdon@student.uni-tuebingen.de</email>
+							<affiliation key="aff0">
+								<orgName type="institution">Eberhard Karls Universität Tübingen</orgName>
+								<address>
+									<addrLine>Fachschaft Sprachwissenschaft Wilhelmstr. 19</addrLine>
+									<postCode>72074</postCode>
+									<settlement>Tübingen</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,416.70,15.42;1,89.29,106.66,73.65,15.43;1,89.29,129.00,157.29,11.96">Profiling Spreaders of Hate Speech with N-grams and RoBERTa Notebook for PAN at CLEF 2021</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">8633E96A12B8214F778676DC6A8C193D</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>N-grams</term>
+					<term>RoBERTa</term>
+					<term>SVM</term>
+					<term>TF-IDF</term>
+					<term>Transformer-model</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper outlines our approach to the 2021 CLEF Conference Shared Task, Profiling Hate Speech Spreaders on Twitter. Our approach uses the probability output of a logistic regression classifier and a RoBERTa based classifier as features for a linear support vector classifier. During a final cross validation analysis the Spanish meta-classifier performed better than any other single classifier. For English the meta-classifier performed slightly worse than the RoBERTa classifier. On the test set our system performed moderately well in comparison to other submissions, with 81% accuracy for Spanish and 67% for English. Overall our system placed 15 th of 66 entries.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Social media has taken a firm place in people's lives around the world. The number of people which use social media continues to grow year over year. While this has many possible benefits, such as allowing people to express themselves and connect with others, it also comes with drawbacks, such as the proliferation of hate speech. The combination of anonymity, echo chambers, and ease of access helps to circulate hate speech on different platforms <ref type="bibr" coords="1,460.48,442.74,11.57,10.91" target="#b0">[1]</ref>. These platforms have a need to be able to automatically detect hate speech and profile its spreaders.</p><p>This paper details our submission to the 2021 PAN Author Profiling Shared Task, Profiling Hate Speech Spreaders on Twitter. The task is to classify Twitter users as a spreader of hate speech or not, given a sample of 200 tweets per user. In previous Author Profiling shared tasks Support Vector Machines (SVM) and n-grams have proven very successful across different tasks, while transformer based approaches have only seen moderate success <ref type="bibr" coords="1,412.93,524.04,11.59,10.91" target="#b1">[2]</ref>, despite showing strong results in direct fake news <ref type="bibr" coords="1,240.00,537.59,12.84,10.91" target="#b2">[3]</ref> and hate speech detection <ref type="bibr" coords="1,373.79,537.59,11.43,10.91" target="#b3">[4]</ref>.</p><p>Our approach attempts to combine the results from a n-gram-based logistic regression classifier with a transformer model based on RoBERTa via a SVM meta-classifier. The paper is structured as follows: Section 2 reviews related research and works. Section 3 dives into our approach by going through the preprocessing, the logistic regression and RoBERTa models, and</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Work</head><p>Hate speech detection has been a popular topic among Natural Language Processing researchers in recent years. Academic events such as IberEval 2018 <ref type="bibr" coords="2,348.25,172.69,12.99,10.91" target="#b4">[5]</ref> and SemEval-19 <ref type="bibr" coords="2,441.14,172.69,11.59,10.91" target="#b5">[6]</ref>, to name a couple, show how strong interest in the topic is. The tasks from these events provide insight on successful approaches and common challenges when detecting hate speech. In the IberEval 2018 task, Automatic Misogyny Identification, the most successful approach used an SVM with combinations of stylistic, structural and lexical features, while other strong approaches used SVMs with n-gram features. Deep learning approaches were not as successful <ref type="bibr" coords="2,431.09,240.44,11.28,10.91" target="#b4">[5]</ref>. The majority of submissions to SemEval-19's task, Multilingual Detection of Hate Speech Against Immigrants and Women in Twitter, used some form of Deep Learning Model, including Recurrent Neural Networks (RNN) and large language models. Despite this, the highest performing systems across both sub tasks for English and Spanish datasets employed more traditional machine learning models, mostly SVMs <ref type="bibr" coords="2,223.60,308.18,11.28,10.91" target="#b5">[6]</ref>. Interestingly, the top three systems labeled the same 14.6% of texts incorrectly on the Spanish dataset and 19.1% of texts for English <ref type="bibr" coords="2,396.55,321.73,11.29,10.91" target="#b5">[6]</ref>. This could be caused by a common difficulty in identifying hate speech; when slurs or words commonly associated with hate speech are used in a humorous context <ref type="bibr" coords="2,303.43,348.83,11.27,10.91" target="#b5">[6]</ref>, or by targeted communities reclaiming the words used to target them <ref type="bibr" coords="2,206.94,362.38,11.32,10.91" target="#b6">[7]</ref>. Machine learning systems often lack the context to determine if these words are being used in a manner that constitutes hate speech <ref type="bibr" coords="2,397.03,375.93,11.46,10.91" target="#b7">[8]</ref>. There are numerous other possible pitfalls for machine learning to fall into due to lack of contextual understanding, such as authors quoting historical texts or referring to specific instances of hate speech <ref type="bibr" coords="2,492.22,403.03,11.58,10.91" target="#b8">[9]</ref>. While a tweet or text might contain hate speech, that does not guarantee that the text as a whole is hate speech.</p><p>In the 2020 PAN shared task, Profiling Fake News Spreaders on Twitter, there was a variety of methods used for classification, preprocessing, and feature selection <ref type="bibr" coords="2,398.58,457.22,11.28,10.91" target="#b1">[2]</ref>. The best performing approaches used word and/or character n-grams with SVM and/or Logistic Regression classifiers. This saw upwards of 0.75 and 0.82 accuracy scores on English and Spanish data sets respectively. These approaches were also effective in the 2019 task, seeing results as high as 0.95 accuracy on bot detection and 0.82 accuracy on gender profiling <ref type="bibr" coords="2,340.85,511.42,16.41,10.91" target="#b9">[10]</ref>. The top three approaches from 2020 directly showed to be effective on this year's task with only small losses in performance, though without any tuning <ref type="bibr" coords="2,213.28,538.52,16.25,10.91" target="#b10">[11]</ref>.</p><p>Recently NLP tasks have seen success using transformer based large language models and transfer learning <ref type="bibr" coords="2,166.68,565.62,16.98,10.91" target="#b11">[12]</ref> <ref type="bibr" coords="2,183.66,565.62,16.98,10.91" target="#b12">[13]</ref>. Researchers have been successful in using models such as Google's BERT in classification tasks such as detecting hate speech <ref type="bibr" coords="2,357.46,579.17,11.58,10.91" target="#b3">[4]</ref>, fake news detection <ref type="bibr" coords="2,470.53,579.17,11.58,10.91" target="#b2">[3]</ref>, and authorship attribution <ref type="bibr" coords="2,190.25,592.72,16.18,10.91" target="#b13">[14]</ref>. Over the last couple years variations of of these models have been made available, such as RoBERTa <ref type="bibr" coords="2,241.33,606.27,17.98,10.91" target="#b12">[13]</ref> and DistilBERT <ref type="bibr" coords="2,328.24,606.27,18.77,10.91" target="#b14">[15]</ref>, which have shown improvements in both performance and accessibility. As researchers continue to pour resources into building larger language models, their ability to perform down stream tasks via transfer learning continues to grow <ref type="bibr" coords="2,172.73,646.91,16.25,10.91" target="#b15">[16]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methodology</head><p>The system is composed of three major parts. After preprocessing, the data it is sent to a logistic regression classifier and to a RoBERTa classifier separately. The probability outputs from each are then used as features for the final meta classifier, a linear SVM. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Preprocessing</head><p>First each author's tweets are concatenated into a single string per author, as this was found to be more effective than classifying each tweet separately in previous work <ref type="bibr" coords="3,409.58,382.06,19.21,10.91" target="#b16">[17]</ref>. Then the text is set to lowercase and repeated characters are removed. For data going to the RoBERTa models, emojis are replaced with #EMOJI# (following the dataset's format for replacement tokens).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">SVM and Logistic Regression</head><p>To serve as a baseline, a Linear SVM is used, based on the success found in previous shared tasks <ref type="bibr" coords="3,113.54,472.43,16.83,10.91" target="#b10">[11]</ref> <ref type="bibr" coords="3,130.37,472.43,16.83,10.91" target="#b17">[18]</ref>. The classifier takes two features; a Term Frequency-Inverse Document Frequency (TF-IDF) sparse matrix of character n-grams and a TF-IDF for word n-grams. The word TF-IDF uses a range of (1, 2) n-grams, limited to a minimum of 0.05 frequency and a max of 0.85. The character TF-IDF uses a range of (1, 6) n-grams with 0.001 minimum and no maximum. The model was optimized with a repeated stratified K-fold grid search, using 10 splits repeated 3 times.</p><p>In order to provide probabilities rather than predictions for the meta-classifier, a logistic regression classifier is used in place of the SVM. It was optimized with the same methods as the SVM. The hyperparameters for both can be seen in Table <ref type="table" coords="3,345.89,580.82,3.74,10.91" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">RoBERTa</head><p>The RoBERTa models are built using the Simple Transformers<ref type="foot" coords="3,368.73,628.80,3.71,7.97" target="#foot_0">1</ref> library. The English model is built with the Roberta-base pretrained model and the Spanish model with the Spanberta-base- cased<ref type="foot" coords="4,113.99,306.04,3.71,7.97" target="#foot_1">2</ref> pretrained model. The models consist of 12 hidden layers, 12 attention heads, a single dense layer classifier, and uses Adam optimizer. Hyper parameters were found using the Sweeps function of Wandb<ref type="foot" coords="4,174.55,333.14,3.71,7.97" target="#foot_2">3</ref> and can be seen in Table <ref type="table" coords="4,295.99,334.90,3.81,10.91" target="#tab_1">2</ref>. Each model was trained on an 80/20 split of their respective data-set.</p><p>The max token length is set to 128, due to a lack of computational power, so a sliding window is used to break up the long concatenated strings. Each window uses a 20% overlap. The final classification output is a list containing a probability for each class for each window, per author. Each list is reduced to a single probability per class by taking the median value of all windows. Summing the values and averaging the values was also tested, but the median values showed marginally better results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Meta-Classifier</head><p>A Linear SVM is used as the meta-classifier. Four features are used as input; one probability from the RoBERTA classifier and from the logistic regression classifier each, per class. The meta-classifier was trained using the same 80/20 training splits as the RoBERTa models. Hyper parameter optimization was done using grid searches and the chosen parameters can be found in Table <ref type="table" coords="4,127.71,533.66,3.74,10.91" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head><p>To analyze the effectiveness of the system each working part was put through a 10 fold cross validation using only the training set. The Spanish model performed far better than its English counterpart. The logistic regression and SpanBERTa models each performed better than the baseline SVM, and the SVM meta-classifier out performed all of them. Unfortunately the English models did not fare as well. Logistic regression saw a slight loss compared to the baseline. The RoBERTa model was the strongest, scoring a point higher than the meta-classifier, but failing to break into 0.70 accuracy.</p><p>On the test set the system performed very well compared to the training set. The metaclassifier only lost 1% accuracy on the English dataset and still outperformed the SVM and logistic regression parts. For Spanish the meta-classifier lost 3% but maintained a better score than the SVM and roughly the same score as the SpanBERTa model.</p><p>Our system ranked 15 th of 66 submissions. It did especially well on the Spanish dataset, coming in just 4% below the top ranked submission. English was not far behind, scoring 7% under the leading system.</p><p>Overall it seems there could be a benefit to combining the results of a transformer based model and simpler models such as logistic regression. In the future it will be interesting to try this again with different datasets and different transformer models, such as OpenAI's ginormous GPT-3.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,301.56,124.31,8.93;3,162.99,159.97,269.29,129.03"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: System architecture</figDesc><graphic coords="3,162.99,159.97,269.29,129.03" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,88.99,90.49,417.02,112.37"><head>Table 1</head><label>1</label><figDesc>Hyperparameters found via Grid Search</figDesc><table coords="4,89.29,121.77,416.72,81.08"><row><cell>Model</cell><cell>Language</cell><cell>C</cell><cell>Tol</cell><cell cols="3">Class Weight Intercept Scaling Loss</cell></row><row><cell>SVM (baseline)</cell><cell>EN</cell><cell>22000</cell><cell>0.1</cell><cell>Balanced</cell><cell>0.877</cell><cell>Hinge</cell></row><row><cell>Logistic Regression</cell><cell>EN</cell><cell>100000</cell><cell>1e-05</cell><cell>Balanced</cell><cell>0.1</cell><cell>-</cell></row><row><cell>Meta-Classifier SVM</cell><cell>EN</cell><cell>0.015</cell><cell>0.5</cell><cell>None</cell><cell>5</cell><cell>Hinge</cell></row><row><cell>SVM (baseline)</cell><cell>ES</cell><cell>22000</cell><cell>0.1</cell><cell>Balanced</cell><cell>0.01</cell><cell>Hinge</cell></row><row><cell>Logistic Regression</cell><cell>ES</cell><cell cols="2">100000 1.53e-04</cell><cell>Balanced</cell><cell>0.1</cell><cell>-</cell></row><row><cell>Meta-Classifier SVM</cell><cell>ES</cell><cell>1</cell><cell>5</cell><cell>Balanced</cell><cell>5</cell><cell>Squared Hinge</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,88.99,224.88,408.45,57.35"><head>Table 2</head><label>2</label><figDesc>Hyperparameters for RoBERTa and SpanBERTa models.</figDesc><table coords="4,89.29,254.86,408.16,27.37"><row><cell>Model</cell><cell>Language</cell><cell>LR</cell><cell cols="5">Epochs Batch Size Eval-Batch Size Weight Decay Special Tokens</cell></row><row><cell>RoBERTa</cell><cell>EN</cell><cell>2.84E-05</cell><cell>3</cell><cell>8</cell><cell>4</cell><cell>0.1</cell><cell>[#EMOJI#, #HASHTAG#, #USER#, #URL#]</cell></row><row><cell>SpanBERTa</cell><cell>ES</cell><cell>2.86E-05</cell><cell>1</cell><cell>8</cell><cell>4</cell><cell>0.1</cell><cell>[#EMOJI#, #HASHTAG#, #USER#, #URL#]</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,88.99,90.49,302.82,234.77"><head>Table 3</head><label>3</label><figDesc>Cross Validation Results</figDesc><table coords="5,88.99,119.83,302.82,205.42"><row><cell>Model</cell><cell cols="2">Language Accuracy</cell></row><row><cell>SVM (baseline)</cell><cell>EN</cell><cell>0.66</cell></row><row><cell cols="2">Logistic Regression EN</cell><cell>0.640</cell></row><row><cell>RoBERTa</cell><cell>EN</cell><cell>0.695</cell></row><row><cell>Meta-Classifier</cell><cell>EN</cell><cell>0.682</cell></row><row><cell>SVM (baseline)</cell><cell>ES</cell><cell>0.796</cell></row><row><cell cols="2">Logistic Regression ES</cell><cell>0.825</cell></row><row><cell>SpanBERTa</cell><cell>ES</cell><cell>0.817</cell></row><row><cell>Meta-Classifier</cell><cell>ES</cell><cell>0.845</cell></row><row><cell>Table 4</cell><cell></cell><cell></cell></row><row><cell>Final test set results</cell><cell></cell><cell></cell></row><row><cell>Model</cell><cell cols="2">Language Accuracy</cell></row><row><cell>Meta-Classifer</cell><cell>EN ES</cell><cell>67% 81%</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,108.93,671.03,106.27,8.97"><p>https://simpletransformers.ai</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="4,108.93,660.07,203.90,8.97"><p>https://skimai.com/roberta-language-model-for-spanish</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="4,108.93,671.03,133.77,8.97"><p>https://docs.wandb.ai/guides/sweeps</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,112.66,586.73,393.33,10.91;5,112.66,600.28,394.53,10.91;5,112.66,613.82,394.61,10.91;5,112.66,627.37,337.56,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="5,294.25,586.73,211.74,10.91;5,112.66,600.28,25.02,10.91">A measurement study of hate speech in social media</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mondal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Silva</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Benevenuto</surname></persName>
+		</author>
+		<idno type="DOI">10.1145/3078714.3078723</idno>
+		<ptr target="https://doi.org/10.1145/3078714.3078723.doi:10.1145/3078714.3078723" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,165.87,600.28,341.32,10.91;5,112.66,613.82,29.21,10.91">Proceedings of the 28th ACM Conference on Hypertext and Social Media, HT &apos;17</title>
+		<meeting>the 28th ACM Conference on Hypertext and Social Media, HT &apos;17<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="85" to="94" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,112.66,640.92,393.61,10.91;5,112.66,654.47,307.05,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,322.17,640.92,184.10,10.91;5,112.66,654.47,48.74,10.91">Overview of the 8th author profiling task at pan 2020</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Giachanou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ghanem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,169.16,654.47,176.25,10.91">Profiling fake news spreaders on twitter</title>
+		<imprint>
+			<publisher>CLEF</publisher>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,112.66,668.02,393.32,10.91;6,112.66,86.97,393.33,10.91;6,112.66,100.52,392.44,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,302.78,668.02,203.20,10.91;6,112.66,86.97,311.74,10.91">exbake: Automatic fake news detection model based on bidirectional encoder representations from transformers (bert)</title>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jwa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Oh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Park</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Kang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Lim</surname></persName>
+		</author>
+		<idno type="DOI">10.3390/app9194062</idno>
+		<ptr target="https://www.mdpi.com/2076-3417/9/19/4062.doi:10.3390/app9194062" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,432.03,86.97,73.96,10.91">Applied Sciences</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,114.06,393.54,10.91;6,112.66,127.61,394.62,10.91;6,112.31,141.16,218.89,10.91" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,304.35,114.06,201.85,10.91;6,112.66,127.61,201.99,10.91">A bert-based transfer learning approach for hate speech detection in online social media</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mozafari</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Farahbakhsh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Crespi</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1910.12574" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,154.71,395.17,10.91;6,112.66,168.26,216.32,10.91" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,262.66,154.71,245.17,10.91;6,112.66,168.26,87.96,10.91">Overview of the task on automatic misogyny identification at ibereval 2018</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Anzovino</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,223.71,168.26,74.52,10.91">IberEval@SEPLN</title>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,181.81,394.53,10.91;6,112.66,195.36,393.33,10.91;6,112.66,208.91,394.53,10.91;6,112.28,222.46,395.39,10.91;6,112.66,236.01,366.94,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,195.36,393.33,10.91;6,112.66,208.91,42.86,10.91">SemEval-2019 task 5: Multilingual detection of hate speech against immigrants and women in Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Basile</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Bosco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Nozza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Patti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><forename type="middle">M</forename><surname>Rangel Pardo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sanguinetti</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/S19-2007</idno>
+		<ptr target="https://www.aclweb.org/anthology/S19-2007.doi:10.18653/v1/S19-2007" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,178.63,208.91,328.55,10.91;6,112.28,222.46,183.55,10.91">Proceedings of the 13th International Workshop on Semantic Evaluation, Association for Computational Linguistics</title>
+		<meeting>the 13th International Workshop on Semantic Evaluation, Association for Computational Linguistics<address><addrLine>Minneapolis, Minnesota, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="54" to="63" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,249.56,393.98,10.91;6,112.66,263.11,311.47,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,165.33,249.56,192.88,10.91">Slurs and appropriation: An echoic account</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Bianchi</surname></persName>
+		</author>
+		<idno type="DOI">10.1016/j.pragma.2014.02.009</idno>
+		<ptr target="https://doi.org/10.1016/j.pragma.2014.02.009" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,366.88,249.56,97.05,10.91">Journal of Pragmatics</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="page" from="35" to="44" />
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,276.66,393.33,10.91;6,112.66,290.20,394.03,10.91;6,112.41,303.75,150.53,10.91" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="6,336.13,276.66,169.85,10.91;6,112.66,290.20,146.46,10.91">Automated hate speech detection and the problem of offensive language</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Davidson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Warmsley</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">W</forename><surname>Macy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Weber</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1703.04009" />
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,317.30,393.33,10.91;6,112.66,330.85,397.48,10.91;6,112.66,346.84,73.62,7.90" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,449.24,317.30,56.75,10.91;6,112.66,330.85,157.14,10.91">Hate speech detection: Challenges and solutions</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Macavaney</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H.-R</forename><surname>Yao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goharian</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Frieder</surname></persName>
+		</author>
+		<idno type="DOI">10.1371/journal.pone.0221152</idno>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,278.02,330.85,48.87,10.91">PLOS ONE</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="1" to="16" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,357.95,393.33,10.91;6,112.66,371.50,393.33,10.91;6,112.66,385.05,395.01,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,205.61,357.95,300.38,10.91;6,112.66,371.50,72.14,10.91">Overview of the 7th Author Profiling Task at PAN 2019: Bots and Gender Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2380/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,435.94,371.50,70.05,10.91;6,112.66,385.05,64.99,10.91">CLEF 2019 Labs and Workshops</title>
+		<title level="s" coord="6,185.39,385.05,116.79,10.91">Notebook Papers, CEUR-WS</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Losada</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Müller</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,398.60,393.32,10.91;6,112.66,412.15,393.86,10.91;6,112.66,425.70,372.84,10.91;6,112.66,439.25,382.30,10.91;6,112.66,452.79,179.18,10.91" xml:id="b10">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Bagdon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Grässel</surname></persName>
+		</author>
+		<idno type="DOI">10.13140/RG.2.2.12308.22404</idno>
+		<ptr target="https://www.researchgate.net/publication/351881197_Examining_Hate_Speech_Spreaders_\and_Fake_News_Spreaders_Through_PAN_Shared_Tasks?channel=doi&amp;linkId=60ae7e01a\6fdcc647ede8894&amp;showFulltext=true" />
+		<title level="m" coord="6,211.81,398.60,294.17,10.91;6,112.66,412.15,80.87,10.91">Examining hate speech spreaders and fake news spreaders through pan shared tasks</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,466.34,393.33,10.91;6,112.66,479.89,395.01,10.91;6,112.66,493.44,187.21,10.91" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="6,319.43,466.34,186.56,10.91;6,112.66,479.89,180.57,10.91">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,506.99,395.17,10.91;6,112.66,520.54,393.32,10.91;6,112.33,534.09,296.49,10.91" xml:id="b12">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1907.11692" />
+		<title level="m" coord="6,140.43,520.54,261.00,10.91">Roberta: A robustly optimized BERT pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,547.64,393.33,10.91;6,112.66,561.19,393.33,10.91;6,112.66,574.74,285.28,10.91" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="6,337.91,547.64,168.08,10.91;6,112.66,561.19,47.01,10.91">Bertaa: Bert fine-tuning for authorship attribution</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Fabien</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Villatoro-O</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Motlicek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Parida</surname></persName>
+		</author>
+		<ptr target="http://infoscience.epfl.ch/record/285045" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,173.18,561.19,332.81,10.91;6,112.66,574.74,47.83,10.91">Proceedings of the 17th International Conference on Natural Language Processing</title>
+		<meeting>the 17th International Conference on Natural Language Processing</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,588.29,394.52,10.91;6,112.66,601.84,395.01,10.91;6,112.66,615.39,127.84,10.91" xml:id="b14">
+	<monogr>
+		<title level="m" type="main" coord="6,298.66,588.29,208.52,10.91;6,112.66,601.84,116.06,10.91">Distilbert, a distilled version of BERT: smaller, faster, cheaper and lighter</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Sanh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Debut</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Chaumond</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Wolf</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="1910.01108" />
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,628.93,394.53,10.91;6,112.66,642.48,394.53,10.91;6,112.66,656.03,394.53,10.91;6,112.66,669.58,394.53,10.91;7,112.66,86.97,395.01,10.91;7,112.66,100.52,187.21,10.91" xml:id="b15">
+	<monogr>
+		<title level="m" type="main" coord="7,112.66,86.97,174.33,10.91">Language models are few-shot learners</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">B</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Ryder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Subbiah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kaplan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Dhariwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Neelakantan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Shyam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sastry</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Askell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Herbert-Voss</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Krueger</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Henighan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Child</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ramesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">M</forename><surname>Ziegler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Winter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Hesse</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Sigler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Litwin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chess</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Berner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Mccandlish</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Amodei</surname></persName>
+		</author>
+		<idno>arXiv:</idno>
+		<ptr target="2005.14165" />
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,114.06,393.33,10.91;7,112.66,127.61,394.53,10.91;7,112.28,141.16,395.38,10.91;7,112.66,154.71,154.66,10.91" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,299.53,114.06,206.46,10.91;7,112.66,127.61,208.17,10.91">Automatic Detection of Fake News Spreaders Using BERT-Notebook for PAN at CLEF 2020</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Baruah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Barbhuiya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Dey</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,188.66,141.16,139.27,10.91">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="7,335.91,141.16,102.88,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,168.26,393.33,10.91;7,112.66,181.81,393.33,10.91;7,112.14,195.36,384.74,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="7,158.05,168.26,347.94,10.91;7,112.66,181.81,45.01,10.91">Using N-grams to detect Fake News Spreaders on Twitter-Notebook for PAN at CLEF 2020</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pizarro</surname></persName>
+		</author>
+		<ptr target="http://ceur-ws.org/Vol-2696/" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,416.64,181.81,89.34,10.91;7,112.14,195.36,47.32,10.91">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="7,167.44,195.36,103.05,10.91">Notebook Papers, CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

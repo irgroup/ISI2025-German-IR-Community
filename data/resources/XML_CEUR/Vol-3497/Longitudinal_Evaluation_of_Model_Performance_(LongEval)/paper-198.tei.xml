@@ -1,0 +1,987 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,89.29,84.74,361.71,15.42;1,89.29,106.66,211.68,15.42;1,89.29,129.00,220.08,11.96">Keeping in Time: Adding Temporal Context to Sentiment Analysis Models Notebook for the LongEval Lab at CLEF 2023</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,89.29,154.90,66.79,11.96"><forename type="first">Dean</forename><surname>Ninalga</surname></persName>
+							<email>djninalga@gmail.com</email>
+							<affiliation key="aff0">
+								<address>
+									<settlement>Toronto</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,89.29,84.74,361.71,15.42;1,89.29,106.66,211.68,15.42;1,89.29,129.00,220.08,11.96">Keeping in Time: Adding Temporal Context to Sentiment Analysis Models Notebook for the LongEval Lab at CLEF 2023</title>
+					</analytic>
+					<monogr>
+						<idno type="ISSN">1613-0073</idno>
+					</monogr>
+					<idno type="MD5">6AA1E7FB467305E9C7EC143431B9794A</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:36+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Self-Labeling</term>
+					<term>Sentiment Analysis</term>
+					<term>Temporal Misalignment</term>
+					<term>Date-Prefixing</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper presents a state-of-the-art solution to the LongEval CLEF 2023 Lab Task 2: LongEval-Classification <ref type="bibr" coords="1,180.12,232.06,9.27,8.97" target="#b0">[1]</ref>. The goal of this task is to improve and preserve the performance of sentiment analysis models across shorter and longer time periods. Our framework feeds date-prefixed textual inputs to a pre-trained language model, where the timestamp is included in the text. We show date-prefixed samples better conditions model outputs on the temporal context of the respective texts. Moreover, we further boost performance by performing self-labeling on unlabeled data to train a student model. We augment the self-labeling process using a novel augmentation strategy leveraging the date-prefixed formatting of our samples. We demonstrate concrete performance gains on the LongEval-Classification [1] evaluation set over non-augmented self-labeling. Our framework achieves a 2nd place ranking with an overall score of 0.6923 and reports the best Relative Performance Drop (RPD) [2] of -0.0656 over the short evaluation set (see Alkhalifa et al. [3]).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.276" lry="841.89"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The application of language models such as BERT <ref type="bibr" coords="1,320.76,432.38,11.58,10.91" target="#b3">[4]</ref>, RoBERTa <ref type="bibr" coords="1,385.07,432.38,12.99,10.91" target="#b4">[5]</ref> and XLM-RoBERTa <ref type="bibr" coords="1,492.99,432.38,12.99,10.91" target="#b5">[6]</ref> to textual data is a core component in many natural language processing (NLP) pipelines. However, a notable limitation of most language models is their lack of temporal awareness, as they typically encode text into fixed representations. Conversely, the nature of textual data is inherently dynamic and subject to change over time. Where traditional meanings of words, phrases, and concepts are constantly evolving <ref type="bibr" coords="1,288.14,500.13,11.23,10.91" target="#b6">[7,</ref><ref type="bibr" coords="1,301.38,500.13,7.49,10.91" target="#b7">8]</ref>. Furthermore, significant events can alter the factual basis of the text <ref type="bibr" coords="1,191.15,513.68,11.28,10.91" target="#b8">[9]</ref>. Although metadata of well-known text corpora includes timestamps, timestamps are almost never used within many NLP pipelines. A sentiment analysis model trained today could interpret the phrase: "you are just like X" as positive sentiment. However, an issue can arise once people consider a comparison to 'X' as a non-positive comparison. Subsequently, the model becomes misaligned if this flip in public opinion occurs. The model becomes less performative, especially on statements including comparisons to 'X'. Hence, it is hard to train a model that can generalize to future data without a sense of temporal context and awareness <ref type="bibr" coords="2,138.28,100.52,16.25,10.91" target="#b9">[10]</ref>.</p><p>Mitigating temporal misalignment <ref type="bibr" coords="2,248.61,114.06,17.76,10.91" target="#b10">[11]</ref> between the facts and general sentiments of the current world and those found in text corpora is an active area of focus in various areas of research in nlp. In particular, work in NER (named-entity-recognition) <ref type="bibr" coords="2,376.34,141.16,16.55,10.91" target="#b11">[12,</ref><ref type="bibr" coords="2,396.22,141.16,7.52,10.91" target="#b8">9,</ref><ref type="bibr" coords="2,407.06,141.16,14.11,10.91" target="#b12">13]</ref> and question-andanswering <ref type="bibr" coords="2,138.06,154.71,16.38,10.91" target="#b13">[14,</ref><ref type="bibr" coords="2,157.16,154.71,12.52,10.91" target="#b14">15,</ref><ref type="bibr" coords="2,172.40,154.71,12.52,10.91" target="#b11">12,</ref><ref type="bibr" coords="2,187.64,154.71,13.99,10.91" target="#b15">16]</ref> often directly address temporal misalignment as they are considered knowledge-intensive tasks <ref type="bibr" coords="2,205.02,168.26,16.25,10.91" target="#b9">[10]</ref>.</p><p>A common and straightforward way to address temporal misalignment in textual data is to create new models (or update old ones) with the most recent data available <ref type="bibr" coords="2,413.15,195.36,16.30,10.91" target="#b16">[17,</ref><ref type="bibr" coords="2,431.70,195.36,12.50,10.91" target="#b17">18,</ref><ref type="bibr" coords="2,446.45,195.36,12.23,10.91" target="#b9">10]</ref>. However, continually growing datasets incur an increase in computational costs for data acquisition and training models which also contributes to an ever-increasing environmental cost <ref type="bibr" coords="2,470.55,222.46,16.56,10.91" target="#b18">[19,</ref><ref type="bibr" coords="2,491.11,222.46,12.42,10.91" target="#b19">20]</ref>. Therefore, finding a solution outside of continuous retraining that preserves model performance over time is desirable.</p><p>In this paper, we follow Dhingra et al. <ref type="bibr" coords="2,269.56,263.11,12.84,10.91" target="#b6">[7]</ref> who use an alternative approach that modifies the textual input with its timestamp. Thus, we can take advantage of text-only pre-trained language models used for classification in addition to conditioning the models with the temporal context for the input.</p><p>We will outline our system, which is aligned with some of the recent works in NER and temporal misalignment, and evaluate it on the LongEval-Classification benchmark <ref type="bibr" coords="2,455.25,330.85,11.43,10.91" target="#b0">[1]</ref>.</p><p>Our contribution is two-fold: <ref type="bibr" coords="2,227.58,344.40,11.34,10.91" target="#b0">(1)</ref> We show that date-prefixing the input text with its timestamp conditions the outputs of a language model on the temporal context of the input. <ref type="bibr" coords="2,436.78,357.95,11.34,10.91" target="#b1">(2)</ref> We utilize an augmentation strategy that leverages the date-prefixing by randomly modifying the timestamp of unlabeled inputs. We show that this augmentation strategy improves the performance benefits of semi-supervised learning on unlabeled data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background and Related Work</head><p>Recently, TempLama <ref type="bibr" coords="2,186.65,457.22,13.00,10.91" target="#b6">[7]</ref> showed that directly placing the year of the timestamp as a prefix in the text is performative in the context of named-entity-recognition. They, then feed the date-prefixed inputs to a T5 <ref type="bibr" coords="2,214.56,484.32,17.85,10.91" target="#b20">[21]</ref> model to directly model the temporal context. Cao and Wang <ref type="bibr" coords="2,89.29,497.87,17.91,10.91" target="#b21">[22]</ref> directly compares a date-prefixing approach to an embedding approach where the date is numerically embedded with a linear projection. <ref type="bibr" coords="2,307.38,511.42,18.06,10.91" target="#b21">[22]</ref> in the context of text generation, found that linear projection was less sensitive to the timestamps while date-prefixing is better at generating more temporally sensitive facts.</p><p>Self-labeling (or self-distillation) is a semi-supervised learning strategy that typically involves learning from pseudo-labels for unlabeled data. Self-labeling is demonstrated to add performance gains across a variety of domains including text classification <ref type="bibr" coords="2,366.38,579.17,16.31,10.91" target="#b22">[23]</ref>. Agarwal and Nenkova <ref type="bibr" coords="2,493.14,579.17,12.84,10.91" target="#b8">[9]</ref> found that self-labeling performs better than specialized pre-training objectives such as domainadaptive pretraining <ref type="bibr" coords="2,186.18,606.27,18.07,10.91" target="#b23">[24]</ref> across several tasks including sentiment analysis. However, it is important to note that recently Ushio et al. <ref type="bibr" coords="2,282.50,619.81,17.91,10.91" target="#b24">[25]</ref> have shown that self-labeling, as presented in <ref type="bibr" coords="2,89.29,633.36,11.43,10.91" target="#b8">[9]</ref>, is not as effective for NER when compared to models trained for specific time periods. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Methodology</head><p>Figure <ref type="figure" coords="3,121.23,268.23,5.17,10.91" target="#fig_0">1</ref> provides an overview of our system. Following Agarwal and Nenkova <ref type="bibr" coords="3,453.15,268.23,11.47,10.91" target="#b8">[9]</ref>, we first train a teacher model on the full labeled dataset to create pseudo-labels for the unlabeled data. During this training phase, every sample in the labeled dataset is date-prefixed, meaning that the year of the timestamp is included as part of the input text. We use a novel augmentation strategy on the date prefixes (see Section section 3.3) to condition the pseudo-labels on the temporal context learned by the teacher. A new student model is then trained for 22000 training steps on the generated pseudo-labels and is subsequently trained on the original labeled data that was used for the teacher. Finally, we use the resulting student model for inference. For simplicity, both the teacher and student models share the same architecture. We provide further detail on the individual components of our system in the following sections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Pre-Trained Model</head><p>Using a pre-trained language is generally much better than training a new model from scratch. However, it is not always clear which pre-training works best for any particular task. Here we use Bernice <ref type="bibr" coords="3,143.43,466.99,17.91,10.91" target="#b25">[26]</ref> a variant of XLM-RoBERTa <ref type="bibr" coords="3,288.15,466.99,12.84,10.91" target="#b5">[6]</ref> specialized for Twitter data. We train a single model for inference on the test set and we do not rely on ensembling techniques. We train using the cross-entropy classification loss.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Date-Prefixing</head><p>Consistent with Dhingra et al. <ref type="bibr" coords="3,220.78,543.82,12.84,10.91" target="#b6">[7]</ref> we prefix each input text with the year of the given time-stamp followed by the text itself (e.g. "year: 2023 text: I really do enjoy drinks with friends"). As we observe from Table <ref type="table" coords="3,180.52,570.92,5.17,10.91" target="#tab_0">1</ref> training on this data conditions the model outputs with the temporal context found in the data using date-prefixing. Table <ref type="table" coords="3,322.03,584.47,4.97,10.91" target="#tab_0">1</ref> provides real input and output examples based on a trained model across various years. We do not modify the architecture of the language model to take the timestamp as a vector input. By maintaining the use of textual-only input we are able to leverage any existing pre-trained models that have text-embedding only input. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Date-Prefix Augmentation</head><p>When creating pseudo-labels to train a student model we use an augmentation strategy that takes advantage of our date-prefixing. Namely, given an unlabeled sample and its timestamp we randomly replace the year in the timestamp with a year between 2013 and 2021. Where, the years 2013 and 2021 are the earliest and latest years found in the labeled datasets, respectively. We perform an ablation experiment (see Section 4) demonstrating that this augmentation strategy outperforms non-augmented self-labeling on the evaluation set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Training and Evaluation</head><p>We use a single model trained using both the training and development sets for two epochs for inference on the test set. Model parameters using the Adam optimizer <ref type="bibr" coords="4,416.89,386.08,17.85,10.91" target="#b26">[27]</ref> with a constant learning rate of 1e-5 using the binary-cross-entropy loss. Performance is measured using the macro-averaged F1 score of the future samples.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Experiments</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Experimental Setup</head><p>In this section, we will compare the performance of models trained with and without the proposed augmentation strategies for pseudo-label generation. Namely, we will use a trained teacher model to generate labels with and without date-prefix augmentation. Subsequently, we a student models on each of the two sets of pseudo labels for 6000 training steps. Finally, then compare the downstream performance of each model. Models will only be provided labels for the training set and trained until saturation on the interim evaluation set. For our experiments, we report the macro-averaged F1 scores for each subset of the evaluation set. We will also report the Relative Performance Drop (RPD) <ref type="bibr" coords="4,477.42,587.62,12.94,10.91" target="#b1">[2]</ref> for comparison between short and long-term time differences with respect to model performance. </p><formula xml:id="formula_0" coords="4,245.85,622.07,260.79,31.37">RPD = 𝑓 𝑠𝑐𝑜𝑟𝑒 𝑡 𝑗 -𝑓 𝑠𝑐𝑜𝑟𝑒 𝑡 0 𝑓 𝑠𝑐𝑜𝑟𝑒 𝑡 0<label>(1)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results</head><p>We report the evaluation results of our experiments in Table <ref type="table" coords="5,374.66,279.37,3.81,10.91">2</ref>. Indeed, we see an overall improvement in performance especially when we observe the 'short' evaluation set results when using our full framework. Additionally, the model using date-prefix augmentation gives by far the best RDP of -0.0532 with respect to the 'within' and 'short' evaluation sets. Note that the non-augmented models gives the best RDP of -0.0411 with respect to the 'within' and 'long' evaluation sets. However, when finetunning this same model on the gold labels, the RPD more than doubles to -0.0852 and is much worse than our full framework with -0.0681. A similar drop in performance can be seen when observing the F1 score on the 'long' evaluation set. It appears that fine-tuning the non-augmented model with clean data incurs a significant drop in performance. However, it is clear that our proposed augmentation strategy can leverage the older labeled data and attain significant performance gains.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>In this paper, we introduce a competitive framework for preserving the performance of sentiment analysis models across various temporal periods. We promote date-prefixing, as a straightforward solution to condition the output of pre-trained language models with the temporal context of input text. Furthermore, we build on the self-labeling framework developed by Agarwal and Nenkova <ref type="bibr" coords="5,152.86,527.68,11.47,10.91" target="#b8">[9]</ref>. Namely, given our date-prefix formatting, we can generate pseudo-labels conditioned on the temporal context of the input text. We verify the performance gains of our proposed system against self-labeling without our augmentation strategy in our ablation experiments. Altogether, our system yields competitive performance in overall score and attains the best RPD for the short evaluation set <ref type="bibr" coords="5,272.84,581.88,11.43,10.91" target="#b2">[3]</ref>.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,89.29,194.36,416.70,8.93;3,89.29,206.36,404.27,8.87;3,89.29,84.19,416.70,103.58"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Method Overview: (top-row) summarization of our semi-supervised learning training pipeline stages, (bottom-row): modifications we made to the pipeline and at what stage they apply</figDesc><graphic coords="3,89.29,84.19,416.70,103.58" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,88.99,90.49,417.00,117.30"><head>Table 1 Date</head><label>1</label><figDesc>Prompt Conditioning: A demonstration of the date-prompting and subsequent model outputs conditioned on the prefix year. The model output is between 0 and 1, where the input is considered positive only if the output is above 0.5. The example input text is taken from the LongEval-Classification dataset<ref type="bibr" coords="4,121.88,138.36,10.51,8.87" target="#b0">[1]</ref>.</figDesc><table coords="4,97.74,157.57,399.81,50.21"><row><cell>Example input</cell><cell>Output</cell><cell>Label</cell><cell cols="2">Orginal Year Prefix Year</cell></row><row><cell>"year: 2013 text: I really do enjoy being single"</cell><cell>0.503</cell><cell>positive</cell><cell>2018</cell><cell>2017</cell></row><row><cell>"year: 2018 text: I really do enjoy being single"</cell><cell>0.510</cell><cell>positive</cell><cell>2018</cell><cell>2018</cell></row><row><cell>"year: 2023 text: I really do enjoy being single"</cell><cell>0.495</cell><cell>negatuve</cell><cell>2018</cell><cell>2023</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,88.94,90.49,418.58,141.64"><head>Table 2 Abalation Results :</head><label>2Results</label><figDesc>Results on the evaluation set, testing our self-labeling augmentation strategy. (baseline: only using gold labels, +sl: trained on pseudo-labels generated from baseline, +ft: fine-tuned on gold labels, (aug): date-prefix augmentation, (no-aug): no augmentation applied) We report the macro F1 score alongside the RPD between the various evaluation sets. The best results are highlighted</figDesc><table coords="5,104.65,157.97,385.96,74.16"><row><cell>Method</cell><cell cols="5">F1 Within F1 Short F1 Long RPD Within-Short RPD Within-Long</cell></row><row><cell>baseline</cell><cell>0.7266</cell><cell>0.6725</cell><cell>0.6595</cell><cell>-0.0744</cell><cell>-0.0924</cell></row><row><cell>+sl(no-aug)</cell><cell>0.7213</cell><cell>0.6747</cell><cell>0.6916</cell><cell>-0.0646</cell><cell>-0.0411</cell></row><row><cell>+sl(no-aug)+ft</cell><cell>0.7355</cell><cell>0.6728</cell><cell>0.6728</cell><cell>-0.0852</cell><cell>-0.0852</cell></row><row><cell>+sl(aug)</cell><cell>0.7278</cell><cell>0.6749</cell><cell>0.6648</cell><cell>-0.0727</cell><cell>-0.0865</cell></row><row><cell cols="2">+sl(aug)+ft (ours) 0.7210</cell><cell>0.6833</cell><cell>0.6719</cell><cell>-0.0532</cell><cell>-0.0681</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,112.66,640.50,394.53,10.91;5,112.66,654.05,394.52,10.91;5,112.66,667.60,394.53,10.91;6,112.66,86.97,394.53,10.91;6,112.66,100.52,393.33,10.91;6,112.33,114.06,375.08,10.91" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,86.97,320.92,10.91">Longeval: Longitudinal evaluation of model performance at clef 2023</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Alkhalifa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Bilal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Borkakoty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Camacho-Collados</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Deveaud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>El-Ebshihy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Espinosa-Anke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Gonzalez-Saez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Galuščáková</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kochkina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Liakata</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Loureiro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Tayyar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Madabushi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Mulhem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Piroi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Popel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Servan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Zubiaga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,142.21,114.06,151.66,10.91">Advances in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Kamps</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Crestani</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Maistro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">H</forename><surname>Joho</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Davis</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Gurrin</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">U</forename><surname>Kruschwitz</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Caputo</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Switzerland, Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer Nature</publisher>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,127.61,393.60,10.91;6,112.66,141.16,393.32,10.91;6,112.66,154.71,137.33,10.91" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,292.74,127.61,213.52,10.91;6,112.66,141.16,127.11,10.91">Opinions are made to be changed: Temporally adaptive stance classification</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Alkhalifa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kochkina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Zubiaga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,247.70,141.16,258.28,10.91;6,112.66,154.71,105.41,10.91">Proceedings of the 2021 Workshop on Open Challenges in Online Social Networks</title>
+		<meeting>the 2021 Workshop on Open Challenges in Online Social Networks</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,168.26,394.53,10.91;6,112.66,181.81,394.52,10.91;6,112.66,195.36,394.53,10.91;6,112.66,208.91,394.52,10.91;6,112.66,222.46,393.33,10.91;6,112.66,236.01,393.33,10.91;6,112.66,249.56,321.57,10.91" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,208.91,389.62,10.91">Overview of the clef-2023 longeval lab on longitudinal evaluation of model performance</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Alkhalifa</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Bilal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Borkakoty</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Camacho-Collados</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Deveaud</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>El-Ebshihy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Espinosa-Anke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Gonzalez-Saez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Galuščáková</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Kochkina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Liakata</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Loureiro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><forename type="middle">T</forename><surname>Madabushi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Mulhem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Piroi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Popel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Servan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Zubiaga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,127.14,222.46,378.84,10.91;6,112.66,236.01,327.16,10.91">Experimental IR Meets Multilinguality, Multimodality, and Interaction. Proceedings of the Fourteenth International Conference of the CLEF Association (CLEF</title>
+		<title level="s" coord="6,471.85,236.01,34.14,10.91;6,112.66,249.56,148.46,10.91">Lecture Notes in Computer Science (LNCS</title>
+		<meeting><address><addrLine>Thessaliniki, Greece</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2023">2023. 2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,263.11,393.33,10.91;6,112.66,276.66,317.86,10.91" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="6,353.43,263.11,152.55,10.91;6,112.66,276.66,181.08,10.91">Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-W</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Bert</forename></persName>
+		</author>
+		<idno>ArXiv abs/1810.04805</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,290.20,395.17,10.91;6,112.66,303.75,393.33,10.91;6,112.33,317.30,29.19,10.91" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Du</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Levy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+		<idno>ArXiv abs/1907.11692</idno>
+		<title level="m" coord="6,141.59,303.75,256.22,10.91">Roberta: A robustly optimized bert pretraining approach</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,330.85,394.53,10.91;6,112.66,344.40,393.33,10.91;6,112.66,357.95,362.36,10.91" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,271.58,344.40,234.41,10.91;6,112.66,357.95,19.96,10.91">Unsupervised cross-lingual representation learning at scale</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Conneau</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Khandelwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Chaudhary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Wenzek</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Guzmán</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ott</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Zettlemoyer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Stoyanov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,155.17,357.95,290.19,10.91">Annual Meeting of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,371.50,395.17,10.91;6,112.66,385.05,393.54,10.91;6,112.66,398.60,201.81,10.91" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,480.65,371.50,27.18,10.91;6,112.66,385.05,231.61,10.91">Timeaware language models as temporal knowledge bases</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Dhingra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">R</forename><surname>Cole</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Eisenschlos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Gillick</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Eisenstein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><forename type="middle">W</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,352.53,385.05,153.67,10.91;6,112.66,398.60,117.87,10.91">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="257" to="273" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,412.15,395.17,10.91;6,112.66,425.70,394.61,10.91;6,112.66,439.25,394.53,10.91;6,112.66,452.79,22.69,10.91" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="6,433.23,412.15,74.60,10.91;6,112.66,425.70,374.32,10.91">Dynamic benchmarking of masked language models on temporal concept drift with multiple views</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Margatina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Vyas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><forename type="middle">A</forename><surname>John</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Benajiba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ballesteros</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,112.66,439.25,390.21,10.91">Conference of the European Chapter of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,466.34,393.33,10.91;6,112.66,479.89,389.50,10.91" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,225.77,466.34,280.22,10.91;6,112.66,479.89,20.77,10.91">Temporal effects on pre-trained models for language processing tasks</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Nenkova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,141.51,479.89,276.71,10.91">Transactions of the Association for Computational Linguistics</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="904" to="921" />
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,493.44,394.53,10.91;6,112.66,506.99,394.53,10.91;6,112.66,520.54,393.32,10.91;6,112.66,534.09,170.97,10.91" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="6,112.66,520.54,339.16,10.91">Mind the gap: Assessing temporal generalization in neural language models</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lazaridou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Kuncoro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Gribovskaya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Liska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Terzi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gimenez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>De Masson D'autume</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kociský</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ruder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Yogatama</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Blunsom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,475.40,520.54,30.58,10.91;6,112.66,534.09,140.70,10.91">Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,547.64,393.64,10.91;6,112.66,561.19,393.33,10.91;6,112.28,574.74,216.04,10.91" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,402.61,547.64,103.68,10.91;6,112.66,561.19,225.02,10.91">Time waits for no one! analysis and challenges of temporal misalignment</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Luu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Khashabi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gururangan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Mandyam</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><forename type="middle">A</forename><surname>Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,362.56,561.19,143.43,10.91;6,112.28,574.74,186.39,10.91">North American Chapter of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,588.29,393.33,10.91;6,112.66,601.84,310.75,10.91" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,319.09,588.29,186.90,10.91;6,112.66,601.84,58.62,10.91">Temporal and event information in natural language text</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pustejovsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Knippen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Littman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Saurí</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,179.10,601.84,160.37,10.91">Language Resources and Evaluation</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page" from="123" to="164" />
+			<date type="published" when="2005">2005</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,615.39,395.01,10.91" xml:id="b12">
+	<monogr>
+		<title level="m" type="main" coord="6,205.34,615.39,272.83,10.91">Mitigating temporal misalignment by discarding outdated facts</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">J</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Choi</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2023">2023</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,628.93,393.33,10.91;6,112.66,642.48,312.03,10.91" xml:id="b13">
+	<monogr>
+		<title level="m" type="main" coord="6,420.45,628.93,85.54,10.91;6,112.66,642.48,175.17,10.91">Towards continual knowledge learning of language models</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ye</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Shin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">J</forename><surname>Choi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Seo</surname></persName>
+		</author>
+		<idno>ArXiv abs/2110.03215</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,112.66,656.03,393.33,10.91;6,112.66,669.58,383.28,10.91" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="6,307.05,656.03,198.93,10.91;6,112.66,669.58,40.39,10.91">Reading wikipedia to answer open-domain questions</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Fisch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Weston</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Bordes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,176.10,669.58,290.19,10.91">Annual Meeting of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,86.97,395.17,10.91;7,112.66,100.52,395.17,10.91;7,112.66,114.06,393.33,10.91;7,112.66,127.61,392.04,10.91" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="7,196.76,114.06,309.22,10.91;7,112.66,127.61,131.00,10.91">Streamingqa: A benchmark for adaptation to new knowledge over time in question answering models</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Livska</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Kovcisk'y</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Gribovskaya</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Terzi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Sezener</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>De Masson D'autume</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Scholtes</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zaheer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Young</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Gilsenan-Mcmahon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Austin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Blunsom</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Lazaridou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,267.09,127.61,207.49,10.91">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,141.16,393.33,10.91;7,112.66,154.71,393.33,10.91;7,112.66,168.26,76.23,10.91" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="7,412.36,141.16,93.62,10.91;7,112.66,154.71,129.85,10.91">Timelms: Diachronic language models from twitter</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Loureiro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Barbieri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Neves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">E</forename><surname>Anke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Camacho-Collados</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,265.09,154.71,240.89,10.91;7,112.66,168.26,46.58,10.91">Annual Meeting of the Association for Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,181.81,393.33,10.91;7,112.66,195.36,393.33,10.91;7,112.66,208.91,256.70,10.91" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="7,393.75,181.81,112.24,10.91;7,112.66,195.36,306.16,10.91">Temporalwiki: A lifelong benchmark for training and evaluating ever-evolving language models</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ye</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Shin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Seo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,441.95,195.36,64.04,10.91;7,112.66,208.91,226.72,10.91">Conference on Empirical Methods in Natural Language Processing</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,222.46,393.33,10.91;7,112.66,236.01,160.33,10.91" xml:id="b18">
+	<monogr>
+		<title level="m" type="main" coord="7,279.17,222.46,226.82,10.91;7,112.66,236.01,24.16,10.91">Energy and policy considerations for deep learning in nlp</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Strubell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ganesh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mccallum</surname></persName>
+		</author>
+		<idno>ArXiv abs/1906.02243</idno>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,249.56,393.33,10.91;7,112.66,263.11,283.64,10.91" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="7,309.35,249.56,196.64,10.91;7,112.66,263.11,252.79,10.91">Is it worth the (environmental) cost? limited evidence for temporal adaptation via continuous training</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Attanasio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Nozza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Bianchi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Hovy</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,276.66,394.52,10.91;7,112.66,290.20,393.59,10.91;7,112.66,303.75,98.12,10.91" xml:id="b20">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><forename type="middle">M</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<idno>ArXiv abs/1910.10683</idno>
+		<title level="m" coord="7,112.66,290.20,356.65,10.91">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,317.30,393.33,10.91;7,112.66,330.85,211.11,10.91" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="7,188.16,317.30,185.38,10.91">Time-aware prompting for text generation</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Cao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,396.49,317.30,109.50,10.91;7,112.66,330.85,181.13,10.91">Conference on Empirical Methods in Natural Language Processing</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,344.40,393.59,10.91;7,112.66,357.95,93.04,10.91" xml:id="b22">
+	<monogr>
+		<title level="m" type="main" coord="7,170.61,344.40,291.15,10.91">Semi-supervised classification for natural language processing</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Shams</surname></persName>
+		</author>
+		<idno>ArXiv abs/1409.7612</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,371.50,394.53,10.91;7,112.66,385.05,393.58,10.91;7,112.33,398.60,29.19,10.91" xml:id="b23">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Gururangan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Marasović</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Swayamdipta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Beltagy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Downey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><forename type="middle">A</forename><surname>Smith</surname></persName>
+		</author>
+		<idno>ArXiv abs/2004.10964</idno>
+		<title level="m" coord="7,112.66,385.05,293.24,10.91">Don&apos;t stop pretraining: Adapt language models to domains and tasks</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,412.15,393.33,10.91;7,112.66,425.70,346.45,10.91" xml:id="b24">
+	<monogr>
+		<title level="m" type="main" coord="7,382.07,412.15,123.92,10.91;7,112.66,425.70,268.69,10.91">Named entity recognition in twitter: A dataset and analysis on short-term temporal shifts</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Ushio</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Neves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Silva</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Barbieri</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Camacho-Collados</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+			<publisher>AACL</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,439.25,393.33,10.91;7,112.66,452.79,393.33,10.91;7,112.66,466.34,75.64,10.91" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="7,403.99,439.25,102.00,10.91;7,112.66,452.79,131.47,10.91">Bernice: A multilingual pre-trained encoder for twitter</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Delucia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mueller</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">A</forename><surname>Aguirre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Resnik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Dredze</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,265.86,452.79,240.13,10.91;7,112.66,466.34,45.66,10.91">Conference on Empirical Methods in Natural Language Processing</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,112.66,479.89,393.33,10.91;7,112.33,493.44,29.19,10.91" xml:id="b26">
+	<monogr>
+		<title level="m" type="main" coord="7,238.21,479.89,167.55,10.91">A method for stochastic optimization</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename></persName>
+		</author>
+		<idno>CoRR abs/1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

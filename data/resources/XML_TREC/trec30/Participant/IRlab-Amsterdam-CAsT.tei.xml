@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,57.49,84.23,497.52,15.44">IRLab-Amsterdam at TREC 2021 Conversational Assistant Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,121.91,107.66,122.53,10.59"><forename type="first">Antonios</forename><forename type="middle">Minas</forename><surname>Krasakis</surname></persName>
+							<email>a.m.krasakis@uva.nl</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country>The Netherlands Evangelos Kanoulas</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">University of Amsterdam Amsterdam</orgName>
+								<address>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,57.49,84.23,497.52,15.44">IRLab-Amsterdam at TREC 2021 Conversational Assistant Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">93FC7D9963BB31327986D207EE29A6EB</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>information retrieval, conversational search</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes our participation (IRLab-Amsterdam) in TREC CAsT 2021. Our approach adapts a pre-trained token-level dense retriever (ColBERT) to perform zero-shot conversational search. Specifically, our query encoder reads the entire conversation history to contextualize the embeddings of the last user utterance/query, while the token-level matching function uses the contextualized embeddings to retrieve directly from the collection. The advantages of our method are two-fold: (a) it does not need any conversational data for training (ie. query resolutions, or conversational relevance judgements) and (b) it avoids complex pipeline systems based on rewriting that can affect performance (response latency) and robustness.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Data scarcity is one of the most important characteristics of conversational search, since most conversational queries are low-tailed (ie. they appear once) <ref type="bibr" coords="1,135.20,405.60,13.42,7.94" target="#b10">[11]</ref>. To deal with this problem, most methods first solve the surrogate task of conversational query resolution/rewriting by using human annotated query rewrites, which allows them to simplify conversational search to ad-hoc search <ref type="bibr" coords="1,53.80,449.44,9.23,7.94" target="#b4">[5,</ref><ref type="bibr" coords="1,65.13,449.44,6.10,7.94" target="#b5">6,</ref><ref type="bibr" coords="1,73.34,449.44,6.10,7.94" target="#b7">8,</ref><ref type="bibr" coords="1,81.55,449.44,10.05,7.94" target="#b9">10]</ref>. Despite their effectiveness in the current offline evaluation paradigm, those approaches (a) assume the presence of question reformulation data from a similar domain, which are not always available or easy to collect and (b) further complicate the retrieval pipeline by introducing higher response latency as well as robustness issues.</p><p>To overcome these issues, we adapt a pre-trained ad-hoc tokenlevel dense retriever (ColBERT) to the conversational search setting, that uses no additional data specific to conversational search (ie. question rewriting or conversational relevance judgements). We achieve this in two steps: Firstly, our query encoder reads the entire conversation history and contextualizes the token-level embeddings of the last user utterance. Following that, our matching function uses the contextualized embeddings of the last turn's tokens to do dense retrieval directly from the corpus. Therefore, our method is zero-shot when it comes to conversational data, as it only relies on supervision from ad-hoc query relevance judgments, which are available at a large scale and much easier to collect.</p><p>Additionally, our method is much simpler and efficient in contrast to rewriting-based approaches, which have many different components that are often trained, tuned and evaluated in isolation. This increases the effort required for deployment and maintenance, but crucially calls into question the robustness and user satisfaction in the end of the pipeline.</p><p>Another serious shortcoming of pipeline systems is high response latency to a new query. Each component needs to run sequentially, as it takes input from the previous step. We should also note here, that in production systems the problem becomes even worse, as more components are usually added to those pipelines, such as speech-to-text or other post-processing modules.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">METHODOLOGY</head><p>In this section, we describe our zero-shot dense retriever for Conversational Passage Retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Task &amp; Notations</head><p>Let 𝑞 𝑡 be the user query to the system at the 𝑡-th turn, and 𝑝 𝑡 the corresponding canonical passage response provided by the competition organizers. We formulate our passage retrieval task as follows: Given the last user utterance 𝑞 𝑡 and the previous context of the conversation at turn 𝑡: 𝑐𝑡𝑥 𝑡 = (𝑞 0 , 𝑝 0 , ..., 𝑞 𝑡 -1 , 𝑝 𝑡 -1 ), we want return a ranking of K documents 𝑅 𝑞 𝑡 = (𝑝 1 𝑡 , 𝑝 2 𝑡 , ..., 𝑝 𝐾 𝑡 ) from a collection 𝐶, that are most likely to satisfy the users' information need.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Token-level Dense Retrieval</head><p>In this section we briefly describe ColBERT <ref type="bibr" coords="1,471.34,405.39,12.49,7.94" target="#b2">[3]</ref>, the dense retriever we adapted to our conversational task. In contrast to other dense retrievers that construct global query and document representations (eg. DPR <ref type="bibr" coords="1,347.16,438.26,13.71,7.94" target="#b1">[2]</ref> or ANCE <ref type="bibr" coords="1,391.33,438.26,13.06,7.94" target="#b8">[9]</ref>), ColBERT maintains embeddings of all query and document tokens and therefore performs matching on the token-level.</p><p>In practice, instead of relying on aggregated representations (ie. [𝐶𝐿𝑆] token), each token passes through multiple attention layers in a typical transformer architecture and is contextualized with respect to its surroundings <ref type="bibr" coords="1,439.01,504.02,9.44,7.94" target="#b0">[1,</ref><ref type="bibr" coords="1,450.71,504.02,6.29,7.94" target="#b6">7]</ref>. Then, those token embeddings are used to perform the matching. Specifically, each query token is matched with the most similar document token, using a 𝑚𝑎𝑥𝑆𝑖𝑚𝑖𝑙𝑎𝑟𝑖𝑡𝑦 operation. The score of a query-document pair is an aggregation over all query terms of the most similar term in this document:</p><formula xml:id="formula_0" coords="1,380.09,579.90,178.11,22.04">𝑆 𝑞,𝑑 := ∑︁ 𝑖 ∈ [ |𝐸 𝑞 |] max 𝑗 ∈ [ |𝐸 𝑑 |] 𝐸 𝑞 𝑖 • 𝐸 𝑇 𝑑 𝑗<label>(1)</label></formula><p>Overall, this allows ColBERT to perform a more fine-grained matching on the term level, while computing soft term matches on contextualized token embeddings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Conversational token-level Dense Retrieval</head><p>In our approach, we extend this idea of contextualizing embeddings of terms using their neighbors, to the task of conversational search. We argue that, when dealing with conversations, it is important for each turn to be contextualized with respect to the previous context,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Run name</head><p>Run type NDCG@3 R@1000 MRR MAP@500 as most conversational queries have continuity and even contain anaphoras to previous turns <ref type="bibr" coords="2,158.91,198.89,9.33,7.94" target="#b5">[6,</ref><ref type="bibr" coords="2,170.49,198.89,6.14,7.94" target="#b7">8,</ref><ref type="bibr" coords="2,178.87,198.89,10.13,7.94" target="#b9">10]</ref>.</p><p>Therefore, the query encoder 𝑓 𝑄𝐸 reads the previous conversational context 𝑐𝑡𝑥 𝑡 along with the last utterance 𝑞 𝑡 to produce the contextualized token embeddings of turn 𝑡:</p><formula xml:id="formula_1" coords="2,119.94,256.58,174.10,11.34">𝐸 𝑞 𝑡 𝑖 := 𝑓 𝑄𝐸 (𝑐𝑡𝑥 𝑡 • [𝑆𝐸𝑃] • 𝑞 𝑡 )<label>(2)</label></formula><p>Since the token embeddings of the last utterance are now contextualized with information from the previous history, we use ColBERT's token-level matching function (equation 1) to compute query-document relevance scores:</p><formula xml:id="formula_2" coords="2,115.42,328.83,178.62,22.70">𝑆 𝑞,𝑑 := ∑︁ 𝑖 ∈ [ |𝑞 𝑘 | ] max 𝑗 ∈ [ |𝐸 𝑑 | ] 𝐸 𝑞 𝑘 𝑖 • 𝐸 𝑇 𝑑 𝑗<label>(3)</label></formula><p>2.3.1 Zero-shot conversational search. When contextualizing user utterances 𝑞 𝑖 with respect to the history 𝑐𝑡𝑥 𝑖 , supervision from conversational tasks is not necessarily needed. Transformers pretrained with masked-language modelling and ad-hoc retrieval objectives have already been trained to change the token embeddings according to their surroundings. Therefore, this method requires supervision only from the adhoc search task, in contrast to most other approaches that use human annotated query resolutions (CANARD etc.), or relevance judgements of conversational queries (ie. previous TREC tracks). This is important because conversational data are much harder to collect, in contrast to ad-hoc queries and judgements, which are typically available at a much larger scale. This is due to the fact that conversational queries are low-tailed (they become more rare and specific) as the user goes deeper into a conversation <ref type="bibr" coords="2,259.33,515.05,13.27,7.94" target="#b10">[11]</ref>. This makes it even harder, if ever possible to anonymize conversational queries, which can often be even more personal compared to ad-hoc queries.</p><p>In our experiments, we use the weights of a ColBERT retriever pre-trained on the MSMarco passage ranking dataset <ref type="bibr" coords="2,249.66,569.85,9.39,7.94" target="#b3">[4]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">EXPERIMENTS</head><p>In this section, we describe the submitted runs and discuss our experimental results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Runs</head><p>The primary difference between our two runs is the history context 𝑐𝑡𝑥 𝑖 that was used to contextualize the last turn embeddings.</p><p>• historyonly: uses only previous turns and ignore the canonical responses. Therefore the historical context at turn 𝑡 becomes</p><formula xml:id="formula_3" coords="2,115.79,701.01,115.24,9.38">𝑐𝑡𝑥 𝑡 = 𝑞 1 • 𝑆𝐸𝑃 • 𝑞 2 • ... • 𝑞 𝑡 -1 .</formula><p>• Astypalaia256 also includes the canonical passage response of the previous turn (𝑝 𝑡 -1 ) in the historical context, which now becomes</p><formula xml:id="formula_4" coords="2,397.82,209.37,160.05,9.38">𝑐𝑡𝑥 𝑖 = 𝑞 1 • 𝑆𝐸𝑃 • 𝑞 2 • ... • 𝑞 𝑡 -1 • 𝑆𝐸𝑃 • 𝑝 𝑡 -1</formula><p>In both cases, the maximum input length to the query encoder is set to 256, due to hardware limitations (24𝐺𝐵 GPU memory). When the total input exceeds this number, we ignore previous user utterances, until the length reduces enough. Specifically, we start deleting utterances from second turn onward. We do this to make sure we keep in the context some of the most important parts of the "conversation": (a) the last user utterance 𝑞 𝑘 (ie. needs to be answered), (b) the last canonical response 𝑝 𝑘-1 and (c) the first turn 𝑞 1 , that often contains the overarching topic of the entire conversation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Experimental Results</head><p>In this section, we discuss the official evaluation results of our submitted runs. Those can be found in Table <ref type="table" coords="2,475.55,372.40,3.01,7.94" target="#tab_0">1</ref>. We also note that our results have been negatively affected by a bug that was discovered after the submission deadline, and therefore are tentative. Due to this reason, we are unable to provide additional baselines and oracles that further investigate the effectiveness of our method.</p><p>As we can see from the results in Table <ref type="table" coords="2,466.57,427.19,3.01,7.94" target="#tab_0">1</ref>, our zero-shot retrievers perform lower than the average performance of the median run. The performance gap is roughly 40% for both the canonical and raw type submissions. Nonetheless, it is important to highlight that, in contrast to most other methods to be found in the literature our method: (a) does not take advantage of any additional training data and (b) is a first-stage ranker that does not use any cross-attentions between query and documents.</p><p>After comparing our two runs, it also becomes evident that canonical passages are an important part of the conversation and increasing the input length to our query encoder does not have such a detrimental effect.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSIONS</head><p>In this paper, we describe our submissions in TREC CAsT 2021. We propose a zero-shot dense retriever, that uses supervision only from the ad-hoc ranking tasks and does not need any conversationalsearch related data. We show that our methods' performance as a zero-shot first-stage ranker is adequate, given that it significantly simplifies the previous complex conversational retrieval pipelines used in previous literature.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="2,176.06,99.71,235.22,56.00"><head>Table 1 :</head><label>1</label><figDesc>TREC CAsT '21 experimental results</figDesc><table coords="2,176.06,99.71,235.22,44.07"><row><cell cols="3">Astypalaia256 canonical 0.24</cell><cell>0.46</cell><cell>0.52</cell><cell>0.14</cell></row><row><cell>histonly</cell><cell>raw</cell><cell>0.20</cell><cell>0.24</cell><cell>0.43</cell><cell>0.09</cell></row><row><cell>median</cell><cell cols="2">canonical 0.38</cell><cell>-</cell><cell>-</cell><cell>0.24</cell></row><row><cell>median</cell><cell>raw</cell><cell>0.33</cell><cell>-</cell><cell>-</cell><cell>0.18</cell></row></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="2,334.39,686.85,224.64,6.18;2,334.39,694.82,224.89,6.18;2,334.39,702.74,108.33,6.23" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="2,545.56,686.85,13.47,6.18;2,334.39,694.82,221.77,6.18">Bert: Pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">Jacob</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ming-Wei</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kenton</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kristina</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.04805</idno>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,70.23,89.10,224.00,6.18;3,70.23,97.07,224.99,6.18;3,70.23,104.99,191.26,6.23" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="3,200.30,97.07,94.92,6.18;3,70.23,105.04,77.45,6.18">Dense passage retrieval for opendomain question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Vladimir</forename><surname>Karpukhin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Barlas</forename><surname>Oğuz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sewon</forename><surname>Min</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Patrick</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ledell</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sergey</forename><surname>Edunov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Danqi</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wen-Tau</forename><surname>Yih</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2004.04906</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,70.23,113.01,223.81,6.18;3,70.23,120.93,223.81,6.23;3,70.23,128.90,223.81,6.23;3,70.23,136.87,46.11,6.23" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="3,184.44,113.01,109.61,6.18;3,70.23,120.98,146.59,6.18">Colbert: Efficient and effective passage search via contextualized late interaction over bert</title>
+		<author>
+			<persName coords=""><forename type="first">Omar</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Matei</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,229.16,120.93,64.88,6.23;3,70.23,128.90,223.81,6.23;3,70.23,136.87,23.44,6.23">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,70.23,144.89,223.81,6.18;3,70.23,152.86,223.81,6.18;3,70.23,160.78,113.73,6.23" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="3,154.29,152.86,139.75,6.18;3,70.23,160.83,64.55,6.18">MS MARCO: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,146.83,160.78,34.17,6.23">CoCo@ NIPS</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,70.23,168.80,223.81,6.18;3,70.23,176.77,223.81,6.18;3,70.23,184.74,224.89,6.18;3,70.23,192.66,68.60,6.23" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="3,169.61,176.77,124.43,6.18;3,70.23,184.74,221.75,6.18">Deep Learning, Health Misinformation, and Precision Medicine</title>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xueguang</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xinyu</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hang</forename><surname>Cui</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ruizhou</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="3,70.23,192.66,19.41,6.23">Corpus</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">3</biblScope>
+		</imprint>
+	</monogr>
+	<note>H2oloo at TREC 2020: When all you got is a hammer</note>
+</biblStruct>
+
+<biblStruct coords="3,70.23,200.68,224.89,6.18;3,70.23,208.60,223.81,6.23;3,70.23,216.57,217.27,6.23" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="3,70.23,208.65,162.31,6.18">Question rewriting for conversational question answering</title>
+		<author>
+			<persName coords=""><forename type="first">Svitlana</forename><surname>Vakulenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shayne</forename><surname>Longpre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhucheng</forename><surname>Tu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Raviteja</forename><surname>Anantha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,244.91,208.60,49.14,6.23;3,70.23,216.57,187.64,6.23">Proceedings of the 14th ACM International Conference on Web Search and Data Mining</title>
+		<meeting>the 14th ACM International Conference on Web Search and Data Mining</meeting>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+			<biblScope unit="page" from="355" to="363" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,334.39,89.10,224.58,6.18;3,334.14,97.07,224.06,6.18;3,334.39,104.99,212.44,6.23" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="3,513.52,97.07,44.69,6.18;3,334.39,105.04,24.64,6.18">Attention is all you need</title>
+		<author>
+			<persName coords=""><forename type="first">Ashish</forename><surname>Vaswani</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Niki</forename><surname>Parmar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jakob</forename><surname>Uszkoreit</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Llion</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Aidan</forename><forename type="middle">N</forename><surname>Gomez</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Łukasz</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Illia</forename><surname>Polosukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,371.40,104.99,139.53,6.23">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="5998" to="6008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,334.39,113.01,223.81,6.18;3,334.39,120.98,224.89,6.18;3,334.39,128.90,223.81,6.23;3,334.39,136.87,130.95,6.23" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="3,368.35,120.98,188.10,6.18">Query resolution for conversational search with limited supervision</title>
+		<author>
+			<persName coords=""><forename type="first">Nikos</forename><surname>Voskarides</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Dan</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Pengjie</forename><surname>Ren</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Evangelos</forename><surname>Kanoulas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Maarten</forename><surname>De Rijke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,342.30,128.90,215.90,6.23;3,334.39,136.87,101.79,6.23">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="921" to="930" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,334.39,144.89,224.58,6.18;3,334.28,152.86,225.10,6.18;3,334.39,160.78,223.81,6.23;3,334.18,168.80,18.66,6.18" xml:id="b8">
+	<monogr>
+		<title level="m" type="main" coord="3,456.74,152.86,102.64,6.18;3,334.39,160.83,132.62,6.18">Approximate nearest neighbor negative contrastive learning for dense text retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Lee</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ye</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kwok-Fung</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jialin</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Junaid</forename><surname>Ahmed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arnold</forename><surname>Overwijk</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2007.00808</idno>
+		<imprint>
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="3,334.39,176.77,224.58,6.18;3,334.39,184.74,224.89,6.18;3,334.39,192.66,223.81,6.23;3,334.39,200.63,137.44,6.23" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="3,405.46,184.74,150.94,6.18">Few-shot generative conversational query rewriting</title>
+		<author>
+			<persName coords=""><forename type="first">Shi</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jiahua</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jingqin</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="3,342.30,192.66,215.90,6.23;3,334.39,200.63,101.79,6.23">Proceedings of the 43rd International ACM SIGIR conference on research and development in Information Retrieval</title>
+		<meeting>the 43rd International ACM SIGIR conference on research and development in Information Retrieval</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1933" to="1936" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="3,334.39,208.65,224.99,6.18;3,334.39,216.57,216.63,6.23" xml:id="b10">
+	<monogr>
+		<title/>
+		<author>
+			<persName coords=""><forename type="first">Shi</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhenghao</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Tao</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiyuan</forename><surname>Liu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2105.04166</idno>
+		<imprint>
+			<date type="published" when="2021">2021. 2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">Few-Shot Conversational Dense Retrieval. arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

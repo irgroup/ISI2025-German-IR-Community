@@ -1,0 +1,870 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,72.03,75.53,440.25,17.00;1,72.03,96.28,148.39,17.00;1,72.03,116.27,148.65,9.90">Using N-grams and Statistical Features to Identify Hate Speech Spreaders on Twitter Notebook for PAN at CLEF 2021</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,72.03,141.85,67.57,10.80"><forename type="first">Eszter</forename><surname>Katona</surname></persName>
+							<email>katona.eszter.rita@gmail.com</email>
+						</author>
+						<author>
+							<persName coords="1,149.58,141.85,55.57,10.80"><forename type="first">Jakab</forename><surname>Buda</surname></persName>
+							<email>jakab.buda@gmail.com</email>
+						</author>
+						<author>
+							<persName coords="1,234.85,141.85,72.33,10.80"><forename type="first">Flora</forename><surname>Bolonyai</surname></persName>
+							<email>f.bolonyai@gmail.com</email>
+						</author>
+						<title level="a" type="main" coord="1,72.03,75.53,440.25,17.00;1,72.03,96.28,148.39,17.00;1,72.03,116.27,148.65,9.90">Using N-grams and Statistical Features to Identify Hate Speech Spreaders on Twitter Notebook for PAN at CLEF 2021</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">59F26BAAF8BE360FD17D3E797502D148</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:15+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Hate Speech Recognition, Text Classification</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>In this notebook, we summarize our work process of preparing a software for the PAN 2021 Profiling Hate Speech Spreaders on Twitter task. Our final software was a stacking ensemble classifier of different machine learning models; a mixture of models using word n-grams as features and models based on statistical features extracted from the Twitter feeds. Our software uploaded to the TIRA platform achieved an accuracy of 70% in English and 79% in Spanish.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.0" lry="842.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The aim of the PAN 2021 Profiling Hate Speech Spreaders on Twitter task <ref type="bibr" coords="1,421.98,383.11,18.60,9.90" target="#b18">[18]</ref> was to investigate whether the author of a given Twitter feed is likely to spread hate speech. The training and test sets of the task consisted of English and Spanish Twitter feeds <ref type="bibr" coords="1,318.21,408.36,16.56,9.90" target="#b19">[19]</ref>.</p><p>As online communication gains an increasingly important role, online hate speech also spreads. Although the question of how to tackle this problem is hard <ref type="bibr" coords="1,337.44,433.61,11.43,9.90" target="#b5">[6]</ref>, and even the definition of hate speech is debated <ref type="bibr" coords="1,119.26,446.36,11.43,9.90" target="#b7">[8]</ref>, its harm is evident <ref type="bibr" coords="1,220.99,446.36,16.79,9.90" target="#b9">[10]</ref>. Therefore, its detection is an essential task.</p><p>We used an ensemble of different machine learning models to provide a prediction for each user. All of our sub-models handle the Twitter feed of a user as a unit and determine a probability for each user how likely they are to be labelled as hate speech spreaders. For the final predictions, these submodels are combined using a logistic regression.</p><p>In Section 2 we present some related works on classifying hate speech in social media and profiling hate speech spreaders. In Section 3 we describe our approach in detail together with the extracted features and models. In Section 4 we present our results. In Section 5 we discuss some potential future work and in Section 6 we conclude our notebook.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Related Works</head><p>There are many different approaches to identify hate speech. <ref type="bibr" coords="1,358.04,605.41,18.16,9.90" target="#b21">[21]</ref> uses Deep Convolutional Neural Network that could be called the state of the art as the DCNN model outperforms other classifiers. <ref type="bibr" coords="1,510.22,617.92,12.66,9.90" target="#b0">[1]</ref> compares 8 machine learning models. Based on their comparison SVM and Random Forest models show the highest, and KNN shows the lowest performance. Since we could not find an overall "bestpractice", we decided to try some different models. We have found that SVMs <ref type="bibr" coords="1,440.61,655.94,11.75,9.90" target="#b4">[5,</ref><ref type="bibr" coords="1,456.60,655.94,8.25,9.90" target="#b8">9,</ref><ref type="bibr" coords="1,469.08,655.94,13.75,9.90" target="#b14">14,</ref><ref type="bibr" coords="1,487.31,655.94,13.75,9.90" target="#b20">20,</ref><ref type="bibr" coords="1,505.29,655.94,13.12,9.90" target="#b22">22]</ref>, XGBoost <ref type="bibr" coords="1,115.76,668.69,16.79,9.90" target="#b28">[28]</ref>, logistic regression <ref type="bibr" coords="1,221.48,668.69,18.16,9.90" target="#b26">[26]</ref> and random forest <ref type="bibr" coords="1,323.45,668.69,12.66,9.90" target="#b2">[3]</ref> models are also commonly used for author profiling and text classification purposes.</p><p>In the specific domain of classifying hate speech in social media <ref type="bibr" coords="2,371.93,74.77,12.66,9.90" target="#b3">[4]</ref> describes several models using both neural networks and statistical based predictive models such as SVMs. <ref type="bibr" coords="2,435.03,87.27,12.66,9.90" target="#b1">[2]</ref> concerned with identifying misogynistic language in social media found SVMs using token n-grams as predictive features to achieve the highest accuracy in the task out of a number of different machine learning models.</p><p>Using word n-grams as features for author profiling has been shown to be effective <ref type="bibr" coords="2,451.67,138.04,11.75,9.90" target="#b4">[5,</ref><ref type="bibr" coords="2,465.92,138.04,8.25,9.90" target="#b8">9,</ref><ref type="bibr" coords="2,476.67,138.04,13.75,9.90" target="#b14">14,</ref><ref type="bibr" coords="2,492.91,138.04,13.75,9.90" target="#b20">20,</ref><ref type="bibr" coords="2,509.16,138.04,13.75,9.90" target="#b22">22,</ref><ref type="bibr" coords="2,72.03,150.54,12.94,9.90" target="#b25">25]</ref>, especially with TF-IDF weighting <ref type="bibr" coords="2,251.28,150.54,16.79,9.90" target="#b27">[27]</ref>. Statistical features, such as the number of punctuation marks <ref type="bibr" coords="2,102.00,163.29,17.25,9.90" target="#b22">[22,</ref><ref type="bibr" coords="2,122.24,163.29,12.94,9.90" target="#b26">26]</ref>, medium-specific symbols (for example hashtags and at signs in tweets, links in digital texts) <ref type="bibr" coords="2,98.77,175.79,17.25,9.90" target="#b10">[11,</ref><ref type="bibr" coords="2,118.27,175.79,13.75,9.90" target="#b13">13,</ref><ref type="bibr" coords="2,134.27,175.79,13.75,9.90" target="#b20">20,</ref><ref type="bibr" coords="2,150.28,175.79,13.75,9.90" target="#b22">22,</ref><ref type="bibr" coords="2,166.28,175.79,13.75,9.90" target="#b24">24,</ref><ref type="bibr" coords="2,182.29,175.79,13.12,9.90" target="#b26">26]</ref>, emoticons <ref type="bibr" coords="2,249.79,175.79,17.25,9.90" target="#b10">[11,</ref><ref type="bibr" coords="2,269.29,175.79,13.75,9.90" target="#b13">13,</ref><ref type="bibr" coords="2,285.29,175.79,13.75,9.90" target="#b20">20,</ref><ref type="bibr" coords="2,301.30,175.79,13.75,9.90" target="#b23">23,</ref><ref type="bibr" coords="2,317.30,175.79,14.90,9.90" target="#b26">26]</ref> or stylistic features <ref type="bibr" coords="2,419.75,175.79,18.16,9.90" target="#b13">[13]</ref> are also commonly used for text classification purposes. For text classification stacking methods are also commonly used <ref type="bibr" coords="2,72.03,201.29,16.60,9.90" target="#b11">[12]</ref>.</p><p>In <ref type="bibr" coords="2,98.76,213.71,12.90,10.00" target="#b7">[8]</ref> the authors highlight "Othering Language" that turned out to be an important input for our research, as some of our models focus on the wording of the texts. Othering is an "us vs. them" that has an important role in dehumanization and prejudices against groups or people. <ref type="bibr" coords="2,433.55,239.07,18.16,9.90" target="#b15">[15]</ref> collected peerreviewed publications for their systematic review on hate speech detection. They collected lexica of hate speech and m ention 8 published resources; however, they emphasize that most of the authors develop ad-hoc lexica.</p><p>The definition of hate speech is not an evident task. <ref type="bibr" coords="2,321.07,289.81,12.66,9.90" target="#b7">[8]</ref> provides a great overview of the different approaches. We did not have to deal with this question since the labelled dataset was provided for the task <ref type="bibr" coords="2,92.55,315.09,16.58,9.90" target="#b19">[19]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Our Approach</head><p>Our approach can be considered as an extension and improvement of the software we developed for the PAN 2020 Profiling Fake News Spreaders on Twitter task <ref type="bibr" coords="2,342.37,385.36,16.82,9.90" target="#b17">[17]</ref>. Compared to the software described in <ref type="bibr" coords="2,83.52,398.11,11.46,9.90" target="#b6">[7]</ref>, we experimented with the addition of models that use topic probabilities based on topic models as predictive features, additional descriptive statistics among the features of the user-wise statistical models and a dictionary-based model relying on n-grams that are the most distinctive of the Tweets within each label.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">The corpus and the environment setup</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">The corpus</head><p>The corpus for the PAN 2021 Profiling Hate Speech Spreaders on Twitter task <ref type="bibr" coords="2,436.08,524.89,18.54,9.90" target="#b19">[19]</ref> consists of one English and one Spanish corpus, each containing 200 XML files. Each of these files contains 200 tweets from an author. Because of the moderate size of the corpus, we wanted to avoid splitting the corpus into a training and a development set. Therefore, we used cross-validation techniques to prevent overfitting. Similarly to the PAN Author Profiling task in 2020, the dataset this year came pre-cleaned: all URLs, hashtags and user mentions in the tweets were changed to standardized tokens.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Environment setup</head><p>We developed our software using the Python language (version 3.7). To build our models we mainly used the following packages: scikit-learn<ref type="foot" coords="3,259.60,86.84,3.25,5.85" target="#foot_0">2</ref> , xgboost<ref type="foot" coords="3,305.13,86.84,3.25,5.85" target="#foot_1">3</ref> , spacy <ref type="foot" coords="3,340.90,86.84,3.25,5.85" target="#foot_2">4</ref> , emoji <ref type="foot" coords="3,376.40,86.84,3.25,5.85" target="#foot_3">5</ref> , lexical-diversity<ref type="foot" coords="3,458.45,86.84,3.25,5.85" target="#foot_4">6</ref> , pandas <ref type="foot" coords="3,499.70,86.84,3.25,5.85" target="#foot_5">7</ref> and numpy <ref type="foot" coords="3,102.55,99.59,3.25,5.85" target="#foot_6">8</ref> . Our codes are available on GitHub<ref type="foot" coords="3,261.35,99.59,3.25,5.85" target="#foot_7">9</ref> .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Our models</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">N-gram models</head><p>We experimented with a number of machine learning models based on word n-grams extracted from the text. Precisely, we investigated the performance of regularized logistic regressions (LR), random forests (RF), XGBoost classifiers (XGB) and linear support vector machines (SVM). For all four models, we ran an extensive grid search combined with five-fold cross-validation to find the optimal text pre-processing, vectorization technique and modeling parameters. We tested the same parameters for the English and Spanish data. We investigated two types of text cleaning methods for all models. The first method (M1) removed all non-alphanumeric characters (except #) from the text, while the second method (M2) removed most non alphanumeric characters (except #) but kept emoticons and emojis. Both methods transformed the text to lower case. Regarding the vectorization of the corpus, we experimented with a number of parameters. We tested different word n-gram ranges (unigrams, bigrams, unigrams and bigrams) and also looked at different scenarios regarding the minimum overall document frequency of the word n-grams <ref type="bibr" coords="3,257.62,340.59,11.96,9.90" target="#b2">(3,</ref><ref type="bibr" coords="3,272.33,340.59,8.25,9.90" target="#b3">4,</ref><ref type="bibr" coords="3,283.33,340.59,8.25,9.90" target="#b4">5,</ref><ref type="bibr" coords="3,294.33,340.59,8.25,9.90" target="#b5">6,</ref><ref type="bibr" coords="3,305.33,340.59,8.25,9.90" target="#b6">7,</ref><ref type="bibr" coords="3,316.33,340.59,8.25,9.90" target="#b7">8,</ref><ref type="bibr" coords="3,327.57,340.59,8.25,9.90" target="#b8">9,</ref><ref type="bibr" coords="3,338.57,340.59,14.66,9.90" target="#b9">10)</ref>  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">User-wise statistical model</head><p>Apart from the n-gram based models, we constructed a model based on statistical variables describing all tweets of each author, thus giving one more prediction per author. The variables used in this model are as follows:</p><p>• the mean length of the 200 tweets of the authors both in words and in characters;</p><p>• the minimum length of the 200 tweets of the authors both in words and in characters;</p><p>• the maximum length of the 200 tweets of the authors both in words and in characters;</p><p>• the standard deviations of the length of the 200 tweets of the authors both in words and in characters; • the range of the length of the 200 tweets of the authors both in words and in characters;</p><p>• the number of retweets in the dataset by each author;</p><p>• the number of URL links in the dataset by each author;</p><p>• the number of hashtags in the dataset by each author;</p><p>• the number of mentions in the dataset by each author;</p><p>• the number of emojis in the dataset by each author;</p><p>• the number of ellipses used at the end of the tweets in the 200 tweets of the authors;</p><p>• the number of words in all capitals (except for the masked URLs, RTs and user mentions) in the 200 tweets of the authors; • a stylistic feature, the type-token ratio to measure the lexical diversity of the authors (in the dataset each author has 200 tweets thus the number of tokens per author does not differ as much that it would cause a great diversity in the TTRs). This gives a total of 18 statistical variables. Since we used an XGBoost classifier, we did not normalize the variables and the linear correlation between the variables posed no problem.</p><p>To find the best hyperparameter set, we used a five-fold cross-validated grid search and finally refitted the best model on the whole data. The cross-validated accuracies achieved this way are 70% and 74% for the English and Spanish data respectively. For our early-bird submission on TIRA <ref type="bibr" coords="4,264.06,738.96,16.85,9.90" target="#b16">[16]</ref>, we used a stacking ensemble as described in 3.2.4 of the n-gram based models and the XGBoost model using descriptive statistics. In order to achieve higher accuracy with our final software, we experimented with the addition of new models. We tested models using n-grams from dictionaries containing the most typical tokens for each label and models that rely on features extracted from running topic modeling on the training data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3">Dictionary-based n-gram models</head><p>We also built an XGBoost model for each language based on a dictionary of n-gram features retrieved from fitting separate vectorizers on each target group subcorpora. To construct this dictionary we first selected the most frequent n-grams of each subcorpora (the number of the most frequent features selected was tuned during the hyperparameter search from 200, 400, 800, and 2000 features). Then we discarded those that are also amongst the most frequent n-grams in the other group (the number of the most frequent n-grams considered here is provided as a ratio of the feature selection number and was also tuned during the hyperparameter search, the ratios examined were 1, 1.2 and 1.5). Finally, we combined the two separate dictionaries and according to a boolean hyperparameter variable, we decided whether to also include the most frequent n-grams in the whole corpus or not. For this model we investigated three more text cleaning methods in addition to the previously mentioned M1 method, all three based on M1: M3 is changing standardized tokens in such a way that the vectorizer can differentiate them from the words of the tweets; M4 is a lemmatized version of M3, and M5 is a version of M4 where all stopwords are removed 11 . To find the optimal hyperparameters we first defined a large space (373240 grid points) and randomly tested 10% of the grid points, then narrowed down the hyperparameter space and made a more exhaustive grid search.</p><p>To find the best hyperparameter set, we used a five-fold cross-validated grid search and finally refitted the best model on the whole data. The cross-validated mean accuracies achieved this way are 65.7% and 80.5% for the English and Spanish data respectively. Table <ref type="table" coords="5,429.67,372.84,5.50,9.90" target="#tab_2">3</ref> contains the best hyperparameters found. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.4">Stacking ensemble</head><p>After identifying the best hyperparameters for the six mentioned models with cross-validation, we had to find a reliable ensemble method. To avoid overfitting this ensemble model to the training set, we did not train it using the predictions of the five final trained models. Instead, we wanted to create a dataset that represents the predictions that are produced by our models on previously unseen data. To do this, we refitted the six sub-models with the cross-validated hyperparameters five times on different chunks of the original training data (each consisting of tweets from 160 users). The predictions given by these five models to the 40 remaining users were appended to the training data of the ensemble model, thus this training set consisted of predictions given to all 200 users in the training data, but these predictions were given by five different models in case of each model type. The sample created this way can be interpreted as an approximation of a sample from the distribution of the predictions of the final five models on the test set. We created a test set with the same method but with a different split of the training data.</p><p>We then used these constructed training and test sets to find the best ensemble from the following three methods: majority voting, linear regression of predicted probabilities (this includes the simple mean), and a logistic regression model. The best and most reliable results were given by the logistic model; therefore, we used this model as our final ensemble method. Table <ref type="table" coords="6,409.18,264.57,5.50,9.90" target="#tab_3">4</ref> summarizes the logistic regression coefficients for the probabilistic predictions of each model for both languages. The validity of this method is backed by the fact that our results on the training sets (an accuracy of 69% and 81% for the English and Spanish set respectively) were approximately the same as the final results. Compared to the results last year (when only the coefficients of the RF model were 0 for both languages), it seems that the different n-gram models are more similar this year. It is also worth pointing out that in the case of the English ensemble model the prediction of the model based on descriptive statistics is not taken into account either as opposed to the Spanish stacking model, where it is an important feature. This could both mean that the information that can be captured based on descriptive statistics is also mostly captured by the n-gram models or that in the case of English language different statistical variables should be considered.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.5">Other experiments</head><p>As hate speech tends to evolve around well-defined themes (it is often directed at women, religious groups or ethnicities), we decided to experiment with topic models. We wanted to see how much fitting a topic model as dimension reduction could help the discrimination of the categories. We used LDA (latent dirichlet allocation) MALLET model from the Gensim package. We created 20 topics based on two different methods: we examined the coherence scores of different runs and we also used a Hierarchical Dirichlet Process (HDP) from the Gensim 12 package. Both methods showed that 20 topics could work best for our data. To see how much topic models are able to contribute to the discrimination of the groups, we first fitted the model on the whole set of training data. In this scenario, we saw that machine learning models using the topic probabilities as predictive features perform comparably to our other models. However, keeping in mind that in the test phase the model would receive unknown texts, we decided to conduct some further experiments and investigated how the machine learning models using the topic probabilities as features perform in a 5-fold cross-validation, i.e. on unseen data. In this scenario the performance of our models proved to be significantly worse compared to the other models, so we decided not to include our LDA model in our final software.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Results</head><p>Overall, we tested two versions of our software. For the early bird testing, we used our approach from 2020 fitted to the 2021 data. In our final submission we added one more feature to the descriptive statistical model and the dictionary-based model. As Table <ref type="table" coords="7,331.29,195.79,5.50,9.90" target="#tab_4">5</ref> shows, this resulted in some improvement in the case of the English corpus but the accuracy on the Spanish test set slightly decreased. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Future Work</head><p>An interesting phenomenon that we already faced during the PAN20 Author Profiling task <ref type="bibr" coords="7,486.37,393.11,18.14,9.90" target="#b14">[14]</ref> and which remained typical for our submissions in the PAN21 competition is that our models in general perform better in Spanish than in English. This is true about all of our individual models regardless of the features they used, and about the final ensemble model as well. Investigating and understanding this issue offers a challenging opportunity for further research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>In this notebook, we summarized our work process of preparing a software for the PAN 2021 Profiling Hate Speech Spreaders on Twitter task <ref type="bibr" coords="7,307.06,514.14,17.05,9.90" target="#b18">[18]</ref>. We originally started from our software developed for the PAN 2020 Profiling Fake News Spreaders task consisting of a stacking ensemble of different machine learning models based on n-grams and descriptive statistical features of the text. In the hopes of higher accuracies, we included some new descriptive statistical features and a new model relying on n-grams from a dictionary containing the most frequent n-grams in the tweets belonging to each group. In order to achieve the highest accuracies, we conducted an extensive grid-search combined with cross-validation to find the best hyperparameters for each of the models. Using the best hyperparameters, the models were refitted on the full training dataset. To get a final prediction for each user, we trained a logistic regression that used the probabilistic predictions of the sub-models as features. Using the ensemble model, we were able to achieve nearly the same accuracy on the test set as during the cross-validation process. Overall, our final software was able to identify hate speech spreaders with a 70% accuracy among users that tweet in English, and with an 79% accuracy among users that tweet in Spanish.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">References</head></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,72.03,340.59,451.14,320.86"><head>Table 1</head><label>1</label><figDesc>included as features. Additionally, we included a wide range of hyperparameter values for each model in our grid search. For a more detailed The best performing text cleaning methods, vectorization parameters and model hyperparameters for the n-gram based machine learning models</figDesc><table coords="3,72.03,365.84,450.95,295.61"><row><cell>description</cell><cell>of</cell><cell>the</cell><cell>tested</cell><cell>hyperparameters,</cell><cell>see</cell><cell>[7].</cell></row><row><cell>Language</cell><cell>Model</cell><cell>Text cleaning</cell><cell cols="2">Vectorization N-grams Min. global occurrence</cell><cell cols="2">Model hyperparameters 10</cell></row><row><cell></cell><cell>LR</cell><cell>M2</cell><cell>bigrams</cell><cell>9</cell><cell>C=0.1</cell><cell></cell></row><row><cell></cell><cell>RF</cell><cell>M2</cell><cell>unigrams</cell><cell>10</cell><cell cols="2">B=300 min_samples_leaf=7</cell></row><row><cell></cell><cell>SVM</cell><cell>M2</cell><cell>unigrams</cell><cell>3</cell><cell>C=1</cell><cell></cell></row><row><cell>EN</cell><cell></cell><cell></cell><cell></cell><cell></cell><cell>eta= 0.3</cell><cell></cell></row><row><cell></cell><cell>XGB</cell><cell>M2</cell><cell>uni-and bigrams</cell><cell>8</cell><cell cols="2">max_depth=4 colsample_bytree=0.5 subsample=0.7</cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell></cell><cell cols="2">n_estimators=200</cell></row><row><cell></cell><cell>LR</cell><cell>M1</cell><cell>unigrams</cell><cell>9</cell><cell>C=100</cell><cell></cell></row><row><cell>ES</cell><cell>RF</cell><cell>M1</cell><cell>bigrams</cell><cell>8</cell><cell cols="2">B=400 min_samples_leaf=5</cell></row><row><cell></cell><cell>SVM</cell><cell>M1</cell><cell>unigrams</cell><cell>10</cell><cell>C=100</cell><cell></cell></row><row><cell></cell><cell>XGB</cell><cell>M1</cell><cell></cell><cell>7</cell><cell>eta= 0.01</cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,72.03,504.39,451.28,215.56"><head>Table 2</head><label>2</label><figDesc>Table 2 contains the best hyperparameters found. The best model hyperparameters for the XGBoost model using statistical features</figDesc><table coords="4,94.55,570.92,362.20,149.03"><row><cell>Parameter name</cell><cell>Parameter values</cell><cell></cell></row><row><cell></cell><cell>EN</cell><cell>ES</cell></row><row><cell>Column sample by node</cell><cell>0.8</cell><cell>0.8</cell></row><row><cell>Column sample by tree</cell><cell>0.9</cell><cell>0.8</cell></row><row><cell>gamma</cell><cell>1</cell><cell>4</cell></row><row><cell>Learning rate</cell><cell>0.1</cell><cell>0.1</cell></row><row><cell>Max. depth</cell><cell>2</cell><cell>2</cell></row><row><cell>Min. child weight</cell><cell>2</cell><cell>4</cell></row><row><cell>Number of estimators</cell><cell>150</cell><cell>200</cell></row><row><cell>alpha</cell><cell>0.7</cell><cell>0.7</cell></row><row><cell>Subsample</cell><cell>1</cell><cell>0.6</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,72.03,410.37,450.83,267.33"><head>Table 3 The</head><label>3</label><figDesc></figDesc><table coords="5,72.03,423.62,450.83,254.08"><row><cell cols="4">best performing text cleaning methods, dictionary forming and vectorization parameters and</cell></row><row><cell cols="3">model hyperparameters for the dictionary-based n-gram models</cell><cell></cell></row><row><cell cols="2">Parameter type and name</cell><cell>Parameter value</cell><cell></cell></row><row><cell></cell><cell></cell><cell>EN</cell><cell>ES</cell></row><row><cell></cell><cell>text cleaning</cell><cell>M5</cell><cell>M1</cell></row><row><cell></cell><cell>number of features</cell><cell>200</cell><cell>800</cell></row><row><cell></cell><cell>n-grams</cell><cell cols="2">uni-, bi-and trigrams uni-, bi-and trigrams</cell></row><row><cell>dictionary</cell><cell>min. global occurrence ratio</cell><cell>0.005</cell><cell>0.005</cell></row><row><cell>forming and</cell><cell>max. global occurrence ratio</cell><cell>0.95</cell><cell>0.99</cell></row><row><cell>vectorization</cell><cell>whether to add most</cell><cell></cell><cell></cell></row><row><cell></cell><cell>frequent features from full</cell><cell>False</cell><cell>True</cell></row><row><cell></cell><cell>corpus</cell><cell></cell><cell></cell></row><row><cell></cell><cell>subsample</cell><cell>0.7</cell><cell>0.8</cell></row><row><cell></cell><cell>column sample by tree</cell><cell>0.9</cell><cell>0.7</cell></row><row><cell>model</cell><cell>column sample by node</cell><cell>1</cell><cell>1</cell></row><row><cell>hyperparameters</cell><cell>max depth</cell><cell>6</cell><cell>3</cell></row><row><cell></cell><cell>number of estimators</cell><cell>50</cell><cell>50</cell></row><row><cell></cell><cell>alpha</cell><cell>0.1</cell><cell>0.1</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="6,72.03,302.85,386.73,137.77"><head>Table 4</head><label>4</label><figDesc>Logistic regression coefficients for the predicted probabilities by each sub-model</figDesc><table coords="6,81.03,331.85,377.73,108.77"><row><cell>Model</cell><cell>Coefficient values</cell><cell></cell></row><row><cell></cell><cell>EN</cell><cell>ES</cell></row><row><cell>LR</cell><cell>0</cell><cell>4.26</cell></row><row><cell>SVM</cell><cell>2.74</cell><cell>0</cell></row><row><cell>RF</cell><cell>0</cell><cell>0</cell></row><row><cell>XGB</cell><cell>0</cell><cell>0</cell></row><row><cell>Statistical XGB</cell><cell>0</cell><cell>2.59</cell></row><row><cell>Dictionary-based n-gram XGB</cell><cell>0.73</cell><cell>-0.52</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="7,72.03,234.08,450.87,96.27"><head>Table 5</head><label>5</label><figDesc>Accuracies achieved by the two versions of our software during the cross-validation process and on</figDesc><table coords="7,72.03,260.83,423.32,69.52"><row><cell>the test set</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>Language</cell><cell cols="2">Early bird software</cell><cell cols="2">Final software</cell></row><row><cell></cell><cell>CV (training set)</cell><cell>Test set</cell><cell>CV (training set)</cell><cell>Test set</cell></row><row><cell>ES</cell><cell>80%</cell><cell>80%</cell><cell>81%</cell><cell>79%</cell></row><row><cell>EN</cell><cell>69%</cell><cell>68%</cell><cell>69%</cell><cell>70%</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="3,76.53,689.49,73.22,7.20"><p>https://scikit-learn.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="3,76.53,698.49,97.87,7.20"><p>https://xgboost.readthedocs.io/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="3,76.53,707.74,50.66,7.20"><p>https://spacy.io/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_3" coords="3,76.53,716.99,96.32,7.20"><p>https://pypi.org/project/emoji/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_4" coords="3,76.53,726.27,130.24,7.20"><p>https://pypi.org/project/lexical-diversity/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_5" coords="3,76.53,735.52,82.39,7.20"><p>https://pandas.pydata.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_6" coords="3,76.53,744.51,59.41,7.20"><p>https://numpy.org/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_7" coords="3,76.53,753.76,135.27,7.20"><p>https://github.com/pan-webis-de/katona21</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="10" xml:id="foot_8" coords="3,79.03,763.01,274.63,7.20"><p>Parameter names in the relevant Python package/function. Detailed description in<ref type="bibr" coords="3,341.98,763.01,8.75,7.20" target="#b6">[7]</ref>.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="12" xml:id="foot_9" coords="6,79.03,763.01,108.58,7.20"><p>https://radimrehurek.com/gensim/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="8,108.05,74.77,414.80,9.90;8,108.05,87.27,414.96,9.90;8,108.05,100.02,323.50,9.90" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="8,417.19,74.77,105.66,9.90;8,108.05,87.27,274.63,9.90">Automatic Hate Speech Detection using Machine Learning: A Comparative Study</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Abro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><forename type="middle">S</forename><surname>Shaikh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Khan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Mujtaba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><forename type="middle">H</forename><surname>Khand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,412.41,87.27,110.61,9.90;8,108.05,100.02,205.95,9.90">International Journal of Advanced Computer Science and Applications</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="484" to="491" />
+			<date type="published" when="2020">2020. 2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,112.52,414.54,9.90;8,108.05,125.29,414.66,9.90;8,108.05,138.04,378.52,9.90" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="8,262.25,112.52,260.34,9.90;8,108.05,125.29,95.77,9.90">Automatic Identification and Classification of Misogynistic Language on Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Anzovino</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,230.95,125.29,291.75,9.90;8,108.05,138.04,150.19,9.90">Proc. 23rd Int. Conf. on Applications of Natural Language to Information Systems, NLDB-2018</title>
+		<meeting>23rd Int. Conf. on Applications of Natural Language to Information Systems, NLDB-2018</meeting>
+		<imprint>
+			<publisher>LNCS</publisher>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="volume">10859</biblScope>
+			<biblScope unit="page" from="57" to="64" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,150.54,415.06,9.90;8,108.05,163.29,414.81,9.90;8,108.05,175.79,210.73,9.90" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="8,392.42,150.54,130.69,9.90;8,108.05,163.29,250.99,9.90">Gender Classification of Web Authors Using Feature Selection and Language Models</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Aravantinou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Simaki</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Mporas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Megalooikonomou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="s" coord="8,384.58,163.29,138.28,9.90;8,108.05,175.79,119.03,9.90">Speech and Computer Lecture Notes in Computer Science</title>
+		<imprint>
+			<biblScope unit="page" from="226" to="233" />
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,188.54,414.60,9.90;8,108.05,201.29,415.21,9.90;8,108.05,213.82,160.09,9.90" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="8,108.05,201.29,415.21,9.90;8,108.05,213.82,30.83,9.90">SemEval-2019 task 5: Multilingual detection of hate speech against immigrants and women in Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Basile</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Bosco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Nozza</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Patti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sanguinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,146.03,213.82,65.52,9.90">Proc. SemEval</title>
+		<imprint>
+			<biblScope unit="page">2019</biblScope>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,226.57,415.21,9.90;8,108.05,239.07,414.94,9.90;8,108.05,251.82,415.14,9.90;8,108.05,264.57,139.68,9.90" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="8,229.72,226.57,293.54,9.90;8,108.05,239.07,106.71,9.90">A quantitative analysis of lexical differences between genders in telephone conversations</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Boulis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ostendorf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,241.24,239.07,281.75,9.90;8,108.05,251.82,165.57,9.90">Proceedings of the 43rd Annual Meeting on Association for Computational Linguistics -ACL &apos;05</title>
+		<meeting>the 43rd Annual Meeting on Association for Computational Linguistics -ACL &apos;05<address><addrLine>Morristown, NJ, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2005">2005</date>
+			<biblScope unit="page" from="435" to="442" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,277.06,415.00,9.90;8,108.05,289.81,116.68,9.90" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,159.08,277.06,307.97,9.90">What is so special about online (as compared to offline) hate speech? In</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,473.27,277.06,45.63,9.90">Ethnicities</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="297" to="326" />
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,302.34,415.03,9.90;8,108.05,315.09,415.18,9.90;8,108.05,327.84,348.25,9.90" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,209.01,302.34,314.07,9.90;8,108.05,315.09,140.99,9.90">An Ensemble Model Using N-grams and Statistical Features to Identify Fake News Spreaders on Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Buda</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Bolonyai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,108.05,327.84,144.90,9.90">CLEF 2020 Labs and Workshops</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>N´ev´eol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020-09">Sep 2020</date>
+		</imprint>
+	</monogr>
+	<note>Notebook Papers. CEURWS.org</note>
+</biblStruct>
+
+<biblStruct coords="8,108.05,340.34,414.83,9.90;8,108.05,353.09,128.33,9.90" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,203.99,340.34,235.80,9.90">A survey on automatic detection of hate speech in text</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Fortuna</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Nunes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,446.14,340.34,76.75,9.90;8,108.05,353.09,74.35,9.90">ACM Computing Surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,108.05,365.59,415.11,9.90;8,108.05,378.36,414.56,9.90;8,108.05,390.86,68.90,9.90" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,229.79,365.59,288.55,9.90">Modeling Latent Biographic Attributes in Conversational Genres</title>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Garera</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Yarowsky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,122.55,378.36,380.32,9.90">Proceedings of the 47th Annual Meeting of the ACL and the 4th IJCNLP of the AFNLP</title>
+		<meeting>the 47th Annual Meeting of the ACL and the 4th IJCNLP of the AFNLP</meeting>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="page" from="710" to="718" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,403.61,379.43,9.90;8,108.05,416.36,89.90,9.90" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,265.51,403.61,159.21,9.90">Evidencing the harms of hate speech</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Gelber</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Mcnamara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,446.68,403.61,59.07,9.90">Soc Identities</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="324" to="341" />
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,428.86,379.22,9.90;8,108.05,441.61,415.19,9.90;8,108.05,454.11,415.30,9.90;8,108.05,466.89,414.99,9.90;8,108.05,479.64,71.65,9.90" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,484.48,428.86,38.79,9.90;8,108.05,441.61,415.19,9.90;8,108.05,454.11,61.50,9.90">Efficient social network multilingual classification using character, POS n-grams and Dynamic Normalization</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">E</forename><surname>Gonzalez-Gallardo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">M</forename><surname>Torres-Moreno</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">M</forename><surname>Rendon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Sierra</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,195.76,454.11,327.58,9.90;8,108.05,466.89,339.08,9.90">IC3K 2016 -Proceedings of the 8th International Joint Conference on Knowledge Discovery, Knowledge Engineering and Knowledge Management</title>
+		<imprint>
+			<publisher>SciTePress</publisher>
+			<date type="published" when="2016">2016</date>
+			<biblScope unit="page" from="307" to="314" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,492.14,379.22,9.90;8,108.05,504.89,415.09,9.90;8,108.05,517.39,204.14,9.90" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,414.93,492.14,108.34,9.90;8,108.05,504.89,118.86,9.90">Webis: An ensemble for twitter sentiment detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Büchner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,248.71,504.89,274.43,9.90;8,108.05,517.39,47.74,9.90">Proceedings of the 9th International Workshop on Semantic Evaluation</title>
+		<meeting>the 9th International Workshop on Semantic Evaluation<address><addrLine>SemEval</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015">2015. 2015</date>
+			<biblScope unit="page" from="582" to="589" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,315.13,517.39,207.63,9.90;8,108.05,530.14,415.15,9.90;8,108.05,542.89,282.19,9.90" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,142.54,530.14,270.85,9.90">Improving hate speech detection with deep learning ensembles</title>
+		<author>
+			<persName coords=""><forename type="first">Stiven</forename><surname>Zimmerman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Udo</forename><surname>Kruschwitz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Cris</forename><surname>Fox</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,431.74,530.14,91.47,9.90;8,108.05,542.89,282.19,9.90">Proc. of the Eleventh Int. Conf. on Language Resources and Evaluation (LREC 2018)</title>
+		<meeting>of the Eleventh Int. Conf. on Language Resources and Evaluation (LREC 2018)</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,555.41,378.85,9.90;8,108.05,568.16,414.47,9.90;8,108.05,580.66,82.65,9.90" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="8,156.52,568.16,202.70,9.90">Age and gender identification in social media</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Marquardt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Farnadi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Moens</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Davalos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Teredesai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>De Cock</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,383.11,568.16,117.86,9.90">CLEF 2014 working notes</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="1129" to="1136" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,593.42,378.91,9.90;8,108.05,606.16,414.94,9.90;8,108.05,618.66,414.79,9.90;8,108.05,631.42,130.43,9.90" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="8,387.30,593.42,135.65,9.90;8,108.05,606.16,106.38,9.90">Predicting Age and Gender in Online Social Networks</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Peersman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Van Vaerenbergh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,239.94,606.16,283.05,9.90;8,108.05,618.66,154.39,9.90">Proceedings of the 3rd International Workshop on Search and Mining User-Generated Contents</title>
+		<meeting>the 3rd International Workshop on Search and Mining User-Generated Contents<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computing Machinery</publisher>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="37" to="44" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,643.94,379.05,9.90;8,108.05,656.69,414.71,9.90;8,108.05,669.44,228.48,9.90" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="8,405.69,643.94,117.41,9.90;8,108.05,656.69,246.38,9.90">Resources and benchmark corpora for hate speech detection: a systematic review</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Poletto</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Basile</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Sanguinetti</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Bosco</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Patti</surname></persName>
+		</author>
+		<idno type="DOI">10.1007/s10579-020-09502-8</idno>
+		<ptr target="https://doi.org/10.1007/s10579-020-09502-8" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,362.84,656.69,155.35,9.90">Language Resources &amp; Evaluation</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,681.94,379.05,9.90;8,108.05,694.69,414.93,9.90;8,108.05,707.19,297.52,9.90" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="8,399.44,681.94,123.66,9.90;8,108.05,694.69,53.50,9.90">TIRA Integrated Research Architecture</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wiegmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,308.10,694.69,214.89,9.90;8,108.05,707.19,216.26,9.90">Information Retrieval Evaluation in a Changing World -Lessons Learned from 20 Years of CLEF</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Peters</surname></persName>
+		</editor>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,144.05,719.97,378.89,9.90;8,108.05,732.71,415.06,9.90;8,108.05,745.21,414.98,9.90;8,108.05,757.96,204.18,9.90" xml:id="b17">
+	<analytic>
+		<title level="a" type="main" coord="8,358.78,719.97,164.16,9.90;8,108.05,732.71,272.67,9.90">Overview of the 8th Author Profiling Task at PAN 2020: Profiling Fake News Spreaders on Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Giachanou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Ghanem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,252.10,745.21,149.12,9.90">CLEF 2020 Labs and Workshops</title>
+		<title level="s" coord="8,410.51,745.21,112.52,9.90;8,108.05,757.96,134.69,9.90">Notebook Papers. CEUR Workshop Proceedings.CEUR</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Eickhoff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Névéol</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,74.77,378.52,9.90;9,108.05,87.27,415.01,9.90;9,108.05,100.02,415.30,9.90;9,108.05,112.52,155.66,9.90" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="9,459.49,74.77,63.09,9.90;9,108.05,87.27,207.19,9.90">Profiling Hate Speech Spreaders on Twitter Task at PAN 2021</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">L</forename><surname>De La Peña Sarracén</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<ptr target="-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,182.58,100.02,159.11,9.90">CLEF 2021 Labs and Workshops</title>
+		<title level="s" coord="9,353.65,100.02,169.70,9.90;9,108.05,112.52,86.09,9.90">Notebook Papers. CEUR Workshop Proceedings.CEUR</title>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Faggioli</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Joly</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Maistro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Piroi</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,125.29,378.91,9.90;9,108.05,138.04,387.31,9.90" xml:id="b19">
+	<analytic>
+		<title level="a" type="main" coord="9,421.80,125.29,101.16,9.90;9,108.05,138.04,92.37,9.90">Profiling Hate Speech Spreaders on Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Chulvi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>De La Peña</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Fersini</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<idno type="DOI">10.5281/zenodo.3692319</idno>
+		<ptr target="http://doi.org/10.5281/zenodo.3692319" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,208.12,138.04,33.30,9.90">Data set</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,150.54,378.69,9.90;9,108.05,163.29,414.72,9.90;9,108.05,175.79,187.45,9.90" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="9,368.07,150.54,154.67,9.90;9,108.05,163.29,30.83,9.90">Classifying latent user attributes in Twitter</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Yarowsky</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Shreevats</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gupta</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,161.27,163.29,361.50,9.90;9,108.05,175.79,102.60,9.90">SMUC &apos;10: Proceedings of the 2nd international workshop on Search and mining user-generated contents</title>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+			<biblScope unit="page" from="37" to="44" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,188.54,379.29,9.90;9,108.05,201.29,415.40,9.90;9,108.05,213.82,29.40,9.90" xml:id="b21">
+	<analytic>
+		<title level="a" type="main" coord="9,384.07,188.54,139.27,9.90;9,108.05,201.29,233.69,9.90">A Framework for Hate Speech Detection Using Deep Convolutional Neural Network</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">K</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">K</forename><surname>Tripathy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><forename type="middle">K</forename><surname>Das</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><forename type="middle">Z</forename><surname>Gao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,363.67,201.29,57.52,9.90">IEEE Access</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="204951" to="204962" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,226.57,379.06,9.90;9,108.05,239.07,415.02,9.90;9,108.05,251.82,85.60,9.90" xml:id="b22">
+	<analytic>
+		<title level="a" type="main" coord="9,360.68,226.57,162.43,9.90;9,108.05,239.07,246.07,9.90">Author Profiling: Predicting Age and Gender from Blogs Notebook for PAN at CLEF 2013</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Santosh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Bansal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Shekhar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Varma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,379.05,239.07,144.03,9.90;9,108.05,251.82,48.82,9.90">Working Notes for CLEF 2013 Conference</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,264.57,378.96,9.90;9,108.05,277.06,415.06,9.90;9,108.05,289.81,415.21,9.90;9,108.05,302.34,415.03,9.90;9,108.05,315.09,99.18,9.90" xml:id="b23">
+	<analytic>
+		<title level="a" type="main" coord="9,455.57,264.57,67.44,9.90;9,108.05,277.06,415.06,9.90;9,108.05,289.81,42.74,9.90">Deep Learning Network Models to Categorize Texts According to Author&apos;s Gender and to Identify Text Sentiment</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Sboev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Litvinova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Voronina</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Gudovskikh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Rybka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,176.01,289.81,347.25,9.90;9,108.05,302.34,173.00,9.90">Proceedings -2016 International Conference on Computational Science and Computational Intelligence, CSCI 2016</title>
+		<meeting>-2016 International Conference on Computational Science and Computational Intelligence, CSCI 2016</meeting>
+		<imprint>
+			<publisher>Institute of Electrical and Electronics Engineers Inc</publisher>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="1101" to="1106" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,327.84,378.92,9.90;9,108.05,340.34,414.76,9.90;9,108.05,353.09,345.52,9.90" xml:id="b24">
+	<analytic>
+		<title level="a" type="main" coord="9,385.60,327.84,137.37,9.90;9,108.05,340.34,38.67,9.90">Effects of Age and Gender on Blogging</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Koppel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Argamon</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Pennebaker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,171.01,340.34,346.54,9.90;9,108.05,353.09,246.25,9.90">AAAI Spring Symposium: Computational Approaches to Analyzing Weblogs</title>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<biblScope unit="page" from="199" to="205" />
+		</imprint>
+	</monogr>
+	<note>American Association for Artificial Intelligence (AAAI)</note>
+</biblStruct>
+
+<biblStruct coords="9,144.05,365.59,379.11,9.90;9,108.05,378.36,415.14,9.90;9,108.05,390.86,114.63,9.90" xml:id="b25">
+	<analytic>
+		<title level="a" type="main" coord="9,285.76,365.59,237.40,9.90;9,108.05,378.36,83.37,9.90">Author Profiling based on Text and Images Notebook for PAN at CLEF</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Stout</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Musters</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Pool</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,241.52,378.36,281.68,9.90;9,108.05,390.86,77.15,9.90">Working Notes of CLEF 2018 -Conference and Labs of the Evaluation Forum</title>
+		<imprint>
+			<date type="published" when="2018">2018. 2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,403.61,379.18,9.90;9,108.05,416.36,414.92,9.90;9,108.05,428.86,415.33,9.90;9,108.05,441.61,51.40,9.90" xml:id="b26">
+	<analytic>
+		<title level="a" type="main" coord="9,263.51,403.61,259.72,9.90;9,108.05,416.36,394.05,9.90">On Predicting Sociodemographic Traits and Emotions from Communications in Social Networks and Their Implications to Online Self Disclosure</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Volkova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bachrach</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,108.05,428.86,228.15,9.90">Cyberpsychology, Behavior, and Social Networking</title>
+		<imprint>
+			<publisher>Mary Ann Liebert Inc</publisher>
+			<date type="published" when="2015">2015. 2015</date>
+			<biblScope unit="page" from="726" to="736" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,454.11,378.57,9.90;9,108.05,466.89,319.50,9.90" xml:id="b27">
+	<analytic>
+		<title level="a" type="main" coord="9,192.08,454.11,227.57,9.90">A comparative study of author gender identification</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Yildiz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="9,441.22,454.11,81.40,9.90;9,108.05,466.89,201.06,9.90">Turkish Journal of Electrical Engineering and Computer Science</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="1052" to="1064" />
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="9,144.05,479.64,379.00,9.90;9,108.05,492.14,415.07,9.90;9,108.05,504.89,168.70,9.90" xml:id="b28">
+	<analytic>
+		<title level="a" type="main" coord="9,230.22,479.64,288.63,9.90">Hotel reviews sentiment analysis based on word vector clustering</title>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Q</forename><surname>Yu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="9,126.29,492.14,396.84,9.90;9,108.05,504.89,34.96,9.90">2nd IEEE International Conference on Computational Intelligence and Applications (ICCIA)</title>
+		<meeting><address><addrLine>Beijing</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+			<biblScope unit="page" from="260" to="264" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,106.00,124.98,399.99,15.20;1,205.48,146.90,201.03,15.20">An Exploration of Learning-to-re-rank Using a Two-step Framework for Fair Ranking</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,271.46,179.41,69.08,10.56"><forename type="first">Fumian</forename><surname>Chen</surname></persName>
+							<email>fmchen@udel.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Institute for Financial Services Analytics</orgName>
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,282.35,241.05,47.30,10.56"><forename type="first">Hui</forename><surname>Fang</surname></persName>
+							<email>hfang@udel.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Electrical and Computer Engineering</orgName>
+								<orgName type="institution">University of Delaware</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,106.00,124.98,399.99,15.20;1,205.48,146.90,201.03,15.20">An Exploration of Learning-to-re-rank Using a Two-step Framework for Fair Ranking</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">723A5D627B0EA1BF26742872BD17667E</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>As fairness has been attracting increasing attention in search engines, producing both fair and relevant rankings has become a major challenge for many information retrieval systems. In 2022, TREC fair ranking track launched an ad-hoc retrieval task for Wikipedia editors, which returns not only relevant documents of each query but also provides fair exposure to each document. The main goal of our participation in this track is to explore a fairness-aware two-step fair ranking framework using supervised learning-based re-rankers. Given a query, we first retrieve relevant documents and then use the re-ranker to re-rank the documents so that the final ranking is fair evaluated by the attention-weighted rank fairness (AWRF). We utilize the simple yet well-performed BM25 retrieval model to obtain relevant documents of each query. We tested a gradient-boosted treebased (GBDT) LambdaMART model and a neural-based multilayer perceptron model. To better train the supervised learning models, we also extracted contextual-based features to augment our training data. We encoded fairness through a pre-processing method by constructing fairness scores. Our results also show the possibility of leveraging supervised learning-based re-rankers and contextual features.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Information retrieval (IR) systems, such as open-web search, play a crucial role in our daily lives. Countless IR algorithms have been proposed to improve relevance-based user utility for better search experience <ref type="bibr" coords="1,134.86,557.29,167.05,8.80" target="#b4">(Zehlike, Yang, &amp; Stoyanovich, 2021)</ref> in the past decades. Concerns about algorithmic transparency and fairness, however, are rising as well, especially when historical data has shown disproportional exposure to different groups, and providing fair exposure and equal opportunity is crucial for long-term sustainability. In this paper, we discuss our participation at TREC 2022 fair ranking track<ref type="foot" coords="1,147.65,603.56,3.97,6.16" target="#foot_0">1</ref> . We explored the two-step fairness-aware framework with the BM25 retrieval model and fairness-aware re-ranker using supervised learning algorithms, as shown in Figure <ref type="figure" coords="1,456.15,617.07,3.87,8.80" target="#fig_0">1</ref>. Our goal is to examine the possibility of utilizing the supervised learning re-ranker and also the value of contextual features in fair-ranking tasks. Since most of the current fair ranking frameworks focus on a single fairness group, the intersectional fairness setting provided by TREC is also a great source for us to explore intersectional fairness. In the following sections, we first describe the task as long as the evaluation metrics provided by TREC and then we elaborate on our methods and discuss their performance. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Task Description and Evaluation Metrics</head><p>In TREC 2022 fair ranking track, there are two tasks and we participated in task 1 (the WikiProject Coordinators) to provide a relevant and fair document list for editors searching for work to do. We were provided a corpus of documents with more than six million English Wikipedia articles and a set of queries associated with binary annotated relevant documents. Each document is also associated with zero to many fairness categories. The task output is a single ranking per query, which consists of 500 articles. Ideally, the final ranked list of documents should be (1) relevant to given queries and (2) fair with respect to multiple fairness categories by providing fair exposure to articles. Submitted runs will be judged by both relevance and fairness. Relevance is judged by nDCG<ref type="foot" coords="2,500.22,452.55,3.97,6.16" target="#foot_1">2</ref> with binary relevance and logarithmic decay, which is broadly used in various ranking tasks.</p><formula xml:id="formula_0" coords="2,256.02,485.99,270.94,22.31">nDCG@k = DCG@k iDCG@k (1)</formula><p>where iDCG is the ideal discounted cumulative gain:</p><formula xml:id="formula_1" coords="2,242.68,533.00,284.28,31.50">iDCG = rel_docs k i=1 rel i log 2 (i + 1)<label>(2)</label></formula><p>Fairness is judged by attention-weighted ranking fairness (AWRF) <ref type="bibr" coords="2,384.50,574.98,142.47,8.80;2,85.04,586.93,108.84,8.80" target="#b3">(Sapiezynski, Zeng, E Robertson, Mislove, &amp; Wilson, 2019;</ref><ref type="bibr" coords="2,197.21,586.93,174.11,8.80" target="#b1">Raj, Wood, Montoly, &amp; Ekstrand, 2020)</ref>.</p><formula xml:id="formula_2" coords="2,256.07,608.12,270.89,8.80">AWRF(π) = ∆(ϵ(π), ε)<label>(3)</label></formula><p>where ϵ(π) is the system produced exposure distribution and ε is the target exposure distribution. ∆ is a function of one minus the Jenson-Shannon divergence<ref type="foot" coords="2,340.74,639.70,3.97,6.16" target="#foot_2">3</ref> .</p><formula xml:id="formula_3" coords="2,209.25,659.90,317.71,52.53">∆(ε, ϵ(π)) = 1 - 1 2 (D KL (ϵ|M ) + D KL (ε|M )) (4) M = 1 2 (ϵ + ε)<label>(5)</label></formula><p>and D KL (•) is the Kullback-Leibler divergence<ref type="foot" coords="3,292.61,86.58,3.97,6.16" target="#foot_3">4</ref> . Like the relevance metric, fairness metrics also incorporate log discounting to ensure that the metrics are attention-weighted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Methods</head><p>We adopted a two-step framework with (1) a relevance retrieval model and (2) a fairness-aware reranker. Relevance retrieval, as a well-explored field, has numerous retrieval functions being proposed and deployed in various domains. Therefore, in this work, we mainly focus on the re-ranker step and fairly assume documents retrieved from the first step are relevant. The performance of the re-ranker will be judged by the improvement over the first step.</p><p>Here, we leverage the simple yet well-performed BM25 as our retrieval mode. To do so, we index the corpus and achieve BM25<ref type="foot" coords="3,220.08,236.98,3.97,6.16" target="#foot_4">5</ref> by Pyserini<ref type="foot" coords="3,282.09,236.98,3.97,6.16" target="#foot_5">6</ref> , a toolkit for information retrieval research. Since we were only given binary annotations for relevance and the fairness metrics are based on distribution, we retrieved 5000 documents for each query.</p><formula xml:id="formula_4" coords="3,163.23,281.45,363.73,65.83">BM 25(D, Q) = n i=1 IDF (q i ) • f req(q i , D) • (k 1 + 1) f req(q i , D) + k 1 • (1 -b + b • |D| avgdl ) (6) IDF (q i ) = ln( N -n(q i ) + 0.5 n(q i ) + 0.5 + 1)<label>(7)</label></formula><p>3.1 Fairness-aware Re-ranker</p><p>For the fairness-aware re-ranker, we use two supervised learning-to-rank (LTR) models, LambdaMART <ref type="bibr" coords="3,85.04,393.58,63.53,8.80" target="#b0">(Burges, 2010)</ref> and multi-layer perceptron (MLP), to re-rank retrieved documents after the first step.</p><p>To encode fairness, we use a pre-processing method, modifying the ground truth label such that:</p><formula xml:id="formula_5" coords="3,218.90,427.45,308.06,8.80">y = binary relevance + γ * fairness score (8)</formula><p>where γ is a preference parameter.</p><p>To compute the fairness score, we first estimate the target distribution of each query based on all relevant documents of the same query. That is, we count the number of documents within each group and then normalize the number as the target distribution. For simplicity purposes, we focus on two fairness categories, geographic location and gender. It not only enables us to examine intersectional fairness but also enables us to test model robustness while shifting fairness categories. Since the ideal ranking should produce a similar distribution as the target distribution, we borrow AWRF to quantify the deviation between the target distribution and system-produced distribution and to construct our fairness score. However, since AWRF is a list-wise measure, we need to convert the list-wise AWRF to a point-wise fairness score based on the Algorithm 1. Given a list of documents, it selects the next document that can maximize the AWRF score. To train our learning-to-rank models, we randomly sampled 2500 relevant and 2500 non-relevant documents for each query as our initial ranking.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Features Extraction</head><p>Since we utilize neural networks to build our re-ranker and based on previous work <ref type="bibr" coords="3,449.26,627.15,73.27,8.80" target="#b0">(Qin et al., 2021)</ref>, neural networks are very sensitive to features, and data augmentation could be leveraged to improve neural model performance. Therefore, as a data augmentation method, we extracted four contextual features based on the full-text field in addition to document annotations and a document-query level feature. The contextual features reflect the similarity between the full-text embeddings and fairness categories text embeddings. They are extracted for two major purposes: (1) whether we can replace The BM25 score between document and query Doc-Query q_sim_gender</p><p>The cosine similarity between query embeddings and gender embeddings Contextual q_sum_geo</p><p>The cosine similarity between query embeddings and geographic location embeddings Contextual d_sim_gender</p><p>The cosine similarity between document embeddings and gender embeddings Contextual d_sim_geo</p><p>The cosine similarity between document embeddings and geographic location embeddings Contextual Table <ref type="table" coords="4,270.30,356.46,3.87,8.80">1</ref>: Training features X human annotations with NLP techniques and (2) whether contextual features as a data augmentation method could improve model performance. Finally, the contextual features are extracted using Spacy<ref type="foot" coords="4,522.49,398.68,3.97,6.16" target="#foot_6">7</ref> to split documents into sentences, and Sentence-BERT <ref type="bibr" coords="4,321.18,412.19,122.62,8.80" target="#b2">(Reimers &amp; Gurevych, 2019)</ref> to get embeddings. We summarized all the features we use in Table <ref type="table" coords="4,296.92,424.15,3.87,8.80">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Result and Observation</head><p>We submitted five runs listed in Table <ref type="table" coords="4,261.99,478.91,3.87,8.80" target="#tab_1">2</ref>. UDInfo_F_bm25 is a baseline run without any re-rank we submitted to see the performance of our re-ranker. UDInfo_F_lgbm2 and UDInfo_F_lgbm2 are the runs we submitted using re-ranker based on LambdaMART by re-ranking every 20/40 documents. And UDInfo_F_mlp2 and UDInfo_F_mlp4 are the runs we submitted using re-ranker based on multilayer perceptron by re-ranking every 20/40 documents. Their performance is reported in Table <ref type="table" coords="4,85.04,538.69,4.98,8.80" target="#tab_2">3</ref> and is broken down into different fairness categories as shown in Table <ref type="table" coords="4,404.49,538.69,3.87,8.80" target="#tab_3">4</ref>.</p><p>According to the results reported, the five runs we submitted are very similar to each other. For both fairness and relevance, we observe nuance differences between different runs. Especially compared with the baseline BM25 run, our re-rankers did not significantly improve fairness or relevance. One possible reason is that re-ranking every 20/40 documents is too preservative. Re-ranking 20/40 documents is not significant enough to impact group distribution, and thus, statistically impossible to achieve higher AWRF scores. Another possible reason is that the extracted features need to be improved, given the average accuracy of 63% of Sentence-BERT pre-trained models, leading to weak in and out-of-sample predictive power. On the other hand, our pre-processing method to incorporate fairness could be replaced by in-processing methods for better performance. Another observation is that neural models failed to outperform GBDT-based models, which aligns with the previous results <ref type="bibr" coords="4,441.07,658.24,73.60,8.80" target="#b0">(Qin et al., 2021)</ref>.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Conclusion</head><p>In this year's participation in the fair ranking track, we explored two learning-to-re-rank models, Lamb-daMART and multilayer perceptron, for fair ranking tasks using the two-step fair ranking framework. Even though our results did not significantly outperform others, we confirmed the value of contextual features and the potential of leveraging neural models in ranking tasks. In the future, we plan to extract more training features, especially those features based on the full-text field using NLP techniques. Moreover, besides pre-processing, we will encode fairness in constraints and loss functions for our learning-to-re-rank models. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,186.24,317.36,239.51,8.80;2,85.04,85.04,441.93,217.27"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Two-step fairness-aware ranking framework.</figDesc><graphic coords="2,85.04,85.04,441.93,217.27" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,92.51,90.82,302.01,8.81;4,99.98,104.46,385.16,9.72;4,99.98,116.41,124.07,9.72;4,90.49,128.38,82.05,9.71;4,90.49,140.32,94.88,8.81;4,90.89,154.34,4.51,6.16;4,115.32,152.28,69.25,9.72;4,91.29,166.29,4.51,6.16;4,130.66,164.24,141.24,9.71;4,90.89,182.08,4.51,6.16;4,115.32,180.03,15.22,8.80;4,130.54,177.73,4.08,6.12;4,137.89,180.03,149.72,9.71;4,90.89,194.03,4.51,6.16;4,115.32,191.98,90.41,9.71;4,205.73,189.68,4.08,6.12;4,213.63,191.98,2.77,8.80;4,90.89,205.99,4.51,6.16;4,115.32,203.94,178.65,8.80;4,293.97,201.64,4.08,6.12;4,298.55,203.94,2.77,8.80;4,90.89,217.94,4.51,6.16;4,115.32,215.89,49.28,8.80;4,164.60,213.59,4.08,6.12;4,172.50,215.89,36.46,9.71;4,89.87,249.44,57.39,7.12;4,291.95,249.44,46.58,7.12;4,492.05,249.44,21.26,7.12;4,112.75,259.43,11.63,7.11;4,225.27,259.43,179.94,7.11;4,484.62,259.43,36.12,7.11;4,112.53,269.09,12.08,7.11;4,241.09,269.09,148.31,7.11;4,484.62,269.09,36.12,7.11;4,113.08,278.76,10.98,7.11;4,235.68,278.76,159.11,7.11;4,484.62,278.76,36.12,7.11;4,113.20,288.42,10.73,7.11;4,218.89,288.42,192.70,7.11;4,484.62,288.42,36.12,7.11;4,100.12,298.08,36.90,7.11"><head>Algorithm 1 :</head><label>1</label><figDesc>Use AWRF to obtain a fairness score at each position input : initial ranking π 0 , ideal exposure distribution ε, length of the output ranking n output:training ranking π k 1 initialize π k = []; 2 while i ∈ [1 : n] do 3 for doc ∈ π 0 do 4 compute AWRF(ε, ϵ(π k + doc));5 doc * = arg max doc AWRF(ϵ(π k + doc)); 6 nextDoc in π k = doc * ; 7 assign the AWRF score to document doc * ; 8 remove doc * from π 0 ; Feature Name Description Level geo The geographic location associated with the article Document gen The gender of the individual of the article Document rev The popularity of the article by page reviews Document lan Number of languages the article has been replicated in Document q-d_bm25</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,178.78,156.31,254.43,82.55"><head>Table 2 :</head><label>2</label><figDesc>Submitted Runs</figDesc><table coords="5,178.78,176.83,254.43,62.03"><row><cell>Runs</cell><cell cols="3">nDCG AWRF Score</cell><cell>95% CI</cell></row><row><cell>UDInfo_F_bm25</cell><cell>0.5666</cell><cell>0.4719</cell><cell cols="2">0.2708 (0.236, 0.302)</cell></row><row><cell cols="2">UDInfo_F_lgbm2 0.5655</cell><cell>0.4718</cell><cell cols="2">0.2703 (0.235, 0.302)</cell></row><row><cell cols="2">UDInfo_F_lgbm4 0.5631</cell><cell>0.4723</cell><cell cols="2">0.2693 (0.235, 0.302)</cell></row><row><cell>UDInfo_F_mlp2</cell><cell>0.5645</cell><cell>0.4719</cell><cell cols="2">0.2698 (0.235, 0.302)</cell></row><row><cell>UDInfo_F_mlp4</cell><cell>0.5638</cell><cell>0.4719</cell><cell cols="2">0.2695 (0.234, 0.301)</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,246.18,251.66,119.63,8.80"><head>Table 3 :</head><label>3</label><figDesc>Runs Performance</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,112.22,405.43,387.56,80.15"><head>Table 4 :</head><label>4</label><figDesc>Model Performance w.r.t. Different Fairness Categories</figDesc><table coords="5,112.22,405.43,387.56,58.66"><row><cell>Runs</cell><cell>Overall</cell><cell>Age</cell><cell>Alpha Gender Langs</cell><cell>Occ</cell><cell>Pop</cell><cell cols="2">Scr-geo Sub-geo</cell></row><row><cell>UDInfo_F_bm25</cell><cell cols="6">0.2708 0.5282 0.5606 0.5320 0.5289 0.5335 0.4810 0.5026</cell><cell>0.4983</cell></row><row><cell cols="7">UDInfo_F_lgbm2 0.2698 0.5261 0.5587 0.5304 0.5272 0.5320 0.4795 0.5006</cell><cell>0.4972</cell></row><row><cell cols="7">UDInfo_F_lgbm4 0.2693 0.5249 0.5574 0.5290 0.5263 0.5307 0.4791 0.4991</cell><cell>0.4962</cell></row><row><cell>UDInfo_F_mlp2</cell><cell cols="6">0.2703 0.5268 0.5597 0.5311 0.5269 0.5326 0.4803 0.5015</cell><cell>0.4976</cell></row><row><cell>UDInfo_F_mlp4</cell><cell cols="6">0.2695 0.5251 0.5581 0.5294 0.5250 0.5309 0.4789 0.4999</cell><cell>0.4965</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="1,100.28,708.35,118.53,6.64"><p>https://fair-trec.github.io/</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,100.28,720.95,300.54,6.64"><p>https://en.wikipedia.org/wiki/Discounted_cumulative_gain#Normalized_DCG</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="2,100.28,730.44,232.82,6.64"><p>https://en.wikipedia.org/wiki/Jensen-Shannon_divergence</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="3,100.28,707.02,241.28,6.64"><p>https://en.wikipedia.org/wiki/Kullback-Leibler_divergence</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="3,100.28,716.51,169.32,6.64"><p>https://en.wikipedia.org/wiki/Okapi_BM25</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="3,100.28,726.00,156.63,6.64"><p>https://github.com/castorini/pyserini</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="4,100.28,678.34,71.96,6.64"><p>https://spacy.io/</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,85.04,109.96,441.92,8.80;6,109.94,121.91,12.73,8.80;6,85.04,133.87,441.92,8.80;6,109.94,145.82,299.82,8.80" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="6,176.49,109.96,248.74,8.80;6,511.16,133.87,15.80,8.80;6,109.94,145.82,299.82,8.80">Are neural rankers still outperformed by gradient boosted decision trees?</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">J</forename><surname>Burges</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Qin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Yan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Zhuang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Tay</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">K</forename><surname>Pasumarthi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">.</forename><forename type="middle">.</forename><surname>Najork</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,432.56,109.96,36.96,8.80">Learning</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="23" to="581" />
+			<date type="published" when="2010">2010. 2021</date>
+		</imprint>
+	</monogr>
+	<note>From ranknet to lambdarank to lambdamart: An overview</note>
+</biblStruct>
+
+<biblStruct coords="6,85.04,157.78,441.92,8.80;6,109.94,169.73,118.55,8.80" xml:id="b1">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Raj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Wood</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Montoly</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">D</forename><surname>Ekstrand</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2009.01311</idno>
+		<title level="m" coord="6,356.06,157.78,136.86,8.80">Comparing fair ranking metrics</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,85.04,181.69,441.92,8.80;6,109.94,193.64,146.45,8.80" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Gurevych</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1908.10084</idno>
+		<title level="m" coord="6,243.00,181.69,279.49,8.80">Sentence-bert: Sentence embeddings using siamese bert-networks</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,85.04,205.60,441.92,8.80;6,109.94,217.55,417.02,8.80;6,109.94,229.51,204.81,8.80" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,425.76,205.60,101.21,8.80;6,109.94,217.55,263.34,8.80">Quantifying the impact of user attentionon fair group representation in ranked lists</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Sapiezynski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Zeng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mislove</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,396.02,217.55,130.94,8.80;6,109.94,229.51,138.21,8.80">Companion proceedings of the 2019 world wide web conference</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="553" to="562" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,85.04,241.46,441.92,8.80;6,109.94,253.42,80.37,8.80" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zehlike</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Stoyanovich</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2103.14000</idno>
+		<title level="m" coord="6,317.73,241.46,133.06,8.80">Fairness in ranking: A survey</title>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

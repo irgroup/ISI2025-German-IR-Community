@@ -1,0 +1,764 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,162.87,115.96,289.62,12.62;1,242.20,133.89,130.95,12.62">Multitask Models for Supervised Protest Detection in Texts</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName coords="1,216.08,171.84,91.49,8.74"><forename type="first">Benjamin</forename><forename type="middle">J</forename><surname>Radford</surname></persName>
+							<email>benjamin.radford@uncc.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University of North Carolina at Charlotte</orgName>
+								<address>
+									<postCode>28223</postCode>
+									<settlement>Charlotte</settlement>
+									<region>NC</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,162.87,115.96,289.62,12.62;1,242.20,133.89,130.95,12.62">Multitask Models for Supervised Protest Detection in Texts</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">698F8588CB80472EF556DC596F8A92D1</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T16:00+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>event data</term>
+					<term>neural networks</term>
+					<term>political protests</term>
+				</keywords>
+			</textClass>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The CLEF 2019 ProtestNews Lab tasks participants to identify text relating to political protests within larger corpora of news data. Three tasks include article classification, sentence detection, and event extraction. I apply multitask neural networks capable of producing predictions for two and three of these tasks simultaneously. The multitask framework allows the model to learn relevant features from the training data of all three tasks. This paper demonstrates performance near or above the reported state-of-the-art for automated political event coding though noted differences in research design make direct comparisons difficult.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="10" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="11" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="12" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="13" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="14" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="15" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Hürriyetoglu et al. propose a competitive lab in which participants are tasked with producing models to automatically identify indicators of protest in crosscountry (but monolingual) text corpora <ref type="bibr" coords="1,312.65,470.77,14.61,8.74" target="#b12">[13]</ref>. With respect to application area, this challenge builds on work done in political science on deriving structured data about political events of interest from unstructured texts (i.e. news). Methodologically, the lab is structured as a competition in which select data are provided to competitors for model training and other data are withheld for evaluation purposes. The tasks themselves fall into the categories of text classification at the document (task 1) and sentence (task 2) levels and semantic role labeling (task 3).</p><p>This paper proceeds by first introducing the three challenge tasks and the provided data. Then the two models are described: one model for tasks 1 and 2 and a second model for tasks 1, 2, and 3. Results for each task are discussed and compared to the published state-of-the-art on similar tasks. Finally, directions for future research are highlighted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Data and Task Description</head><p>The competition comprises three tasks. All three tasks evaluate participants' ability to identify indicators of protest events in English text data. However, the three tasks differ in resolution (document-, sentence-, and word-level data) and in provided data sets. Each task comprises four data sets: train, dev, test, and China. As its name implies, the train data set is used to train models. The dev data set is a validation set provided to participants for model fine-tuning. The test data set is out-of-sample and therefore the labels associated with these data are withheld from participants. Similarly, the China data set is an out-ofsample set used to evaluate cross-country performance of models. Train, dev, and test contain text data from English-language news stories collected from Indian sources. The China data set is composed of English-language news collected from Chinese sources. Lab participants are able to observe X and y, the texts and associated labels, for train and dev. Participants can only observe X, the texts, for test and dev.</p><p>The role of the China set is to evaluate the performance of models in a crosscountry setting; more specifically, the China data appear similar in form to the test data (in that they are English news wire text) but are generated by different underlying data generating processes (DGP). The DGP of the train, dev, and test sets represent Indian political and social processes as well as reporting norms, standards, and laws. The China data set represents the same for China.</p><p>A small amount of data preprocessing is performed prior to modeling. All non-alphanumeric characters are removed and all whitespace characters (e.g. tabs, newlines, spaces) are replaced with a single space. For tasks 1 and 2, characters are all converted to lowercase. <ref type="foot" coords="2,316.39,412.17,3.97,6.12" target="#foot_0">1</ref> All sequences are zero-padded such that every sequence within a given task's corpus is of equal length. The sequence length for each corpus is equivalent to the maximum sequence length observed in that corpus prior to padding (given in the following subsections). This is done to satisfy a software requirement that input sequences are of the same length during model training. Document Classification Task 1 challenges participants to classify documents, in this case news articles, as one of either relating to a protest or not relating to a protest. Documents in the train data set vary in size from 44 words to 1599 words. The mean document length is 312 words. Total data set sizes are given in Table <ref type="table" coords="2,199.80,551.08,3.87,8.74" target="#tab_0">1</ref>.</p><p>Sentence Classification Task 2 is similar to task 1 performed not on the document level but at the sentence level. Given a sentence, the model is tasked to predict whether the sentence describes a protest event or not. Task 2 train  Semantic Role Labeling Task 3 differs from tasks 1 and 2 in that it is effectively a multiclass classification problem. Given sentences tokenized at the word level, participants are tasked with identifying sets of words (or phrases) that represent particular roles in the context of a protest. These roles include triggers, locations, facilities, organizers, participants, event times, and targets. Tokens are labeled using IOB, inside, outside, beginning, tags <ref type="bibr" coords="3,412.89,334.32,14.61,8.74" target="#b21">[22]</ref>. Tokens labeled "O" are outside of a role tag. Tokens labeled "B" represent the beginning of a phrase that is associated with one of the roles. Tokens labeled "I" are inside of an identified phrase associated with a role. An example from the train dataset is given in Figure <ref type="figure" coords="3,213.85,382.14,3.87,8.74" target="#fig_0">1</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Prior Work</head><p>A robust research effort within political science has seen many iterations on techniques for both manual and automatic coding of event records from unstructured texts. Most previous work on automated event coding relies on large dictionaries of terms and phrases organized into known ontological categories. These dictionaries are provided alongside text data to event-coding software that performs pattern matching to identify instances of dictionary phrases within the texts. If those phrases found in the texts match a set of heuristics, the software produces an event record. Protests, the event category of interest here, represent just one ontological category within the CAMEO ontology, the most common of event-coding ontologies in use today <ref type="bibr" coords="4,308.66,130.95,9.96,8.74" target="#b8">[9]</ref>. Dictionary-based event coding software includes TABARI <ref type="bibr" coords="4,239.33,142.90,15.50,8.74" target="#b23">[24]</ref> and PETRARCH <ref type="bibr" coords="4,338.27,142.90,15.50,8.74" target="#b24">[25]</ref> which have been used in the production of many event data sets including ICEWS <ref type="bibr" coords="4,380.24,154.86,14.61,8.74" target="#b18">[19]</ref>, GDELT <ref type="bibr" coords="4,441.95,154.86,14.61,8.74" target="#b14">[15]</ref>, and Phoenix <ref type="bibr" coords="4,173.65,166.81,9.96,8.74" target="#b1">[2]</ref>. While most dictionaries for coding event data are hand-coded by researchers, recent efforts have sought to largely automate the dictionary generation process as well -a step towards a fully-automated event data pipeline. <ref type="foot" coords="4,416.23,202.01,3.97,6.12" target="#foot_3">4</ref> One such effort makes use of distributed word vectors to populate dictionaries given a small input set of exemplar ("seed") phrases <ref type="bibr" coords="4,300.79,227.49,15.50,8.74" target="#b19">[20,</ref><ref type="bibr" coords="4,317.95,227.49,11.62,8.74" target="#b20">21]</ref>. Similar work leverages label propagation to expand a given set of terms and phrases for event coding <ref type="bibr" coords="4,434.23,239.45,14.61,8.74" target="#b15">[16]</ref>.</p><p>Most recently, supervised learning has been applied to the problem of event identification within text with the goal of producing an end-to-end solution. A neural network technique similar to that presented here was used by Beieler to label sentences according to the Schrodt's QuadClass ontology <ref type="bibr" coords="4,427.53,288.17,10.52,8.74" target="#b2">[3,</ref><ref type="bibr" coords="4,439.70,288.17,11.62,8.74" target="#b22">23]</ref>. That research assumed the existence of an event in the provided text and tasked a model to classify the event as one of four types; this differs from the task at hand -to predict event existence versus non-existence and to identify the key actors and actions relevant to a protest event.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Models</head><p>While the model presented here for tasks 1 and 2 differs from the model for task 3, they have several properties in common. Both models are examples of recurrent neural networks (RNNs). RNNs expect time-ordered inputs and are able to model time-dependent sequences by persisting information across time steps. These models differ from traditional autoregressive statistical models in that the lag structure is variable, not pre-determined. Both models are also multitask; that is, each model is trained on examples from two or more of the tasks simultaneously. Finally, the inputs to both models are, at least in part, sequences of words (or tokens). However, prior to the modeling stage, every word has been replaced by a its corresponding word vector. The word vectors are pre-trained on the English Wikipedia corpus using FastText, a neural network language model that leverages both contextual information and sub-word information to produce word vectors <ref type="bibr" coords="4,301.16,544.27,9.96,8.74" target="#b3">[4]</ref>. Word vectors are real-valued numerical vectors that encode semantic and syntactic relationships between words. The word vector representations of synonyms should be close to one another (where "closeness" often means having a high cosine similarity). FastText models words as the combination of sub-word n-grams (letter sequences). The use of pre-trained word vectors has become common for applications in which training a novel word embedding model may be infeasible due to, for example, corpus size or compute resources <ref type="bibr" coords="5,231.84,166.81,14.61,8.74" target="#b16">[17]</ref>. FastText-based vectors were chosen because, unlike word2vec-based vectors, out-of-sample inference can be performed with Fast-Text. If words exist in our corpora that do not exist in the vocabulary that the FastText model was trained on, new word vectors for those out-of-sample words can be derived from the sub-word (i.e. character n-gram) information of those out-of-sample words.</p><formula xml:id="formula_0" coords="5,154.05,290.25,228.88,16.78">w 1 -→ w 2 -→ w n -→ biLSTM Dense sigmoid</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Task 1 prediction</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Inputs</head><p>Hidden Layers Outputs Dense sigmoid Task 2 prediction Fig. <ref type="figure" coords="5,154.40,386.40,4.13,7.89">2</ref>. Model architecture for tasks 1 and 2. Sequence input is shown on the left for word vectors w1 through wn.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Tasks 1 and 2 Model</head><p>The model for tasks 1 and 2 is simple. It takes as input a time-ordered sequence of tokens (i.e. words) of arbitrary length (and possibly padded with zero vectors) and outputs a document-level and sentence-level prediction that the given sequence describes a protest event. The input tokens are length 300 real-valued distributed word vectors derived from the pre-trained FastText model. The models first layer consists of 10 bidirectional long short-term memory (LSTM) RNN cells with no activation function <ref type="bibr" coords="5,277.61,548.52,14.61,8.74" target="#b10">[11]</ref>. The layer outputs only the activation values of the cells at the final sequence token -a 10 × 1 real-valued vector. This output connects to two dense, fully-connected layers of size 10 × 1 that compute the weighted sum of the 10 activation values from the LSTM's output. One of these two layers is trained only examples from task 1 (documents) and the other is trained on only examples from task 2 (sentences). Both layers' outputs are subject to a sigmoid activation function that maps output values between 0 and 1 corresponding to predictions of non-protest or protest, respectively. Dropout of between 0.4 and 0.6 is applied between each layer (including the input layer) and values are chosen empirically using the dev data set. The selected loss function is log loss and the model is fit with RMSProp <ref type="bibr" coords="6,344.45,118.99,14.61,8.74" target="#b9">[10]</ref>. The model architecture is shown in Figure <ref type="figure" coords="6,208.04,130.95,3.87,8.74">2</ref>.</p><p>The multitask nature of this model, having separate outputs for document and sentence-level predictions, allows the two tasks to jointly train the single LSTM layer; this effectively increases the training data size for this layer. Having two outputs allows the model to specialize for the two subtly-different tasks. Given a document, it may be the case that only a small portion of the document (a handful of words) refers to a protest. On the other hand, given a single sentence about a protest, it is likely that a relatively larger portion of the words in that sentence refer to the protest in question. Task 1 requires that the model be sensitive to the small proportion of words indicative of a protest event in a larger document; task 2 is not necessarily so constrained. However, in hindsight, separating these tasks may not have been necessary: the document sub-model performs comparably to the sentence sub-model on sentence input and vice versa. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Task 3 Model</head><p>The model architecture for task 3 differs from that of tasks 1 and 2. <ref type="foot" coords="6,429.44,543.56,3.97,6.12" target="#foot_4">5</ref> The input is still a time-ordered sequence of word vectors representative of a document or sentence. The LSTM layer has been replaced by a layer of 20 bidirectional gated recurrent units (GRU) <ref type="bibr" coords="6,264.45,581.00,9.96,8.74" target="#b5">[6]</ref>. Instead of outputting the activation values of the GRU layer for the last sequence token, all activation values for the sequence are output. For the portions of the model corresponding to tasks 1 and 2, the output sequences from the GRU layer are flattened along the time axis by taking the maximum output value for each timestep. Aside from these minor changes and adjustments to dropout rates, the task 1 and task 2 sub-models are as described above. Task 3, the semantic role labeling task, requires a more complicated model. In particular, this sub-model consists of an additional bidirectional GRU layer with hyperbolic tangent activation and a subsequent unidirectional GRU layer that outputs a sequence of softmax-normalized predictions for each word's semantic role. The bidirectional GRU layer in this sub-model inputs not only the output sequence produced by the shared GRU layer but also inputs the original sequence of word embeddings as well as a sequence corresponding to the named entities identified in the input sequence. The three input sequences (shared GRU output, word vectors, and named entities) are concatenated wordfor-word. Named entities are discovered using Spacy, a natural language processing module written in Python <ref type="bibr" coords="7,271.22,274.41,14.61,8.74" target="#b11">[12]</ref>. Dropout of 0.25 is included between every layer of the task 3 model. The full model architecture is shown in Figure <ref type="figure" coords="7,455.37,286.37,3.87,8.74" target="#fig_1">3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Results</head><p>The two models are able to perform all three tasks at levels competitive with the reported results of similar research efforts. The models were each trained for 100 epochs on consumer-grade hardware including a 6 core CPU and an NVIDIA 1070Ti GPU. <ref type="foot" coords="7,382.80,398.04,3.97,6.12" target="#foot_5">6</ref> Training times were typically under 30 minutes. Models were written in Keras <ref type="bibr" coords="7,383.66,411.57,9.96,8.74" target="#b6">[7]</ref>, a machine learning library for Python that wraps TensorFlow <ref type="bibr" coords="7,321.81,423.52,9.96,8.74" target="#b0">[1]</ref>.</p><p>Due to the setup of the Lab, the true outcome values (y) for all test and China data sets are unavailable. Therefore, only the high-level summary metrics (F1 scores) provided as feedback by the ProtestNews Lab online evaluation system are reported for those data sets. More complete results (including precision and recall) are provided with respect to the train and dev data sets because they can be computed without the out-of-sample y values.</p><p>While the models are able to generalize out-of-sample, their performance degrades noticeably as the task resolution becomes finer (from documents to sentences to words) and as the data transition from in-sample to validation, out-of-sample, and out-of-DGP. This is not surprising as the training data sets for tasks 1, 2, and 3 contain less overall information for each subsequent task (and, in the case of task 3, ask more of that limited amount of information). The decreasing performance from in-sample to out-of-sample data sets points to overfitting, a common problem in models with many parameters and one that can sometimes be remedied with additional training data and data augmentation techniques. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Task 1 and 2 Results</head><p>The multitask model for tasks 1 and 2 is able to classify documents with 92% accuracy on the dev set with an F1 score of 0.80. <ref type="foot" coords="8,344.17,387.96,3.97,6.12" target="#foot_6">7</ref> As can be seen in Figure <ref type="figure" coords="8,459.56,389.54,4.21,8.74" target="#fig_2">4</ref>(b), the model correctly predicts 95% of non-protest events and 79% of protest events in the dev set. In Table <ref type="table" coords="8,238.17,413.45,4.98,8.74" target="#tab_2">2</ref> we can see the true out-of-sample F1 scores associated with the test and China sets are 0.84 and 0.66, respectively. This result on the test set is encouraging because it is actually above the corresponding value on the dev set, 0.80, and suggests that the model has not be overfit to the dev set through hyperparameter selection.</p><p>Model performance deteriorates somewhat for task 2, sentence classification. While the model accuracy is still high at 87%, its precision has dropped markedly. In other words, the model is able to accurately classify non-protest event sentences (96% accuracy) but only classifies protest events correctly 51% of the time. This can be seen in Figure <ref type="figure" coords="8,276.20,522.62,16.83,8.74" target="#fig_2">4(b)</ref>. In out-of-sample tests, the model achieves an F1 score of 0.66 on the test set and 0.46 on the China set. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Task 3 Results</head><p>The model that produced the Lab-submitted results for task 3 is actually capable of performing all three tasks, the results of which are shown in Table <ref type="table" coords="9,430.57,264.16,3.87,8.74" target="#tab_3">3</ref>. However, I focus here on the results for semantic role labeling as this model was only evaluated on the test and China data sets for that particular task. The precision, recall, and F1 scores shown here are multiclass weighted averages computed with a Lab-provided script. The unweighted average accuracy of this model on the dev set is very high, 94%, due largely to class imbalance. The model correctly predicts that most words in each sentence are not one of the selected roles. However, the model appears to generalize poorly: the F1 score for the train data set is 0.82 but drops to 0.50, 0.52, and 0.39 for the dev, test, and China data sets, respectively. This is indicative of a model that is overfit to the training data. An example of a task 3 dev data set sentence with actual and predicted annotations is shown in Figure <ref type="figure" coords="9,280.38,531.18,3.87,8.74">5</ref>. This example illustrates five of the seven role categories and includes a target, participants, an organizer, triggers, and a location. For each row of text there are up to two rows of annotations. The top row of annotations represents the true role values provided by the Lab organizers. The bottom row of annotations are those predicted by the model. 10  One-versus-all classification performance for the various role types is shown in Table <ref type="table" coords="9,172.82,603.07,3.87,8.74" target="#tab_4">4</ref>. These metrics are evaluated on the out-of-sample dev set. The model performs better on common role labels than less common labels; it achieves Fig. <ref type="figure" coords="10,154.40,362.10,4.13,7.89">5</ref>. An example of a task 3 dev data set sentence with actual and predicted annotations . The top row of annotations are those labels that are provided with the data (i.e. "true labels"). The bottom row of annotations are those that are predicted by the model. For example, "in front of the state secretariat" is coded as a location in the dev data but only the words "front of the state secretariat" are identified by the model as a location. F1 scores greater than 0.5 on triggers, participants, and places. The model fails to label any locations correctly. This is probably due to the model's failure to recognize the prepositions preceding locations as the B tokens in the location phrase. For example, "in front of the state secretariat" should be labeled "Bloc, I-loc, I-loc, I-loc, I-loc, I-loc." Instead, the model predicts "O, I-loc, I-loc, I-loc, I-loc, I-loc." Another example from the dev set reads "near a mosque" and should be labeled "B-loc, I-loc, I-loc." The model instead predicts "B-fname, I-loc, I-loc," where "fname" represents the role "facility name."</p><p>The model for task 3 is also able to perform document and sentence classification. While test and China set results are unavailable for this model with respect to these two tasks, the model's performance on train and dev improves upon the results presented in Table <ref type="table" coords="11,292.63,250.50,4.98,8.74" target="#tab_2">2</ref> across the board. Future work should determine whether this is due to the second model's ability to overfit to these tasks and data sets or due to the inclusion of task 3 data in the model's first GRU layer. One approach for exploring this is discussed in the paper's final section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Comparison to the State-of-the-Art</head><p>Hürriyetoglu et al. present preliminary findings for tasks 1 and 2 <ref type="bibr" coords="11,411.75,334.38,14.61,8.74" target="#b12">[13]</ref>. The results shown here compare favorably to the best of their models on both tasks. 11 A model based on BERT <ref type="bibr" coords="11,234.08,358.29,9.96,8.74" target="#b7">[8]</ref>, for example, is reported to score F1=0.90 and F1=.64 on data sets roughly equivalent to test and China for task 1, just above and below the scores of 0.84 and 0.66 reported here. The authors report a high score of F1=0.56 on task 2 test data achieved by a support vector machine model; this falls short of the bidirectional LSTM that scored F1=0.66.</p><p>Previous studies have evaluated the performance of both human and machinebased coding for political event data. One of these reports that the ICEWS Jabari-NLP system achieves an average top-level event category precision of 75.6% (document level). The authors further report that the system achieves average top-level event category recall values for documents and sentences of 65% and 59%, respectively <ref type="bibr" coords="11,254.22,477.84,9.96,8.74" target="#b4">[5]</ref>. This evaluation matches most closely with tasks 1 and 2 here and, in all cases, the above-presented protest models outperform the Jabari-NLP system results. Of course, the Jabari-NLP system was burdened with classifying 19 different event types while the task at hand represents only one.</p><p>One previous study of undergraduate coders tasked with classifying top-level event categories found that the three coders achieved precision values of 39%, and evaluated on the test and China data sets were lost and so the (train and dev ) and (test and China) results are from two different model runs. 10 In fact, the model must distinguish between the beginning token of a role phrase and the "internal" tokens. For example, "Kerala Government Medical Officers Association" would be annotated, word-for-word, "B-organizer I-organizer I-organizer I-organizer I-organizer." These are omitted for clarity. 11 The data set used in <ref type="bibr" coords="11,228.91,634.88,14.34,7.86" target="#b12">[13]</ref> is similar to, but may not be identical to, the data set used here. Therefore, caution should be taken when comparing the results between these two papers.</p><p>48%, and 55% <ref type="bibr" coords="12,203.81,118.99,14.61,8.74" target="#b13">[14]</ref>. As was the case with the Jabari-NLP comparison, these particular precision values are not directly comparable to those reported for the protest models due to the fact that the human coders were provided a multiclass classification task, not binary. Using convolutional neural networks, Beieler <ref type="bibr" coords="12,350.96,168.07,10.52,8.74" target="#b2">[3]</ref> reports precision scores of 0.85 and 0.60 for QuadClass classification on English and machine-translated texts, respectively, when word tokens are used. If character-based tokens are used, these scores increase to 0.94 (English) and 0.93 (native Arabic). However, the task presented is one of event classification conditional on the existence of an event in the text. This contrasts with the binary event/non-event objective of tasks 1 and 2. Nonetheless, these results point to a path forward for continued work on protest event detection via character-based models and convolutional neural networks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Discussion</head><p>A drawback of the multitask RNN models used above is that they do not lend themselves to model interrogation -they are typically viewed as black box models whose parameters resist simple interpretation. However, the addition of an attention layer to the input sequences would allow researchers to identify those input tokens (i.e. words) that contribute the most (or least) to a given prediction. Attention layers do this by masking some input tokens and not others, conditional on the input sequence itself. This would help to answer the question of which words contribute to accurate or inaccurate model predictions and whether those informative words differ from task to task. <ref type="foot" coords="12,345.97,426.17,7.94,6.12" target="#foot_9">12</ref>The models presented here make use of sub-word (i.e. character) information but only in the construction of word vectors from a pre-trained FastText model. By the time the sequences are input to the recurrent neural network models, the sub-word information has been aggregated to word-level tokens. Based on previous research that demonstrates the advantages of character-based models <ref type="bibr" coords="12,134.77,500.73,9.96,8.74" target="#b2">[3]</ref>, foregoing aggregation to the word vector level altogether may be beneficial. Instead, distributed character n-gram vectors could form the input sequences to a neural network classifier like those discussed above. This may, for example, allow the model to learn that n-gram vectors representing capitalized letters are more likely to occur in proper nouns, even if those proper nouns have never before been seen by the model.</p><p>Finally, the CLEF 2019 ProtestNews Lab has provided the research community with a valuable "ground truth" data set on protest (and non-protest) events. The lack of hand-annotated and curated event data sets has made difficult the evaluation of event coding systems. Furthermore, due to copyright concerns that the ProtestNews organizers have cleverly overcome, previous event data sets have not published the underlying text data from which event records were derived. <ref type="foot" coords="13,472.15,117.42,7.94,6.12" target="#foot_10">13</ref>Now that annotated text data are available, future solutions for deriving structured event records and their attributes from text should take advantage of this resources to evaluate their performance.</p><p>The results presented here indicate that supervised learning can achieve strong results in identifying politically-relevant events within unstructured text. However, the generalization of these models to out-of-sample data is imperfect; the ease with which neural network models like those used here can overfit to the training data means that care must be taken to ensure that the models continue to perform well on out-of-sample data. This is especially true if there is reason to believe that the out-of-sample data may represent a different data generating process than the in-sample data, as is the case here with the China data set. Nonetheless, when sufficient training data are available (perhaps only a few thousand examples), supervised learning can play an important role in generating political event data.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,134.77,446.84,345.83,7.89;3,134.77,457.83,332.61,7.86"><head>Fig. 1 .</head><label>1</label><figDesc>Fig.1. An example of a role-labeled sentence from the train data set. The top row is the provided sentence and the bottom row consists of token-level role annotations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="6,134.77,453.55,345.83,7.89;6,134.77,464.53,345.83,7.86;6,134.77,475.49,20.83,7.86"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. Model architecture for task 3. Sequence input is shown on the left for word vectors w1 through wn and corresponding one-hot encoded entity values ent1 through entn.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="8,216.60,312.94,182.16,7.89"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Model performance for tasks 1 and 2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="10,138.57,172.20,20.82,6.12;10,138.15,156.38,144.59,7.86;10,291.95,172.57,23.08,6.12;10,286.18,156.38,32.02,7.86;10,321.64,188.01,38.32,6.12;10,321.64,172.57,38.32,6.12;10,321.64,156.38,158.89,7.86;10,138.15,196.23,275.35,7.86;10,432.09,212.05,20.82,6.12;10,417.30,196.23,63.22,7.86;10,138.15,220.26,213.79,7.86;10,355.01,251.90,38.32,6.12;10,355.01,236.45,38.32,6.12;10,355.01,220.26,116.63,7.86;10,138.15,260.11,12.80,7.86;10,244.10,291.75,31.88,6.12;10,244.10,276.30,31.88,6.12;10,154.03,260.11,267.62,7.86;10,441.60,291.75,23.08,6.12;10,441.60,276.30,23.08,6.12;10,424.72,260.11,52.57,7.86;10,191.51,316.30,27.70,6.12;10,138.15,299.96,7.68,7.86;10,196.36,331.75,27.70,6.12;10,148.82,299.96,234.77,7.86;10,394.41,331.59,23.08,6.12;10,394.41,316.15,23.08,6.12;10,386.58,299.96,93.94,7.86;10,138.15,339.81,20.53,7.86"><head>target</head><label></label><figDesc>Govt Readies to Wield the Stick as trigger Striking participant participant Doctors Decide to Harden Their Stand 15th September 05:49 AM THIRUVANANTHAPURAM: With the target government appearing to be in no mood to meet the demand of the participant participant doctors of the health service, the organizer organizer Kerala Government Medical Officers Association spearheading the trigger trigger hunger strike location in location front of the state secretariat has called for intensifying the trigger trigger agitation in the coming days.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="3,134.77,115.91,345.82,136.65"><head>Table 1 .</head><label>1</label><figDesc>Data set size by task.</figDesc><table coords="3,134.77,138.70,345.82,113.86"><row><cell></cell><cell>Task 1</cell><cell>Task 2</cell><cell>Task 3</cell></row><row><cell cols="4">Data set (documents) (sentences) (words 2 )</cell></row><row><cell>Train</cell><cell>3,429</cell><cell>5,884</cell><cell>21,873</cell></row><row><cell>Dev</cell><cell>456</cell><cell>662</cell><cell>3,224</cell></row><row><cell>Test</cell><cell>686</cell><cell>1,106</cell><cell>6,586</cell></row><row><cell>China</cell><cell>1,800</cell><cell>1,234</cell><cell>4,387</cell></row><row><cell cols="4">data set sentences range in length from one word to 150 words and have a mean</cell></row><row><cell>of length of 24 words.</cell><cell></cell><cell></cell><cell></cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="9,197.68,115.61,219.99,85.84"><head>Table 2 .</head><label>2</label><figDesc>Results for task 1 and 2 model.8   </figDesc><table coords="9,197.68,138.39,219.99,63.06"><row><cell></cell><cell cols="2">Task 1</cell><cell cols="2">Task 2</cell></row><row><cell></cell><cell cols="4">Precision Recall F1 Precision Recall F1</cell></row><row><cell>Train</cell><cell>0.93</cell><cell>0.84 0.88</cell><cell>0.63</cell><cell>0.82 0.71</cell></row><row><cell>Dev</cell><cell>0.79</cell><cell>0.81 0.80</cell><cell>0.51</cell><cell>0.79 0.62</cell></row><row><cell>Test</cell><cell>-</cell><cell>-0.84</cell><cell>-</cell><cell>-0.66</cell></row><row><cell>China</cell><cell>-</cell><cell>-0.66</cell><cell>-</cell><cell>-0.46</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="9,148.70,403.25,317.95,85.84"><head>Table 3 .</head><label>3</label><figDesc>Results for task 3 model.9   </figDesc><table coords="9,148.70,426.04,317.95,63.06"><row><cell></cell><cell cols="2">Task 1</cell><cell></cell><cell cols="2">Task 2</cell><cell></cell><cell cols="2">Task 3</cell></row><row><cell></cell><cell cols="8">Precision Recall F1 Precision Recall F1 Precision Recall F1</cell></row><row><cell>Train</cell><cell>0.99</cell><cell cols="2">0.98 0.98</cell><cell>0.87</cell><cell cols="2">0.97 0.91</cell><cell>0.83</cell><cell>0.81 0.82</cell></row><row><cell>Dev</cell><cell>0.84</cell><cell cols="2">0.88 0.86</cell><cell>0.55</cell><cell cols="2">0.84 0.66</cell><cell>0.50</cell><cell>0.50 0.50</cell></row><row><cell>Test</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.63</cell><cell>0.44 0.52</cell></row><row><cell>China</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.54</cell><cell>0.31 0.39</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" coords="10,206.22,505.20,202.92,118.72"><head>Table 4 .</head><label>4</label><figDesc>Role-wise performance on task 3 dev set</figDesc><table coords="10,232.71,527.99,149.94,95.93"><row><cell></cell><cell cols="2">Precision Recall F1</cell></row><row><cell>event time</cell><cell>0.04</cell><cell>0.03 0.03</cell></row><row><cell>facility name</cell><cell>0.13</cell><cell>0.07 0.09</cell></row><row><cell>location</cell><cell>0.00</cell><cell>0.00 0.00</cell></row><row><cell>organizer</cell><cell>0.52</cell><cell>0.43 0.47</cell></row><row><cell>participant</cell><cell>0.65</cell><cell>0.60 0.63</cell></row><row><cell>place</cell><cell>0.65</cell><cell>0.48 0.55</cell></row><row><cell>target</cell><cell>0.13</cell><cell>0.41 0.20</cell></row><row><cell>trigger</cell><cell>0.76</cell><cell>0.75 0.76</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="2,144.73,623.92,335.87,7.86;2,144.73,634.88,335.86,7.86;2,144.73,645.84,61.80,7.86"><p>For task 3, characters are not converted to lowercase because it would have negatively impacted the performance of the named entity recognition preprocessing step, described later.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_1" coords="2,137.50,655.03,3.65,5.24;2,144.73,656.80,298.19,7.86"><p><ref type="bibr" coords="2,137.50,655.03,3.65,5.24" target="#b1">2</ref> Including control words that indicate the beginning and end of sequences.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_2" coords="3,144.73,634.88,335.87,7.86;3,144.73,645.84,335.87,7.86;3,144.73,656.80,22.63,7.86"><p>In fact, two entries appear to have no words -they are empty strings. It is unclear if this is a problem with the original data, the download process, or the pre-processing steps.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_3" coords="4,144.73,591.04,335.87,7.86;4,144.73,602.00,335.86,7.86;4,144.73,612.96,335.87,7.86;4,144.73,623.92,335.86,7.86;4,144.73,634.88,335.87,7.86;4,144.73,645.84,335.86,7.86;4,144.73,656.80,85.77,7.86"><p>It is arguable that a fully-automated event data pipeline is not desirable -if one intends to produce structured event records, they likely desire those records to conform to some mental model. Withholding the desired mental model from the event data collection process risks producing records that do not conform to the desired categories or ontology. Therefore, it is difficult to imagine scenarios where fullyunsupervised event data collection is preferable to supervised or semi-supervised event data collection.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="5" xml:id="foot_4" coords="6,144.73,623.92,335.87,7.86;6,144.73,634.88,335.86,7.86;6,144.73,645.84,335.86,7.86;6,144.73,656.80,152.31,7.86"><p>This is due, at least in part, to the fact that the competition was structured in such a way that tasks 1 and 2 were judged simultaneously and 3 was judged later. It is my believe that the model for task 3 would have fared similarly well had it diverged less from the model for tasks 1 and 2.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="6" xml:id="foot_5" coords="7,144.73,645.84,335.86,7.86;7,144.73,656.80,39.22,7.86"><p>An epoch is defined as 20 batches per task where a batch is comprised of 128 training examples.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="7" xml:id="foot_6" coords="8,144.73,558.17,335.87,7.86;8,144.73,569.13,335.86,7.86;8,144.73,580.09,335.87,7.86;8,144.73,591.04,269.03,7.86"><p>Note that the dev set was available at training time but was at no point provided to the model before inference was performed. Therefore it is out-of-sample but was available for hyperparameter tuning. Only limited results are available for the true out-of-sample datasets as these sets are held by the lab organizers.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="8" xml:id="foot_7" coords="8,144.73,602.00,335.87,7.86;8,144.73,612.96,335.86,7.86;8,144.73,623.92,335.86,7.86;8,144.73,634.88,335.87,7.86;8,144.73,645.84,335.86,7.86;8,144.73,656.80,20.04,7.86"><p>All values computed using contest-provided code. Precision and recall values were not provided by the contest organizers in the output of test and China data set evaluations and are therefore unavailable here. Unfortunately, the random seed values for the models trained and evaluated on the test and China data sets were lost and so the (train and dev ) and (test and China) results are from two different model runs.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="9" xml:id="foot_8" coords="9,144.73,634.88,335.86,7.86;9,144.73,645.84,335.86,7.86;9,144.73,656.80,335.87,7.86"><p>All values computed using contest-provided code. Due to time constraints imposed by the contest structure, performance was not evaluated for tasks 1 and 2 on the test and China data sets. Unfortunately, the random seed values for the models trained</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="12" xml:id="foot_9" coords="12,144.73,645.84,335.87,7.86;12,144.73,656.80,228.66,7.86"><p>While there does not appear to be a single best citation for attention neural networks, the earliest use of attention in RNN models may be<ref type="bibr" coords="12,356.49,656.80,13.52,7.86" target="#b17">[18]</ref>.</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="13" xml:id="foot_10" coords="13,144.73,645.84,335.86,7.86;13,144.73,656.80,202.06,7.86"><p>The organizers provided a script that allowed participants to download the story data themselves from the original source websites.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="13,142.96,347.41,337.64,7.86;13,151.52,358.37,329.07,7.86;13,151.52,369.33,329.07,7.86;13,151.52,380.29,329.07,7.86;13,151.52,391.25,329.07,7.86;13,151.52,402.21,329.07,7.86;13,151.52,413.17,329.07,7.86;13,151.52,424.13,247.31,7.86" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Abadi</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Barham</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Brevdo</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Citro</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><forename type="middle">S</forename><surname>Corrado</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Dean</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Devin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Ghemawat</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Harp</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Irving</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Isard</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Jia</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Jozefowicz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Kaiser</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kudlur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Levenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Mané</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Monga</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Olah</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Shlens</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Steiner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Talwar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Tucker</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vanhoucke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Vasudevan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Viégas</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Vinyals</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Warden</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wattenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Wicke</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Zheng</surname></persName>
+		</author>
+		<ptr target="http://tensorflow.org/,softwareavailablefromtensorflow.org" />
+		<title level="m" coord="13,167.61,413.17,280.76,7.86">TensorFlow: Large-scale machine learning on heterogeneous systems</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,435.59,337.64,7.86;13,151.52,446.52,236.95,7.89" xml:id="b1">
+	<monogr>
+		<title level="m" type="main" coord="13,212.34,435.59,229.02,7.86">Creating a real-time, reproducible event dataset</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Beieler</surname></persName>
+		</author>
+		<idno>CoRR abs/1612.00866</idno>
+		<ptr target="http://arxiv.org/abs/1612.00866" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,457.99,337.64,7.89;13,151.52,468.98,162.64,7.86" xml:id="b2">
+	<monogr>
+		<title level="m" type="main" coord="13,200.60,458.02,170.72,7.86">Generating politically-relevant event data</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Beieler</surname></persName>
+		</author>
+		<idno>CoRR abs/1609.06239</idno>
+		<ptr target="http://arxiv.org/abs/1609.06239" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,480.44,337.64,7.86;13,151.52,491.37,329.07,7.89;13,151.52,502.36,131.41,7.86" xml:id="b3">
+	<monogr>
+		<title level="m" type="main" coord="13,412.32,480.44,68.27,7.86;13,151.52,491.40,162.77,7.86">Enriching word vectors with subword information</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<idno>CoRR abs/1607.04606</idno>
+		<ptr target="http://arxiv.org/abs/1607.04606" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,513.82,337.64,7.86;13,151.52,524.78,329.07,7.86;13,151.52,535.74,329.07,7.86;13,151.52,546.70,190.39,7.86" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="13,151.52,524.78,149.69,7.86">Bbn accent event coding evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Boschee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lautenschlager</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>O'brien</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Shellman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Starz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Ward</surname></persName>
+		</author>
+		<idno type="DOI">10.7910/DVN/28075/GBAGXI</idno>
+		<ptr target="https://doi.org/10.7910/DVN/28075/GBAGXI" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="13,391.82,524.78,88.78,7.86;13,151.52,535.74,101.40,7.86">ICEWS Coded Event Data. Harvard Dataverse</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note>updated v01.pdf</note>
+</biblStruct>
+
+<biblStruct coords="13,142.96,558.17,337.64,7.86;13,151.52,569.13,329.07,7.86;13,151.52,580.06,304.16,7.89" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="13,151.52,569.13,329.07,7.86;13,151.52,580.08,42.30,7.86">Learning phrase representations using RNN encoder-decoder for statistical machine translation</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Van Merrienboer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">¸</forename><surname>Gülçehre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Bougares</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Schwenk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<idno>CoRR abs/1406.1078</idno>
+		<ptr target="http://arxiv.org/abs/1406.1078" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,591.55,203.96,7.86" xml:id="b6">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Chollet</surname></persName>
+		</author>
+		<ptr target="https://keras.io" />
+		<title level="m" coord="13,226.66,591.55,21.39,7.86">Keras</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="13,142.96,603.02,337.63,7.86;13,151.52,613.95,329.07,7.89;13,151.52,624.93,131.41,7.86" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="13,338.64,603.02,141.95,7.86;13,151.52,613.97,189.90,7.86">BERT: pre-training of deep bidirectional transformers for language understanding</title>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Devlin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Chang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Toutanova</surname></persName>
+		</author>
+		<idno>CoRR abs/1810.04805</idno>
+		<ptr target="http://arxiv.org/abs/1810.04805" />
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.96,117.41,337.63,10.13;14,151.52,130.63,329.07,7.86;14,151.52,141.59,329.07,7.86;14,151.52,152.55,162.47,7.86" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="14,387.75,119.67,92.84,7.86;14,151.52,130.63,329.07,7.86;14,151.52,141.59,74.21,7.86">Conflict and mediation event observations (cameo): A new event data framework for the analysis of foreign policy interactions</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">J</forename><surname>Gerner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Abu-Jabr</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Schrodt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ömür</forename><surname>Yilmaz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,261.40,141.59,110.52,7.86">Foreign Policy Interactions</title>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+	<note>Paper presented at the International Studies Association</note>
+</biblStruct>
+
+<biblStruct coords="14,142.62,164.25,337.97,7.86;14,151.52,175.21,329.07,7.86;14,151.52,186.17,293.45,7.86" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Swersky</surname></persName>
+		</author>
+		<ptr target="http://www.cs.toronto.edu/∼tijmen/csc321/slides/lectureslideslec6.pdf" />
+		<title level="m" coord="14,359.80,164.25,120.79,7.86;14,151.52,175.21,329.07,7.86">Neural networks for machine learning: Lecture 6a overview of mini-batch gradient descent</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,197.87,337.97,7.86;14,151.52,208.80,329.07,7.89;14,151.52,219.78,182.80,7.86" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="14,303.09,197.87,107.89,7.86">Long short-term memory</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+		<idno type="DOI">10.1162/neco.1997.9.8.1735</idno>
+		<ptr target="http://dx.doi.org/10.1162/neco.1997.9.8.1735" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,423.78,197.87,56.81,7.86;14,151.52,208.82,12.29,7.86">Neural Comput</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<biblScope unit="page" from="1735" to="1780" />
+			<date type="published" when="1997-11">Nov 1997</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,231.48,337.98,7.86;14,151.52,242.44,329.07,7.86;14,151.52,253.40,25.60,7.86" xml:id="b11">
+	<monogr>
+		<title level="m" type="main" coord="14,263.27,231.48,217.33,7.86;14,151.52,242.44,278.77,7.86">spacy 2: Natural language understanding with bloom embeddings, convolutional neural networks and incremental parsing</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Honnibal</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Montani</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+	<note>To appear</note>
+</biblStruct>
+
+<biblStruct coords="14,142.62,265.10,337.97,7.86;14,151.52,276.06,329.07,7.86;14,151.52,287.02,329.07,7.86;14,151.52,297.98,329.07,7.86;14,151.52,308.93,101.04,7.86" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="14,166.18,276.06,314.41,7.86;14,151.52,287.02,34.85,7.86">A task set proposal for automatic protest information collection across multiple countries</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Hürriyetoglu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Yörük</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Yüret</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><forename type="middle">¸</forename><surname>Yoltar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Gürel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Duruşan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Mutlu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,190.62,297.98,138.56,7.86">Advances in Information Retrieval</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Azzopardi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">B</forename><surname>Stein</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Fuhr</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Mayr</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Hauff</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">D</forename><surname>Hiemstra</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Cham</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer International Publishing</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="316" to="323" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,320.63,337.97,7.86;14,151.52,331.59,329.07,7.86;14,151.52,342.52,329.07,7.89;14,151.52,353.51,278.34,7.86" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="14,250.00,320.63,230.58,7.86;14,151.52,331.59,329.07,7.86;14,151.52,342.55,95.82,7.86">An automated information extraction tool for international conflict data with performance as good as human coders: A rare events evaluation design</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>King</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Lowe</surname></persName>
+		</author>
+		<ptr target="http://gking.harvard.edu/files/gking/files/infoex.pdf?m=1360039060" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,254.29,342.55,107.47,7.86">International Organization</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page" from="617" to="642" />
+			<date type="published" when="2003">Summer 2003</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,365.21,337.97,7.86;14,151.52,376.17,106.49,7.86" xml:id="b14">
+	<analytic>
+		<title level="a" type="main" coord="14,263.74,365.21,194.36,7.86">Gdelt: Global data on events, location, and tone</title>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Leetaru</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Schrodt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,465.23,365.21,15.36,7.86;14,151.52,376.17,77.82,7.86">ISA Annual Convention</title>
+		<imprint>
+			<date type="published" when="2013">2013</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,387.87,337.98,7.86;14,151.52,398.82,329.07,7.86;14,151.52,409.78,329.07,7.86;14,151.52,420.74,42.03,7.86" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="14,207.54,387.87,273.05,7.86;14,151.52,398.82,67.32,7.86">Automated acquisition of patterns for coding political event data: Two case studies</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Makarov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,240.33,398.82,240.26,7.86;14,151.52,409.78,69.91,7.86">Proceedings of Workshop on Computational Linguistics for Cultural Heritage</title>
+		<title level="s" coord="14,229.03,409.78,173.30,7.86">Social Sciences, Humanities and Literature</title>
+		<meeting>Workshop on Computational Linguistics for Cultural Heritage</meeting>
+		<imprint>
+			<date type="published" when="2018-08">August 2018</date>
+			<biblScope unit="page" from="103" to="112" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,432.44,337.97,7.86;14,151.52,443.40,329.07,7.86;14,151.52,454.36,275.34,7.86" xml:id="b16">
+	<analytic>
+		<title level="a" type="main" coord="14,412.81,432.44,67.78,7.86;14,151.52,443.40,161.38,7.86">Advances in pretraining distributed word representations</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mikolov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Grave</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bojanowski</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Puhrsch</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Joulin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="14,332.11,443.40,148.48,7.86;14,151.52,454.36,246.67,7.86">Proceedings of the International Conference on Language Resources and Evaluation (LREC 2018)</title>
+		<meeting>the International Conference on Language Resources and Evaluation (LREC 2018)</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,466.06,337.97,7.86;14,151.52,477.02,201.35,7.86" xml:id="b17">
+	<monogr>
+		<title level="m" type="main" coord="14,368.78,466.06,111.81,7.86;14,151.52,477.02,36.61,7.86">Recurrent models of visual attention</title>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Mnih</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Heess</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Graves</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<ptr target="https://arxiv.org/abs/1406.6247" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,488.72,337.98,7.86;14,151.52,499.65,329.07,7.89;14,151.52,510.63,185.99,7.86" xml:id="b18">
+	<analytic>
+		<title level="a" type="main" coord="14,208.34,488.72,272.26,7.86;14,151.52,499.67,136.01,7.86">Crisis early warning and decision support: Contemporary approaches and thoughts on future research</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">P</forename><surname>O'brien</surname></persName>
+		</author>
+		<ptr target="http://www.jstor.org/stable/40730711" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,296.62,499.67,120.89,7.86">International Studies Review</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="87" to="104" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,522.33,337.97,7.86;14,151.52,533.29,329.07,7.86;14,151.52,544.25,141.57,7.86" xml:id="b19">
+	<monogr>
+		<title level="m" type="main" coord="14,213.28,522.33,267.31,7.86;14,151.52,533.29,168.08,7.86">Automated Learning of Event Coding Dictionaries for Novel Domains with an Application to Cyberspace</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">J</forename><surname>Radford</surname></persName>
+		</author>
+		<ptr target="http://hdl.handle.net/10161/13386" />
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+		<respStmt>
+			<orgName>Duke University</orgName>
+		</respStmt>
+	</monogr>
+	<note type="report_type">Ph.D. thesis</note>
+</biblStruct>
+
+<biblStruct coords="14,142.62,555.95,337.98,7.86;14,151.52,566.91,329.07,7.86;14,151.52,577.87,147.85,7.86" xml:id="b20">
+	<analytic>
+		<title level="a" type="main" coord="14,224.23,555.95,256.36,7.86;14,151.52,566.91,11.14,7.86">Automated dictionary generation for political eventcoding</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><forename type="middle">J</forename><surname>Radford</surname></persName>
+		</author>
+		<idno type="DOI">10.1017/psrm.2019.1</idno>
+		<ptr target="https://doi.org/10.1017/psrm.2019.1" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="14,176.33,566.91,187.70,7.86">Political Science Research and Methods</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="15" />
+		</imprint>
+	</monogr>
+	<note>Forthcoming</note>
+</biblStruct>
+
+<biblStruct coords="14,142.62,589.56,337.98,7.86;14,151.52,600.50,287.27,7.89" xml:id="b21">
+	<monogr>
+		<title level="m" type="main" coord="14,275.87,589.56,200.85,7.86">Text chunking using transformation-based learning</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><forename type="middle">A</forename><surname>Ramshaw</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">P</forename><surname>Marcus</surname></persName>
+		</author>
+		<idno>CoRR cmp-lg/9505040</idno>
+		<ptr target="http://arxiv.org/abs/cmp-lg/9505040" />
+		<imprint>
+			<date type="published" when="1995">1995</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,612.22,337.97,7.86;14,151.52,623.18,213.78,7.86" xml:id="b22">
+	<monogr>
+		<title level="m" type="main" coord="14,212.23,612.22,263.89,7.86">Forecasting Conflict in the Balkans using Hidden Markov Models</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Schrodt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+			<publisher>Springer</publisher>
+			<biblScope unit="page" from="161" to="184" />
+			<pubPlace>Netherlands; Dordrecht</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="14,142.62,634.88,42.71,7.86;14,202.42,634.88,20.10,7.86;14,239.61,634.88,28.94,7.86;14,285.64,634.88,30.72,7.86;14,333.45,634.88,31.59,7.86;14,382.13,634.88,9.72,7.86;14,408.94,634.88,43.79,7.86;14,469.82,634.88,10.78,7.86;14,151.52,645.84,40.71,7.86;14,217.97,645.84,49.79,7.86;14,293.49,645.84,28.23,7.86;14,347.46,645.84,21.50,7.86;14,394.70,645.84,32.00,7.86;14,452.43,645.84,28.16,7.86;14,151.52,656.80,309.91,7.86" xml:id="b23">
+	<monogr>
+		<title level="m" type="main" coord="14,239.61,634.88,28.94,7.86;14,285.64,634.88,30.72,7.86;14,333.45,634.88,31.59,7.86;14,382.13,634.88,9.72,7.86;14,408.94,634.88,43.79,7.86;14,469.82,634.88,10.78,7.86;14,151.52,645.84,40.71,7.86;14,217.97,645.84,45.96,7.86">Tabari: Textual analysis by augmented replacement instructions</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Schrodt</surname></persName>
+		</author>
+		<ptr target="http://eventdata.parusanalytics.com/tabari.dir/TABARI.0.8.4b3.manual.pdf" />
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+	<note>0.8.4. manual</note>
+</biblStruct>
+
+<biblStruct coords="15,142.62,119.67,337.97,7.86;15,151.52,130.63,329.07,7.86;15,151.52,141.59,323.53,7.86" xml:id="b24">
+	<monogr>
+		<title level="m" type="main" coord="15,293.36,119.67,187.23,7.86;15,151.52,130.63,215.73,7.86">Three&apos;s a charm?: Open event data coding with el:diablo, petrarch, and the open event data alliance</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">A</forename><surname>Schrodt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Beieler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Idris</surname></persName>
+		</author>
+		<ptr target="http://eventdata.parusanalytics.com/papers.dir/Schrodt-Beieler-Idris-ISA14.pdf" />
+		<imprint>
+			<date type="published" when="2014-03">March 2014</date>
+		</imprint>
+	</monogr>
+	<note>version 1.0</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

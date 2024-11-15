@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,211.37,187.00,172.60,12.00">Notebook for PAN at CLEF 2018</title>
+				<funder ref="#_YxBDTH9">
+					<orgName type="full">National Science Foundation</orgName>
+					<orgName type="abbreviated">NSF</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,236.21,238.55,56.30,9.05"><forename type="first">Mirco</forename><surname>Kocher</surname></persName>
+							<email>mirco.kocher@unine.ch</email>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science Dept</orgName>
+								<orgName type="institution">University of Neuchâtel</orgName>
+								<address>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,311.98,238.55,58.58,9.05"><forename type="first">Jacques</forename><surname>Savoy</surname></persName>
+							<email>jacques.savoy@unine.ch</email>
+							<affiliation key="aff0">
+								<orgName type="department">Computer Science Dept</orgName>
+								<orgName type="institution">University of Neuchâtel</orgName>
+								<address>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,211.37,187.00,172.60,12.00">Notebook for PAN at CLEF 2018</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">AE873A4F3E2E7C5A212DF30A30AD4E86</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:54+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This paper describes and evaluates an author masking model to obfuscate the writer of a document. The suggested strategy works in English with different text genres (e.g., essays, novels, poems) and various text sizes (e.g., from less than 500 to 4,000 tokens). The approach mainly focuses on retaining high soundness and sensibleness in the obfuscated texts with the reduced set of modifications. To improve the safety, rules with a high probability of correctness are applied by attacking the feature frequencies. Depending on the writing style in the comparable documents of an author, a feature is either increased or decreased in the masked text. The evaluations are based on 205 training and 464 test problems (PAN AUTHOR OBFUSCATION task at CLEF 2018).</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="8" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+		<surface n="9" ulx="0.0" uly="0.0" lrx="595.32" lry="842.04"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Stylometry is an interesting problem in computational linguistics but also in applied areas such as criminal investigation and historical studies where knowing the author of a document (such as a ransom note) may be able to save lives <ref type="bibr" coords="1,374.95,491.41,15.43,9.05" target="#b13">[14]</ref>. With the Web 2.0 technologies, the number of anonymous or pseudonymous texts is increasing, and in many cases, one person writes in different places about different topics (e.g., multiple blog posts written by the same author). Therefore, proposing an effective algorithm to the authorship identification problem presents a real interest. Detecting the author style has been studied for years and different approaches have been explored.</p><p>However, the reverse process of obfuscating the style of an author is less studied. There are many challenges in different directions. Of course, the author style must be hidden, but also, the text needs to remain syntactically correct, and the semantics of the original document should be retained. The challenge is to use the information in a provided set of documents to mask the original document. Therefore, by analyzing someone's usual writing style, a text must be transformed to obfuscate the writer.</p><p>This paper is organized as follows. After the presentation of the related works, the next section presents the evaluation methodology and test collection used in the experiments. The fourth section explains our proposed masking algorithm. Then, we evaluate the proposed scheme and compare it to the other participants. A conclusion draws the main findings of this study.</p><p>Author identification is a well-studied topic and was explored in the PAN lab for years. Juola et al. <ref type="bibr" coords="2,196.73,189.20,11.72,9.05" target="#b4">[5]</ref> created JGAAP (Java Graphical Authorship Attribution Program) that can use distinctive features, e.g., words, parts of speech, and characters or word ngrams, to solve author identification problems. The PAN 2017 task overview paper <ref type="bibr" coords="2,124.82,223.64,16.76,9.05" target="#b13">[14]</ref> summarizes the approaches and features used for author identification by different participants. Among the most used features are the lengths of words, sentences, or paragraphs, type-token ratios, and frequencies of hapax legomena, n-grams, words, punctuation marks, or parts of speech.</p><p>Kacmarcik and Gamon <ref type="bibr" coords="2,230.33,269.63,11.72,9.05" target="#b5">[6]</ref> masked an author's text by detecting the most used words and tried to change them. They also mention the application of machine translation as a possible approach for author obfuscation. Machine translation was also used as a means for author obfuscation ( <ref type="bibr" coords="2,253.25,304.19,10.59,9.05" target="#b5">[6]</ref>, <ref type="bibr" coords="2,271.34,304.19,15.92,9.05" target="#b11">[12]</ref>) where passages of text from English were translated to at least one other language and then back to English. The main advantage of this method is a strong modification of the original text, but the disadvantage is that there are many untranslated words and it can result in weak semantic coherence of the obfuscated text.</p><p>Brennan et al. <ref type="bibr" coords="2,194.04,361.67,11.77,9.05" target="#b1">[2]</ref> investigated three different approaches for adversarial stylometry, namely obfuscation (masking author style), imitation (trying to copy another author's style), and machine translation. They have summarized the features people use most when trying to obfuscate their own writing style <ref type="bibr" coords="2,322.63,396.13,10.69,9.05" target="#b8">[9]</ref>. Another approach used in <ref type="bibr" coords="2,449.34,396.13,11.88,9.05" target="#b7">[8]</ref> is to synonymize the most frequent words of the original text. This method keeps the meaning of the text in most of the cases but gives a small number of modifications of the original text. The best result of the metrics used in the PAN lab can be achieved by combining strong context modifications and preserving the original sense of the text <ref type="bibr" coords="2,124.82,453.73,11.72,9.05" target="#b8">[9]</ref> by using several types of text obfuscation.</p><p>Juola et al. <ref type="bibr" coords="2,181.08,465.13,11.74,9.05" target="#b4">[5]</ref> experimented with different techniques for author obfuscation. Their system consists of three main modules, i.e., canonization (unifying cases, normalizing whitespaces, spelling correction, etc.), event set determination (extraction of events significant for author detection, such as words, parts of speech n-grams, etc.), and statistical inference (measures that determine the results and confidence in the final report). The same authors used this approach <ref type="bibr" coords="2,308.28,522.73,11.65,9.05" target="#b3">[4]</ref> to detect deliberate style obfuscation. Some other features used for author recognition are personal pronouns, sentence length, unique words, and parts of speech <ref type="bibr" coords="2,263.21,545.68,10.78,9.05" target="#b0">[1]</ref>.</p><p>Statistical and context features are used in modern detecting authorship approaches, for example, in GLAD <ref type="bibr" coords="2,219.44,568.72,10.75,9.05" target="#b2">[3]</ref>. In our participation, we studied the feature frequencies to mask the author style, i.e., to address the Author Obfuscation task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Evaluation Methodology and Test Collection</head><p>The evaluation was performed using the TIRA platform, which is an automated tool for deployment and evaluation of the software <ref type="bibr" coords="2,297.41,657.04,15.43,9.05" target="#b9">[10]</ref>. The data access is restricted such that during a software run the system is encapsulated and thus ensuring that there is no data leakage back to the task participants. This evaluation procedure also offers a fair evaluation of the time needed to produce an answer.</p><p>For each obfuscation problem, there was one document that had to be obfuscated and a set of other documents from the same author. The goal was to mask one document such that its writing style is different from the others <ref type="bibr" coords="3,341.47,195.80,15.43,9.05" target="#b12">[13]</ref>. In this context, the task is defined as follows:</p><p>Given a document, paraphrase it so that its writing style does not match that of its original author, anymore. The organizers have proposed the following parameters for the evaluation of the author masking task. The quality of all submitted systems is assessed based on the following three questions: 1. Safeness: does forensic analysis reveal the original author of its obfuscated texts? 2. Soundness: are the obfuscated texts textually entailed with their originals? 3. Sensibleness: are the obfuscated texts inconspicuous to a human reader? These dimensions are orthogonal; an obfuscation software may meet any of them to various degrees of perfection. If no modification is performed at all, the obfuscation would be sound and sensible but not safe. To assess the performance in soundness and sensibleness, the obfuscations are sampled and handed out to participants for manual peer-review <ref type="bibr" coords="3,174.98,356.87,15.46,9.05" target="#b10">[11]</ref>.</p><p>The task organizers evaluated safeness. The obfuscated texts were tested with four authorship verification models, namely Caravel (the best-performing verification approach at PAN 2015), GLAD (Groningen Lightweight Authorship Detection), Authorid (model using Bayes, imposters, and sparse representation), and AuthorIdentification-PFP (a universal background approach based on random forest with increased generalization). Furthermore, all participants were invited to submit automatic performance measures in the corresponding task called Obfuscation Evaluation.</p><p>All the texts were written in English, and for each problem, there were between one and five documents from the same author in addition to the original document that had to be obfuscated. The text length varied considerably between problems. In approximation, we saw three different sections, the first 105 problems had less than 1,000 word tokens (&lt;5,000 characters) per text, the next 50 problems contained almost 4,000 words (&gt;20,000 characters), and the last 50 problems were small again with &lt;500 tokens (&lt;2,000 characters) in each document. Different problems also originated from different genres. There were extracts from scientific books, personal and topical essays, self-evaluations, reviews, passages from novels, poems, and plays.</p><p>As test collections, the data sets from the previous years were used, namely 14 problems from PAN13, 100 problems each English essays and novels from PAN14, and 250 from PAN15.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Masking Algorithm</head><p>We applied an obfuscation system with simple conditions, search objects, and replacement rules. Our method focused on attacking frequency features to trick verification systems based on the bag of word approach while leaving out, for instance, the average sentence length or Boolean features. For each problem, we have a document that must be masked (called original) and a set of similar texts from the author (called same). Therefore, we compare the frequency of a feature in original and same. If the feature is more frequent in original, then we try to increase it even more in the masked text to make is more dissimilar from same. If no condition of any rule is met, then the obfuscated text is the same as the original.</p><p>An overview of our obfuscation rules can be seen in Table <ref type="table" coords="4,373.03,218.84,3.77,9.05">1</ref>. In the first rule, as an example, if the abbreviation of "to be" and "not" is more common in same, we expand all occurrences in original for our obfuscated text. The second rule would do the reverse and contract those versions to the "to be" and "n't" version. Besides a potential increase in safety, those rules do not infer soundness and should also be sensible.</p><p>From the dataset with rule 3, we have "[…] a lot of stress is being put on language skills […]" which we transform to "[…] a lot of stress is put on language skills […]". The reverse in rule 4 would be "All this information is stored for each customer […]" which we transform to "All this information is being stored for each customer […]".</p><p>In the rules 5 and 6 we use a dictionary look-up with 142 entries of the format "very X" and for each, we have one or two synonyms. Table <ref type="table" coords="4,344.95,333.83,4.98,9.05">3</ref> in the Appendix shows all the word pairs. As an example, "very good" would be randomly replaced by either "excellent" or "superb" if the comparable texts contain the word "very" frequently (rule 5). In rule 6, the inverse procedure is performed, and both "excellent" and "superb" are replaced by "very good" to increase the frequency of "very" even more in original.</p><p>For rule 7, we have "[…] Marie started introducing them." in the dataset, which is transformed to "[…] Marie introduced them.". Due to the transformation of the verb, it is possible that this rule does not produce perfect a sensible obfuscation. As an example, "spinning" would be "spinned" and "reading" would be "readed".</p><p>The phrase " in order to " is usually redundant and we replace it with a simple " to " in case the phrase is less common in original. Rules 9 to 14 are simple replacement of two semantically equal strings depending on its appearances in original and same. The obfuscation is punctuated according to the original text, meaning that if the Oxford comma is found in the search phrase in rule 13 it is also used in the replacement part.</p><p>In rule 15, we reorder part of a sentence if it contains " of the " and if it is less common in the original. As an example, "[…] which the author of the editorial seems to imply." is transformed to "[…] which the editorial author seems to imply.". This rule may decrease the sensibleness in case where the second part is not a single word, as in "[…] New York at the beginning of the 20th century and […]" which would be obfuscated as "[…] New York at the 20th beginning century and […]". In retrospective, a Part of Speech tagger could have helped reducing the error rate in this case.</p><p>The rules 16 to 20 introduce some improper spellings with a fixed probability. The exclamation mark and question mark can be repeated up to three times or left as is. For words with repeated characters, e.g., "excellences", we add spelling mistakes by either adding the repeated letter once more, i.e., "excelllences", or removing one of its occurrences, i.e., "excelences". This is only done for 5% of the matches and randomly decided, which means that this part of the obfuscation is not deterministic. Table <ref type="table" coords="5,271.13,149.69,3.41,8.04">1</ref>. Obfuscation rules.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Rule Condition</head><p>Search Replace Notes 1 more "n't" than "not" in same "isn't" "don't" "doesn't" "didn't" "wasn't" "weren't" "couldn't" "hasn't" "haven't" "can't" "is not" "do not" "does not" "did not" "was not" "were not" "could not" "has not" "have not" "can not" -2 more "not" than "n't" in same ↗ ↖ vice versa from Rule 1 3 more "is|are|was|were being", than "is|are|was|were X+ed" in same "is being" "are being" "was being" "were being"</p><p>"" -4 more "is|are|was|were X+ed", than "is|are|was|were being" in same "is X+ed" "are X+ed" "was X+ed" "were X+ed"</p><p>"is being X+ed " "are being X+ed " "was being X+ed " "were being X+ed " -5 more "very X" in original " Y " " very X " list of 142 X and 161 Y 6 less "very X" in original " very X " " Y " 7 less "started X+ing" in original "started X+ing" "X+ed" -8 less " in order to " in original " in order to " " to " -9 more " in fact,? " than " actually,? " in same " in fact,? " " actually,? " optional comma 10 more " actually,? " than " in fact,? " in same ↗ ↖ vice versa from Rule 9 11 more " However,? " than " On the contrary,? " in same " However,? " " On the contrary,? " optional comma 12 more " On the contrary,? " than " However,? " in same ↗ ↖ vice versa from Rule 11 13 more " X, Y,? and Z" than " as well as " in same " X, Y,? and Z" " X, Y,? as well as Z" optional comma 14 more " as well as " than " X, Y,? and Z" in same " as well as " " and " optional comma 15 less " of the " in original " the X of the Y" " the Y X" -16 more "!" in original "!" "!!|!!!" only for 50% 17 less "!" in original "!" "." 18 more "?" in original "?" "?|??|???" 19 repeated character " XYYZ " " XYZ " only for 5% 20 " XYYYZ "</p><p>When inspecting the coverage of those rules in the training set, we see that not all texts were obfuscated with the same intensity. There are texts which are only modified by the probabilistic rules (rule 16 -20) because none of the conditions was satisfied or because the search was not able to do any valid replacements. However, some texts met many of the conditions and many opportunities for changes were found.</p><p>A human assessor conducted an in-depth manual sensibleness assessment on a subset of the data who assigned school grades (on a scale from 1 (excellent) to 5 (fail)). With the limited number of implemented changes, we obtained the grade 1-2, depending on the inspected problem. This was planned and expected for our system. Afterward, the assessor read the original texts and judged the textual differences in several ways to evaluate the soundness of the obfuscated texts on a three-point scale as either "1 = correct", "2 = passable", or 3 = "incorrect". Our approach was marked "passable" because our system changed the ordering of the sentences resulting in passages that were not clear. This modification was not intended, and the source of this reformation is not clear at the time of writing.</p><p>In Table <ref type="table" coords="6,172.82,292.67,4.98,9.05" target="#tab_0">2</ref> we can see a summary of all evaluation results as a macro average over the distinct types of data sets. Specifically, we reported the average of the safety performance over four data sets (PAN13, PAN14 essay, PAN14 novel, and PAN15). The AUC, C@1, and final scores are performance measures from the Author Identification <ref type="bibr" coords="6,182.01,338.63,16.84,9.05" target="#b13">[14]</ref> task. The goal was to reduce those values, meaning the verifiers were not able to confirm a shared authorship anymore and lower (more negative) scores were better. The acc, rec, and imp refer to the performance measures specifically from the Author Masking task. In the first column, the reference indicates the team reference as used in the overview paper <ref type="bibr" coords="6,249.85,384.73,15.47,9.05" target="#b10">[11]</ref>. Our approach is in the highlighted row with the number 12. In this year, they only had one other participant, that is Rahgouy et al. with reference 17. The table includes results from the previous years to have a better overview of the different approaches. In the year 2017, two teams participated, namely Bakhteev and Khazov (ref.  When comparing the safety between the participants, we see some variations. Our approach achieves the highest drop in the C@1 performance measure and the second highest reduction of the AUC measure. However, the combination of those two performance statistics (fourth column labeled final), puts us in the fifth position. The organizers from PAN then further inspected all the approaches and calculated the accuracy and recall for each obfuscation system. The impact of every author masking approach is further used for a normalized comparison. In all those additional measures, our approach is ranked last, which is understandable due to its underlying simplicity.</p><p>Interesting to see is that all participants had a strong correlation between any two performance values, except for us. We achieved a good reduction in the PAN verification measures but had significantly lower Obfuscation scores <ref type="bibr" coords="7,401.95,207.32,15.43,9.05" target="#b10">[11]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Conclusion</head><p>This paper proposes a light technique to solve the author masking problem with focus on soundness and sensibleness. Depending on the writing style in the comparable documents of an author, a feature is either increased or decreased in the masked text. We achieved good grades in the sensibleness and soundness by a human assessor who was one of the goals of our system. The safety measurements gave unusual results where we achieved great scores in the verification performance and significantly lower scores in the obfuscation impact. Further evaluation results, including in-depth comparisons with other participants and the official valuation, are available in the overview paper from the organizers <ref type="bibr" coords="7,274.74,364.67,15.62,9.05" target="#b10">[11]</ref>. Based on a personal assessment with our author verification system <ref type="bibr" coords="7,230.21,376.19,10.69,9.05" target="#b6">[7]</ref>, we saw that the safety of the author masking was slightly increased over the baseline, but cases remain where forensic analysis can reveal the original author of its obfuscated texts. This deduction was expected and is according to the reduced set of modifications.</p><p>The author obfuscation method has lots of opportunities for improvement. Instead of simply focusing on feature frequencies we could also adjust the average sentence length or changing Boolean features. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="6,237.41,430.69,233.13,9.05;6,124.82,442.21,345.98,9.05;6,124.82,453.73,119.97,9.05"><head></head><label></label><figDesc>1) and Castro et al. (ref. 5). In the year 2016, there were another three teams, specifically Keswani et al. (ref. 11), Mansoorizadeh et al. (ref. 13), and Mihaylova et al. (ref. 14).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,135.50,470.94,322.02,153.78"><head>Table 2 .</head><label>2</label><figDesc>Macro average of evaluation results ordered by final.</figDesc><table coords="6,135.50,490.51,322.02,134.21"><row><cell>Team</cell><cell>AUC</cell><cell>C@1</cell><cell>Safety final</cell><cell>acc</cell><cell>rec</cell><cell>imp</cell><cell cols="2">Sensibleness Soundness</cell></row><row><cell cols="7">14 -0.1265 -0.0956 -0.1131 -0.1281 -0.2387 0.4495</cell><cell>4.0</cell><cell>3.0</cell></row><row><cell>5</cell><cell cols="6">-0.1157 -0.0770 -0.0967 -0.1158 -0.2149 0.3850</cell><cell>2.5</cell><cell>3.0</cell></row><row><cell cols="7">17 -0.1082 -0.0822 -0.0884 -0.0997 -0.1882 0.3664</cell><cell>3.0</cell><cell>2.0</cell></row><row><cell cols="7">11 -0.0903 -0.0684 -0.0839 -0.0961 -0.1829 0.3654</cell><cell>5.0</cell><cell>3.0</cell></row><row><cell cols="7">12 -0.1180 -0.1050 -0.0760 -0.0376 -0.0760 0.1640</cell><cell>1.5</cell><cell>2.0</cell></row><row><cell>1</cell><cell cols="6">-0.0582 -0.0512 -0.0598 -0.0726 -0.1322 0.2491</cell><cell>4.0</cell><cell>3.0</cell></row><row><cell cols="7">13 -0.0473 -0.0366 -0.0445 -0.0552 -0.0981 0.2063</cell><cell>2.0</cell><cell>1.5</cell></row></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><p>Acknowledgments. The author wants to thank the task coordinators for their valuable effort to promote test collections in author identification. This research was supported, in part, by the <rs type="funder">NSF</rs> under Grant #<rs type="grantNumber">200021_149665/1</rs>.</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funding" xml:id="_YxBDTH9">
+					<idno type="grant-number">200021_149665/1</idno>
+				</org>
+			</listOrg>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,131.95,543.28,338.61,9.05;7,146.18,554.79,324.37,9.06;7,146.18,566.31,256.10,9.06" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,350.23,543.28,120.33,9.05;7,146.18,554.80,130.38,9.05">Detecting hoaxes, frauds, and deception in writing style online</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Afroz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brennan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Greenstadt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,297.89,554.79,172.66,9.06;7,146.18,566.31,94.79,9.06">Proceedings of the 2012 IEEE Symposium on Security and Privacy</title>
+		<meeting>the 2012 IEEE Symposium on Security and Privacy<address><addrLine>Washington, DC, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="461" to="475" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,131.95,577.84,338.87,9.05;7,146.18,589.35,324.57,9.06;7,146.18,600.75,168.21,9.06" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,368.17,577.84,102.65,9.05;7,146.18,589.36,293.07,9.05">Adversarial stylometry -Circumventing authorship recognition to preserve privacy and anonymity</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Brennan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Afroz</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Greenstadt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,449.74,589.35,21.01,9.06;7,146.18,600.75,90.96,9.06">ACM Trans. Inf. Syst. Secur</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1" to="12" />
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,131.95,612.28,338.88,9.05;7,146.18,623.80,324.27,9.05;7,146.18,635.31,324.63,9.06;7,146.18,646.83,317.09,9.06" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="7,146.18,623.80,324.27,9.05;7,146.18,635.32,44.96,9.05">GLAD -Groningen Lightweight Authorship Detection -Notebook for PAN at CLEF 2015</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hürlimann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Weck</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Van Den Berg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Šuster</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Nissim</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,446.50,635.31,24.31,9.06;7,146.18,646.83,102.34,9.06">CLEF 2015 Labs Working Notes</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Jones</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>&amp; San Juan</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Toulouse, France; Aachen</addrLine></address></meeting>
+		<imprint>
+			<publisher>CEUR</publisher>
+			<date type="published" when="2015-09-08">2015. September 8-11</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,131.95,658.35,338.58,9.06;7,146.18,669.75,324.47,9.06;7,146.18,681.28,29.59,9.05" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,214.85,658.36,112.65,9.05">Detecting stylistic deception</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Juola</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,351.43,658.35,119.09,9.06;7,146.18,669.75,223.50,9.06">Proceedings of the Workshop on Computational Approaches to Deception Detection</title>
+		<meeting>the Workshop on Computational Approaches to Deception Detection<address><addrLine>Avignon, France</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+			<biblScope unit="page" from="91" to="96" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,131.95,149.84,338.83,9.05;8,146.18,161.35,324.58,9.06;8,146.18,172.87,281.47,9.06" xml:id="b4">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Juola</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Vescovi</surname></persName>
+		</author>
+		<title level="m" coord="8,273.17,149.84,197.60,9.05;8,146.18,161.35,324.58,9.06;8,146.18,172.87,138.03,9.06">Advances in Digital Forensics VII -7th IFIP WG 11.9 International Conference on Digital Forensic, chap. Analyzing Stylometric Approaches to Author Obfuscation</title>
+		<meeting><address><addrLine>Orlando, FL, USA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+			<biblScope unit="page" from="115" to="125" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,131.95,184.40,338.57,9.05;8,146.18,195.80,324.39,9.05;8,146.18,207.31,315.05,9.06" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="8,313.85,184.40,156.66,9.05;8,146.18,195.80,112.68,9.05">Obfuscating Document Stylometry to Preserve Author Anonymity</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Kacmarcik</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Gamon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,146.18,207.31,187.07,9.06">ACL Conference on Computational Linguistics</title>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Calzolari</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Cardie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Isabelle</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Sydney, Australia</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2006-07-17">2006. July 17-21</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,131.95,218.84,338.50,9.05;8,146.18,230.38,324.30,9.06;8,146.18,241.90,114.22,9.06" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="8,272.93,218.84,197.52,9.05;8,146.18,230.39,46.81,9.05">A Simple and Efficient Algorithm for Authorship Verification</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kocher</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Savoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="8,207.05,230.38,263.43,9.06;8,146.18,241.90,44.84,9.06">Journal of the American Society for Information Science and Technology</title>
+		<imprint>
+			<biblScope unit="volume">68</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="259" to="269" />
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,131.95,253.43,338.79,9.05;8,146.18,264.83,324.40,9.05;8,146.18,276.34,324.57,9.06;8,146.18,287.87,167.40,9.05" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="8,442.60,253.43,28.14,9.05;8,146.18,264.83,200.05,9.05">Author Obfuscation using WordNet and Language Models</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Mansoorizadeh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Rahgooy</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Aminiyan</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Eskandari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,297.65,276.34,137.97,9.06">CLEF 2016 Labs Working Notes</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Évora, Portugal; Aachen</addrLine></address></meeting>
+		<imprint>
+			<publisher>CEUR</publisher>
+			<date type="published" when="2016-09-05">2016. September 5-8</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,131.95,299.39,338.70,9.05;8,146.18,310.91,324.45,9.05;8,146.18,322.42,324.37,9.06;8,146.18,333.83,128.47,9.05" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="8,173.90,310.91,151.63,9.05">SU@PAN&apos;2016 -Author Obfuscation</title>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Mihaylova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Karadjov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Kiprov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Georgiev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Koychev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Nakov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,264.05,322.42,132.91,9.06">CLEF 2016 Labs Working Notes</title>
+		<editor>
+			<persName><forename type="first">K</forename><surname>Balog</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Capellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Macdonald</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Évora, Portugal; Aachen</addrLine></address></meeting>
+		<imprint>
+			<publisher>CEUR</publisher>
+			<date type="published" when="2016-09-05">2016. September 5-8</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,136.56,345.35,334.23,9.05;8,146.18,356.87,324.33,9.05;8,146.18,368.39,324.32,9.05;8,146.18,379.90,324.61,9.06;8,146.18,391.32,296.66,9.06;8,458.02,391.33,12.78,9.05;8,146.18,402.85,324.64,9.05;8,146.18,414.37,158.16,9.05" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="8,146.18,356.87,324.33,9.05;8,146.18,368.39,171.31,9.05">Improving the Reproducibility of PAN&apos;s Shared Tasks -Plagiarism Detection, Author Identification, and Author Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,393.07,379.90,77.72,9.06;8,146.18,391.32,296.66,9.06;8,458.02,391.33,12.78,9.05;8,146.18,402.85,254.68,9.05">Information Access Evaluation meets Multilinguality, Multimodality, and Visualization. 5th International Conference of the CLEF Initiative (CLEF 14)</title>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lupu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Clough</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sanderson</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Hall</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Hanbury</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Toms</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014">2014</date>
+			<biblScope unit="page" from="268" to="299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,136.56,425.89,334.11,9.05;8,146.18,437.41,324.30,9.05;8,146.18,448.92,324.50,9.06;8,146.18,460.32,211.10,9.06" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="8,403.56,425.89,67.11,9.05;8,146.18,437.41,320.31,9.05">Overview of the Author Obfuscation Task at PAN 2018 -A New Approach to Measuring Safety</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Schremmer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,379.27,448.92,91.41,9.06;8,146.18,460.32,138.41,9.06">Working Notes Papers of the CLEF 2018 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><forename type="middle">Y</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Soulier</surname></persName>
+		</editor>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,136.56,471.85,333.77,9.05;8,146.18,483.36,324.63,9.06;8,146.18,494.89,70.80,9.05" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="8,324.31,471.85,146.01,9.05;8,146.18,483.37,90.66,9.05">Monolingual machine translation for paraphrase generation</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Quirk</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Brockett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Dolan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,266.09,483.36,129.38,9.06">Proceedings of EMNLP 2004</title>
+		<meeting>EMNLP 2004<address><addrLine>Barcelona, Spain</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004">2004</date>
+			<biblScope unit="page" from="142" to="149" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,136.56,506.41,333.96,9.05;8,146.18,517.93,324.48,9.05;8,146.18,529.33,324.40,9.05;8,146.18,540.88,324.62,9.05;8,146.18,552.39,324.74,9.06;8,146.18,563.92,324.53,9.05;8,146.18,575.44,91.32,9.05" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="8,242.85,517.93,227.81,9.05;8,146.18,529.33,143.83,9.05">Overview of PAN-2018 -Author Identification, Author Profiling, and Author Obfuscation</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kestemont</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,146.18,552.39,324.74,9.06;8,146.18,563.92,246.16,9.05">Experimental IR Meets Multilinguality, Multimodality, and Interaction. 9th International Conference of the CLEF Initiative (CLEF 18)</title>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Bellot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">C</forename><surname>Trabelsi</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Mothe</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">F</forename><surname>Murtagh</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Nie</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Soulier</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Sanjuan</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="8,136.56,586.96,334.13,9.05;8,146.18,598.36,324.25,9.05;8,146.18,609.87,324.49,9.06;8,146.18,621.39,208.55,9.06" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="8,265.73,598.36,204.70,9.05;8,146.18,609.88,211.50,9.05">Overview of the Author Identification Task at PAN 2017: Style Breach Detection and Author Clustering</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<ptr target="CEUR-WS.org" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="8,379.27,609.87,91.40,9.06;8,146.18,621.39,138.40,9.06">Working Notes Papers of the CLEF 2017 Evaluation Labs</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

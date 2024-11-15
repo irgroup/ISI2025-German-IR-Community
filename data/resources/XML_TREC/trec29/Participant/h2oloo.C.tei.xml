@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,174.10,101.17,263.72,15.48">TREC 2020 Notebook: CAsT Track</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,202.08,158.64,70.38,8.96"><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,279.31,158.64,74.00,8.96"><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,360.66,158.64,46.77,8.96"><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,211.05,172.78,73.14,8.64"><forename type="first">David</forename><forename type="middle">R</forename><surname>Cheriton</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Computer Science</orgName>
+								<orgName type="institution">University of Waterloo</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,174.10,101.17,263.72,15.48">TREC 2020 Notebook: CAsT Track</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">5D0B2B85679DF3091E2AECCE7ED77156</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:10+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>This notebook describes our participation (h2oloo) in TREC CAsT 2020. We first illustrate our multi-stage pipeline for conversational search: sequence-to-sequence query reformulation followed by an ad hoc text ranking pipeline; then, detail our proposed method for canonical response entry. Empirically, we show that our method effectively reformulates conversational queries considering both historical user utterances and system responses, yielding final ranking result 0.363 and 0.494 in terms of MAP and NDCG@3 respectively, which is our best submission to CAsT 2020.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Turn (i) Conversation utterances (ui) and system responses (ri)</p><formula xml:id="formula_0" coords="1,132.00,434.72,7.14,6.27">u1</formula><p>What are some interesting facts about bees? r1</p><p>Fun facts about bees: 1 Honeybees are the only insect that produces food eaten by humans ... 5 Honey never spoils. u2</p><p>Why doesn't it spoil? r2</p><p>Honey doesn't spoil like other foods and even if it has turned cloudy, it's still safe to eat ... ...</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>u1</head><p>Which is the biggest commercial plane? r1</p><p>The airliner that holds the current record of highest passenger capacity is the Airbus A380 ... u2</p><p>What are its operational costs? r2</p><p>The Airbus A380, the largest passenger jet, costs between $26,000 and $29,000 per hour... ... Recently, conversational search grabs the attention of researchers due to its potential applications (e.g., smart speakers). Last year, TREC Conversational Assistant Track (CAsT 2019) <ref type="bibr" coords="1,463.53,550.96,11.75,8.64" target="#b2">[3]</ref> took a step toward conversational IR by building a conversational passage retrieval dataset for practitioners. However, the conversational queries of CAsT 2019 is made with an innate assumption that users' utterances only depend on their previous utterances. The assumption limits generalization capabilities of the models built upon the dataset since in real applications, users may also give utterances based on system response (see the examples in Table <ref type="table" coords="1,295.51,605.50,3.59,8.64" target="#tab_0">1</ref>). This year, the organizers of CAsT 2020 takes the scenario into consideration and newly constructed a more comprehensive dataset.</p><p>In this paper, we focus on our participation in canonical response entry using T5 <ref type="bibr" coords="1,439.33,632.80,11.75,8.64" target="#b8">[9]</ref> as our query reformulation (QR) model. Although many works <ref type="bibr" coords="1,313.86,643.71,10.91,8.64" target="#b6">[7,</ref><ref type="bibr" coords="1,327.26,643.71,12.50,8.64" target="#b9">10,</ref><ref type="bibr" coords="1,342.27,643.71,13.35,8.64" target="#b11">12]</ref> have demonstrated the effectiveness of pretrained sequence-to-sequence models on the task of query reformulation. However, all of them are based on CAsT 2019 dataset and do not take system responses into account. Thus, in this work, we first highlight the challenges of using sequence-to-sequence models for QR in canonical response entry. Then, we propose our method and make a comparison with other possible solutions. We empirically demonstrate that our proposed method effectively reformulates queries when taking system response into consideration.</p><p>In this section, we first describe our multi-stage pipeline for conversational search (CS), including the modules for query reformulation, passage retrieval and passage re-ranking. Secondly, we will describe our approach to canonical response entry, which is the new task in CAsT 2020 dataset where users' utterance could depend on both historical user utterances and system responses as shown in Table <ref type="table" coords="2,132.07,142.01,3.74,8.64" target="#tab_0">1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Problem setting</head><p>Given a sequence of conversational utterances</p><formula xml:id="formula_1" coords="2,108.00,184.34,396.00,22.13">u s = (u 1 , • • • , u i , u i+1 , • • • ) and the corresponding system response r s = (r 1 , • • • , r i , r i+1 , • • • ) for a topic-oriented session s ∈ S,</formula><p>where S is the set of all dialogue sessions and u i (or r i ) stands for the i-th utterance (or system response) (i ∈ N + ) in the session. For each turn i, the goal of this task is to find a set of relevant passages P i , for each turn's user utterance u i that satisfies the information needs with the context in previous turns</p><formula xml:id="formula_2" coords="2,108.00,240.46,144.73,9.65">ctx &lt;i = u 1 ⊕ r 1 ⊕ • • • , u i-1 ⊕ r i-1</formula><p>, where ⊕ denotes the operation of text concatenation. For an IR system, let P (R = 1 | q, p) denote the probability conditioned on a query-passage pair (q, p), where R = 1 denotes that a passage p ∈ C is relevant to a query q (otherwise, R = 0).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Multi-stage Pipeline for Conversational Search</head><p>Following <ref type="bibr" coords="2,150.15,306.81,10.44,8.64" target="#b6">[7]</ref>, we factorize the probability of retrieving a relevant passage p ∈ P i for each turn i. For the problem setting of CAsT 2020, we replace the information set for query reformulation model by {u i , ctx &lt;i } that comprises the utterances and responses.</p><formula xml:id="formula_3" coords="2,171.04,345.00,332.96,9.65">P (R = 1 | {u i , ctx &lt;i }, p) = P (R = 1 | q i , p) P (q i | {u i , ctx &lt;i }) .<label>(1)</label></formula><p>With this formulation, CS can be approximated by separately maximizing the probabilities of (a) a relevance prediction model P (R = 1 | q i , p) and (b) a query reformulation model P (q i |{u i , ctx &lt;i }). Thus, the goal of a query reformulation model is to reformulate a raw conversational user utterance u i in each turn i into a clear and informative query q i for the relevance prediction model <ref type="bibr" coords="2,461.81,394.73,15.27,8.64" target="#b12">[13]</ref>.</p><p>Query reformulation. Following the previous works <ref type="bibr" coords="2,322.99,413.87,10.55,8.64" target="#b6">[7]</ref>, we adopt text-to-text-transfer transformer (T5) <ref type="bibr" coords="2,127.92,424.78,11.63,8.64" target="#b8">[9]</ref> as our query reformulation model. Specifically, we adopt pretrained T5 model checkpoints from <ref type="bibr" coords="2,130.82,435.69,11.75,8.64" target="#b8">[9]</ref> and fine-tune them on CANARD dataset <ref type="bibr" coords="2,316.14,435.69,10.72,8.64" target="#b1">[2]</ref>, which is a conversational query rewriting dataset. In CANARD, for each conversation turn, we concatenated historical queries and answers as source texts and use human annotated queries as target texts. Using the paired source and target texts of all conversation turns, the query reformulation models are trained by the standard sequence-tosequence scheme: cross-entropy loss and teacher forcing. Then, we directly transfer the fine-tuned weights for inference in CAsT dataset:</p><formula xml:id="formula_4" coords="2,245.79,507.67,258.21,12.28">qi = Seq2Seq ctx &lt;i ⊕ u i , θ<label>(2)</label></formula><p>where θ denotes the fine-tuned weights from CANARD dataset.</p><p>Passage retrieval. Our passage retrieval model facilitates first-stage candidate elicitation that takes reformulated queries to search for relevant passages in the passage collection. We use the tightlycoupled teacher distillation proposed by Lin et al. <ref type="bibr" coords="2,312.14,574.38,11.75,8.64" target="#b5">[6]</ref> to incorporate dense representations of dual encoders and sparse representations from BM25. Both our teacher model, ColBERT <ref type="bibr" coords="2,442.41,585.29,10.49,8.64" target="#b4">[5]</ref>, and student model, dual encoders with BERT-base, are trained on the MS MARCO passage ranking dataset <ref type="bibr" coords="2,491.59,596.19,10.62,8.64" target="#b0">[1]</ref>.</p><p>The dense representation indexing and searching are facilitated by Faiss <ref type="bibr" coords="2,389.24,607.10,11.49,8.64" target="#b3">[4]</ref> in which we use flat index and inner product as our metric for searching. As for our sparse representation, we use Anserini <ref type="bibr" coords="2,487.49,618.01,16.51,8.64" target="#b10">[11]</ref> to calculate BM25 matching scores. Finally, we use the hybrid scheme proposed in <ref type="bibr" coords="2,447.50,628.92,11.75,8.64" target="#b5">[6]</ref> to fuse the similarity scores of dot products from dense representations and BM25 matching scores from sparse representations.</p><p>Passage re-ranking. In our multi-stage pipeline, we use T5 as our text re-ranking model. Initiated from the checkpoints in <ref type="bibr" coords="2,207.74,680.79,10.72,8.64" target="#b8">[9]</ref>, we fine-tune the T5 model for paired (query, passage) text relevance ranking. We adopt the training scheme proposed by <ref type="bibr" coords="2,331.91,691.70,11.74,8.64" target="#b7">[8]</ref> to leverage the implicit knowledge in pretrained tokens via recasting the passage ranking task under text-to-text framework. To be more specific, we use "true" and "false" tokens as our relevance target tokens and calculate the relevance ranking according to the value of the "true" logit, which is softmax normalized among the pair of tokens. Our re-ranking model training is also based on the MS MARCO passage ranking dataset.</p><p>During inference, we take reformulated queries and concatenate them with top-1000 relevant passages returned by our passage retrieval model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Canonical Response Entry</head><p>To include the information from system response, we can naively concatenate all the historical user utterances and system responses as the context for query reformulation (see Naive in Figure <ref type="figure" coords="3,493.54,162.95,3.76,8.64" target="#fig_0">1</ref>); however, this approach causes problems such as:</p><p>1. Long processing time: system responses are passages which normaly contains 100-150 words in average. Thus, including all system responses to the context lead to long input texts. 2. Performance degradation: the whole passages from system responses may include unrelated context, and the noisy context raises difficulties when conducting query reformulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Naive Type-a</head><p>Type-b Recursive Information extraction from system response. To address the problems, we propose to first extract a representative sentence from system responses, that is most related to the dialogue, and then append the extracted sentence to the context (see Type-a in Figure <ref type="figure" coords="3,379.29,476.73,3.67,8.64" target="#fig_0">1</ref>). Formally speaking, given a system response r i consisting a number of n(r i ) sentences, the response is represented as a tuple s<ref type="foot" coords="3,118.62,500.69,3.97,6.12" target="#foot_0">1</ref> i , . . . , s n(ri) i</p><formula xml:id="formula_5" coords="3,120.24,266.58,142.89,123.56">u 1 u i u 2 r 1 r i-1 … ⊕ ⊕ u 1 u i u 2 ŝ1 ŝi-1 … r 1 r i-1 ⊕ ⊕ u 1 u i u 2 … ŝi-1 r i-1 ⊕ ⊕ q 1 u i q 2 … ŝi-1 r i-1 ⊕ ⊕</formula><p>, where s k i denotes the k-th sentence in r i and we seek to reduce the long context by replacing ctx &lt;i with ctx a</p><formula xml:id="formula_6" coords="3,223.36,516.65,140.26,10.70">&lt;i = u 1 ⊕ ŝ1 ⊕ • • • , u i-1 ⊕ ŝi-1</formula><p>, where ŝi-1 denotes the sentence extracted from the (i -1)-th response r i-1 .</p><p>From Table <ref type="table" coords="3,159.60,555.18,3.81,8.64" target="#tab_0">1</ref>, out first observation is that ŝi-1 is likely to have textual overlaps with the next utterance u i or the answer of its previous utterance u i-1 . Looking at the first example, the utterance u 2 continues the topic in the last sentence of its previous response r 1 , while from the second conversation, the pronounce in u 2 refers to Airbus A380 in the first sentence of r 1 , which is the answer for u 1 . According to the observation, we formulate the function of extracting sentence from r i-1 as finding the sentence most related to u i (or u i-1 ):</p><formula xml:id="formula_7" coords="3,164.08,623.33,282.99,46.70">ŝi-1 =          argmax 1≤x≤n(r i-1 ) Sim(s x i-1 , ui) if max 1≤x≤n(r i-1 ) Sim(s x i-1 , ui-1) = 0; argmax 1≤x≤n(r i-1 ) Sim(s x i-1 , ui-1) if max 1≤x≤n(r i-1 )</formula><p>Sim(s x i-1 , ui) = 0; ∅, otherwise.</p><p>(</p><p>where Sim(•, •) is the similarity measurement of two texts. For simplicity, we use the number of keyword matching as the similarity function. 1 If there is no keyword matching between any sentence in r i-1 and u i (or u i-1 ), we do not include any sentence from r i-1 . Observing Figure <ref type="figure" coords="4,448.03,221.81,4.07,8.64" target="#fig_0">1</ref>(b) (Naive vs Type-a), replacing the whole passages with their representative sentences significantly reduces the number of tokens for query reformulation to an acceptable level.</p><p>Recursive inference. While aforementioned method has already reduced the length of input texts for query reformulation, in this work, we further seek to reduce the input length without losing of context information. Intuitively, at turn i, the most important response for reformulating u i is the previous response r i-1 (or ŝi-1 ). Thus, we can remove the other responses from the context, i.e., <ref type="figure" coords="4,350.18,307.01,3.67,8.64" target="#fig_0">1</ref>). However, this may sacrifice some context information from the removing responses. To address this issue, we propose to replace the raw utterances in the context ctx b &lt;i with the reformulated ones (see Recursive in Figure <ref type="figure" coords="4,459.14,328.83,3.69,8.64" target="#fig_0">1</ref>):</p><formula xml:id="formula_9" coords="4,108.00,305.07,239.21,12.32">ctx b &lt;i = u 1 ⊕ u 2 ⊕ • • • u i-1 ⊕ ŝi-1 (see Type-b in Figure</formula><formula xml:id="formula_10" coords="4,230.47,345.06,273.53,12.69">ctx recur &lt;i = q1 ⊕ q2 ⊕ • • • qi-1 ⊕ ŝi-1<label>(4)</label></formula><p>where qi is the reformulated query at turn i in equation 2. Our insight is that at each turn i, query reformulation can bring the context information from response into qi ; thus, ideally, ctx recur &lt;i maintains sufficient context information from both historical utterances and responses without the the concatenation of all historical system responses. Equation <ref type="formula" coords="4,356.50,398.81,4.99,8.64" target="#formula_10">4</ref>shows that at each turn, the context ctx recur &lt;i for query reformulation depends on the output of previous turns. This is the reason why we call it recursive inference.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiments</head><p>Settings. In our experiments, we use T5-base and T5-large fine-tuned on the CANARD dataset and test their query reformulation (QR) performance under different inference settings: Query-only, Type-a, Type-b and Recursive. While inference, we use greedy search (beam size 1) for simplicity. We evaluate model performance in two perspectives: (1) Query reformulation performance: we compare models' reformulated queries with manual reformulated queries and quantify the performance using BLEU scores using manual annotated queries provided by CAsT 2020 as golden queries. (2) Downstream passage ranking: we feed the reformulated queries to our multi-stage pipeline for passage retrieval and test the overall (R@1000, MAP) and top-k (NDCG@3) ranking performance.</p><p>Results. Observing Table <ref type="table" coords="4,212.28,566.22,3.70,8.64" target="#tab_1">2</ref>, T5-large shows better performance than T5-base in terms of BLEU and the downstream passage retrieval task. Among all, our proposed recursive inference using T5-large (condition 7) yields the best overall and top-k ranking performance, which is our best run submitted to CAsT 2020. Another observation is that ranking effectiveness seems to have positive correlation with reformulation metrics. It is worth noting that T5-base and T5-large show different trends among inference types. First, query-only inference yields better QR performance when using T5-base while inference with system response outperforms Query-only inference when using T5-large. This is possibly because in addition to context information, concatenating system response also introduces unrelated information and T5-base does not have sufficient capability to rewrite queries under the complex scenario. Finally, the comparison of ours and manual QR methods, large performance gap can be seen, indicating that there is still room for improvement.</p><p>Case study. Figure <ref type="figure" coords="4,187.88,691.70,5.03,8.64">2</ref> compares the reformulated queries with the two inference types: Query-only, Recursive. Observing turns 2, 3 and 5, Recursive inference shows better ranking result than query-only inference since recursive method captures the context, Airbus A380, from system response and keeps it in the reformulated queries. However, at turn 4, recursive inference fails to capture another context, Boeing 747, from response and reformulates queries incorrectly, which even get worse performance than the query-only counterpart (using T5-large). Furthermore, from turn 6, we observe that T5-large shows better QR capability than T5-base under the scenario of recursive inference. That is, recursive inference using T5-base loses the keywords, A380, and this downgrades its ranking performance.</p><p>Discussion. From our numerical results and case study, we demonstrate that recursive inference can capture the context from system response and that T5-base does not have sufficient capability under such scenario. However, we admit that it is challenging to quantify the measurement since we do not know exactly which user utterances refer to the context from system response. In addition to the ranking results, another interesting aspect is to compare model performance on the user utterances referring to the context from system responses and historical utterances separately.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>In this notebook, we introduce our multi-stage conversational search pipeline, including query reformulation, passage retrieval and passage re-ranking modules. In addition, we highlight the main challenges of using sequence-to-sequence models for QR in canonical response entry and how we address this problem. Our experimental results show that our proposed method effectively captures the context from system response without concatenating the whole response (passages) into the input texts for QR.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="3,171.08,435.60,269.85,8.64"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: The comparison of different query reformulation methods</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="1,108.00,367.18,258.55,50.68"><head>Table 1 :</head><label>1</label><figDesc>CAsT2020 examples.</figDesc><table coords="1,108.00,367.18,82.81,10.75"><row><cell>1 Introduction</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="4,115.63,73.15,380.75,121.14"><head>Table 2 :</head><label>2</label><figDesc>Experimental results</figDesc><table coords="4,115.63,94.38,380.75,99.91"><row><cell>Cond.</cell><cell cols="2">Query reformulation</cell><cell cols="3">Retrieval (dense+sparse)</cell><cell cols="3">Re-ranking (T5-3B) BLEU</cell><cell>Run</cell></row><row><cell></cell><cell>Model(T5)</cell><cell>Inference</cell><cell cols="5">R@1000 MAP NDCG@3 MAP NDCG@3</cell><cell></cell><cell></cell></row><row><cell>Manual</cell><cell>-</cell><cell>-</cell><cell>0.840</cell><cell>0.324</cell><cell>0.463</cell><cell>0.459</cell><cell>0.613</cell><cell>100.00</cell><cell>-</cell></row><row><cell>1</cell><cell>base</cell><cell>Query-only</cell><cell>0.668</cell><cell>0.225</cell><cell>0.343</cell><cell>0.330</cell><cell>0.452</cell><cell>63.75</cell><cell>Run4</cell></row><row><cell>2</cell><cell>base</cell><cell>Type-b</cell><cell>0.661</cell><cell>0.216</cell><cell>0.337</cell><cell>-</cell><cell>-</cell><cell>63.12</cell><cell>-</cell></row><row><cell>3</cell><cell>base</cell><cell>Recursive</cell><cell>0.684</cell><cell>0.220</cell><cell>0.328</cell><cell>-</cell><cell>-</cell><cell>62.18</cell><cell>-</cell></row><row><cell>4</cell><cell>large</cell><cell>Query-only</cell><cell>0.696</cell><cell>0.238</cell><cell>0.360</cell><cell>-</cell><cell>-</cell><cell>64.33</cell><cell>-</cell></row><row><cell>5</cell><cell>large</cell><cell>Type-a</cell><cell>0.708</cell><cell>0.239</cell><cell>0.364</cell><cell>-</cell><cell>-</cell><cell>64.43</cell><cell>-</cell></row><row><cell>6</cell><cell>large</cell><cell>Type-b</cell><cell>0.697</cell><cell>0.238</cell><cell>0.358</cell><cell>0.345</cell><cell>0.480</cell><cell>64.64</cell><cell>-</cell></row><row><cell>7</cell><cell>large</cell><cell>Recursive</cell><cell>0.724</cell><cell>0.250</cell><cell>0.367</cell><cell>0.363</cell><cell>0.494</cell><cell>65.23</cell><cell>Run2</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,108.00,78.40,396.67,231.23"><head></head><label></label><figDesc>Figure2: Case study (Session 90). Due to space limitation, we omit the last two turns (turns 7 and 8). For simplicity, we compare QR methods' ranking performance from our retrieval (dense+sparse) module.</figDesc><table coords="5,118.32,78.40,379.20,187.93"><row><cell>Turn</cell><cell>Raw</cell><cell>Manual</cell><cell>T5-base Query-only</cell><cell>T5-large Query-only</cell><cell>T5-base Recursive</cell><cell>T5-large Recursive</cell></row><row><cell>1</cell><cell></cell><cell></cell><cell cols="2">which is the biggest commercial plane ?</cell><cell></cell><cell></cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>1</cell><cell>1</cell><cell>1</cell><cell>1</cell><cell>1</cell></row><row><cell></cell><cell>What are its operational</cell><cell>What are the operational</cell><cell>what are the operational</cell><cell>which is the biggest</cell><cell cols="2">what are the operational costs of the Airbus A380 ?</cell></row><row><cell>2</cell><cell>costs?</cell><cell>costs of the Airbus</cell><cell>costs of the biggest</cell><cell>commercial plane ?</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>A380?</cell><cell>commercial plane ?</cell><cell></cell><cell></cell><cell></cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>0.5307</cell><cell>0</cell><cell>0</cell><cell>0.5307</cell><cell>0.5307</cell></row><row><cell></cell><cell>How does its fuel</cell><cell>How does the Airbus</cell><cell>how does the biggest</cell><cell>how does Which is the</cell><cell cols="2">how does the fuel consumption of the Airbus A380</cell></row><row><cell>3</cell><cell>its competitors? compare consumption compare to</cell><cell>compare to its A380 fuel consumption</cell><cell>consumption compare to commercial plane 's fuel</cell><cell>'s fuel consumption biggest commercial plane</cell><cell cols="2">compare to its competitors ?</cell></row><row><cell></cell><cell>to its competitors?</cell><cell>competitors?</cell><cell>its competitors ?</cell><cell>compare to its</cell><cell></cell><cell></cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>0.0782</cell><cell>0</cell><cell>competitors ? 0</cell><cell>0.0782</cell><cell>0.0782</cell></row><row><cell></cell><cell>How do the freighter</cell><cell>How do the freighter</cell><cell>how do the freighter</cell><cell>how do the freighter</cell><cell cols="2">how do the freighter versions of the airbus a380</cell></row><row><cell>4</cell><cell>other? versions compare to each</cell><cell>A380 and Boeing 747 versions of the Airbus</cell><cell>commercial plane versions of the biggest</cell><cell>biggest commercial plane versions of which is the</cell><cell>compare to each other ?</cell><cell></cell></row><row><cell></cell><cell></cell><cell>compare to each other?</cell><cell>compare to each other?</cell><cell>compare to each other ?</cell><cell></cell><cell></cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>0</cell><cell>0</cell><cell>0.3612</cell><cell>0</cell><cell>0</cell></row><row><cell></cell><cell>Why did the A380 stop</cell><cell>Why did the Airbus</cell><cell cols="2">Why did the A380 stop being produced?</cell><cell cols="2">why did the airbus a380 stop being produced ?</cell></row><row><cell>5</cell><cell>being produced?</cell><cell>A380 stop being</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>produced?</cell><cell></cell><cell></cell><cell></cell><cell></cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>0.4058</cell><cell>0.1353</cell><cell>0.1353</cell><cell>0.4058</cell><cell>0.4058</cell></row><row><cell></cell><cell>What was Boeing's</cell><cell>What was Boeing's</cell><cell cols="2">what was Boeing 's response to compete with the</cell><cell>what was Boeing 's</cell><cell>what was Boeing 's</cell></row><row><cell>6</cell><cell>response to compete with</cell><cell>response to compete with</cell><cell>a380 ?</cell><cell></cell><cell>response to compete with</cell><cell>response to compete with</cell></row><row><cell></cell><cell>it?</cell><cell>the Airbus A380?</cell><cell></cell><cell></cell><cell>Airbus ?</cell><cell>the Airbus A380 ?</cell></row><row><cell>NDCG@3</cell><cell>-</cell><cell>0.1246</cell><cell>0.3605</cell><cell>0.3605</cell><cell>0</cell><cell>0.1246</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,124.14,714.16,326.81,7.77"><p>For each input text, we define keywords as the word with noun, verb or adjective POS tags.</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,129.58,627.70,375.66,8.64;5,129.58,638.61,374.42,8.64;5,129.58,649.34,133.92,8.82" xml:id="b0">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bajaj</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Campos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Craswell</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Deng</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">X</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Mcnamara</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Mitra</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Nguyen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.09268</idno>
+		<title level="m" coord="5,295.60,638.61,208.40,8.64;5,129.58,649.52,26.39,8.64">A human generated machine reading comprehension dataset</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,670.61,374.42,8.64;5,129.58,681.34,257.01,8.82" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,327.47,670.61,176.53,8.64;5,129.58,681.52,79.71,8.64">Can you unpack that? learning to rewrite questions-in-context</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Elgohary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Peskov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Boyd-Graber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,227.65,681.34,53.19,8.59">Proc. EMNLP</title>
+		<meeting>EMNLP</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="5917" to="5923" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,129.58,702.61,376.17,8.64;5,129.58,713.34,86.44,8.82" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,272.60,702.61,228.88,8.64">CAsT 2019: The conversational assistance track overview</title>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Jeffrey</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,140.37,713.34,45.38,8.59">Proc. TREC</title>
+		<meeting>TREC</meeting>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,75.48,173.47,8.64;6,318.82,75.48,186.92,8.64;6,129.58,86.21,100.17,8.82" xml:id="b3">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Douze</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Jégou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1702.08734</idno>
+		<title level="m" coord="6,318.82,75.48,181.55,8.64">Billion-scale similarity search with GPUs</title>
+		<imprint>
+			<date type="published" when="2017">2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,105.27,374.42,8.64;6,129.58,116.00,250.99,8.82" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,240.72,105.27,263.29,8.64;6,129.58,116.17,103.76,8.64">ColBERT: Efficient and effective passage search via contextualized late interaction over BERT</title>
+		<author>
+			<persName coords=""><forename type="first">O</forename><surname>Khattab</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zaharia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,253.18,116.00,46.72,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="39" to="48" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,135.05,376.07,8.64;6,129.58,145.96,95.16,8.64" xml:id="b5">
+	<monogr>
+		<title level="m" type="main" coord="6,270.51,135.05,235.14,8.64;6,129.58,145.96,65.26,8.64">Distilling dense representations for ranking using tightlycoupled teachers</title>
+		<author>
+			<persName coords=""><forename type="first">S.-C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,164.84,374.42,8.64;6,129.58,175.75,286.41,8.64" xml:id="b6">
+	<monogr>
+		<title level="m" type="main" coord="6,420.17,164.84,83.84,8.64;6,129.58,175.75,256.42,8.64">Query reformulation using query history for passage retrieval in conversational search</title>
+		<author>
+			<persName coords=""><forename type="first">S.-C</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J.-H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M.-F</forename><surname>Tsai</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C.-J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,194.63,374.42,8.64;6,129.58,205.54,52.30,8.64" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="6,267.26,194.63,236.75,8.64;6,129.58,205.54,22.83,8.64">Document ranking with a pretrained sequence-to-sequence model</title>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,224.42,376.16,8.64;6,129.58,235.15,374.42,8.82;6,129.16,246.06,177.81,8.82" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="6,149.36,235.33,306.41,8.64">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">N</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">K</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,463.39,235.15,40.61,8.59;6,129.16,246.06,110.93,8.59">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,265.12,374.42,8.64;6,129.58,275.85,147.20,8.82" xml:id="b9">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Vakulenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Longpre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Tu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Anantha</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2004.14652</idno>
+		<title level="m" coord="6,324.10,265.12,179.90,8.64;6,129.58,276.03,39.09,8.64">Question rewriting for conversational question answering</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,294.73,376.16,8.82;6,129.22,305.63,160.07,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="6,247.41,294.90,220.22,8.64">Anserini: Reproducible ranking baselines using Lucene</title>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">H</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="6,475.78,294.73,29.97,8.59;6,129.22,305.63,61.56,8.59">ACM J. Data. Inf. Qual</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<date type="published" when="2018">2018</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,324.69,376.08,8.64;6,129.58,335.42,254.68,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="6,384.21,324.69,121.45,8.64;6,129.58,335.60,85.25,8.64">Few-shot generative conversational query rewriting</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">C</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Z</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,233.08,335.42,46.72,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+			<biblScope unit="page" from="1933" to="1936" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,129.58,354.48,374.42,8.64;6,129.58,365.21,239.48,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="6,334.63,354.48,169.37,8.64;6,129.58,365.39,90.33,8.64">On the equilibrium of query reformulation and document retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Zou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Tao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,237.80,365.21,46.72,8.59">Proc. SIGIR</title>
+		<meeting>SIGIR</meeting>
+		<imprint>
+			<date type="published" when="2018">2018</date>
+			<biblScope unit="page" from="43" to="50" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

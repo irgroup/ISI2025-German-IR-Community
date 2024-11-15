@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,162.45,75.23,287.01,12.92">Ranking Clinical Trials Using Elasticsearch</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,186.82,111.41,123.41,11.14"><forename type="first">Ajinkya</forename><forename type="middle">Yogesh</forename><surname>Thorve</surname></persName>
+							<email>ajinkyay@buffalo.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Computer Science and Engineering</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,341.37,111.41,79.39,11.14"><forename type="first">Haimonti</forename><surname>Dutta</surname></persName>
+							<email>haimonti@buffalo.edu</email>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Management Science and Systems University at Buffalo</orgName>
+								<address>
+									<postCode>14260</postCode>
+									<region>NY</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,162.45,75.23,287.01,12.92">Ranking Clinical Trials Using Elasticsearch</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">51953F16BDE628393083A4B6A692DC42</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:09+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The clinical trials task of the TREC 2017 Precision Medicine Track was designed to represent the potential for connecting patients with experimental treatments if existing treatments were ineffective. Participants were challenged with the task of retrieving appropriate clinical trials from ClinicalTrials.gov for which a patient is eligible. This paper presents an approach to solving the problem by first preparing an index for the clinical trial descriptions based on specific tags in the XML files and querying them using Elasticsearch. Initial results indicate that our approach performed very well for certain kinds of queries -however, more tuning may be required for ensuring generalizable results from the search.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>The aim of the TREC 2017 Precision Medicine Track <ref type="bibr" coords="1,358.74,397.01,13.34,11.14">[1]</ref> is to provide useful information to physicians for treating cancer patients. The goal for participants is to investigate information retrieval techniques that will retrieve the most relevant documents given a case query. There were two document collections that were made available: scientific abstracts (consisting of PubMed abstracts) and clinical trials (consisting of clinical trial descriptions from ClinicalTrials.gov). With PubMed abstracts, the task was to retrieve relevant treatments for the given patients from the given collection. With the clinical trials dataset, the task was to retrieve relevant clinical trials for which the patient is eligible. Considering the computing resources available to us and time constraints, we focused solely on the second task -finding relevant clinical trials.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Data Clinical Trial Descriptions</head><p>The clinical trials collection consisted of about 241,006 XML documents . Each of these documents consisted of numerous fields, such as the title, summary, description, eligibility criteria, and some pre-assigned keywords and MeSH terms. Figure <ref type="figure" coords="1,485.01,635.09,6.67,11.14" target="#fig_0">1</ref> shows a sample clinical trial with the brief title and summary of the description.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Topics</head><p>The topics for the track comprise of synthetic cases created by precision oncologists at the University of Texas, MD Anderson Cancer Center. Each case describes the patient's disease (type of cancer), the relevant genetic variants (which genes), basic demographic information (age, sex), and other potential factors that may be relevant. 30 cases were made available for the retrieval task. Figure <ref type="figure" coords="2,305.46,224.69,6.67,11.14" target="#fig_1">2</ref> shows an illustrative example of a topic. Furthermore, a separate file consisting of 16 extra topics was also provided by TREC. It consisted of some additional query topics accompanied by clinical trial IDs that were partially relevant to the task.  description: nct_id, brief_title, brief_summary, detailed_description, overall_status, condition, eligibility, gender, gender_based, minimum_age, maximum_age, keyword, and mesh_term. The entire text in all the fields was used for the purpose of indexing. Following the indexing, queries were run.</p><p>Before assigning scores to documents, they are shortlisted by applying a boolean test, so only the documents that match the query are considered. Then scores are assigned based on a BM25 algorithm <ref type="bibr" coords="3,216.43,185.57,15.67,11.14" target="#b0">[3]</ref> which is the default similarity algorithm used by Elasticsearch. This algorithm ranks a set of documents based on the query terms appearing in each document. Given a query Q containing keywords q 1 ,...,q n , the BM25 score of a document is:</p><formula xml:id="formula_0" coords="3,157.53,246.64,296.93,46.43">𝑠𝑐𝑜𝑟𝑒 𝐷, 𝑄 = 𝐼𝐷𝐹 𝑞 ! . 𝑓 𝑞 ! , D . (𝑘 ! + 1) 𝑓 𝑞 ! , D + 𝑘 ! (1 -b + b |𝐷| 𝑎𝑣𝑔𝑑𝑙 ) ! !!!</formula><p>where 𝑓 𝑞 ! , D is qi's term frequency in document D, |D| is the length of the document, and avgdl is the average document length in the corpus. For the first run, the disease field in each query was extracted and used to query the corpus. For each query, we limited the results to 1000 each, and these results were ordered in decreasing order based on the relevancy score provided by Elasticsearch. These results were then written to an output file following the standard trec_eval format.</p><p>For the second run, we used a more complex query. The query was formulated by an AND operation on all the xml tags namely disease, gene, demographic, and other information. Since there was no ground truth available for evaluation, the extra topics provided for the retrieval task was used tuning the Elasticsearch queries for the second run. For example, the query "Colon cancer" is accompanied by NCT IDs NCT02912559 and NCT00898846. While trying out different query configurations, we preferred the ones which gave higher ranking to those two particular NCT IDs. Similarly, other queries too were used in finding out the optimum Elasticsearch query configuration for our second run. After deciding on what seemed to be a reasonable configuration, we followed the similar approach as for our first run for querying Elasticsearch and writing the results to an output file.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Empirical Results.</head><p>Table <ref type="table" coords="3,105.35,678.77,6.67,11.14">3</ref> presents the performance for each of the 30 topics used for the retrieval task.</p><p>Our results indicate that certain queries had very good performance -for example, for the second run, query 9 was known to have 62 relevant documents and our procedure was able to identify 61 of those; query 16 had 5 relevant documents of which 3 were returned by our algorithm. However, these results were not consistent and certain queries were found to not perform very well -for example, none of the 4 relevant documents were identified for query 15 and none of the 5 relevant documents were returned for query 25. Given the wide variance in the performance, we are investigating methods by which the performance on the retrieval task can be enhanced. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Discussions and Future Work</head><p>The NLM Unified Medical Language System (UMLS) can be used in our system for extracting the medical terminologies from the clinical trial descriptions. UMLS can be used to identify medical concepts in the topic text and relate them to semantic categories (i.e. disease, symptoms, findings, etc.) and alternative names (i.e. synonyms, preferred names, etc.). Previous studies have found UMLS to be very effective in Named Entity Recognition(NER) tasks on medical documents <ref type="bibr" coords="5,523.33,185.57,12.50,11.14" target="#b1">[4]</ref>.</p><p>MetaMap <ref type="bibr" coords="5,116.36,201.41,19.01,11.14" target="#b2">[5]</ref> is a tool that uses knowledge-intensive approach based on symbolic, natural-language processing (NLP) and computational-linguistic techniques to identify UMLS terms in a given text. We are in the process of testing the use of MetaMap to index documents by Elasticsearch with the hope that this will reduce execution time for retrieval of documents. Furthermore, we are in the process of refining the query formulation and evaluating what does not produce good results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Conclusion</head><p>In this paper we described our approach for the TREC 2017 Precision Medicine track. We submitted two automatic runs, which were based on Elasticsearch. In the future we plan to use significantly more computing resources and the MetaMap API as one of the steps in pre-processing to better identify the relevant medical terms in the dataset. Furthermore tuning of Elasticsearch can be possible once we have the ground truth data available.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="2,72.00,610.13,468.00,11.14;2,72.00,625.73,209.35,11.14;2,74.00,303.68,477.00,299.00"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: A sample clinical trial description from ClinicalTrials.gov illustrating a subset of the tags used for indexing.</figDesc><graphic coords="2,74.00,303.68,477.00,299.00" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="2,378.10,196.90,117.45,8.24;2,333.70,72.00,206.30,118.60"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: An example topic.</figDesc><graphic coords="2,333.70,72.00,206.30,118.60" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="3,376.41,313.97,6.00,11.14;3,382.41,318.33,4.40,7.35;3,390.47,313.97,149.54,11.14;3,72.00,329.81,110.11,11.14;3,182.11,334.17,4.40,7.35;3,190.74,329.81,349.27,11.14;3,72.00,345.65,468.01,11.14;3,72.00,361.49,468.00,11.14;3,72.00,377.33,153.42,11.14"><head></head><label></label><figDesc>k 1 and b are the parameters of the algorithm -(1) k 1 controls non-linear term frequency normalization (saturation); the default value is 1.2 and (2) b controls to what degree document length normalizes tf (term frequency) values. The default value is 0.75. These default values of k1 and b are used in the retrieval process.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="4,78.28,637.49,455.44,11.14;4,265.64,653.09,80.72,11.14;4,72.00,198.95,468.00,433.55"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Performance of 30 topic queries on the clinical trials text corpus using Elasticsearch.</figDesc><graphic coords="4,72.00,198.95,468.00,433.55" type="bitmap" /></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="5,95.01,483.17,411.49,11.14;5,108.00,499.01,391.81,11.14" xml:id="b0">
+	<analytic>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="5,359.72,483.17,146.78,11.14;5,108.00,499.01,160.95,11.14">The Probabilistic Relevance Framework: BM25 and Beyond</title>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,95.01,514.85,416.49,11.14;5,108.00,530.69,398.89,11.14;5,108.00,546.53,257.48,11.14" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="5,386.09,514.85,125.41,11.14;5,108.00,530.69,393.55,11.14">Automatically Detecting Failures in Natural Language Processing Tools for Online Community Text</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Park</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">L</forename><surname>Hartzler</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Huh</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><forename type="middle">W</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Pratt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,108.00,546.53,196.11,11.14">Journal of Medical Internet Research</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="5,95.01,562.61,416.55,11.14;5,108.00,578.45,398.62,11.14;5,108.00,594.29,150.77,11.14" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="5,237.39,562.61,274.17,11.14;5,108.00,578.45,85.32,11.14">An overview of MetaMap: historical perspective and recent advances</title>
+		<author>
+			<persName coords=""><forename type="first">A</forename><forename type="middle">R</forename><surname>Aronson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F-M</forename><surname>Lang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="5,202.73,578.45,303.90,11.14;5,108.00,594.29,32.23,11.14">Journal of the American Medical Informatics Association : JAMIA</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="229" to="236" />
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

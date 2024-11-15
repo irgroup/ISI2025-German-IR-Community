@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,79.63,82.34,379.84,14.93">UNIVERSITY OF CAMBRIDGE AT TREC CAST 2022</title>
+				<funder ref="#_885nPM9">
+					<orgName type="full">EPSRC</orgName>
+				</funder>
+				<funder>
+					<orgName type="full">Cambridge University Press &amp; Assessment</orgName>
+				</funder>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,85.18,117.78,54.54,8.96"><forename type="first">Adian</forename><surname>Liusie</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Cambridge University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,195.29,117.78,58.39,8.96"><forename type="first">Mengjie</forename><surname>Qian</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Cambridge University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,305.40,117.78,37.37,8.96"><forename type="first">Xiang</forename><surname>Li</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution">Cambridge University</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,415.51,117.78,50.64,8.96"><forename type="first">Mark</forename><surname>Gales</surname></persName>
+							<affiliation key="aff3">
+								<orgName type="institution">Cambridge University</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,79.63,82.34,379.84,14.93">UNIVERSITY OF CAMBRIDGE AT TREC CAST 2022</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">CEA81469E4888F5EFC5776F69A67B55B</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-08-05T15:11+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>Team heatwave (of the University of Cambridge) submitted 3 automatic runs to the TREC 2022 Conversational Assistance Track. This paper discusses our approach to the challenge of conversational informational retrieval. We first describe our four stage approach of query reformulation, BM25 retrieval, passage reranking, and response extraction. Our experiments then show that our multi-query approach, which uses the raw concatenated conversational context for BM25 and the rewritten query for reranking, shows considerable performance improvement over a single-query approach, where our best performing system achieves a NDCG@3 of 0.440 in the 2022 CAsT challenge.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The Conversational Assistance Track (CaST) is an annual challenge that encourages progress in information retrieval for conversations. The aim is to develop an automatic system that can retrieve passages relevant to a request in conversational form. Given a current query utterance, conversational history, and a large document archive, the automatic system must retrieve a set of useful passages that meets the information needs of the user. The 2022 challenge 1 differs to the 2021 challenge <ref type="bibr" coords="1,286.00,382.03,81.52,8.64" target="#b2">(Dalton et al., 2022)</ref> by assessing the quality of generated responses, having multiple conversations per topic and by using a larger document archive. This paper focuses on our approach to the 2022 CAsT challenge. We investigated several different aspects of conversational retrieval including: 1) using different queries at retrieval and reranking 2) looking at the impact of k between retrieval and reranking and 3) investigating whether various systems are complimentary when combined. Our best performing system used the concatenated contextual history as queries for BM25 retrieval and rewritten queries for a DuoT5 reranker, and achieved a NDCG@20 of 0.389 and NDCG@3 of 0.440 on the 2022 challenge data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">METHODOLOGY</head><p>Our approach follows the three stage pipeline commonly used by previous successful teams <ref type="bibr" coords="1,450.38,516.86,68.02,8.64" target="#b4">(Lin et al., 2020)</ref> consisting of: (1) query rewriting, (2) document retrieval, and (3) reranking. This year, the output is expected to be a short response, and so a final generation/extraction head is also used to generate the returned response. This section briefly describes the purpose of each component and considered approaches.</p><p>x The objective of query rewriting is to create a query q k that encapsulates all previous contextual information. That is, all ambiguities and anaphoras present in the current utterance u k are resolved to create the query q k , such that q k contains all information required to identify the best next response of the system. Let ctx-n-m refer to concatenating the previous n user utterances and m system responses (as well as the current user utterance) in chronological order:</p><formula xml:id="formula_0" coords="2,196.65,164.80,321.75,23.60">ctx-2-2 ⇒ u k-2 ⊕ r k-2 ⊕ u k-1 ⊕ r k-1 ⊕ u k (1) ctx-2-1 ⇒ u k-2 ⊕ u k-1 ⊕ r k-1 ⊕ u k (2)</formula><p>We use T5 systems <ref type="bibr" coords="2,159.81,200.46,79.33,8.64" target="#b8">(Raffel et al., 2020)</ref> to generate a rewritten query q k from ctx-4-2. We also look at using the raw conversational context ctx-5-3 and ctx-3-1 as a baseline for retrieval.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">PASSAGE RETRIEVAL</head><p>The second stage retrieves a batch of passages that are relevant to the current query. For a given query, every passage in the archive is scored and the top-k passages are passed on in the pipeline. If S 1 (d, q) is a scoring function that measures the relevance of passage d for query q, and R is the entire document archive, then the returned corpus R top-k is the top-k most relevant passages as predicted by the retrieval approach. Our</p><formula xml:id="formula_1" coords="2,177.76,318.89,340.64,12.17">R top-k = {r | S 1 (r, q i ) &gt; S 1 (r k , q i ) ∀r k ∈ R ∩ Rtop-k }<label>(3)</label></formula><p>In this stage, millions of documents per query must be scored, and so the scoring function has to be very efficient. We therefore consider the popular approach of BM25 <ref type="bibr" coords="2,343.66,354.09,92.69,8.64" target="#b11">(Robertson et al., 2009</ref>) -an unsupervised lexical method. We initially also considered a sparse retrieval approach of ANCE <ref type="bibr" coords="2,402.52,365.05,75.67,8.64" target="#b13">(Xiong et al., 2020)</ref>, however initial results were worse and this investigation was discontinued.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">PASSAGE RE-RANKING</head><p>Re-ranking, as well, scores passages by their relevance to the current query. However, instead of scoring all the passages in the archive, only the top-k passages (returned by the previous retrieval stage) are rescored. Since the number of passages to score is massively smaller, a more powerful and accurate scoring function can be used.</p><p>We consider three deep learning systems: SentenceBERT <ref type="bibr" coords="2,317.97,470.90,87.60,8.64" target="#b10">(Reimers et al., 2019)</ref>, MonoT5 <ref type="bibr" coords="2,451.80,470.90,66.60,8.64;2,79.20,481.86,23.24,8.64" target="#b6">(Nogueira et al., 2020)</ref> and DuoT5 <ref type="bibr" coords="2,152.66,481.86,83.84,8.64" target="#b7">(Pradeep et al., 2021)</ref>. SentenceBERT encodes each query and response into vectors, where the relevance score is the inner product of the two. MonoT5 is a T5 based system, with the query and response are concatenated as the input and the decoder predicts the relevance score. DuoT5 consists of two reranking stages, where first MonoT5 is used to select the top n documents, then pairwise ranking is used to re-rank the top n documents.</p><p>We also investigate using different queries at retrieval and reranking. Instead of using the same query rewriting system to generate a single query used for both retrieval and reranking, we consider having different queries q 1 and q 2 for the different stages, as shown in Figure <ref type="figure" coords="2,279.92,564.55,4.98,8.64">2</ref> Figure <ref type="figure" coords="2,188.63,720.09,3.88,8.64">2</ref>: Set up for using different queries for retrieval and reranking New to CAsT 2022, a response different to the raw passage can be returned. This can be a generated response, which may be based on a single or multiple retrieved passages. We use a very simple answer extraction approach <ref type="bibr" coords="3,118.72,128.20,77.10,8.64" target="#b1">(Clark et al., 2020)</ref> to generate our response. The context for the question answering system is the predicted relevant passage, and the query is used as the question. The answer span is then returned as the response.</p><p>3 EXPERIMENTAL SETUP</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">CAST DATASETS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Archive</head><p>The archive to retrieve from is a mix of highly informative content such as news and Wikipedia articles. The archive is made up of three corpora: MSMARCO, KILT and Washington Post. For 2021, there are 9 million documents present in the archive, while 2022 had 17 million documents. The difference in the 2021 and 2022 archive is that 2021 uses MSMARCO v1 while 2022 uses MSMARCO v2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Development</head><p>Two CaST datasets were used for development: The final 2021 challenge data, EVAL-21, and the 2022 challenge data along with the canonical answers, DEV-22. EVAL-21 had a full list of relevant documents and relevance scores for each conversational query. To compare our systems with last year systems, we follow the same set up as in final evaluation, which used binary relevance scores thresholded at 2. For the 2022 challenge data with the canonical documents (which was available before submission), 1-3 relevant documents were provisionally marked for each query, which is much sparser than the relevance list used in final evaluation.</p><p>Although the three stage pipeline (of figure <ref type="figure" coords="3,254.31,379.71,4.15,8.64" target="#fig_0">1</ref>) was used for both the EVAL-21 and DEV-22, there were differences in the two set ups. For EVAL-21 BM25 was done at the document level, and the re-ranker then operated at the passage level, while DEV-22 split documents into passages before BM25. Initial development initially focused on performance on EVAL-21, while later development focused on DEV-22.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Evaluation</head><p>Final evaluation, done after submission, was done on the 2022 challenge data, EVAL-22. EVAL-22 had a full list of relevant passages and relevance scores for each query. EVAL-22 and DEV-22 use the same set of queries, however DEV-22 only had the canonical documents, and so only had sparse query labels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">SYSTEMS CONFIGURATION</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Query Rewriting</head><p>The query rewriter is trained on one of two different query reformulation datasets, either canard <ref type="bibr" coords="3,478.56,520.36,39.84,8.64;3,79.20,531.32,49.37,8.64" target="#b3">(Elgohary et al., 2019)</ref> or qrecc <ref type="bibr" coords="3,168.58,531.32,88.02,8.64" target="#b0">(Anantha et al., 2020)</ref>. We investigated fine-tuning both T5-base <ref type="bibr" coords="3,437.68,531.32,80.72,8.64" target="#b8">(Raffel et al., 2020)</ref> and T5-large <ref type="bibr" coords="3,134.67,542.27,81.01,8.64" target="#b8">(Raffel et al., 2020)</ref> systems, where the T5-large systems were used since they showed better downstream performance. As a baseline, we also consider using ctx-5-3 and ctx-3-1 directly as the 'rewritten query'.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Retrieval</head><p>We use the beir framework <ref type="bibr" coords="3,193.13,592.09,80.01,8.64">(Thakur et al., 2021</ref>) implementation of BM25 for retrieval, and use the default parameters of (k = 0.9 and b = 0.4).</p><p>Reranker MSMARCO <ref type="bibr" coords="3,133.19,630.94,86.62,8.64" target="#b5">(Nguyen et al., 2016)</ref> was used as the retrieval training data for all the different rerankers. Our rerankers were downloaded from the huggingface hub (SBERT<ref type="foot" coords="3,341.01,640.23,3.49,6.05" target="#foot_0">2</ref> , monot5<ref type="foot" coords="3,384.85,640.23,3.49,6.05" target="#foot_1">3</ref> , duoT5<ref type="foot" coords="3,424.51,640.23,3.49,6.05" target="#foot_2">4</ref> ), where the rerankers were all trained at the passage level.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Reponse Generator</head><p>Reponses were generated using a question answer extraction system, trained on <ref type="bibr" coords="3,402.09,680.75,92.45,8.64" target="#b9">(Rajpurkar et al., 2016)</ref>. The query was then used as the question, the most relevant document as the context, and returned the extracted answer span was the response.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">EXPERIMENTAL RESULTS</head><p>EVAL-21 DEV-22 Query R@1k R@500 NDCG@3 R@1k R@500 NDCG@3 Best retrieval query: We first investigate the rewriting system for retrieval. The query rewriter generates a query, which is used by BM25 to return the highest scoring 1000 passages. The objective after retrieval is to preserve as many relevant documents in the top-1000 as possible, irrespective of ranking since the next stage will re-score all top 1000 documents. Therefore emphasis is on recall@1000 (R@1k). Table <ref type="table" coords="4,450.93,370.02,4.98,8.64" target="#tab_0">1</ref> shows retrieval performance for the different query rewriting systems, where the baseline of raw concatenated conversational context clearly showed best performance for both EVAL-21 and DEV-22. Retrieval top-k: We next look into whether returning the top 1000 passages at retrieval is a sensible decision. If more passages are returned at retrieval, the number of relevant passages that the re-ranker scores will be larger, which may benefit down stream performance. Figure <ref type="figure" coords="4,305.27,679.54,9.40,8.64">3a</ref> shows how recall scales roughly with O(log(k)).</p><p>Figure <ref type="figure" coords="4,108.07,690.50,9.96,8.64">3b</ref> shows the downstream MonoT5 performance on DEV-22, using ctx-5-3 queries at retrieval and T5 rewritten queries for the re-ranker, and sweeping over k. 1000 therefore seemed to be a sensible choice for the size of retrieval list, with performance not improving for larger k. We therefore stick with top-1000 documents at retrieval for all future results.</p><p>DuoT5 top k NDCG@20 NDCG@10 NDCG@3 20 0.199 Reranker results: Table <ref type="table" coords="5,180.87,458.03,4.98,8.64" target="#tab_2">3</ref> shows the performance of the different rerankers for different retrieval outputs. The concatenated contextual query seems to be optimal for the retrieval, with notable performance improvement over using only a single rewritten query. At the reranker, both the T5-canard and T5-qrecc rewriting systems performed similarly for DEV-22, as did the monoT5 and duoT5 systems. Canard + duoT5 had the best all round performance, while qrecc + monoT5 had the best NDCG@3 performance, and hence these two were submitted.</p><p>NDCG@20 NDCG@3 MAP Final Performance of Submitted Systems: Table <ref type="table" coords="6,289.26,207.98,4.98,8.64">5</ref> shows the performance of our submitted systems. We additionally submitted a combined system which averaged the normalised scores of the MonoT5 and DuoT5 systems, even though analysis done on DEV22 did not show clear benefit in system combination (which we looked at multiple different levels). Overall we found that DuoT5 which used multiple queries was our best performing system, and achieved a MAP of 0.200, NDCG@20 of 0.389 and NDCG@3 of 0.440.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSIONS</head><p>In this notebook, we follow a four stage pipeline that returns a relevant response for conversational queries. Our experimental results show that using different queries at retrieval and re-ranking can be largely advantageous, and that the concatenated conversational context serves as a good query for BM25 retrieval. We further find that DuoT5 outperforms monoT5 in the 2022 CAsT challenge data. Future work could investigate this performance difference, and to consider efficient modifications on duoT5 to instead operate with O(N ) and therefore rescore more documents.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="1,246.89,703.69,103.83,8.64;1,122.54,570.88,359.99,121.66"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: System Pipeline</figDesc><graphic coords="1,122.54,570.88,359.99,121.66" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="4,209.99,612.42,177.61,8.64;4,304.39,431.17,216.00,154.16"><head></head><label></label><figDesc>Figure 3: Retrieval Top-k results on DEV-22</figDesc><graphic coords="4,304.39,431.17,216.00,154.16" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="4,143.54,219.66,300.54,80.91"><head>Table 1 :</head><label>1</label><figDesc>Retrieval results when using BM25 for different queries</figDesc><table coords="4,143.54,219.66,300.54,57.47"><row><cell cols="2">T5-canard 0.672</cell><cell>0.596</cell><cell>0.324</cell><cell>0.458</cell><cell>0.387</cell><cell>0.068</cell></row><row><cell>T5-qrecc</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.460</cell><cell>0.397</cell><cell>0.060</cell></row><row><cell>ctx 3 1</cell><cell>0.709</cell><cell>0.637</cell><cell>0.296</cell><cell>0.572</cell><cell>0.488</cell><cell>0.135</cell></row><row><cell>ctx 5 3</cell><cell>0.734</cell><cell>0.648</cell><cell>0.248</cell><cell>0.583</cell><cell>0.495</cell><cell>0.094</cell></row><row><cell cols="2">automatic 0.650</cell><cell>0.581</cell><cell>0.326</cell><cell>0.485</cell><cell>0.419</cell><cell>0.072</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" coords="5,79.20,102.59,439.20,302.95"><head>Table 2 :</head><label>2</label><figDesc>Reranking results when varying the DuoT5 top k on DEV-22 DuoT5 top-k: DuoT5 does pairwise comparisons between passages, and therefore scales with O(N 2 ) instead of the O(N ) of MonoT5. One has to therefore use much shorter top-k lists for DuoT5. DuoT5 is applied after MonoT5 scoring, where Table2shows reranking performance for the top 20, 30 or 50 passages. Using top-20 was significantly worse than using the top-30 or top-50, while the top-30 and top-50 were comparable with top-30 being marginally better. As top-50 is also considerably more computationally expensive, we therefore use the top-30 in all DuoT5 systems considered.</figDesc><table coords="5,82.74,102.59,435.44,302.95"><row><cell></cell><cell></cell><cell></cell><cell></cell><cell>0.220</cell><cell cols="2">0.162</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>30</cell><cell>0.231</cell><cell>0.222</cell><cell cols="2">0.169</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell>50</cell><cell>0.230</cell><cell>0.218</cell><cell cols="2">0.170</cell><cell></cell><cell></cell></row><row><cell></cell><cell></cell><cell></cell><cell></cell><cell>EVAL-21</cell><cell></cell><cell></cell><cell>DEV-22</cell><cell></cell></row><row><cell>query 1</cell><cell>query 2</cell><cell>reranker</cell><cell cols="3">MAP NDCG@20 NDCG@3</cell><cell cols="3">MAP NDCG@20 NDCG@3</cell></row><row><cell></cell><cell></cell><cell>-</cell><cell>0.168</cell><cell>0.261</cell><cell>0.324</cell><cell>0.076</cell><cell>0.098</cell><cell>0.068</cell></row><row><cell>T5-canard</cell><cell>T5-canard</cell><cell>MonoT5</cell><cell>0.288</cell><cell>0.407</cell><cell>0.450</cell><cell>0.152</cell><cell>0.190</cell><cell>0.140</cell></row><row><cell></cell><cell></cell><cell>sbert</cell><cell>0.204</cell><cell>0.309</cell><cell>0.349</cell><cell>-</cell><cell>-</cell><cell>-</cell></row><row><cell></cell><cell></cell><cell>-</cell><cell>0.165</cell><cell>0.248</cell><cell>0.248</cell><cell>0.094</cell><cell>0.130</cell><cell>0.094</cell></row><row><cell>ctx-5-3</cell><cell>T5-canard</cell><cell>MonoT5</cell><cell>0.310</cell><cell>0.430</cell><cell>0.489</cell><cell>0.175</cell><cell>0.221</cell><cell>0.164</cell></row><row><cell></cell><cell></cell><cell>+ DuoT5</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.184</cell><cell>0.231</cell><cell>0.169</cell></row><row><cell></cell><cell></cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.094</cell><cell>0.130</cell><cell>0.094</cell></row><row><cell>ctx-5-3</cell><cell>T5-qrecc</cell><cell>MonoT5</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.179</cell><cell>0.218</cell><cell>0.177</cell></row><row><cell></cell><cell></cell><cell>+ DuoT5</cell><cell>-</cell><cell>-</cell><cell>-</cell><cell>0.166</cell><cell>0.211</cell><cell>0.161</cell></row></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" coords="5,246.19,420.34,105.22,8.64"><head>Table 3 :</head><label>3</label><figDesc>Reranking results</figDesc><table /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" coords="5,79.20,553.62,439.20,178.40"><head>Table 4 :</head><label>4</label><figDesc>Reranking results for </figDesc><table coords="5,86.51,553.62,424.58,62.48"><row><cell>query 1</cell><cell>query 2</cell><cell>reranker</cell><cell cols="6">DEV-22 EVAL-22 DEV-22 EVAL-22 DEV-22 EVAL-22</cell></row><row><cell cols="2">ctx-5-3 T5-canard</cell><cell>monoT5 + duoT5</cell><cell>0.221 0.231</cell><cell>0.236 0.389</cell><cell>0.164 0.169</cell><cell>0.274 0.440</cell><cell>0.175 0.184</cell><cell>0.136 0.200</cell></row><row><cell>ctx-5-3</cell><cell>T5-qrecc</cell><cell>monoT5 + duoT5</cell><cell>0.218 0.211</cell><cell>0.261 0.364</cell><cell>0.177 0.161</cell><cell>0.320 0.423</cell><cell>0.179 0.166</cell><cell>0.139 0.189</cell></row></table><note coords="5,79.20,668.19,439.20,9.03;5,79.20,679.54,439.20,8.64;5,79.20,690.50,439.20,8.64;5,79.20,701.46,439.20,8.64;5,79.20,712.42,439.20,8.64;5,79.20,723.38,205.73,8.64"><p><p><p>Reranker Results on EVAL-22: Although pre-submission analysis suggested that both monoT5 and duoT5 had comparable performance, on EVAL-22 (Table</p>4</p>) DuoT5 performed significantly better. The only difference between DEV-22 and EVAL-22 is that EVAL-22 had very sparse results, and it is hypothesized that this sparsity meant that the passages marked relevant in DEV-22 were passages with high relevance. Mono-T5 may therefore be able to identify clearly relevant passages, however DuoT5 may have a better understanding when it comes to documents which are relevant but of lower score.</p></note></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="2" xml:id="foot_0" coords="3,95.34,702.28,258.15,7.77"><p>https://huggingface.co/sentence-transformers/msmarco-distilbert-dot-v5</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="3" xml:id="foot_1" coords="3,95.34,713.15,197.90,7.77"><p>https://huggingface.co/castorini/monot5-base-msmarco</p></note>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="4" xml:id="foot_2" coords="3,95.34,724.02,183.95,7.77"><p>https://huggingface.co/castorini/duot5-3b-msmarco</p></note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div><head>ACKNOWLEDGEMENTS</head><p>This paper reports on research partially supported by <rs type="funder">Cambridge University Press &amp; Assessment</rs>, a department of The Chancellor, Masters, and <rs type="person">Scholars</rs> of the <rs type="institution">University of Cambridge</rs>. It is also partly supported by <rs type="funder">EPSRC</rs> Project <rs type="grantNumber">EP/V006223/1</rs> (<rs type="projectName">Multimodal Video Search by Examples</rs>).</p></div>
+			</div>
+			<listOrg type="funding">
+				<org type="funded-project" xml:id="_885nPM9">
+					<idno type="grant-number">EP/V006223/1</idno>
+					<orgName type="project" subtype="full">Multimodal Video Search by Examples</orgName>
+				</org>
+			</listOrg>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="6,79.20,478.03,439.20,8.64;6,89.16,488.81,429.24,8.82;6,89.16,499.77,100.17,8.82" xml:id="b0">
+	<monogr>
+		<title level="m" type="main" coord="6,119.57,488.99,322.87,8.64">Open-domain question answering goes conversational via question rewriting</title>
+		<author>
+			<persName coords=""><forename type="first">Raviteja</forename><surname>Anantha</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Svitlana</forename><surname>Vakulenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhucheng</forename><surname>Tu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Shayne</forename><surname>Longpre</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Pulman</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Srinivas</forename><surname>Chappidi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2010.04898</idno>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="6,79.20,520.75,439.20,8.64;6,89.16,531.53,429.24,8.82;6,89.16,542.66,275.96,8.64" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="6,382.63,520.75,135.77,8.64;6,89.16,531.70,158.43,8.64">Electra: Pre-training text encoders as discriminators rather than generators</title>
+		<author>
+			<persName coords=""><forename type="first">Kevin</forename><surname>Clark</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Minh-Thang</forename><surname>Luong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Quoc</forename><forename type="middle">V</forename><surname>Le</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Christopher</forename><forename type="middle">D</forename><surname>Manning</surname></persName>
+		</author>
+		<ptr target="https://openreview.net/forum?id=r1xMH1BtvB" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,268.91,531.53,219.57,8.59">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.20,563.46,439.20,8.64;6,89.16,574.24,107.51,8.82" xml:id="b2">
+	<analytic>
+		<title level="a" type="main" coord="6,287.31,563.46,231.09,8.64;6,89.16,574.42,36.78,8.64">TREC CAsT 2021: The Conversational Assistance Track Overview</title>
+		<author>
+			<persName coords=""><forename type="first">Jeffrey</forename><surname>Dalton</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jamie</forename><surname>Callan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,144.91,574.24,21.48,8.59">TREC</title>
+		<imprint>
+			<date type="published" when="2022">2022</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.20,595.22,439.20,8.64;6,89.16,606.00,429.24,8.82;6,89.16,618.08,331.26,8.92" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="6,329.56,595.22,188.84,8.64;6,89.16,606.18,83.93,8.64">Can You Unpack That? Learning to Rewrite Questions-in-Context</title>
+		<author>
+			<persName coords=""><forename type="first">Ahmed</forename><surname>Elgohary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Denis</forename><surname>Peskov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jordan</forename><surname>Boyd-Graber</surname></persName>
+		</author>
+		<ptr target="http://umiacs.umd.edu/˜jbg//docs/2019_emnlp_sequentialqa.pdf" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,201.63,606.00,218.84,8.59">Empirical Methods in Natural Language Processing</title>
+		<imprint>
+			<date type="published" when="2019">2019</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.20,637.76,410.99,8.82" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="6,295.70,637.94,124.62,8.64">Trec 2020 notebook: Cast track</title>
+		<author>
+			<persName coords=""><forename type="first">Sheng-Chieh</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jheng-Hong</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,438.43,637.76,21.48,8.59">TREC</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.20,658.74,439.20,8.64;6,89.16,669.52,370.00,8.82" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="6,505.67,658.74,12.73,8.64;6,89.16,669.70,269.62,8.64">Ms marco: A human generated machine reading comprehension dataset</title>
+		<author>
+			<persName coords=""><forename type="first">Tri</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Mir</forename><surname>Rosenberg</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Xia</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jianfeng</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Saurabh</forename><surname>Tiwary</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rangan</forename><surname>Majumder</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Li</forename><surname>Deng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,376.93,669.52,52.84,8.59">CoCo@ NIPs</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="6,79.20,690.50,439.20,8.64;6,89.16,701.28,429.24,8.82;6,89.16,712.42,429.24,8.64;6,89.16,723.38,385.71,8.64" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="6,364.66,690.50,153.74,8.64;6,89.16,701.46,116.78,8.64">Document Ranking with a Pretrained Sequence-to-Sequence Model</title>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Zhiying</forename><surname>Jiang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/2020.findings-emnlp.63</idno>
+		<ptr target="https://aclanthology.org/2020.findings-emnlp.63" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="6,224.44,701.28,289.48,8.59">Findings of the Association for Computational Linguistics: EMNLP 2020</title>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2020-11">November 2020</date>
+			<biblScope unit="page" from="708" to="718" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,85.34,439.20,8.64;7,89.16,96.12,347.42,8.82" xml:id="b7">
+	<monogr>
+		<title level="m" type="main" coord="7,295.29,85.34,223.11,8.64;7,89.16,96.30,179.79,8.64">The expando-mono-duo design pattern for text ranking with pretrained sequence-to-sequence models</title>
+		<author>
+			<persName coords=""><forename type="first">Ronak</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Rodrigo</forename><surname>Nogueira</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jimmy</forename><surname>Lin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:2101.05667</idno>
+		<imprint>
+			<date type="published" when="2021">2021</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,79.20,115.23,439.20,8.64;7,89.16,126.19,429.24,8.64;7,89.16,136.97,429.24,8.82;7,89.16,149.04,68.74,7.01" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,196.91,126.19,317.46,8.64">Exploring the limits of transfer learning with a unified text-to-text transformer</title>
+		<author>
+			<persName coords=""><forename type="first">Colin</forename><surname>Raffel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Noam</forename><surname>Shazeer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Adam</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Katherine</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Sharan</forename><surname>Narang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Michael</forename><surname>Matena</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Yanqi</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Wei</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Peter</forename><forename type="middle">J</forename><surname>Liu</surname></persName>
+		</author>
+		<ptr target="http://jmlr.org/papers/v21/20-074.html" />
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,89.16,136.97,153.94,8.59">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">140</biblScope>
+			<biblScope unit="page" from="1" to="67" />
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,167.03,439.20,8.64;7,89.16,177.81,429.24,8.82;7,89.16,188.77,429.24,8.82;7,89.16,199.91,322.50,8.64" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,353.99,167.03,164.41,8.64;7,89.16,177.99,88.15,8.64">SQuAD: 100,000+ questions for machine comprehension of text</title>
+		<author>
+			<persName coords=""><forename type="first">Pranav</forename><surname>Rajpurkar</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jian</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Konstantin</forename><surname>Lopyrev</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Percy</forename><surname>Liang</surname></persName>
+		</author>
+		<idno type="DOI">10.18653/v1/D16-1264</idno>
+		<ptr target="https://aclanthology.org/D16-1264" />
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,195.50,177.81,322.90,8.59;7,89.16,188.77,42.11,8.59">Proceedings of the 2016 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2016 Conference on Empirical Methods in Natural Language Processing<address><addrLine>Austin, Texas</addrLine></address></meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2016-11">November 2016</date>
+			<biblScope unit="page" from="2383" to="2392" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,218.84,439.20,8.64;7,89.16,229.80,429.24,8.64;7,89.16,240.58,429.24,8.82;7,89.16,251.54,342.78,8.82" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,400.72,218.84,117.68,8.64;7,89.16,229.80,429.24,8.64;7,89.16,240.76,124.18,8.64">Nils Reimers, Johannes Daxenberger, Iryna Gurevych, Nils Reimers, Iryna Gurevych, et al. Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks</title>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nandan</forename><surname>Thakur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,234.48,240.58,283.92,8.59;7,89.16,251.54,84.25,8.59">Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing</title>
+		<meeting>the 2019 Conference on Empirical Methods in Natural Language Processing</meeting>
+		<imprint>
+			<publisher>Association for Computational Linguistics</publisher>
+			<date type="published" when="2019">2019</date>
+			<biblScope unit="page" from="671" to="688" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,270.47,439.20,8.82;7,89.16,281.42,269.41,8.82" xml:id="b11">
+	<analytic>
+		<title level="a" type="main" coord="7,252.11,270.64,233.86,8.64">The probabilistic relevance framework: BM25 and beyond</title>
+		<author>
+			<persName coords=""><forename type="first">Stephen</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Hugo</forename><surname>Zaragoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,495.10,270.47,23.30,8.59;7,89.16,281.42,181.40,8.59">Foundations and Trends® in Information Retrieval</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="333" to="389" />
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,300.53,439.20,8.64;7,89.16,311.31,429.23,8.82;7,89.16,322.27,359.19,8.82" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,455.12,300.53,63.27,8.64;7,89.16,311.49,304.38,8.64">Beir: A heterogeneous benchmark for zero-shot evaluation of information retrieval models</title>
+		<author>
+			<persName coords=""><forename type="first">Nandan</forename><surname>Thakur</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Nils</forename><surname>Reimers</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Andreas</forename><surname>Rücklé</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Abhishek</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Iryna</forename><surname>Gurevych</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,413.97,311.31,104.43,8.59;7,89.16,322.27,289.18,8.59">Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track</title>
+		<imprint>
+			<biblScope unit="page">2021</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,79.20,341.38,439.20,8.64;7,89.16,352.34,429.24,8.64;7,89.16,363.12,245.83,8.82" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,137.17,352.34,361.04,8.64">Approximate Nearest Neighbor Negative Contrastive Learning for Dense Text Retrieval</title>
+		<author>
+			<persName coords=""><forename type="first">Lee</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Chenyan</forename><surname>Xiong</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Ye</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Kwok-Fung</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Jialin</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Paul</forename><forename type="middle">N</forename><surname>Bennett</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Junaid</forename><surname>Ahmed</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Arnold</forename><surname>Overwijk</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,89.16,363.12,216.77,8.59">International Conference on Learning Representations</title>
+		<imprint>
+			<date type="published" when="2020">2020</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

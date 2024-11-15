@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xml:space="preserve" xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 https://raw.githubusercontent.com/kermitt2/grobid/master/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main" coord="1,170.95,115.90,273.47,12.90;1,269.41,133.83,76.54,12.90;1,223.43,153.68,168.50,10.75">Style Breach Detection with Neural Sentence Embeddings Notebook for PAN at CLEF 2017</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName coords="1,248.46,190.08,46.54,8.64"><forename type="first">Kamil</forename><surname>Safin</surname></persName>
+							<email>safin@ap-team.ru</email>
+							<affiliation key="aff0">
+								<orgName type="department">Antiplagiat CJSC</orgName>
+								<orgName type="institution">Moscow Institute of Physics and Technology</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName coords="1,301.32,190.08,65.58,8.64"><forename type="first">Rita</forename><surname>Kuznetsova</surname></persName>
+							<email>kuznetsova@ap-team.ru</email>
+							<affiliation key="aff0">
+								<orgName type="department">Antiplagiat CJSC</orgName>
+								<orgName type="institution">Moscow Institute of Physics and Technology</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main" coord="1,170.95,115.90,273.47,12.90;1,269.41,133.83,76.54,12.90;1,223.43,153.68,168.50,10.75">Style Breach Detection with Neural Sentence Embeddings Notebook for PAN at CLEF 2017</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<idno type="MD5">23CF05E570BDD2EE77A40F83924B7AB9</idno>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<encodingDesc>
+			<appInfo>
+				<application version="0.8.0" ident="GROBID" when="2024-06-26T15:50+0000">
+					<desc>GROBID - A machine learning software for extracting information from scholarly documents</desc>
+					<ref target="https://github.com/kermitt2/grobid"/>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<profileDesc>
+			<abstract>
+<div xmlns="http://www.tei-c.org/ns/1.0"><p>The paper investigates method for the style breach detection task. We developed a method based on mapping sentences into high dimensional vector space. Each sentence vector depends on the previous and next sentence vectors. As main architecture for this mapping we use the pre-trained encoder-decoder model. Then we use these vectors for constructing an author style function and detecting outliers. Method was tested on the PAN-2017 collection for the style breach detection task.</p></div>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<facsimile>
+		<surface n="1" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="2" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="3" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="4" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="5" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="6" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+		<surface n="7" ulx="0.0" uly="0.0" lrx="612.0" lry="792.0"/>
+	</facsimile>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Developing approach for identifying different authors within a single document has been an open problem at the natural language processing. There were several tasks related to this problem in PAN competition:</p><p>1. Intrinsic plagiarism detection problem <ref type="bibr" coords="1,310.23,430.40,16.23,8.64" target="#b9">[10,</ref><ref type="bibr" coords="1,326.46,430.40,12.17,8.64" target="#b13">14,</ref><ref type="bibr" coords="1,338.63,430.40,8.12,8.64" target="#b6">7]</ref> -given a suspicious document that there exists one main author who wrote at least 70% of the text. Up to the other 30% may be written by other authors. The task is to determine whether the document is written by a single author or contains fragments by another authors. Unlike external plagiarism problem, the reference collection is unknown <ref type="bibr" coords="1,442.83,478.22,15.27,8.64" target="#b15">[16]</ref>. 2. Author diarization problem <ref type="bibr" coords="1,263.04,489.75,16.60,8.64" target="#b12">[13]</ref> -given the document, that written by n authors, no main author is given. The task is to determine exactly n authors in the document, where the number n can be known or unknown.</p><p>The most algorithm's work is based on the following scheme:</p><p>1. divide a text into blocks according to the segmentation scheme (e.g. sentences, ngrams, overlapping blocks), 2. map each block to feature space (e.g. n-gram frequency <ref type="bibr" coords="1,379.92,573.18,11.38,8.64" target="#b0">[1,</ref><ref type="bibr" coords="1,391.30,573.18,11.38,8.64" target="#b11">12]</ref>, punctuation, partof-speech tags count <ref type="bibr" coords="1,236.00,585.13,11.20,8.64" target="#b4">[5]</ref>) and combine features to an author style function (character 3 -gram frequencies, n -gram classes (i.e. the inverted frequencies), normalized word frequency class), 3. find critical values in the author style function to detect plagiarized blocks. The author diarization algorithms <ref type="bibr" coords="1,259.26,632.53,11.62,8.64" target="#b3">[4]</ref> use segmentation of classifier statistics if the number of authors is known and the clustering approach if the the number of authors is unknown.</p><p>PAN -2017 <ref type="bibr" coords="2,181.12,119.31,11.62,8.64" target="#b8">[9]</ref> competition provided modified problem statement -style breach detection <ref type="bibr" coords="2,152.51,131.27,15.27,8.64" target="#b14">[15]</ref>. Given a document, determine whether it is multi-authored, and if yes, find the borders where authors switch. For this task we proposed the approach based on neural phrase embeddings. First, we split a document into sentences and map each sentences in high dimensional vector space using pretrained encoder-decoder model named skipthoughts model from <ref type="bibr" coords="2,222.08,179.09,10.58,8.64" target="#b2">[3]</ref>. Each sentence vector depends on the sentence vector before and after it. After that, we construct the similarity matrix between all sentences in document and detect outliers.</p><p>The quality of the model was measured by W indowDif f <ref type="bibr" coords="2,365.36,214.95,11.62,8.64" target="#b5">[6]</ref> and W inP, W inR, W inF <ref type="bibr" coords="2,134.77,226.91,16.60,8.64" target="#b10">[11]</ref> metrics. All experiments were carried out on TIRA <ref type="bibr" coords="2,359.83,226.91,10.58,8.64" target="#b7">[8]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Style Breach Detection</head><p>Denote D the collection of text documents. Each document d ∈ D is written by unknown number of authors. The task is to find borders where authors switch. All documents may contain zero up to arbitrarily many switches. Thereby switches of authorship may only occur at the end of sentences, i.e. not within. We formulate style breach detection problem as finding sentences-outliers problem. Text document d ∈ D consists of sentences: d = ∪ N i=1 s i , where N -number of sentences in text. Each of sentences s i we vectorize, using pre-trained skip-thoughts model: s i → s i . Then, statistic for sentences stat(s i ) is built, and the problem is to find sentences, which statistic is bigger than statistic of other sentences, in other words, the goal is to find sentence vectors, which statistic is exceeded the threshold: stat(s i ) &gt; δ ⇒ s i is outlier.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Experiment</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Quality criteria</head><p>To evaluate the predicted style breaches two metrics were used:</p><p>-WindowDiff metric was proposed for general text segmentation evaluation. It gives an error rate (between 0 to 1, where 0 indicates a perfect prediction) for predicting borders by penalizing near-misses less than other/complete misses or extra borders. This metric computes as follows:</p><formula xml:id="formula_0" coords="2,151.70,589.16,336.09,30.32">W indowDif f (ref, hyp) = 1 N -k N -k i=1 (|b(ref i , ref i+k )-b(hyp i , hyp i+k )| &gt; 0),</formula><p>where b(i, j) represents the number of boundaries between positions i and j in the text and N represents the number of sentences in the text, ref and hyp are reference and hypothetical segmentations.</p><p>a more recent adaption of WindowDiff metric is WinPR metric. It enhances it by computing the common information retrieval measures precision (WinP) and recall (WinR) and thus allows to give a more detailed, qualitative statement about the prediction.</p><p>T rue P ositives</p><formula xml:id="formula_1" coords="3,163.99,173.55,304.31,71.31">= T P = N i=1-k min(R i,i+k , C i,i+k ), T rue N egatives = T N = -k(k -1) + N i=1-k (k -max(R i,i+k , C i,i+k )),</formula><formula xml:id="formula_2" coords="3,193.31,251.97,245.67,68.21">F alse P ositives = F P = N i=1-k max(0, C i,i+k -R i,i+k ), F alse N egatives = F N = N i=1-k max(0, R i,i+k -C i,i+k ),</formula><p>where R and C represent the number of boundaries from the reference and computed segmentations, respectively, in the i th window, up to a maximum of k; N is the number of content units and k represents the window size.</p><p>And WinP, WinR, WinF are computed as:</p><formula xml:id="formula_3" coords="3,256.71,500.76,117.60,79.11">W inP = T P T P + F P , W inR = T P T P + F N , W inF = 2 • W inP • W inR W inP + W inR</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Feature construction</head><p>The raw text document d is splitted into sentences s i using standart NLTK's sentence tokenizer <ref type="bibr" coords="3,174.90,626.39,10.58,8.64" target="#b1">[2]</ref>. Each sentence is vectorized by pre-trained skip-thoughts model <ref type="foot" coords="3,449.36,624.72,3.49,6.05" target="#foot_0">1</ref> . Skipthoughts model belongs to the class of encoder-decoder models. That is, encoder part maps word embeddings to a sentence vector and decoder generates surrounding sentences. Skip-thought vectors consist of two separate models. One is an unidirectional encoder with 2400 dimensions, which is referred to as uni-skip. The other is a bidirectional model with 2400 dimensions, that contains forward and backward encoders of 1200 dimensions each. This model is referred to as bi-skip.</p><p>Encoder. Let w 1 i , . . . , w N i be the words in sentence s i and N is the number of words in sentence. On each step, encoder generates hidden state h t i , which can be interpreted as the representation of the sequence w 1 i , . . . , w t i . And the final hidden state h N i := s i is the vector representation of the full sentence s i .</p><formula xml:id="formula_4" coords="4,231.05,254.00,249.55,41.48">z t = σ(W zx x t + W zh h t-1 ), r t = σ(W rx x t + W rh h t-1 ), ht = tanh(W x x t + W h (r t • h t-1 )),<label>(1)</label></formula><formula xml:id="formula_5" coords="4,256.04,300.06,128.97,12.28">h t = (1 -z t ) • h t-1 + z t • ht ,</formula><p>where (W zx , W zh , W rx , W rh , W x , W h ) -parameters of LSTM type encoder, x t -vector representation of word w t , (•) denotes a component-wise product.</p><p>Decoder. The decoder is a model which conditions on the encoder output s i . Decoder part is similar to encoder part, but applied to next s i+1 and previous s i-1 sentences.</p><p>Objective. Given a tuple (s i-1 , s i , s i+1 ) the objective optimized is the sum of the logprobabilities for the forward and backward sentences conditioned on the encoder representation.</p><p>Consider the dataset S = {s i } consisting of the sentences s i = (x 1 , . . . , x n ) where x k ∈ X is a word embedding. Our goal is to learn representations for variable-sized phrases in unsupervised training regime. We use the encoder-decoder model (GRU-GRU) described in <ref type="bibr" coords="4,212.11,459.09,10.58,8.64" target="#b2">[3]</ref>.</p><p>To build statistics, we construct pairwise distance matrix M = {m ij } N i,j=1 , where N is the number sentences in text. For each pair of sentences (s i , s j ) cosine distance is computed:</p><formula xml:id="formula_6" coords="4,271.38,506.53,72.60,9.72">m ij = cos(s i , s j ).</formula><p>Statistic for each sentence is built as mean cosine distance to all other sentences in text:</p><formula xml:id="formula_7" coords="4,248.63,536.29,118.10,26.88">stat(s i ) = 1 N j =i cos(s i , s j ).</formula><p>To detect borders, where authors switch, we accept the hypothesis, that sentences around the borders are differ from other sentences in text. Outliers are defined as sentences, which statistic is bigger than threshold δ: stat(s i ) &gt; δ ⇒ s i is outlier.</p><p>The example of work of the algorithm is shown below. Green line denotes threshold value, red lines mark detected sentences-outliers. Blue dots on pairwise distance matrix denote real borders.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Parameters Tuning</head><p>The threshold δ was tuned in order to maximize the final performance measure -W inF . Also, to compress model and analyze the properties of skip-thoughts vectors, different parts of these vectors were used for statistic calculations, specifically:</p><p>whole 4800-dimensional skip-thoughts vectors, -2400-dimensional uni-skip vectors, -2400-dimensional bi-skip vectors.</p><p>The results of parameter tuning are shown on figures below.    </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Results</head><p>The proposed algorithm was tested on <ref type="bibr" coords="6,294.28,449.74,42.25,8.64">PAN-2017</ref>  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>We proposed algorithm for style breach detection task. This method splits text into sentences, vectorizes it and then builds statistics for sentence vectors to detect sentencesoutliers.</p><p>The method was implemented to the PAN-2017 competition in style breach detection task. The model achieved WinF measure 0.28 on the test dataset.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0" coords="5,140.56,473.28,120.37,8.64;5,140.56,485.24,125.07,8.64;5,140.56,497.19,38.18,8.64;5,140.56,115.84,172.80,345.60"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Example of pairwise distance matrix and statistic for sentences</figDesc><graphic coords="5,140.56,115.84,172.80,345.60" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1" coords="5,308.80,473.28,166.00,8.64;5,308.80,485.24,166.00,8.64;5,308.80,497.19,145.79,8.64;5,308.80,115.84,172.80,345.60"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Pairwise distance matrix and statistic for sentences with threshold(green) and detected outliers(red)</figDesc><graphic coords="5,308.80,115.84,172.80,345.60" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2" coords="6,140.56,229.34,166.00,8.64;6,140.56,241.30,27.96,8.64;6,140.56,115.83,162.18,101.66"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Skip-vectors model parameters tuning.</figDesc><graphic coords="6,140.56,115.83,162.18,101.66" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3" coords="6,308.80,228.83,166.00,8.64;6,308.80,240.79,27.96,8.64;6,308.80,116.34,166.60,100.64"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Uni-vectors model parameters tuning.</figDesc><graphic coords="6,308.80,116.34,166.60,100.64" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4" coords="6,140.56,377.34,166.00,8.64;6,140.56,389.29,27.96,8.64;6,140.56,264.85,169.15,100.64"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Bi-vectors model parameters tuning.</figDesc><graphic coords="6,140.56,264.85,169.15,100.64" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5" coords="6,308.80,377.76,166.00,8.64;6,308.80,389.72,64.75,8.64;6,308.80,264.43,163.03,101.49"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: Uni-vectors model precise parameters tuning.</figDesc><graphic coords="6,308.80,264.43,163.03,101.49" type="bitmap" /></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" coords="6,134.77,449.74,345.82,106.20"><head>Table 1 :</head><label>1</label><figDesc>style breach detection training and test datasets. Results of its work are shown in table below. Results on PAN'17 data set</figDesc><table coords="6,211.72,496.14,191.91,33.34"><row><cell></cell><cell cols="2">WindowDiff WinP WinR WinF</cell></row><row><cell>training dataset</cell><cell>0.62</cell><cell>0.27 0.61 0.24</cell></row><row><cell>test dataset</cell><cell>0.53</cell><cell>0.37 0.54 0.28</cell></row></table></figure>
+			<note xmlns="http://www.tei-c.org/ns/1.0" place="foot" n="1" xml:id="foot_0" coords="3,144.73,657.93,226.46,6.31"><p>https://github.com/ryankiros/skip-thoughts</p></note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct coords="7,142.61,142.87,320.16,7.77;7,150.95,153.83,56.53,7.77" xml:id="b0">
+	<analytic>
+		<title level="a" type="main" coord="7,278.49,142.87,180.89,7.77">Intrinsic plagiarism detection using n-gram classes</title>
+		<author>
+			<persName coords=""><forename type="first">I</forename><surname>Bensalem</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Chikhi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,150.95,153.83,30.39,7.77">EMNLP</title>
+		<imprint>
+			<date type="published" when="2014">2014</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,164.79,337.98,7.77;7,150.95,175.75,101.61,7.77" xml:id="b1">
+	<analytic>
+		<title level="a" type="main" coord="7,183.24,164.79,117.87,7.77">Nltk: the natural language toolkit</title>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Bird</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,306.51,164.79,174.08,7.77;7,150.95,175.75,75.46,7.77">Proceedings of the COLING/ACL on Interactive presentation sessions</title>
+		<meeting>the COLING/ACL on Interactive presentation sessions</meeting>
+		<imprint>
+			<date type="published" when="2006">2006</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,186.71,320.70,7.77;7,150.95,197.67,223.80,7.77" xml:id="b2">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kiros</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">Y</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><forename type="middle">S</forename><surname>Zemel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Torralba</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Urtasun</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><surname>Fidler</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1506.06726</idno>
+		<title level="m" coord="7,150.95,197.67,73.57,7.77">Skip-thought vectors</title>
+		<imprint>
+			<date type="published" when="2015">2015</date>
+		</imprint>
+	</monogr>
+	<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct coords="7,142.61,208.63,333.28,7.77;7,150.95,219.59,264.89,7.77" xml:id="b3">
+	<analytic>
+		<title level="a" type="main" coord="7,360.08,208.63,115.81,7.77;7,150.95,219.59,112.66,7.77">Methods for intrinsic plagiarism detection and author diarization</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Kuznetsov</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Motrenko</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kuznetsova</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">V</forename><surname>Strijov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,269.24,219.59,100.29,7.77">Notebook for PAN at CLEF</title>
+		<imprint>
+			<date type="published" when="2016">2016. 2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,230.55,321.06,7.77;7,150.95,241.50,220.67,7.77" xml:id="b4">
+	<analytic>
+		<title level="a" type="main" coord="7,361.33,230.55,102.34,7.77;7,150.95,241.50,102.69,7.77">Approaches for intrinsic and external plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Oberreuter</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>L'huillier</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">S</forename><forename type="middle">A</forename><surname>Ríos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><forename type="middle">D</forename><surname>Velásquez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,259.39,241.50,86.09,7.77">Proceedings of the PAN</title>
+		<meeting>the PAN</meeting>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,252.46,318.93,7.77;7,150.95,263.42,173.71,7.77" xml:id="b5">
+	<analytic>
+		<title level="a" type="main" coord="7,247.48,252.46,214.06,7.77;7,150.95,263.42,46.08,7.77">A critique and improvement of an evaluation metric for text segmentation</title>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Pevzner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><forename type="middle">A</forename><surname>Hearst</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,203.12,263.42,95.40,7.77">Computational Linguistics</title>
+		<imprint>
+			<date type="published" when="2002">2002</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,274.38,333.25,7.77;7,150.95,285.34,302.24,7.77;7,150.95,296.30,306.14,7.77;7,150.95,307.26,55.53,7.77" xml:id="b6">
+	<analytic>
+		<title level="a" type="main" coord="7,334.02,285.34,119.17,7.77;7,150.95,296.30,127.99,7.77">Overview of the 4th international competition on plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Hagen</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">J</forename><surname>Kiesel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Oberländer</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tippmann</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Gupta</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,284.70,296.30,168.34,7.77">CLEF (Online Working Notes/Labs/Workshop)</title>
+		<imprint>
+			<publisher>Citeseer</publisher>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,318.22,318.18,7.77;7,150.95,329.18,318.49,7.77;7,150.95,340.14,329.64,7.77;7,150.95,351.09,318.18,7.77;7,150.95,362.05,308.41,7.77;7,150.95,373.01,215.67,7.77" xml:id="b7">
+	<analytic>
+		<title level="a" type="main" coord="7,409.87,318.22,50.92,7.77;7,150.95,329.18,318.49,7.77;7,150.95,340.14,57.89,7.77">Improving the Reproducibility of PAN&apos;s Shared Tasks: Plagiarism Detection, Author Identification, and Author Profiling</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">T</forename><surname>Gollub</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,220.71,351.09,248.42,7.77;7,150.95,362.05,291.41,7.77">Information Access Evaluation meets Multilinguality, Multimodality, and Visualization. 5th International Conference of the CLEF Initiative (CLEF 14)</title>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Kanoulas</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Lupu</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">P</forename><surname>Clough</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Sanderson</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">M</forename><surname>Hall</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">A</forename><surname>Hanbury</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">E</forename><surname>Toms</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2014-09">Sep 2014</date>
+			<biblScope unit="page" from="268" to="299" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.61,383.97,334.54,7.77;7,150.95,394.93,315.97,7.77;7,150.95,405.89,324.88,7.77;7,150.95,416.85,317.88,7.77;7,150.95,427.81,325.13,7.77;7,150.95,438.77,20.92,7.77" xml:id="b8">
+	<analytic>
+		<title level="a" type="main" coord="7,432.45,383.97,44.71,7.77;7,150.95,394.93,262.32,7.77">Overview of PAN&apos;17: Author Identification, Author Profiling, and Author Obfuscation</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">F</forename><surname>Rangel</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,150.95,416.85,317.88,7.77;7,150.95,427.81,162.70,7.77">Experimental IR Meets Multilinguality, Multimodality, and Interaction. 8th International Conference of the CLEF Initiative (CLEF 17)</title>
+		<editor>
+			<persName><forename type="first">G</forename><surname>Jones</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">S</forename><surname>Lawless</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">J</forename><surname>Gonzalo</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Kelly</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<meeting><address><addrLine>Berlin Heidelberg New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2017-09">Sep 2017</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,449.72,306.81,7.77;7,150.95,460.68,316.76,7.77;7,150.95,471.64,63.02,7.77" xml:id="b9">
+	<analytic>
+		<title level="a" type="main" coord="7,344.98,449.72,104.06,7.77;7,150.95,460.68,71.70,7.77">An evaluation framework for plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Barrón-Cedeño</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,228.41,460.68,239.30,7.77;7,150.95,471.64,36.87,7.77">Proceedings of the 23rd international conference on computational linguistics</title>
+		<meeting>the 23rd international conference on computational linguistics</meeting>
+		<imprint>
+			<date type="published" when="2010">2010</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,482.60,324.14,7.77;7,150.95,493.56,298.11,7.77;7,150.95,504.52,111.43,7.77" xml:id="b10">
+	<analytic>
+		<title level="a" type="main" coord="7,241.35,482.60,154.99,7.77">Getting more from segmentation evaluation</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Scaiano</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">D</forename><surname>Inkpen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,402.14,482.60,64.23,7.77;7,150.95,493.56,298.11,7.77;7,150.95,504.52,85.28,7.77">Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies</title>
+		<imprint>
+			<date type="published" when="2012">2012</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,515.48,310.29,7.77" xml:id="b11">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<title level="m" coord="7,207.24,515.48,219.14,7.77">Intrinsic plagiarism detection using character n-gram profiles</title>
+		<imprint>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,526.44,317.59,7.77;7,150.95,537.40,310.36,7.77;7,150.95,548.35,69.97,7.77" xml:id="b12">
+	<analytic>
+		<title level="a" type="main" coord="7,199.28,537.40,192.89,7.77">Clustering by authorship within and across documents</title>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,398.53,537.40,62.79,7.77;7,150.95,548.35,43.83,7.77">CEUR Workshop Proceedings</title>
+		<imprint>
+			<date type="published" when="2016">2016</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,559.31,313.45,7.77;7,150.95,570.27,316.32,7.77" xml:id="b13">
+	<analytic>
+		<title level="a" type="main" coord="7,383.59,559.31,72.10,7.77;7,150.95,570.27,175.56,7.77">Overview of the 3rd international competition on plagiarism detection</title>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><surname>Barron</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">L</forename><surname>Cedeno</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">A</forename><surname>Eiselt</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">P</forename><surname>Rosso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m" coord="7,332.26,570.27,108.86,7.77">CEUR Workshop Proceedings</title>
+		<imprint>
+			<date type="published" when="2011">2011</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,581.23,317.59,7.77;7,150.95,592.19,315.65,7.77;7,150.95,603.15,151.56,7.77" xml:id="b14">
+	<monogr>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Tschuggnall</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">E</forename><surname>Stamatatos</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Verhoeven</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">W</forename><surname>Daelemans</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">G</forename><surname>Specht</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">B</forename><surname>Stein</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Potthast</surname></persName>
+		</author>
+		<title level="m" coord="7,412.29,592.19,54.32,7.77;7,150.95,603.15,151.56,7.77">Working Notes Papers of the CLEF 2017 Evaluation Labs</title>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Cappellato</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">N</forename><surname>Ferro</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">L</forename><surname>Goeuriot</surname></persName>
+		</editor>
+		<editor>
+			<persName><forename type="first">T</forename><surname>Mandl</surname></persName>
+		</editor>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct coords="7,142.24,614.11,335.88,7.77;7,150.95,625.07,202.41,7.77" xml:id="b15">
+	<analytic>
+		<title level="a" type="main" coord="7,325.70,614.11,152.41,7.77;7,150.95,625.07,92.47,7.77">External and intrinsic plagiarism detection using vector space models</title>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Zechner</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Muhr</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">R</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName coords=""><forename type="first">M</forename><surname>Granitzer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j" coord="7,249.68,625.07,50.56,7.77">Proc. SEPLN</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<date type="published" when="2009">2009</date>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
